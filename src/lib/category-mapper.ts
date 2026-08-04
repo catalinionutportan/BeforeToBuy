@@ -44,8 +44,8 @@ function inferFromKeywords(text: string): string | null {
   let bestId: string | null = null;
   let bestScore = 0;
 
-  for (const module of SHOPPING_CATEGORIES) {
-    for (const sub of module.subcategories) {
+  for (const categoryModule of SHOPPING_CATEGORIES) {
+    for (const sub of categoryModule.subcategories) {
       let score = 0;
       for (const kw of sub.searchKeywords) {
         if (text.includes(kw.toLowerCase())) score += kw.length > 6 ? 2 : 1;
@@ -95,10 +95,10 @@ export function mapToBeforeToBuyCategory(input: CategoryMappingInput): string {
 
 /** Human-readable label for a mapped category id */
 export function getMappedCategoryLabel(subcategoryId: string): string {
-  for (const module of SHOPPING_CATEGORIES) {
-    const sub = module.subcategories.find((s) => s.id === subcategoryId);
+  for (const categoryModule of SHOPPING_CATEGORIES) {
+    const sub = categoryModule.subcategories.find((s) => s.id === subcategoryId);
     if (sub) return sub.label;
-    if (module.id === subcategoryId) return module.label;
+    if (categoryModule.id === subcategoryId) return categoryModule.label;
   }
   return subcategoryId;
 }
