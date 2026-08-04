@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Cookie, Database, ShieldCheck } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 
 export const metadata: Metadata = createPageMetadata({
@@ -23,6 +24,8 @@ export default function CookiesPage() {
             Last updated: August 2026 — BeforeToBuy.com (PortanX - Catalin Portan, Switzerland)
           </p>
         </div>
+
+        <LegalDraftNotice />
 
         <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-6 text-sm text-slate-700 leading-relaxed">
           <section className="space-y-2">

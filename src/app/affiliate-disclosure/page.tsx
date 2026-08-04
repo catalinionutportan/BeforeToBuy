@@ -8,7 +8,9 @@ import {
   Info,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
+import { AFFILIATE_NETWORKS, COMPANY } from "@/lib/company-info";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Affiliate Disclosure & Transparency Statement | BeforeToBuy.com",
@@ -34,6 +36,8 @@ export default function AffiliateDisclosurePage() {
           </p>
         </div>
 
+        <LegalDraftNotice />
+
         {/* Main Disclosure Body */}
         <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-8 text-sm text-slate-700 leading-relaxed">
           
@@ -44,13 +48,13 @@ export default function AffiliateDisclosurePage() {
               1. 100% Free Service & Commission Model
             </h2>
             <p className="text-xs sm:text-sm text-slate-600">
-              <strong>BeforeToBuy.com</strong> is operated by <strong>PortanX - Catalin Portan</strong> (UID: CHE-373.501.736), based in Bern, Switzerland.
+              <strong>{COMPANY.platformName}</strong> is operated by <strong>{COMPANY.legalName}</strong> (UID: {COMPANY.uid}), based in Bern, Switzerland.
             </p>
             <p className="text-xs sm:text-sm text-slate-600">
               Our website is <strong>completely free for consumers</strong>. We do not sell products directly, collect payment details, or charge user subscription fees. Instead, we act as an independent price aggregator and shopping search directory.
             </p>
             <p className="text-xs sm:text-sm text-slate-600">
-              When you click on an outbound product offer link or "Buy" button on BeforeToBuy.com, you are redirected to the official merchant's checkout page (e.g., Digitec Galaxus, Amazon, MediaMarkt, Brack, eMAG, etc.). If you complete a qualifying purchase on the merchant's site, we may receive a referral commission from the merchant or affiliate network.
+              When you click on an outbound product offer link or &quot;Search Store&quot; button on {COMPANY.platformName}, you are redirected to the official merchant&apos;s website. Live affiliate deep links (e.g. Brack.ch via AWIN) are used where configured; other merchants may use search redirects until feeds are connected. If you complete a qualifying purchase on the merchant&apos;s site, we may receive a referral commission from the merchant or affiliate network.
             </p>
             <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-xs font-semibold text-slate-800 flex items-center gap-2">
               <Info className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -105,33 +109,15 @@ export default function AffiliateDisclosurePage() {
               3. Participating Affiliate Networks & Merchant Programs
             </h2>
             <p className="text-xs text-slate-600">
-              BeforeToBuy.com is preparing integrations with international and regional affiliate networks:
+              {COMPANY.platformName} participates in or is preparing integrations with affiliate networks. Brack.ch (CH) uses AWIN live feed links where configured:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span><strong>AWIN Network</strong> (Europe / CH / DE / FR / UK)</span>
-              </div>
-              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span><strong>Amazon Associates</strong> (DE, FR, UK, US, IT)</span>
-              </div>
-              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span><strong>Digitec Galaxus Partner Network</strong> (Switzerland)</span>
-              </div>
-              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span><strong>2Performant / Profitshare</strong> (Romania)</span>
-              </div>
-              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span><strong>CJ Affiliate</strong> (Commission Junction US/EU)</span>
-              </div>
-              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span><strong>Effinity / Tradedoubler</strong> (France / EU)</span>
-              </div>
+              {AFFILIATE_NETWORKS.map((network) => (
+                <div key={network} className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden="true" />
+                  <span>{network}</span>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -142,11 +128,11 @@ export default function AffiliateDisclosurePage() {
               4. Responsible Company Information
             </h2>
             <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 text-xs text-slate-700 space-y-1">
-              <p><strong>Company:</strong> PortanX - Catalin Portan</p>
-              <p><strong>Address:</strong> Flurstrasse 24, CH-3014 Bern, Switzerland</p>
-              <p><strong>UID:</strong> CHE-373.501.736 | <strong>HR-Nummer:</strong> CH-036.1.108.540-6</p>
-              <p><strong>Email Contact:</strong> <a href="mailto:admin@portanx.com" className="text-emerald-700 font-bold underline">admin@portanx.com</a></p>
-              <p><strong>Company Website:</strong> <a href="https://portanx.com" target="_blank" rel="noopener noreferrer" className="text-emerald-700 font-bold underline">https://portanx.com</a></p>
+              <p><strong>Company:</strong> {COMPANY.legalName}</p>
+              <p><strong>Address:</strong> {COMPANY.address.formatted}</p>
+              <p><strong>UID:</strong> {COMPANY.uid} | <strong>HR-Nr:</strong> {COMPANY.hrNumber}</p>
+              <p><strong>Email:</strong> <a href={`mailto:${COMPANY.email}`} className="text-emerald-700 font-bold underline">{COMPANY.email}</a></p>
+              <p><strong>Company Website:</strong> <a href={COMPANY.website} target="_blank" rel="noopener noreferrer" className="text-emerald-700 font-bold underline">{COMPANY.website}</a></p>
             </div>
           </div>
 

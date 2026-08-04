@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShieldCheck, Lock, MapPin, Database, Eye, Cookie, Mail } from "lucide-react";
+import { ShieldCheck, Lock, MapPin, Database, Eye, Cookie, Mail, Clock } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
+import { COMPANY, DATA_PROCESSORS, LEGAL_CONTACT } from "@/lib/company-info";
+import { DSAR_RESPONSE_DAYS, RETENTION_SCHEDULE } from "@/lib/legal-config";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Privacy Policy (Datenschutz) | BeforeToBuy.com",
@@ -24,6 +27,8 @@ export default function PrivacyPage() {
           </p>
         </div>
 
+        <LegalDraftNotice />
+
         <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-6 text-sm text-slate-700 leading-relaxed">
           <section className="space-y-2">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -31,15 +36,15 @@ export default function PrivacyPage() {
               1. Verantwortliche Stelle / Data Controller
             </h2>
             <p className="text-xs text-slate-600">
-              Verantwortlich für die Datenverarbeitung auf der Webseite <strong>BeforeToBuy.com</strong> ist:
+              Verantwortlich für die Datenverarbeitung auf der Webseite <strong>{COMPANY.platformName}</strong> ist:
               <br />
-              <strong>PortanX - Catalin Portan</strong>
+              <strong>{COMPANY.legalName}</strong>
               <br />
-              Flurstrasse 24, CH-3014 Bern, Schweiz
+              {COMPANY.address.formattedDe}
               <br />
-              UID: CHE-373.501.736 | E-Mail:{" "}
-              <a href="mailto:admin@portanx.com" className="text-emerald-700 underline">
-                admin@portanx.com
+              UID: {COMPANY.uid} | E-Mail:{" "}
+              <a href={`mailto:${LEGAL_CONTACT.privacy}`} className="text-emerald-700 underline">
+                {LEGAL_CONTACT.privacy}
               </a>
             </p>
           </section>
@@ -84,18 +89,32 @@ export default function PrivacyPage() {
             </p>
             <p className="text-xs text-slate-600 font-semibold mt-2">Sub-processors / recipients:</p>
             <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
-              <li>Vercel Inc. — hosting & CDN (USA/EU)</li>
-              <li>ipapi.co — IP geolocation (Location consent)</li>
-              <li>OpenStreetMap Foundation (Nominatim) — reverse geocoding (Location consent)</li>
-              <li>Resend — contact form email (when configured)</li>
-              <li>Merchant partners — Amazon, Digitec Galaxus, MediaMarkt, eMAG, etc. (Affiliate consent)</li>
+              {DATA_PROCESSORS.map((processor) => (
+                <li key={processor.name}>
+                  <strong>{processor.name}</strong> — {processor.purpose} ({processor.region})
+                </li>
+              ))}
             </ul>
           </section>
 
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Lock className="w-5 h-5 text-emerald-600" />
-              5. Server Logs & Contact Data
+              <Clock className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              5. Retention
+            </h2>
+            <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
+              {RETENTION_SCHEDULE.map((item) => (
+                <li key={item.data}>
+                  <strong>{item.data}:</strong> {item.retention}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Lock className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              6. Server Logs & Contact Data
             </h2>
             <p className="text-xs text-slate-600">
               Vercel edge logs may temporarily record IP address, browser type, referrer, and timestamps for security and stability. Contact form data (name, email, message) is processed to respond to your inquiry and deleted when no longer needed.
@@ -105,7 +124,7 @@ export default function PrivacyPage() {
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Eye className="w-5 h-5 text-emerald-600" />
-              6. Your Rights & DSAR Procedure
+              7. Your Rights & DSAR Procedure
             </h2>
             <p className="text-xs text-slate-600">
               Under Swiss nDSG and EU GDPR you may request access, rectification, deletion, restriction, portability, or object to processing of your personal data.
@@ -118,8 +137,8 @@ export default function PrivacyPage() {
               <ol className="list-decimal list-inside space-y-1 text-slate-600 pl-1">
                 <li>
                   Email{" "}
-                  <a href="mailto:admin@portanx.com" className="text-emerald-700 underline font-semibold">
-                    admin@portanx.com
+                  <a href={`mailto:${LEGAL_CONTACT.dsar}`} className="text-emerald-700 underline font-semibold">
+                    {LEGAL_CONTACT.dsar}
                   </a>{" "}
                   or use the{" "}
                   <Link href="/contact" className="text-emerald-700 underline font-semibold">
@@ -129,7 +148,7 @@ export default function PrivacyPage() {
                 </li>
                 <li>Include your name, contact email, and the right you wish to exercise.</li>
                 <li>We may ask for reasonable identity verification before fulfilling the request.</li>
-                <li>We respond within <strong>30 days</strong> (GDPR Art. 12; nDSG comparable timeframe).</li>
+                <li>We respond within <strong>{DSAR_RESPONSE_DAYS} days</strong> (GDPR Art. 12; nDSG comparable timeframe).</li>
               </ol>
             </div>
           </section>

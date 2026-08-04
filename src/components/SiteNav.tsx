@@ -5,23 +5,17 @@ import {
   Layers,
   Store,
   Mail,
-  Info,
-  Building2,
-  Lock,
-  FileText,
-  Cookie,
+  LifeBuoy,
+  Scale,
 } from "lucide-react";
 
 const NAV_LINKS = [
   { href: "/about", label: "About", icon: HelpCircle },
   { href: "/categories", label: "Categories", icon: Layers },
   { href: "/stores", label: "Stores", icon: Store },
+  { href: "/help", label: "Help", icon: LifeBuoy },
   { href: "/contact", label: "Contact", icon: Mail },
-  { href: "/affiliate-disclosure", label: "Affiliate", icon: Info },
-  { href: "/impressum", label: "Impressum", icon: Building2 },
-  { href: "/privacy", label: "Privacy", icon: Lock },
-  { href: "/cookies", label: "Cookies", icon: Cookie },
-  { href: "/terms", label: "Terms", icon: FileText },
+  { href: "/legal", label: "Legal", icon: Scale },
 ] as const;
 
 export function SiteNav() {

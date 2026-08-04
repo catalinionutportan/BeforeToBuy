@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { FileText, CheckCircle, AlertTriangle, Scale } from "lucide-react";
+import Link from "next/link";
+import { FileText, CheckCircle, AlertTriangle, Scale, Users, Copyright } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
+import { COMPANY } from "@/lib/company-info";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Terms & Conditions (AGB) | BeforeToBuy.com",
@@ -11,7 +14,7 @@ export const metadata: Metadata = createPageMetadata({
 
 export default function TermsPage() {
   return (
-    <PageShell>
+    <PageShell maxWidthClass="max-w-3xl">
       <div className="space-y-8">
         <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-md border border-slate-800 space-y-2">
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
@@ -19,58 +22,120 @@ export default function TermsPage() {
           </span>
           <h1 className="text-3xl font-extrabold">Nutzungsbedingungen & AGB</h1>
           <p className="text-slate-300 text-sm">
-            Nutzungsbedingungen der Preisvergleichs-Plattform BeforeToBuy.com
+            Nutzungsbedingungen der Preisvergleichs-Plattform {COMPANY.platformName}
           </p>
         </div>
 
-        {/* Main Content */}
+        <LegalDraftNotice />
+
         <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-6 text-sm text-slate-700 leading-relaxed">
-          
-          <div className="space-y-2">
+          <section className="space-y-2">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-emerald-600" />
+              <CheckCircle className="w-5 h-5 text-emerald-600" aria-hidden="true" />
               1. Leistungsbeschreibung / Free Service
             </h2>
             <p className="text-xs text-slate-600">
-              <strong>BeforeToBuy.com</strong> (betrieben von <strong>PortanX - Catalin Portan</strong>) ist ein kostenloser Online-Preisvergleichsdienst. Wir verkaufen selbst keine Produkte, sondern vergleichen Preise, Rabatte, Gutscheine und Click & Collect-Verfügbarkeiten externer Online-Händler und Partner-Netzwerke.
+              <strong>{COMPANY.platformName}</strong> (betrieben von <strong>{COMPANY.legalName}</strong>, UID{" "}
+              {COMPANY.uid}) ist ein kostenloser Online-Preisvergleichsdienst in Beta/Demo. Wir verkaufen selbst
+              keine Produkte, sondern vergleichen Preise, Rabatte und Click & Collect-Verfügbarkeiten externer
+              Online-Händler. Einige Angebote stammen aus Demo-Katalogdaten; Brack.ch (CH) kann Live-Preise aus
+              einem AWIN-Feed anzeigen (als &quot;Live&quot; gekennzeichnet).
             </p>
-          </div>
+          </section>
 
-          <div className="space-y-2 border-t border-slate-100 pt-4">
+          <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-emerald-600" />
+              <AlertTriangle className="w-5 h-5 text-emerald-600" aria-hidden="true" />
               2. Preise & Produkte (Keine Gewähr)
             </h2>
             <p className="text-xs text-slate-600">
-              Alle Angaben zu Preisen, Lieferzeiten, Versandkosten, Gutscheincodes und Verfügbarkeiten stammen derzeit aus einem Demo-Katalog. Live-Händler-Feeds und Schnittstellen (APIs) werden schrittweise angebunden.
+              Alle Angaben zu Preisen, Lieferzeiten, Versandkosten und Verfügbarkeiten sind indikativ. Live-Feed-
+              und Demo-Daten können von den aktuellen Händlerpreisen abweichen.{" "}
+              <strong>Massgeblich ist stets der Preis auf der Zielseite des Händlers zum Zeitpunkt des Kaufabschlusses.</strong>{" "}
+              Siehe auch{" "}
+              <Link href="/disclaimer" className="text-emerald-700 underline font-semibold">
+                Price & Service Disclaimer
+              </Link>
+              .
             </p>
-            <p className="text-xs text-slate-600">
-              Da sich Preise und Lagerbestände beim Händler sehr schnell ändern können, übernimmt BeforeToBuy.com keine Gewähr für die ständige Richtigkeit der angezeigten Daten. <strong>Massgeblich ist stets der Preis und die Bedingung auf der Zielseite des jeweiligen Händlers im Zeitpunkt des Kaufabschlusses.</strong>
-            </p>
-          </div>
+          </section>
 
-          <div className="space-y-2 border-t border-slate-100 pt-4">
+          <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-emerald-600" />
+              <FileText className="w-5 h-5 text-emerald-600" aria-hidden="true" />
               3. Kaufverträge mit Drittanbietern
             </h2>
             <p className="text-xs text-slate-600">
-              Kaufverträge kommen ausschliesslich zwischen dem Nutzer und dem jeweiligen Online-Händler (z. B. Digitec Galaxus, Amazon, MediaMarkt, eMAG) zustande. BeforeToBuy.com ist weder Vertragspartei noch Vertreter der Händler. Reklamationen, Widerrufe oder Garantieansprüche sind direkt an den jeweiligen Händler zu richten.
+              Kaufverträge kommen ausschliesslich zwischen dem Nutzer und dem jeweiligen Online-Händler zustande.
+              {COMPANY.platformName} ist weder Vertragspartei noch Vertreter der Händler. Versand, Zahlung,
+              Rückgabe, Garantie und Gewährleistung werden vom Händler geregelt. Siehe{" "}
+              <Link href="/help" className="text-emerald-700 underline font-semibold">
+                Help & FAQ
+              </Link>
+              .
             </p>
-          </div>
+          </section>
 
-          <div className="space-y-2 border-t border-slate-100 pt-4">
+          <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Scale className="w-5 h-5 text-emerald-600" />
-              4. Anwendbares Recht & Gerichtsstand
+              <Users className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              4. Nutzerpflichten
+            </h2>
+            <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
+              <li>Nutzung nur für legale, persönliche Preisvergleichszwecke</li>
+              <li>Kein automatisiertes Scraping, Überlastung oder Missbrauch der APIs</li>
+              <li>Keine Umgehung von Consent- oder Rate-Limit-Mechanismen</li>
+              <li>Aktuelle{" "}
+                <Link href="/privacy" className="text-emerald-700 underline font-semibold">
+                  Privacy Policy
+                </Link>{" "}
+                und{" "}
+                <Link href="/cookies" className="text-emerald-700 underline font-semibold">
+                  Cookie Policy
+                </Link>{" "}
+                beachten
+              </li>
+            </ul>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Copyright className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              5. Geistiges Eigentum
             </h2>
             <p className="text-xs text-slate-600">
-              Für diese Nutzungsbedingungen sowie die Nutzung der Plattform gilt ausschliesslich <strong>Schweizerisches Recht</strong>. Ausschliesslicher Gerichtsstand für alle Streitigkeiten ist <strong>Bern, Schweiz</strong>.
+              Inhalte, Marken und Software auf {COMPANY.platformName} sind durch Urheberrecht geschützt.
+              Produktbilder und -marken gehören den jeweiligen Rechteinhabern. Affiliate-Links führen zu
+              Drittanbieter-Inhalten.
             </p>
-          </div>
+          </section>
 
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Scale className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              6. Anwendbares Recht & Gerichtsstand
+            </h2>
+            <p className="text-xs text-slate-600">
+              Es gilt ausschliesslich <strong>Schweizerisches Recht</strong>. Ausschliesslicher Gerichtsstand
+              ist <strong>Bern, Schweiz</strong>. Zwingende Verbraucherschutzvorschriften Ihres Wohnsitzlandes
+              (insb. EU/EWR) bleiben unberührt, soweit anwendbar.
+            </p>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900">7. Änderungen & Kontakt</h2>
+            <p className="text-xs text-slate-600">
+              Wir können diese Bedingungen bei Bedarf aktualisieren. Beschwerden:{" "}
+              <Link href="/complaints" className="text-emerald-700 underline font-semibold">
+                Complaints Procedure
+              </Link>
+              . Kontakt:{" "}
+              <a href={`mailto:${COMPANY.email}`} className="text-emerald-700 underline font-semibold">
+                {COMPANY.email}
+              </a>
+            </p>
+          </section>
         </div>
-
       </div>
     </PageShell>
   );

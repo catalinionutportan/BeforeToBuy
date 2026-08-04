@@ -12,7 +12,9 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { CompanyDetailsCard } from "@/components/CompanyDetailsCard";
 import { createPageMetadata } from "@/lib/metadata";
+import { COMPANY } from "@/lib/company-info";
 
 export const metadata: Metadata = createPageMetadata({
   title: "About Us & How It Works | BeforeToBuy.com",
@@ -34,7 +36,7 @@ export default function AboutPage() {
             Smart Price Comparison & GPS Shopping Before You Buy
           </h1>
           <p className="text-slate-300 text-base max-w-2xl leading-relaxed">
-            BeforeToBuy.com is a free, multi-country price comparison engine in Beta/Demo. It helps you explore illustrative deals, sample vouchers, and estimated Click & Collect distances before completing a purchase on the merchant site.
+            BeforeToBuy.com is a free, multi-country price comparison engine in Beta/Demo with a hybrid catalog: Brack.ch (CH) may show live AWIN feed prices; other merchants remain illustrative until connected.
           </p>
         </div>
 
@@ -62,7 +64,7 @@ export default function AboutPage() {
                 Search or Browse Products
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Enter any product name, brand, or category. During Beta/Demo, results come from our sample catalog across Switzerland, Germany, France, Romania, UK, and USA.
+                Enter any product name, brand, or category. During Beta/Demo, most results come from our sample catalog; Brack.ch offers in Switzerland may show live feed prices labeled &quot;Live&quot;.
               </p>
             </div>
 
@@ -87,10 +89,10 @@ export default function AboutPage() {
               </div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                 <ExternalLink className="w-4 h-4 text-emerald-600" />
-                Click "Buy" to Official Merchant
+                Click &quot;Search Store&quot; to Official Merchant
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                We present the lowest demo price in our catalog. Clicking "Buy" opens a search or product page on the official retailer's website (e.g., Digitec Galaxus, Amazon, Brack, eMAG).
+                We present the lowest price in our catalog (live or demo). Clicking &quot;Search Store&quot; opens the official retailer website (e.g., Digitec Galaxus, Amazon, Brack, eMAG).
               </p>
             </div>
 
@@ -141,44 +143,25 @@ export default function AboutPage() {
         </div>
 
         {/* Company & Entity Information */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-6">
+        <div className="space-y-4">
           <div className="border-b border-slate-100 pb-4">
             <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-              <Building2 className="w-6 h-6 text-emerald-600" />
+              <Building2 className="w-6 h-6 text-emerald-600" aria-hidden="true" />
               Company Details & Operator
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs text-slate-700">
-            <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-              <span className="font-bold text-slate-900 block text-sm">Operating Entity:</span>
-              <p className="leading-relaxed text-slate-600">
-                <strong>PortanX - Catalin Portan</strong><br />
-                Sole Proprietorship (Einzelunternehmen)<br />
-                Flurstrasse 24, CH-3014 Bern<br />
-                Switzerland
-              </p>
-            </div>
+          <CompanyDetailsCard />
 
-            <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-              <span className="font-bold text-slate-900 block text-sm">Registry & Registration:</span>
-              <p className="leading-relaxed text-slate-600">
-                <strong>UID:</strong> CHE-373.501.736<br />
-                <strong>HR-Nummer:</strong> CH-036.1.108.540-6<br />
-                <strong>Commercial Registry:</strong> Bern, Switzerland<br />
-                <strong>Official Website:</strong>{" "}
-                <a href="https://portanx.com" target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline font-semibold">
-                  portanx.com
-                </a>
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
             <div className="text-xs text-slate-500">
-              Questions or merchant partnership inquiries? Reach us at{" "}
-              <a href="mailto:admin@portanx.com" className="text-emerald-700 font-bold hover:underline">
-                admin@portanx.com
+              Questions, legal documents, or merchant partnerships?{" "}
+              <Link href="/legal" className="text-emerald-700 font-bold hover:underline">
+                Legal hub
+              </Link>{" "}
+              ·{" "}
+              <a href={`mailto:${COMPANY.email}`} className="text-emerald-700 font-bold hover:underline">
+                {COMPANY.email}
               </a>
             </div>
             <Link
@@ -186,7 +169,7 @@ export default function AboutPage() {
               className="bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-colors inline-flex items-center gap-1.5"
             >
               <span>Contact Us</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
             </Link>
           </div>
         </div>

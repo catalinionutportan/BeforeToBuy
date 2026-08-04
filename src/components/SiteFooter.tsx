@@ -10,6 +10,8 @@ import {
   FileText,
   Shield,
   Cookie,
+  Scale,
+  LifeBuoy,
 } from "lucide-react";
 import { ManageCookiePreferencesButton } from "@/components/ManageCookiePreferencesButton";
 
@@ -55,12 +57,20 @@ export function SiteFooter() {
               <Store className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" /> Stores
             </Link>
             <span aria-hidden="true">•</span>
+            <Link href="/help" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+              <LifeBuoy className="w-3.5 h-3.5" aria-hidden="true" /> Help
+            </Link>
+            <span aria-hidden="true">•</span>
             <Link href="/contact" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
               <Mail className="w-3.5 h-3.5" aria-hidden="true" /> Contact
             </Link>
             <span aria-hidden="true">•</span>
             <Link href="/affiliate-disclosure" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
               <Info className="w-3.5 h-3.5" aria-hidden="true" /> Affiliate
+            </Link>
+            <span aria-hidden="true">•</span>
+            <Link href="/legal" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+              <Scale className="w-3.5 h-3.5" aria-hidden="true" /> Legal
             </Link>
             <span aria-hidden="true">•</span>
             <Link href="/impressum" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">

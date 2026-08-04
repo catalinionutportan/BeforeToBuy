@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
-import { Building2, Mail, MapPin, FileText, Globe } from "lucide-react";
+import { Building2, Scale } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { CompanyDetailsCard } from "@/components/CompanyDetailsCard";
+import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
+import { COMPANY } from "@/lib/company-info";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Impressum | BeforeToBuy.com",
@@ -23,92 +26,42 @@ export default function ImpressumPage() {
           </p>
         </div>
 
-        {/* Company Details Card */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-6">
-          <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-              <Building2 className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">PortanX - Catalin Portan</h2>
-              <p className="text-xs text-slate-500 font-medium">Einzelunternehmen (Sole Proprietorship)</p>
-            </div>
-          </div>
+        <LegalDraftNotice />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-700">
-            {/* Address */}
-            <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-              <div className="font-bold text-slate-900 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-emerald-600" />
-                <span>Unternehmensadresse / Address</span>
-              </div>
-              <p className="text-slate-600 leading-relaxed text-xs">
-                PortanX - Catalin Portan<br />
-                Flurstrasse 24<br />
-                CH-3014 Bern<br />
-                Kanton Bern, Schweiz / Switzerland
-              </p>
-            </div>
+        <CompanyDetailsCard />
 
-            {/* Commercial Register */}
-            <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-              <div className="font-bold text-slate-900 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-emerald-600" />
-                <span>Handelsregister / HR Infos</span>
-              </div>
-              <div className="text-slate-600 leading-relaxed text-xs space-y-1">
-                <p><strong>Status:</strong> Aktiv / Active</p>
-                <p><strong>Sitz:</strong> Bern (Kanton Bern)</p>
-                <p><strong>UID:</strong> CHE-373.501.736</p>
-                <p><strong>HR-Nummer:</strong> CH-036.1.108.540-6</p>
-                <p><strong>Eintragung:</strong> 24.07.2026</p>
-              </div>
-            </div>
-          </div>
+        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-6 text-sm text-slate-700 leading-relaxed">
+          <section className="space-y-2">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              Unternehmenszweck / Business Purpose
+            </h2>
+            <p className="text-xs text-slate-600">{COMPANY.businessPurpose.de}</p>
+            <p className="text-xs text-slate-500">{COMPANY.businessPurpose.en}</p>
+          </section>
 
-          {/* Contact & Business Purpose */}
-          <div className="space-y-4 border-t border-slate-100 pt-6 text-sm text-slate-700">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-xs">
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-emerald-600" />
-                <strong>Website der Firma:</strong>
-                <a href="https://portanx.com" target="_blank" rel="noopener noreferrer" className="text-emerald-700 font-bold hover:underline">
-                  https://portanx.com
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-emerald-600" />
-                <strong>Email:</strong>
-                <a href="mailto:admin@portanx.com" className="text-emerald-700 font-semibold hover:underline">
-                  admin@portanx.com
-                </a>
-              </div>
-            </div>
-
-            <div className="bg-emerald-50/50 border border-emerald-200/60 rounded-2xl p-4 text-xs space-y-1 text-slate-800">
-              <p className="font-bold text-slate-900">Unternehmenszweck / Business Purpose:</p>
-              <p className="text-slate-600">
-                Entwicklung von Software, mobilen Apps, Webplattformen und digitalen Dienstleistungen.
-                Betreiber der Preisvergleichs- und Geolokalisierungs-Plattform <strong>BeforeToBuy.com</strong>.
-              </p>
-            </div>
-          </div>
-
-          {/* Legal Disclaimer */}
-          <div className="space-y-3 border-t border-slate-100 pt-6 text-xs text-slate-500 leading-relaxed">
-            <h3 className="font-bold text-slate-800 text-sm">Haftungsausschluss / Disclaimer</h3>
+          <section className="space-y-3 border-t border-slate-100 pt-4 text-xs text-slate-500 leading-relaxed">
+            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+              <Scale className="w-4 h-4 text-emerald-600" aria-hidden="true" />
+              Haftungsausschluss / Disclaimer
+            </h3>
             <p>
-              <strong>Haftung für Inhalte:</strong> Die Inhalte unserer Seiten wurden mit grösster Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte (insbesondere Produktpreise und Verfügbarkeiten) übernehmen wir jedoch keine Gewähr.
+              <strong>Haftung für Inhalte:</strong> Die Inhalte unserer Seiten wurden mit grösster Sorgfalt erstellt.
+              Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte (insbesondere Produktpreise und
+              Verfügbarkeiten) übernehmen wir jedoch keine Gewähr. Demo- und Live-Feed-Preise sind indikativ;
+              massgeblich ist der Händler zum Zeitpunkt des Kaufabschlusses.
             </p>
             <p>
-              <strong>Haftung für Links:</strong> Unser Angebot enthält Links zu externen Webseiten Dritter (Affiliate-Partner), auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.
+              <strong>Haftung für Links:</strong> Unser Angebot enthält Links zu externen Webseiten Dritter
+              (Affiliate-Partner), auf deren Inhalte wir keinen Einfluss haben. Für die Inhalte der verlinkten
+              Seiten ist stets der jeweilige Anbieter oder Betreiber verantwortlich.
             </p>
             <p>
-              <strong>Urheberrecht:</strong> Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem Schweizerischen Urheberrecht.
+              <strong>Urheberrecht:</strong> Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen
+              Seiten unterliegen dem Schweizerischen Urheberrecht.
             </p>
-          </div>
+          </section>
         </div>
-
       </div>
     </PageShell>
   );

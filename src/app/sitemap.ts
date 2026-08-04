@@ -8,12 +8,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/about",
     "/categories",
     "/stores",
-    "/affiliate-disclosure",
+    "/help",
     "/contact",
+    "/legal",
+    "/affiliate-disclosure",
+    "/disclaimer",
     "/impressum",
     "/privacy",
     "/cookies",
     "/terms",
+    "/complaints",
+    "/accessibility",
   ];
 
   return routes.map((route) => ({
