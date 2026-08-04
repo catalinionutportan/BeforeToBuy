@@ -36,7 +36,7 @@ export function LocationBanner({
             </span>
             <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
               <Radio className="w-3.5 h-3.5" />
-              {userLocation.isGps ? "Live GPS Coordinates Active" : "IP Geolocation Detected"}
+              {userLocation.isGps ? "GPS Location Enabled" : "Approximate Location"}
             </span>
           </div>
 
@@ -46,7 +46,7 @@ export function LocationBanner({
           </h2>
 
           <p className="text-sm text-slate-300 max-w-2xl">
-            Showing live real-time offers, prices, and Click & Collect availability calculated specifically for <strong className="text-white">{userLocation.countryName}</strong> in <strong className="text-emerald-400">{currentCountryInfo.currency}</strong>.
+            Showing demo catalog offers and estimated Click &amp; Collect distances for <strong className="text-white">{userLocation.countryName}</strong> in <strong className="text-emerald-400">{currentCountryInfo.currency}</strong>. Prices are illustrative until live merchant feeds are connected.
           </p>
 
           {/* Supported Stores Badge List */}

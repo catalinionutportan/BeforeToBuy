@@ -42,7 +42,7 @@ export function CookieConsentBanner() {
       </div>
 
       <p className="text-xs text-slate-300 leading-relaxed mb-4">
-        BeforeToBuy.com uses essential cookies and affiliate tracking parameters (AWIN, Amazon, Galaxus) to verify referral purchases at 0 extra cost to you. Swiss nDSG & EU GDPR compliant.
+        BeforeToBuy.com uses essential local storage for cookie preferences. Affiliate tracking on outbound merchant links is planned and will require consent once enabled.
       </p>
 
       <div className="flex flex-col sm:flex-row items-center gap-2 text-xs">

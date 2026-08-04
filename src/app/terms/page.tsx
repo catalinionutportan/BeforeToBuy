@@ -52,7 +52,7 @@ export default function TermsPage() {
               2. Preise & Produkte (Keine Gewähr)
             </h2>
             <p className="text-xs text-slate-600">
-              Alle Angaben zu Preisen, Lieferzeiten, Versandkosten, Gutscheincodes und Verfügbarkeiten stammen aus automatisierten Daten-Feeds und Schnittstellen (APIs) der Händler.
+              Alle Angaben zu Preisen, Lieferzeiten, Versandkosten, Gutscheincodes und Verfügbarkeiten stammen derzeit aus einem Demo-Katalog. Live-Händler-Feeds und Schnittstellen (APIs) werden schrittweise angebunden.
             </p>
             <p className="text-xs text-slate-600">
               Da sich Preise und Lagerbestände beim Händler sehr schnell ändern können, übernimmt BeforeToBuy.com keine Gewähr für die ständige Richtigkeit der angezeigten Daten. <strong>Massgeblich ist stets der Preis und die Bedingung auf der Zielseite des jeweiligen Händlers im Zeitpunkt des Kaufabschlusses.</strong>

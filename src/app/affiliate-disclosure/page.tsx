@@ -119,7 +119,7 @@ export default function AffiliateDisclosurePage() {
               3. Participating Affiliate Networks & Merchant Programs
             </h2>
             <p className="text-xs text-slate-600">
-              BeforeToBuy.com works with verified international and regional affiliate networks:
+              BeforeToBuy.com is preparing integrations with international and regional affiliate networks:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">

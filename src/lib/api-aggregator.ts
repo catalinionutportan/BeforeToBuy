@@ -2,7 +2,6 @@ import { CountryCode, PhysicalStoreBranch, Product, UserLocation } from "@/types
 import { COUNTRIES } from "./countries";
 import { calculateHaversineDistance } from "./geolocation";
 import { productMatchesCategoryFilter, ALL_CATEGORIES_ID } from "./categories";
-import { mapToBeforeToBuyCategory } from "./category-mapper";
 
 // Physical store branches database across countries for Click & Collect
 const STORE_BRANCHES: Record<CountryCode, PhysicalStoreBranch[]> = {
@@ -1759,7 +1758,7 @@ function generateOffersForLocation(product: Product, userLocation: UserLocation)
         inStock: true,
         deliveryTime: "Pick up in 15 min or Tomorrow",
         deliveryCost: 0,
-        purchaseUrl: `https://www.digitec.ch/en/s1/product/${product.id}?partner=geo-shoping-ch`,
+        purchaseUrl: `https://www.digitec.ch/en/search?q=${encodeURIComponent(product.title)}`,
         affiliateNetwork: "Galaxus Merchant Network",
         type: "local_pickup" as const,
         nearbyBranch: closestStore ? { ...closestStore, storeName: "Digitec" } : undefined,
@@ -1774,7 +1773,7 @@ function generateOffersForLocation(product: Product, userLocation: UserLocation)
         inStock: true,
         deliveryTime: "Free Home Delivery Tomorrow",
         deliveryCost: 0,
-        purchaseUrl: `https://www.galaxus.ch/en/s1/product/${product.id}?partner=geo-shoping-ch`,
+        purchaseUrl: `https://www.galaxus.ch/en/search?q=${encodeURIComponent(product.title)}`,
         affiliateNetwork: "Galaxus Partner Program",
         type: "online" as const,
         badge: "Cheapest in Switzerland 🇨🇭",
@@ -1787,7 +1786,7 @@ function generateOffersForLocation(product: Product, userLocation: UserLocation)
         inStock: true,
         deliveryTime: "Same-Day Delivery (Ordered by 17:00)",
         deliveryCost: 0,
-        purchaseUrl: `https://www.brack.ch/search?q=${encodeURIComponent(product.title)}&tag=geo-ch`,
+        purchaseUrl: `https://www.brack.ch/search?q=${encodeURIComponent(product.title)}`,
         affiliateNetwork: "AWIN Switzerland",
         type: "online" as const,
       },
@@ -1799,7 +1798,7 @@ function generateOffersForLocation(product: Product, userLocation: UserLocation)
         inStock: true,
         deliveryTime: "2-3 Days (Swiss Customs Cleared)",
         deliveryCost: 9.9,
-        purchaseUrl: `https://www.amazon.de/dp/B0EXMPL123?tag=geo-shopping-ch-21`,
+        purchaseUrl: `https://www.amazon.de/s?k=${encodeURIComponent(product.title)}`,
         affiliateNetwork: "Amazon Associates DE/CH",
         type: "cross_border" as const,
         badge: "Cross-Border Tax-Free Deal",
@@ -1817,7 +1816,7 @@ function generateOffersForLocation(product: Product, userLocation: UserLocation)
         inStock: true,
         deliveryTime: "Tomorrow with Prime",
         deliveryCost: 0,
-        purchaseUrl: `https://www.amazon.de/dp/B0EXMPL123?tag=geo-shopping-de-21`,
+        purchaseUrl: `https://www.amazon.de/s?k=${encodeURIComponent(product.title)}`,
         affiliateNetwork: "Amazon Associates DE",
         type: "online" as const,
         badge: "Bestseller in Germany 🇩🇪",
@@ -1861,7 +1860,7 @@ function generateOffersForLocation(product: Product, userLocation: UserLocation)
         inStock: true,
         deliveryTime: "Livraison Demain avec Prime",
         deliveryCost: 0,
-        purchaseUrl: `https://www.amazon.fr/dp/B0EXMPL123?tag=geo-shopping-fr-21`,
+        purchaseUrl: `https://www.amazon.fr/s?k=${encodeURIComponent(product.title)}`,
         affiliateNetwork: "Amazon Associates FR",
         type: "online" as const,
         badge: "Le Moins Cher en France 🇫🇷",
@@ -1906,7 +1905,7 @@ function generateOffersForLocation(product: Product, userLocation: UserLocation)
         inStock: true,
         deliveryTime: "Livrare Mâine la Easybox",
         deliveryCost: 9.99,
-        purchaseUrl: `https://l.profitshare.ro/l/1234567?url=https://www.emag.ro/search/${encodeURIComponent(product.title)}`,
+        purchaseUrl: `https://www.emag.ro/search/${encodeURIComponent(product.title)}`,
         affiliateNetwork: "2Performant / Profitshare Romania",
         type: "online" as const,
         badge: "Cel Mai Bun Preț în România 🇷🇴",
@@ -1950,7 +1949,7 @@ function generateOffersForLocation(product: Product, userLocation: UserLocation)
         inStock: true,
         deliveryTime: "Free One-Day Delivery with Prime",
         deliveryCost: 0,
-        purchaseUrl: `https://www.amazon.co.uk/dp/B0EXMPL123?tag=geo-shopping-uk-21`,
+        purchaseUrl: `https://www.amazon.co.uk/s?k=${encodeURIComponent(product.title)}`,
         affiliateNetwork: "Amazon Associates UK",
         type: "online" as const,
         badge: "Top Deal UK 🇬🇧",
@@ -1982,7 +1981,7 @@ function generateOffersForLocation(product: Product, userLocation: UserLocation)
       inStock: true,
       deliveryTime: "FREE Prime Delivery",
       deliveryCost: 0,
-      purchaseUrl: `https://www.amazon.com/dp/B0EXMPL123?tag=geo-shopping-us-20`,
+      purchaseUrl: `https://www.amazon.com/s?k=${encodeURIComponent(product.title)}`,
       affiliateNetwork: "Amazon Associates US",
       type: "online" as const,
       badge: "Best Seller US 🇺🇸",
@@ -2002,71 +2001,6 @@ function generateOffersForLocation(product: Product, userLocation: UserLocation)
       badge: closestStore ? `Store Pickup (${closestStore.distanceKm} miles)` : undefined,
     },
   ];
-}
-
-/**
- * Synthesize dynamic search results on-the-fly for any search query
- * so that user searches NEVER return empty results.
- */
-function synthesizeDynamicSearchResults(
-  query: string,
-  userLocation: UserLocation,
-  category?: string
-): Product[] {
-  const cleanQuery = query.trim();
-  if (!cleanQuery) return [];
-
-  // Generate 2-3 tailored variation products for the searched query
-  const titleCaseQuery = cleanQuery
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-
-  const inferredBrand = cleanQuery.split(" ")[0].toUpperCase();
-  const inferredCat: string =
-    category && category !== ALL_CATEGORIES_ID
-      ? category
-      : mapToBeforeToBuyCategory({ title: cleanQuery, description: cleanQuery });
-
-  const placeholderImages = [
-    "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&auto=format&fit=crop&q=80",
-  ];
-
-  const dynamicItems: Product[] = [
-    {
-      id: `dyn-${cleanQuery.toLowerCase().replace(/[^a-z0-9]/g, "-")}-std`,
-      title: `${titleCaseQuery}`,
-      description: `Compare prices, stock availability, and Click & Collect options in ${userLocation.countryName} for ${titleCaseQuery}.`,
-      category: inferredCat,
-      brand: inferredBrand.length > 1 ? inferredBrand : "Best Deal",
-      image: placeholderImages[0],
-      rating: 4.8,
-      reviewsCount: 310,
-      basePrice: 199,
-      targetCountries: ALL_COUNTRIES,
-      offers: [],
-    },
-    {
-      id: `dyn-${cleanQuery.toLowerCase().replace(/[^a-z0-9]/g, "-")}-pro`,
-      title: `${titleCaseQuery} Pro / Special Bundle`,
-      description: `High performance edition of ${titleCaseQuery} with extended store warranty and express delivery.`,
-      category: inferredCat,
-      brand: inferredBrand.length > 1 ? inferredBrand : "Best Deal",
-      image: placeholderImages[1],
-      rating: 4.9,
-      reviewsCount: 480,
-      basePrice: 349,
-      targetCountries: ALL_COUNTRIES,
-      offers: [],
-    },
-  ];
-
-  return dynamicItems.map((prod) => ({
-    ...prod,
-    offers: generateOffersForLocation(prod, userLocation),
-  }));
 }
 
 /**
@@ -2095,10 +2029,7 @@ export async function fetchProductsForLocation(
         p.description.toLowerCase().includes(q)
     );
 
-    // If query returned 0 matches, synthesize dynamic live search results on-the-fly!
-    if (filtered.length === 0) {
-      return synthesizeDynamicSearchResults(query, userLocation, category);
-    }
+    // Beta/Demo: return empty results when the catalog has no match.
   }
 
   // Hydrate each product with dynamic country-specific offers based on GPS

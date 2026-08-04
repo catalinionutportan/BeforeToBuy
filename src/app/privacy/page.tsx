@@ -58,9 +58,9 @@ export default function PrivacyPage() {
               <strong>Geolokalisation:</strong> Unsere Anwendung bietet Funktionen zur standortbasierten Preisvergleichung und Anzeige von "Click & Collect"-Geschäften in Deiner Nähe.
             </p>
             <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
-              <li>Die Freigabe der GPS-Koordinaten erfolgt <strong>ausschliesslich freiwillig</strong> durch den Nutzer im Browser.</li>
-              <li>GPS-Daten werden <strong>lokal im Browser des Nutzers</strong> verarbeitet, um Distanzen zu Geschäften zu berechnen.</li>
-              <li>Wir speichern <strong>keine genauen Bewegungsprofile oder exakten Standortdaten</strong> dauerhaft auf unseren Servern.</li>
+              <li>GPS-Daten werden im Browser abgefragt und können zur Standortbestimmung an unseren Server sowie an OpenStreetMap/Nominatim übermittelt werden.</li>
+              <li>Bei fehlender GPS-Freigabe kann eine ungefähre Standortbestimmung über IP-Adresse erfolgen (ipapi.co).</li>
+              <li>Wir speichern <strong>keine dauerhaften Bewegungsprofile</strong>; Standortdaten dienen der Demo-Funktion für Händler- und Distanzanzeige.</li>
             </ul>
           </div>
 

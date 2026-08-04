@@ -36,7 +36,7 @@ export function PromoCouponsSection({
           </div>
           <div>
             <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-              <span>Verified Coupons & Vouchers in {userLocation.countryName}</span>
+              <span>Coupons & Vouchers in {userLocation.countryName}</span>
               <span className="text-2xl">{currentCountryInfo.flag}</span>
             </h3>
             <p className="text-xs text-slate-600 font-medium">

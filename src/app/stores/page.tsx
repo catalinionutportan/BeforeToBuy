@@ -75,7 +75,7 @@ export default function StoresDirectoryPage() {
           
           <div className="flex items-center gap-2">
             <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full inline-flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5" /> Verified Merchant Directory
+              <ShieldCheck className="w-3.5 h-3.5" /> Merchant Directory (Beta Demo)
             </span>
           </div>
 
@@ -84,13 +84,13 @@ export default function StoresDirectoryPage() {
           </h1>
 
           <p className="text-slate-300 text-sm sm:text-base max-w-3xl leading-relaxed">
-            BeforeToBuy.com directly indexes and aggregates live price comparison data, flash vouchers, and local Click & Collect stock from top verified merchant domains across Switzerland, Germany, France, Romania, UK, and USA.
+            BeforeToBuy.com lists partner merchant domains for price comparison. During the Beta/Demo phase, product listings and prices are illustrative demo data until live merchant feeds are connected.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
             <div className="flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span><strong>{ALL_MERCHANT_DOMAINS.length} Verified Domains</strong></span>
+              <span><strong>{ALL_MERCHANT_DOMAINS.length} Partner Domains</strong></span>
             </div>
             <span>•</span>
             <div className="flex items-center gap-1">

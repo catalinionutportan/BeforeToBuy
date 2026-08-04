@@ -8,7 +8,6 @@ import {
   MapPin,
   Globe,
   Send,
-  CheckCircle2,
   Clock,
   MessageSquare,
   ShieldCheck,
@@ -21,18 +20,25 @@ export default function ContactPage() {
     subject: "general",
     message: "",
   });
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    // Simulate sending message
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 800);
+    const subjectLabels: Record<string, string> = {
+      general: "General Inquiry",
+      affiliate: "Affiliate & Partner Inquiry",
+      merchant: "Merchant Feed Integration",
+      privacy: "Data Privacy & Legal Request",
+    };
+
+    const subject = encodeURIComponent(
+      `[BeforeToBuy] ${subjectLabels[formData.subject] || "Contact"} — ${formData.name}`
+    );
+    const body = encodeURIComponent(
+      `Name: ${formData.name}\nEmail: ${formData.email}\nTopic: ${subjectLabels[formData.subject] || formData.subject}\n\n${formData.message}`
+    );
+
+    window.location.href = `mailto:admin@portanx.com?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -124,33 +130,15 @@ export default function ContactPage() {
 
           {/* Contact Form Column */}
           <div className="md:col-span-2 bg-white rounded-3xl border border-slate-200 p-8 shadow-xs">
-            {isSubmitted ? (
-              <div className="text-center py-12 space-y-4 max-w-sm mx-auto">
-                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-8 h-8" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900">Message Sent!</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Thank you for reaching out to BeforeToBuy.com. We have received your message and will get back to you shortly at <strong>{formData.email}</strong>.
-                </p>
-                <button
-                  onClick={() => {
-                    setIsSubmitted(false);
-                    setFormData({ name: "", email: "", subject: "general", message: "" });
-                  }}
-                  className="bg-slate-900 text-white font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
-                >
-                  Send Another Message
-                </button>
-              </div>
-            ) : (
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="border-b border-slate-100 pb-3">
                   <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                     <MessageSquare className="w-5 h-5 text-emerald-600" />
                     Send Us a Message
                   </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Fill in the details below to contact PortanX team.</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Submitting opens your email app with a pre-filled message to <strong>admin@portanx.com</strong>.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -215,14 +203,12 @@ export default function ContactPage() {
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+                  className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
-                  <span>{isSubmitting ? "Sending..." : "Send Message"}</span>
+                  <span>Open Email to Send</span>
                 </button>
               </form>
-            )}
           </div>
 
         </div>

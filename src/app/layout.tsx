@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { BetaDemoBanner } from "@/components/BetaDemoBanner";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased font-sans bg-slate-50 text-slate-900">
+        <BetaDemoBanner />
         {children}
         <CookieConsentBanner />
       </body>

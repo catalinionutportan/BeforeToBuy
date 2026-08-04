@@ -9,7 +9,7 @@ export interface MerchantDomainInfo {
   affiliateNetwork: string; // e.g. "Galaxus Merchant Network", "AWIN CH", "Amazon Associates DE/CH"
   category: string; // e.g. "Electronics & Tech", "General Retail & Marketplace"
   hasClickAndCollect: boolean;
-  status: "Active Integration" | "API Verified" | "Datafeed Connected";
+  status: "Planned Integration" | "Demo Catalog" | "Search Redirect";
   badge?: string;
   description: string;
 }

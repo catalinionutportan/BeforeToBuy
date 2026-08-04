@@ -20,7 +20,7 @@ export async function GET(request: Request) {
       `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
       {
         headers: {
-          "User-Agent": "GeoPriceAggregatorApp/1.0 (contact@geoprice.com)",
+          "User-Agent": "BeforeToBuy/1.0 (admin@portanx.com)",
         },
       }
     );

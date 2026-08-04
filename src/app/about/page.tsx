@@ -50,7 +50,7 @@ export default function AboutPage() {
             Smart Price Comparison & GPS Shopping Before You Buy
           </h1>
           <p className="text-slate-300 text-base max-w-2xl leading-relaxed">
-            BeforeToBuy.com is a free, multi-country price comparison engine designed to give consumers full visibility over online deals, coupon vouchers, and real-time local Click & Collect availability before completing a purchase.
+            BeforeToBuy.com is a free, multi-country price comparison engine in Beta/Demo. It helps you explore illustrative deals, sample vouchers, and estimated Click & Collect distances before completing a purchase on the merchant site.
           </p>
         </div>
 
@@ -78,7 +78,7 @@ export default function AboutPage() {
                 Search or Browse Products
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Enter any product name, brand, or category. Our engine searches across verified merchant feeds in Switzerland, Germany, France, Romania, UK, and USA.
+                Enter any product name, brand, or category. During Beta/Demo, results come from our sample catalog across Switzerland, Germany, France, Romania, UK, and USA.
               </p>
             </div>
 
@@ -92,7 +92,7 @@ export default function AboutPage() {
                 GPS Local Stock & Deals Match
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                If you enable location, our system calculates distances to nearby physical stores (like Digitec, MediaMarkt, Fnac, Altex) offering instant Click & Collect pickup today.
+                If you enable location, the demo estimates distances to sample physical store branches for illustrative Click & Collect pickup options.
               </p>
             </div>
 
@@ -106,7 +106,7 @@ export default function AboutPage() {
                 Click "Buy" to Official Merchant
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                We present the lowest verified price. Clicking "Buy" redirects you safely to the official retailer's website (e.g., Digitec Galaxus, Amazon, Brack, eMAG).
+                We present the lowest demo price in our catalog. Clicking "Buy" opens a search or product page on the official retailer's website (e.g., Digitec Galaxus, Amazon, Brack, eMAG).
               </p>
             </div>
 

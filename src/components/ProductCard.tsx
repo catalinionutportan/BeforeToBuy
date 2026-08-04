@@ -162,11 +162,11 @@ export function ProductCard({
                     <a
                       href={offer.purchaseUrl}
                       target="_blank"
-                      rel="noopener noreferrer"
+                      rel="noopener noreferrer sponsored nofollow"
                       onClick={() => onSelectOffer(product, offer)}
                       className="bg-slate-900 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 text-[11px] shadow-xs group/btn shrink-0"
                     >
-                      <span>Buy</span>
+                      <span>Search Store</span>
                       <ExternalLink className="w-3 h-3 opacity-80 group-hover/btn:translate-x-0.5 transition-transform" />
                     </a>
                   </div>
@@ -178,7 +178,7 @@ export function ProductCard({
           {/* Mandatory Price Disclaimer */}
           <div className="text-[10px] text-slate-400 flex items-center gap-1 pt-1.5">
             <Info className="w-3 h-3 shrink-0 text-slate-400" />
-            <span>Prices are indicative & updated from partner feeds. Final price on store checkout.</span>
+            <span>Beta/Demo prices only. Confirm availability and final price on the merchant website before buying.</span>
           </div>
         </div>
 

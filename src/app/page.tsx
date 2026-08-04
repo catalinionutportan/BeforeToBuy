@@ -64,11 +64,14 @@ export default function Home() {
     initLocation();
   }, []);
 
-  // Read ?category= from URL (links from /categories page)
+  // Read ?category= or ?q= from URL (links from /categories and /stores pages)
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const cat = new URLSearchParams(window.location.search).get("category");
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get("category");
+    const q = params.get("q");
     if (cat) setSelectedCategory(cat);
+    if (q) setSearchQuery(q);
   }, []);
 
   // Fetch products & active vouchers when location, search, or category changes
@@ -272,7 +275,7 @@ export default function Home() {
               <span className="text-slate-400 font-normal text-sm">({displayedProducts.length} items found)</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Prices & stock matched in real-time for <strong className="text-slate-800">{userLocation.city}</strong>
+              Demo catalog prices for <strong className="text-slate-800">{userLocation.city}</strong> — confirm final price on the merchant site
             </p>
           </div>
 
@@ -330,8 +333,8 @@ export default function Home() {
                 key={product.id}
                 product={product}
                 userLocation={userLocation}
-                onSelectOffer={(prod, offer) => {
-                  console.log(`Redirecting to affiliate URL for ${prod.title} at ${offer.storeName}: ${offer.purchaseUrl}`);
+                onSelectOffer={() => {
+                  // Affiliate redirect handled by the browser via purchaseUrl
                 }}
               />
             ))}
@@ -401,7 +404,7 @@ export default function Home() {
               © 2026 BeforeToBuy.com | PortanX - Catalin Portan, Flurstrasse 24, 3014 Bern, Switzerland. All rights reserved.
             </p>
             <p className="flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5 text-emerald-400" /> Powered by AWIN, Digitec Galaxus Merchant, Amazon Associates, 2Performant & CJ API Streams.
+              <Shield className="w-3.5 h-3.5 text-emerald-400" /> Beta demo — merchant feed integrations in progress.
             </p>
           </div>
         </div>
