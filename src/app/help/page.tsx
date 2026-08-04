@@ -7,7 +7,7 @@ import { COMPANY } from "@/lib/company-info";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Help & FAQ | BeforeToBuy.com",
-  description: "Frequently asked questions about BeforeToBuy.com price comparison, live vs demo prices, affiliate links, and privacy.",
+  description: "Frequently asked questions about BeforeToBuy.com production-feed, sample, and demo prices, affiliate links, and privacy.",
   path: "/help",
 });
 
@@ -17,7 +17,7 @@ const FAQ_SECTIONS = [
     items: [
       {
         q: "What is BeforeToBuy.com?",
-        a: "A free price comparison platform in Beta/Demo, operated by PortanX - Catalin Portan (Switzerland). We help you compare illustrative and live merchant offers before buying on the official store website.",
+        a: "A free comparison platform in Beta/Demo, operated by PortanX - Catalin Portan (Switzerland). We distinguish production-feed offers from illustrative sample and demo data before redirecting you to the merchant website.",
       },
       {
         q: "Do you sell products directly?",
@@ -30,15 +30,15 @@ const FAQ_SECTIONS = [
     ],
   },
   {
-    title: "Live vs Demo prices",
+    title: "Production feed vs Sample vs Demo prices",
     items: [
       {
-        q: 'What does "Live" vs "Demo" mean on offers?',
-        a: "Live offers are sourced from connected merchant datafeeds (currently Brack.ch via AWIN in Switzerland). Demo offers are illustrative catalog data until real feeds are connected. Always confirm the final price on the merchant site.",
+        q: 'What do "Production feed", "Sample", and "Demo" mean on offers?',
+        a: "Production-feed offers come from a configured merchant datafeed. Sample offers come from an illustrative test file and are not live merchant data. Demo offers are generated catalog examples. Always confirm the final price on the merchant site.",
       },
       {
         q: "Why do prices differ from the merchant website?",
-        a: "Demo prices are calculated for illustration. Live feed prices may lag behind merchant updates. Merchant websites are authoritative at checkout.",
+        a: "Demo and sample prices are illustrative. Production-feed prices may lag behind merchant updates. Merchant websites are authoritative at checkout.",
       },
       {
         q: "Are Click & Collect distances accurate?",

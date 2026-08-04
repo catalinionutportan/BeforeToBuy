@@ -36,7 +36,7 @@ export default function AboutPage() {
             Smart Price Comparison & GPS Shopping Before You Buy
           </h1>
           <p className="text-slate-300 text-base max-w-2xl leading-relaxed">
-            BeforeToBuy.com is a free, multi-country price comparison engine in Beta/Demo with a hybrid catalog: Brack.ch (CH) may show live AWIN feed prices; other merchants remain illustrative until connected.
+            BeforeToBuy.com is a free, multi-country comparison service in Beta/Demo. Brack.ch (CH) uses illustrative AWIN sample data unless a production feed is configured; other merchants remain illustrative until connected.
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function AboutPage() {
                 Search or Browse Products
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Enter any product name, brand, or category. During Beta/Demo, most results come from our sample catalog; Brack.ch offers in Switzerland may show live feed prices labeled &quot;Live&quot;.
+                Enter any product name, brand, or category. During Beta/Demo, most results are illustrative. Brack.ch offers in Switzerland are labeled &quot;Sample&quot; unless a production merchant feed is configured, in which case they are labeled &quot;Production feed&quot;.
               </p>
             </div>
 
@@ -92,7 +92,7 @@ export default function AboutPage() {
                 Click &quot;Search Store&quot; to Official Merchant
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                We present the lowest price in our catalog (live or demo). Clicking &quot;Search Store&quot; opens the official retailer website (e.g., Digitec Galaxus, Amazon, Brack, eMAG).
+                We present prices from production feeds, sample data, or the demo catalog with explicit source labels. We only identify a lowest production-feed price when comparable production offers exist. Clicking &quot;Search Store&quot; opens the retailer website.
               </p>
             </div>
 

@@ -38,8 +38,8 @@ export default function DisclaimerPage() {
             <p className="text-xs text-slate-600">
               {COMPANY.platformName} is operated in <strong>Beta/Demo</strong> mode by{" "}
               <strong>{COMPANY.legalName}</strong>. Most merchant offers are illustrative demo catalog data.
-              Brack.ch (Switzerland) may display <strong>live prices</strong> from an AWIN merchant feed (sample or production).
-              Offers are labeled <strong>Live</strong> or <strong>Demo</strong> accordingly.
+              Brack.ch (Switzerland) may display AWIN data from either an illustrative sample file or a configured production feed.
+              Offers are labeled <strong>Production feed</strong>, <strong>Sample</strong>, or <strong>Demo</strong> accordingly; sample data is never presented as live merchant data.
             </p>
           </section>
 

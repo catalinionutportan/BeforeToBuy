@@ -67,7 +67,7 @@ export default function StoresDirectoryPage() {
           </h1>
 
           <p className="text-slate-300 text-sm sm:text-base max-w-3xl leading-relaxed">
-            BeforeToBuy.com lists partner merchant domains for price comparison. Brack.ch (CH) is connected via AWIN sample/production feed; other merchants remain demo catalog or search redirect until live feeds are connected.
+            BeforeToBuy.com lists merchant domains for comparison research. Brack.ch (CH) currently uses illustrative AWIN sample data unless a production feed is configured; other merchants remain demo catalog, planned integration, or search redirect.
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
@@ -189,6 +189,8 @@ export default function StoresDirectoryPage() {
                       className={`border text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 ${
                         merchant.status === "Live Feed"
                           ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : merchant.status === "Sample Feed"
+                            ? "bg-amber-50 text-amber-700 border-amber-200"
                           : merchant.status === "Demo Catalog"
                             ? "bg-amber-50 text-amber-700 border-amber-200"
                             : merchant.status === "Search Redirect"

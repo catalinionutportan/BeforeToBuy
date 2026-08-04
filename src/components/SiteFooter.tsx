@@ -105,7 +105,7 @@ export function SiteFooter() {
             <ManageCookiePreferencesButton />
             <p className="flex items-center gap-1">
               <Shield className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
-              Beta demo — Brack.ch live AWIN feed (CH); other merchants in progress.
+              Beta demo — Brack.ch uses AWIN sample data unless a production feed is configured; other merchants in progress.
             </p>
           </div>
         </div>

@@ -178,7 +178,9 @@ export default function Home() {
       return prod.offers.some((o) => o.type === "local_pickup");
     }
     if (filterType === "deals") {
-      return prod.offers.some((o) => o.originalPrice || o.discountPercentage);
+      return prod.offers.some(
+        (o) => o.source === "production-live" && (o.originalPrice || o.discountPercentage)
+      );
     }
     return true;
   });
@@ -204,8 +206,8 @@ export default function Home() {
         onCountryChange={handleCountryChange}
         onRefreshGps={handleRefreshGps}
         isLocating={isLocating}
-        liveOfferCount={catalogMeta?.liveOfferCount || 0}
-        hasSampleFeed={catalogMeta?.hasSampleFeed || false}
+        productionOfferCount={catalogMeta?.productionOfferCount || 0}
+        sampleOfferCount={catalogMeta?.sampleOfferCount || 0}
       />
 
       {/* Merchant Stores & Integrated Domains Banner Bar */}
@@ -328,16 +330,17 @@ export default function Home() {
               <span className="text-slate-400 font-normal text-sm">({displayedProducts.length} items found)</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              {catalogMeta && catalogMeta.liveOfferCount > 0 ? (
+              {catalogMeta &&
+              (catalogMeta.productionOfferCount > 0 || catalogMeta.sampleOfferCount > 0) ? (
                 <>
                   Hybrid catalog for <strong className="text-slate-800">{userLocation.city}</strong> —{" "}
-                  <strong className="text-emerald-700">{catalogMeta.liveOfferCount} live feed offer(s)</strong>{" "}
-                  {catalogMeta.hasSampleFeed && !catalogMeta.hasProductionFeed
-                    ? "(Brack.ch sample AWIN feed)"
-                    : catalogMeta.hasProductionFeed
-                      ? "(production merchant feeds)"
-                      : ""}
-                  ; other merchants remain demo. Confirm final price on the merchant site.
+                  {catalogMeta.productionOfferCount > 0 && (
+                    <><strong className="text-emerald-700">{catalogMeta.productionOfferCount} production-feed offer(s)</strong>.{" "}</>
+                  )}
+                  {catalogMeta.sampleOfferCount > 0 && (
+                    <><strong className="text-amber-700">{catalogMeta.sampleOfferCount} sample offer(s)</strong> are illustrative and not live.{" "}</>
+                  )}
+                  Other merchants remain demo. Confirm final price on the merchant site.
                 </>
               ) : (
                 <>

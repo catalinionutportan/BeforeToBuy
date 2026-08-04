@@ -35,17 +35,19 @@ async function checkProductsMerge() {
       isGps: false,
     });
 
-    const ok = result.products.length > 0 && result.meta.liveOfferCount >= 0;
+    const ok = result.products.length > 0;
     return {
       status: ok ? ("ok" as const) : ("error" as const),
       productCount: result.products.length,
-      liveOfferCount: result.meta.liveOfferCount,
+      productionOfferCount: result.meta.productionOfferCount,
+      sampleOfferCount: result.meta.sampleOfferCount,
     };
   } catch (error) {
     return {
       status: "error" as const,
       productCount: 0,
-      liveOfferCount: 0,
+      productionOfferCount: 0,
+      sampleOfferCount: 0,
       message: error instanceof Error ? error.message : "Unknown error",
     };
   }
@@ -64,15 +66,20 @@ export async function GET() {
     sampleFeed,
     productsMerge,
     integrations: {
-      status: integrations.hasLiveData ? ("ok" as const) : ("warn" as const),
-      liveMerchantIds: integrations.liveMerchantIds,
+      status: integrations.hasProductionFeed ? ("ok" as const) : ("warn" as const),
+      feedMerchantIds: integrations.feedMerchantIds,
+      productionMerchantIds: integrations.productionMerchantIds,
       hasProductionFeed: integrations.hasProductionFeed,
       sampleFeeds: integrations.sampleFeeds,
     },
   };
 
   const hasError = sampleFeed.status === "error" || productsMerge.status === "error";
-  const overallStatus = hasError ? "unhealthy" : "healthy";
+  const overallStatus = hasError
+    ? "unhealthy"
+    : integrations.hasProductionFeed
+      ? "healthy"
+      : "degraded";
 
   return NextResponse.json(
     {

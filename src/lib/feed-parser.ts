@@ -1,4 +1,4 @@
-import { CountryCode, Offer, Product, PromoCoupon } from "@/types";
+import { CountryCode, Offer, OfferSource, Product, PromoCoupon } from "@/types";
 import { mapToBeforeToBuyCategory } from "@/lib/category-mapper";
 
 /**
@@ -75,7 +75,8 @@ function parseCsvLine(line: string): string[] {
 export function parseAwinCsvFeed(
   csvContent: string,
   targetCountry: CountryCode,
-  feedMerchantId?: string
+  feedMerchantId: string,
+  source: Extract<OfferSource, "production-live" | "sample">
 ): Product[] {
   const lines = csvContent.split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
@@ -93,7 +94,8 @@ export function parseAwinCsvFeed(
     if (!row.aw_product_id || !row.product_name) continue;
 
     const price = parseFloat(row.search_price || row.store_price || "0");
-    const originalPrice = row.rrp_price ? parseFloat(row.rrp_price) : undefined;
+    const isProduction = source === "production-live";
+    const originalPrice = isProduction && row.rrp_price ? parseFloat(row.rrp_price) : undefined;
     const discountPercentage =
       originalPrice && originalPrice > price
         ? Math.round(((originalPrice - price) / originalPrice) * 100)
@@ -112,16 +114,17 @@ export function parseAwinCsvFeed(
       purchaseUrl: row.aw_deep_link || "#",
       affiliateNetwork: `AWIN ${targetCountry}`,
       type: "online",
-      promoCode: row.promo_code,
-      source: "live",
+      promoCode: isProduction ? row.promo_code : undefined,
+      source,
       feedMerchantId,
-      badge:
-        discountPercentage && discountPercentage >= 20
-          ? `-${discountPercentage}% LIVE DEAL`
-          : "Live price",
+      badge: isProduction
+        ? discountPercentage && discountPercentage >= 20
+          ? `-${discountPercentage}% feed discount`
+          : "Production feed"
+        : "Sample feed",
     };
 
-    const productId = `live-${row.aw_product_id}`;
+    const productId = `feed-${row.aw_product_id}`;
 
     if (!productsMap.has(productId)) {
       const mappedCategory = mapToBeforeToBuyCategory({
@@ -138,11 +141,9 @@ export function parseAwinCsvFeed(
         category: mappedCategory,
         brand: row.brand_name || "Generic",
         image: row.merchant_image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
-        rating: 4.7,
-        reviewsCount: 120,
         targetCountries: [targetCountry],
-        isFlashDeal: discountPercentage ? discountPercentage >= 15 : false,
-        catalogSource: "live",
+        isFlashDeal: isProduction && discountPercentage ? discountPercentage >= 15 : false,
+        catalogSource: source,
         offers: [offer],
       });
     } else {
@@ -158,5 +159,6 @@ export function parseAwinCsvFeed(
  */
 export function getActiveCouponsForCountry(_country: CountryCode): PromoCoupon[] {
   // Beta/Demo: no hardcoded coupon codes until verified via affiliate APIs.
+  void _country;
   return [];
 }

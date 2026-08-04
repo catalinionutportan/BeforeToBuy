@@ -6,7 +6,7 @@ import { Activity, CheckCircle2, AlertTriangle, XCircle, RefreshCw } from "lucid
 import { PageShell } from "@/components/PageShell";
 
 type HealthPayload = {
-  status: "healthy" | "unhealthy";
+  status: "healthy" | "degraded" | "unhealthy";
   sitePhase: string;
   commit: string | null;
   environment: string;

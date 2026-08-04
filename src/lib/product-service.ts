@@ -1,6 +1,6 @@
 import { Product, UserLocation } from "@/types";
 import { fetchProductsForLocation } from "@/lib/api-aggregator";
-import { getLiveFeedProducts } from "@/lib/merchant-feeds";
+import { getFeedProducts } from "@/lib/merchant-feeds";
 
 function normalizeTitle(title: string): string {
   return title
@@ -12,98 +12,115 @@ function normalizeTitle(title: string): string {
 function markDemoOffers(product: Product): Product {
   return {
     ...product,
+    rating: undefined,
+    reviewsCount: undefined,
+    isFlashDeal: false,
     catalogSource: "demo",
     offers: product.offers.map((offer) => ({
       ...offer,
-      source: offer.source || "demo",
+      source: "demo",
+      originalPrice: undefined,
+      discountPercentage: undefined,
+      promoCode: undefined,
+      badge: undefined,
     })),
   };
 }
 
-function mergeLiveOffersIntoProduct(demoProduct: Product, liveProduct: Product): Product {
-  const liveOffers = liveProduct.offers.filter((offer) => offer.source === "live");
-  const liveStoreNames = new Set(liveOffers.map((offer) => offer.storeName.toLowerCase()));
+function mergeFeedOffersIntoProduct(demoProduct: Product, feedProduct: Product): Product {
+  const feedOffers = feedProduct.offers.filter((offer) => offer.source !== "demo");
+  const feedStoreNames = new Set(feedOffers.map((offer) => offer.storeName.toLowerCase()));
 
   const keptDemoOffers = demoProduct.offers
-    .filter((offer) => !liveStoreNames.has(offer.storeName.toLowerCase()))
-    .map((offer) => ({ ...offer, source: "demo" as const }));
+    .filter((offer) => !feedStoreNames.has(offer.storeName.toLowerCase()))
+    .map((offer) => ({
+      ...offer,
+      source: "demo" as const,
+      originalPrice: undefined,
+      discountPercentage: undefined,
+      promoCode: undefined,
+      badge: undefined,
+    }));
 
-  const mergedOffers = [...liveOffers, ...keptDemoOffers];
+  const mergedOffers = [...feedOffers, ...keptDemoOffers];
 
   return {
     ...demoProduct,
-    catalogSource: liveOffers.length > 0 ? "mixed" : "demo",
+    rating: undefined,
+    reviewsCount: undefined,
+    catalogSource: feedOffers.length > 0 ? "mixed" : "demo",
     offers: mergedOffers,
-    isFlashDeal: demoProduct.isFlashDeal || liveProduct.isFlashDeal,
+    isFlashDeal:
+      feedProduct.offers.some((offer) => offer.source === "production-live") &&
+      Boolean(feedProduct.isFlashDeal),
   };
 }
 
-function titleMatchScore(demoTitle: string, liveTitle: string): number {
+function titleMatchScore(demoTitle: string, feedTitle: string): number {
   const normalizedDemo = normalizeTitle(demoTitle);
-  const normalizedLive = normalizeTitle(liveTitle);
+  const normalizedFeed = normalizeTitle(feedTitle);
 
-  if (normalizedDemo === normalizedLive) {
+  if (normalizedDemo === normalizedFeed) {
     return 100;
   }
 
   const demoTokens = new Set(
     normalizedDemo.split(" ").filter((token) => token.length > 2)
   );
-  const liveTokens = normalizedLive.split(" ").filter((token) => token.length > 2);
+  const feedTokens = normalizedFeed.split(" ").filter((token) => token.length > 2);
 
-  if (liveTokens.length === 0) {
+  if (feedTokens.length === 0) {
     return 0;
   }
 
-  const shared = liveTokens.filter((token) => demoTokens.has(token)).length;
-  return Math.round((shared / liveTokens.length) * 100);
+  const shared = feedTokens.filter((token) => demoTokens.has(token)).length;
+  return Math.round((shared / feedTokens.length) * 100);
 }
 
-function findBestLiveMatch(demoProduct: Product, liveProducts: Product[]): Product | undefined {
+function findBestFeedMatch(demoProduct: Product, feedProducts: Product[]): Product | undefined {
   let bestMatch: Product | undefined;
   let bestScore = 0;
 
-  for (const liveProduct of liveProducts) {
-    if (liveProduct.brand.toLowerCase() !== demoProduct.brand.toLowerCase()) {
+  for (const feedProduct of feedProducts) {
+    if (feedProduct.brand.toLowerCase() !== demoProduct.brand.toLowerCase()) {
       continue;
     }
 
-    const score = titleMatchScore(demoProduct.title, liveProduct.title);
+    const score = titleMatchScore(demoProduct.title, feedProduct.title);
     if (score > bestScore && score >= 55) {
       bestScore = score;
-      bestMatch = liveProduct;
+      bestMatch = feedProduct;
     }
   }
 
   return bestMatch;
 }
 
-export function mergeLiveAndDemoProducts(
+export function mergeFeedAndDemoProducts(
   demoProducts: Product[],
-  liveProducts: Product[]
+  feedProducts: Product[]
 ): Product[] {
-  if (liveProducts.length === 0) {
+  if (feedProducts.length === 0) {
     return demoProducts.map(markDemoOffers);
   }
 
-  const matchedLiveIds = new Set<string>();
+  const matchedFeedIds = new Set<string>();
 
   const merged: Product[] = demoProducts.map((demoProduct) => {
-    const liveMatch = findBestLiveMatch(demoProduct, liveProducts);
-    if (!liveMatch) {
+    const feedMatch = findBestFeedMatch(demoProduct, feedProducts);
+    if (!feedMatch) {
       return markDemoOffers(demoProduct);
     }
 
-    matchedLiveIds.add(liveMatch.id);
-    return mergeLiveOffersIntoProduct(demoProduct, liveMatch);
+    matchedFeedIds.add(feedMatch.id);
+    return mergeFeedOffersIntoProduct(demoProduct, feedMatch);
   });
 
-  for (const liveProduct of liveProducts) {
-    if (!matchedLiveIds.has(liveProduct.id)) {
+  for (const feedProduct of feedProducts) {
+    if (!matchedFeedIds.has(feedProduct.id)) {
       merged.push({
-        ...liveProduct,
-        catalogSource: "live",
-        offers: liveProduct.offers.map((offer) => ({ ...offer, source: "live" as const })),
+        ...feedProduct,
+        catalogSource: feedProduct.catalogSource,
       });
     }
   }
@@ -116,26 +133,36 @@ export async function fetchMergedProductsForLocation(
   query?: string,
   category?: string
 ) {
-  const [demoProducts, liveFeed] = await Promise.all([
+  const [demoProducts, feedResult] = await Promise.all([
     fetchProductsForLocation(userLocation, query, category),
-    getLiveFeedProducts(userLocation.countryCode, query, category),
+    getFeedProducts(userLocation.countryCode, query, category),
   ]);
 
-  const products = mergeLiveAndDemoProducts(demoProducts, liveFeed.products);
+  const products = mergeFeedAndDemoProducts(demoProducts, feedResult.products);
 
-  const liveOfferCount = products.reduce(
-    (count, product) => count + product.offers.filter((offer) => offer.source === "live").length,
+  const productionOfferCount = products.reduce(
+    (count, product) =>
+      count + product.offers.filter((offer) => offer.source === "production-live").length,
     0
   );
+  const sampleOfferCount = products.reduce(
+    (count, product) => count + product.offers.filter((offer) => offer.source === "sample").length,
+    0
+  );
+  const productionProductCount = feedResult.products.filter((product) =>
+    product.offers.some((offer) => offer.source === "production-live")
+  ).length;
 
   return {
     products,
     meta: {
-      liveOfferCount,
-      liveProductCount: liveFeed.products.length,
-      feedSources: liveFeed.sources,
-      hasProductionFeed: liveFeed.sources.includes("remote"),
-      hasSampleFeed: liveFeed.sources.includes("sample"),
+      productionOfferCount,
+      sampleOfferCount,
+      productionProductCount,
+      feedProductCount: feedResult.products.length,
+      feedSources: feedResult.sources,
+      hasProductionFeed: feedResult.sources.includes("remote"),
+      hasSampleFeed: feedResult.sources.includes("sample"),
     },
   };
 }

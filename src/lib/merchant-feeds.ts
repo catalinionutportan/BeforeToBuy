@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { CountryCode, Product } from "@/types";
+import { CountryCode, OfferSource, Product } from "@/types";
 import { parseAwinCsvFeed } from "@/lib/feed-parser";
 import { MERCHANT_FEEDS } from "@/lib/merchant-integrations";
 import { productMatchesCategoryFilter, ALL_CATEGORIES_ID } from "@/lib/categories";
@@ -82,12 +82,19 @@ async function loadFeedForMerchant(
     return { products: [], source: "sample" };
   }
 
-  const products = parseAwinCsvFeed(csvContent, country, merchantId).map((product) => ({
+  const offerSource: Extract<OfferSource, "production-live" | "sample"> =
+    source === "remote" ? "production-live" : "sample";
+  const products = parseAwinCsvFeed(
+    csvContent,
+    country,
+    merchantId,
+    offerSource
+  ).map((product) => ({
     ...product,
-    catalogSource: "live" as const,
+    catalogSource: offerSource,
     offers: product.offers.map((offer) => ({
       ...offer,
-      source: "live" as const,
+      source: offerSource,
       feedMerchantId: merchantId,
     })),
   }));
@@ -101,7 +108,7 @@ async function loadFeedForMerchant(
   return { products, source };
 }
 
-export async function getLiveFeedProducts(
+export async function getFeedProducts(
   country: CountryCode,
   query?: string,
   category?: string

@@ -53,14 +53,17 @@ export function isUsingSampleFeed(merchantId: string): boolean {
   return !process.env[feed.envVar] && !!feed.sampleFile;
 }
 
-export function getLiveMerchantIds(): string[] {
+export function getFeedMerchantIds(): string[] {
   return MERCHANT_FEEDS.filter((feed) => {
     return process.env[feed.envVar] || feed.sampleFile;
   }).map((feed) => feed.merchantId);
 }
 
 export function getIntegrationSummary() {
-  const liveMerchantIds = getLiveMerchantIds();
+  const feedMerchantIds = getFeedMerchantIds();
+  const productionMerchantIds = MERCHANT_FEEDS.filter(
+    (feed) => process.env[feed.envVar]
+  ).map((feed) => feed.merchantId);
   const configuredFeeds = MERCHANT_FEEDS.filter((feed) => process.env[feed.envVar]).map(
     (feed) => feed.envVar
   );
@@ -69,10 +72,11 @@ export function getIntegrationSummary() {
   );
 
   return {
-    liveMerchantIds,
+    feedMerchantIds,
+    productionMerchantIds,
     configuredFeeds,
     sampleFeeds,
     hasProductionFeed: configuredFeeds.length > 0,
-    hasLiveData: liveMerchantIds.length > 0,
+    hasFeedData: feedMerchantIds.length > 0,
   };
 }

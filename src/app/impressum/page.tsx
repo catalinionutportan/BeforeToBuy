@@ -48,7 +48,7 @@ export default function ImpressumPage() {
             <p>
               <strong>Haftung für Inhalte:</strong> Die Inhalte unserer Seiten wurden mit grösster Sorgfalt erstellt.
               Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte (insbesondere Produktpreise und
-              Verfügbarkeiten) übernehmen wir jedoch keine Gewähr. Demo- und Live-Feed-Preise sind indikativ;
+              Verfügbarkeiten) übernehmen wir jedoch keine Gewähr. Produktionsfeed-, Test- und Demo-Preise sind indikativ;
               massgeblich ist der Händler zum Zeitpunkt des Kaufabschlusses.
             </p>
             <p>

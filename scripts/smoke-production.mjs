@@ -6,12 +6,18 @@ const endpoints = [
   { name: "Homepage", path: "/", expectText: "Beta" },
   { name: "Legal hub", path: "/legal", expectText: "Legal Hub" },
   { name: "Help", path: "/help", expectText: "Help" },
-  { name: "Health API", path: "/api/health", json: true, expectKey: "status", expectValue: "healthy" },
+  {
+    name: "Health API",
+    path: "/api/health",
+    json: true,
+    expectKey: "status",
+    expectOneOf: ["healthy", "degraded"],
+  },
   {
     name: "Products API",
     path: "/api/products?country=CH",
     json: true,
-    expectKey: "meta.liveOfferCount",
+    expectKey: "meta.feedProductCount",
     min: 1,
   },
 ];
@@ -34,6 +40,12 @@ async function checkEndpoint(endpoint) {
 
     if (endpoint.expectValue != null && value !== endpoint.expectValue) {
       throw new Error(`${endpoint.name} expected ${endpoint.expectKey}=${endpoint.expectValue}, got ${value}`);
+    }
+
+    if (endpoint.expectOneOf && !endpoint.expectOneOf.includes(value)) {
+      throw new Error(
+        `${endpoint.name} expected ${endpoint.expectKey} in ${endpoint.expectOneOf.join(", ")}, got ${value}`
+      );
     }
 
     if (endpoint.min != null && !(Number(value) >= endpoint.min)) {

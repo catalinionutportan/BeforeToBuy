@@ -37,9 +37,10 @@ export default function TermsPage() {
             <p className="text-xs text-slate-600">
               <strong>{COMPANY.platformName}</strong> (betrieben von <strong>{COMPANY.legalName}</strong>, UID{" "}
               {COMPANY.uid}) ist ein kostenloser Online-Preisvergleichsdienst in Beta/Demo. Wir verkaufen selbst
-              keine Produkte, sondern vergleichen Preise, Rabatte und Click & Collect-Verfügbarkeiten externer
-              Online-Händler. Einige Angebote stammen aus Demo-Katalogdaten; Brack.ch (CH) kann Live-Preise aus
-              einem AWIN-Feed anzeigen (als &quot;Live&quot; gekennzeichnet).
+              keine Produkte, sondern stellen Preis- und Verfügbarkeitsangaben externer Online-Händler gegenüber.
+              Einige Angebote stammen aus Demo-Katalogdaten; Brack.ch (CH) verwendet standardmässig illustrative
+              AWIN-Testdaten. Nur ausdrücklich als &quot;Production feed&quot; gekennzeichnete Angebote stammen aus
+              einem konfigurierten Produktionsfeed.
             </p>
           </section>
 
@@ -49,8 +50,8 @@ export default function TermsPage() {
               2. Preise & Produkte (Keine Gewähr)
             </h2>
             <p className="text-xs text-slate-600">
-              Alle Angaben zu Preisen, Lieferzeiten, Versandkosten und Verfügbarkeiten sind indikativ. Live-Feed-
-              und Demo-Daten können von den aktuellen Händlerpreisen abweichen.{" "}
+              Alle Angaben zu Preisen, Lieferzeiten, Versandkosten und Verfügbarkeiten sind indikativ. Produktionsfeed-,
+              Test- und Demo-Daten können von den aktuellen Händlerpreisen abweichen.{" "}
               <strong>Massgeblich ist stets der Preis auf der Zielseite des Händlers zum Zeitpunkt des Kaufabschlusses.</strong>{" "}
               Siehe auch{" "}
               <Link href="/disclaimer" className="text-emerald-700 underline font-semibold">

@@ -1,4 +1,5 @@
 export type CountryCode = "CH" | "DE" | "FR" | "RO" | "GB" | "US";
+export type OfferSource = "production-live" | "sample" | "demo";
 
 export interface MerchantDomainInfo {
   id: string;
@@ -9,7 +10,7 @@ export interface MerchantDomainInfo {
   affiliateNetwork: string; // e.g. "Galaxus Merchant Network", "AWIN CH", "Amazon Associates DE/CH"
   category: string; // e.g. "Electronics & Tech", "General Retail & Marketplace"
   hasClickAndCollect: boolean;
-  status: "Planned Integration" | "Demo Catalog" | "Search Redirect" | "Live Feed";
+  status: "Planned Integration" | "Demo Catalog" | "Search Redirect" | "Sample Feed" | "Live Feed";
   badge?: string;
   description: string;
 }
@@ -70,7 +71,7 @@ export interface Offer {
   nearbyBranch?: PhysicalStoreBranch;
   badge?: string; // e.g. "Cheapest Online", "Closest to You", "Best Click & Collect"
   promoCode?: string; // e.g. "SUMMER10"
-  source?: "live" | "demo";
+  source: OfferSource;
   feedMerchantId?: string;
 }
 
@@ -93,12 +94,12 @@ export interface Product {
   description: string;
   category: string; // BeforeToBuy module or subcategory id (see src/lib/categories.ts)
   image: string;
-  rating: number;
-  reviewsCount: number;
+  rating?: number;
+  reviewsCount?: number;
   brand: string;
   offers: Offer[];
   targetCountries: CountryCode[];
   isFlashDeal?: boolean;
   basePrice?: number;
-  catalogSource?: "live" | "demo" | "mixed";
+  catalogSource?: OfferSource | "mixed";
 }

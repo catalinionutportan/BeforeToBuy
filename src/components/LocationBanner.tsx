@@ -2,15 +2,15 @@
 
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
-import { MapPin, Store, Navigation, Radio, CheckCircle2, ArrowRightLeft } from "lucide-react";
+import { Store, Navigation, Radio, ArrowRightLeft } from "lucide-react";
 
 interface LocationBannerProps {
   userLocation: UserLocation;
   onCountryChange: (countryCode: CountryCode) => void;
   onRefreshGps: () => void;
   isLocating: boolean;
-  liveOfferCount?: number;
-  hasSampleFeed?: boolean;
+  productionOfferCount?: number;
+  sampleOfferCount?: number;
 }
 
 export function LocationBanner({
@@ -18,8 +18,8 @@ export function LocationBanner({
   onCountryChange,
   onRefreshGps,
   isLocating,
-  liveOfferCount = 0,
-  hasSampleFeed = false,
+  productionOfferCount = 0,
+  sampleOfferCount = 0,
 }: LocationBannerProps) {
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
 
@@ -50,12 +50,17 @@ export function LocationBanner({
           </h2>
 
           <p className="text-sm text-slate-300 max-w-2xl">
-            {liveOfferCount > 0 ? (
+            {productionOfferCount > 0 || sampleOfferCount > 0 ? (
               <>
                 Hybrid catalog for <strong className="text-white">{userLocation.countryName}</strong> in{" "}
                 <strong className="text-emerald-400">{currentCountryInfo.currency}</strong>.{" "}
-                <strong className="text-emerald-300">{liveOfferCount} live feed offer(s)</strong>{" "}
-                {hasSampleFeed ? "from Brack.ch sample AWIN feed" : "from connected merchant feeds"}; other merchants remain demo catalog.
+                {productionOfferCount > 0 && (
+                  <><strong className="text-emerald-300">{productionOfferCount} production-feed offer(s)</strong>.{" "}</>
+                )}
+                {sampleOfferCount > 0 && (
+                  <><strong className="text-amber-300">{sampleOfferCount} sample offer(s)</strong> are illustrative, not live merchant data.{" "}</>
+                )}
+                Other merchants remain demo catalog.
               </>
             ) : (
               <>

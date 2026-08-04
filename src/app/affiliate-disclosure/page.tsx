@@ -54,7 +54,7 @@ export default function AffiliateDisclosurePage() {
               Our website is <strong>completely free for consumers</strong>. We do not sell products directly, collect payment details, or charge user subscription fees. Instead, we act as an independent price aggregator and shopping search directory.
             </p>
             <p className="text-xs sm:text-sm text-slate-600">
-              When you click on an outbound product offer link or &quot;Search Store&quot; button on {COMPANY.platformName}, you are redirected to the official merchant&apos;s website. Live affiliate deep links (e.g. Brack.ch via AWIN) are used where configured; other merchants may use search redirects until feeds are connected. If you complete a qualifying purchase on the merchant&apos;s site, we may receive a referral commission from the merchant or affiliate network.
+              When you click on an outbound product offer link or &quot;Search Store&quot; button on {COMPANY.platformName}, you are redirected to the merchant&apos;s website. Production affiliate deep links are used only where configured; sample and demo entries may use ordinary search redirects. If you complete a qualifying purchase through an active affiliate link, we may receive a referral commission from the merchant or affiliate network.
             </p>
             <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-xs font-semibold text-slate-800 flex items-center gap-2">
               <Info className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -109,7 +109,7 @@ export default function AffiliateDisclosurePage() {
               3. Participating Affiliate Networks & Merchant Programs
             </h2>
             <p className="text-xs text-slate-600">
-              {COMPANY.platformName} participates in or is preparing integrations with affiliate networks. Brack.ch (CH) uses AWIN live feed links where configured:
+              {COMPANY.platformName} participates in or is preparing integrations with affiliate networks. Brack.ch (CH) uses AWIN sample data by default and production-feed links only when the production feed is explicitly configured:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               {AFFILIATE_NETWORKS.map((network) => (

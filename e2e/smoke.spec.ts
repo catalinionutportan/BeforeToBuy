@@ -26,25 +26,37 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
   });
 
-  test("health API returns healthy status", async ({ request }) => {
+  test("health API distinguishes sample-only from production feeds", async ({ request }) => {
     const response = await request.get("/api/health");
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    expect(body.status).toBe("healthy");
     expect(body.checks.productsMerge.productCount).toBeGreaterThan(0);
+    if (body.checks.integrations.hasProductionFeed) {
+      expect(body.status).toBe("healthy");
+    } else {
+      expect(body.status).toBe("degraded");
+    }
   });
 
-  test("products API returns live feed metadata for CH", async ({ request }) => {
+  test("products API labels the default CH feed as sample data", async ({ request }) => {
     const response = await request.get("/api/products?country=CH");
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
     expect(body.products.length).toBeGreaterThan(0);
-    expect(body.meta.liveOfferCount).toBeGreaterThan(0);
+    expect(body.meta.productionOfferCount).toBe(0);
+    expect(body.meta.sampleOfferCount).toBeGreaterThan(0);
+    type ApiOffer = { source: string; originalPrice?: number };
+    const sampleOffers = body.products
+      .flatMap((product: { offers: ApiOffer[] }) => product.offers)
+      .filter((offer: ApiOffer) => offer.source === "sample");
+    expect(sampleOffers.length).toBeGreaterThan(0);
+    expect(sampleOffers.every((offer: { originalPrice?: number }) => offer.originalPrice === undefined)).toBeTruthy();
+    expect(body.products.every((product: { rating?: number }) => product.rating === undefined)).toBeTruthy();
   });
 
-  test("stores page lists Brack as Live Feed", async ({ page }) => {
+  test("stores page lists Brack as Sample Feed", async ({ page }) => {
     await page.goto("/stores");
     await expect(page.getByRole("heading", { name: "Brack.ch" })).toBeVisible();
-    await expect(page.getByText("Live Feed").first()).toBeVisible();
+    await expect(page.getByText("Sample Feed").first()).toBeVisible();
   });
 });
