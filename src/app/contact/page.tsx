@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import {
   Mail,
   Building2,
@@ -10,8 +9,8 @@ import {
   Send,
   Clock,
   MessageSquare,
-  ShieldCheck,
 } from "lucide-react";
+import { PageShell } from "@/components/PageShell";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -42,23 +41,8 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-4xl mx-auto space-y-8">
-        
-        {/* Navigation Back */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl transition-all"
-          >
-            ← Back to BeforeToBuy.com
-          </Link>
-          <span className="text-xs font-semibold text-slate-400">
-            Contact & Support
-          </span>
-        </div>
-
-        {/* Header */}
+    <PageShell>
+      <div className="space-y-8">
         <div className="bg-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-800 space-y-3">
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full inline-block">
             Get in Touch
@@ -143,10 +127,11 @@ export default function ContactPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label htmlFor="contact-name" className="block text-xs font-bold text-slate-700 mb-1">
                       Your Name *
                     </label>
                     <input
+                      id="contact-name"
                       type="text"
                       required
                       value={formData.name}
@@ -157,10 +142,11 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label htmlFor="contact-email" className="block text-xs font-bold text-slate-700 mb-1">
                       Email Address *
                     </label>
                     <input
+                      id="contact-email"
                       type="email"
                       required
                       value={formData.email}
@@ -172,10 +158,11 @@ export default function ContactPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label htmlFor="contact-subject" className="block text-xs font-bold text-slate-700 mb-1">
                     Inquiry Topic
                   </label>
                   <select
+                    id="contact-subject"
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition-all cursor-pointer"
@@ -188,10 +175,11 @@ export default function ContactPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label htmlFor="contact-message" className="block text-xs font-bold text-slate-700 mb-1">
                     Message *
                   </label>
                   <textarea
+                    id="contact-message"
                     required
                     rows={5}
                     value={formData.message}
@@ -214,6 +202,6 @@ export default function ContactPage() {
         </div>
 
       </div>
-    </div>
+    </PageShell>
   );
 }

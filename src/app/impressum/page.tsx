@@ -1,28 +1,18 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Building2, Mail, MapPin, ShieldCheck, FileText, Globe } from "lucide-react";
+import { Building2, Mail, MapPin, FileText, Globe } from "lucide-react";
+import { PageShell } from "@/components/PageShell";
+import { createPageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Impressum | BeforeToBuy.com",
   description: "Official legal impressum and company information for BeforeToBuy.com - PortanX - Catalin Portan",
-};
+  path: "/impressum",
+});
 
 export default function ImpressumPage() {
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-4xl mx-auto space-y-8">
-        
-        {/* Navigation Back */}
-        <div>
-          <Link
-            href="/"
-            className="inline-flex items-center text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all"
-          >
-            ← Back to BeforeToBuy.com
-          </Link>
-        </div>
-
-        {/* Header */}
+    <PageShell>
+      <div className="space-y-8">
         <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-md border border-slate-800 space-y-2">
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
             Rechtliche Hinweise / Legal Notice
@@ -120,6 +110,6 @@ export default function ImpressumPage() {
         </div>
 
       </div>
-    </div>
+    </PageShell>
   );
 }

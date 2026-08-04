@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CountryCode, Offer, Product, PromoCoupon, UserLocation } from "@/types";
+import { CountryCode, Product, PromoCoupon, UserLocation } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { detectUserLocation } from "@/lib/geolocation";
 import { fetchProductsForLocation } from "@/lib/api-aggregator";
 import { getActiveCouponsForCountry } from "@/lib/feed-parser";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { Header } from "@/components/Header";
 import { LocationBanner } from "@/components/LocationBanner";
 import { ProductCard } from "@/components/ProductCard";
@@ -18,17 +19,10 @@ import {
   SlidersHorizontal,
   Info,
   MapPin,
-  Shield,
   SearchX,
   Flame,
-  Building2,
-  FileText,
-  Lock,
-  Mail,
-  HelpCircle,
   Store,
   ArrowRight,
-  Layers,
 } from "lucide-react";
 
 export default function Home() {
@@ -42,7 +36,8 @@ export default function Home() {
   });
 
   const [isLocating, setIsLocating] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchInput, setSearchInput] = useState<string>("");
+  const debouncedSearchQuery = useDebouncedValue(searchInput, 350);
   const [selectedDomain, setSelectedDomain] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORIES_ID);
   const [filterType, setFilterType] = useState<"all" | "pickup" | "deals">("all");
@@ -71,14 +66,14 @@ export default function Home() {
     const cat = params.get("category");
     const q = params.get("q");
     if (cat) setSelectedCategory(cat);
-    if (q) setSearchQuery(q);
+    if (q) setSearchInput(q);
   }, []);
 
-  // Fetch products & active vouchers when location, search, or category changes
+  // Fetch products when location, debounced search, or category changes
   useEffect(() => {
     async function loadProductsAndCoupons() {
       setIsLoadingProducts(true);
-      const prods = await fetchProductsForLocation(userLocation, searchQuery, selectedCategory);
+      const prods = await fetchProductsForLocation(userLocation, debouncedSearchQuery, selectedCategory);
       setProducts(prods);
 
       const activeCoupons = getActiveCouponsForCountry(userLocation.countryCode);
@@ -87,7 +82,7 @@ export default function Home() {
       setIsLoadingProducts(false);
     }
     loadProductsAndCoupons();
-  }, [userLocation, searchQuery, selectedCategory]);
+  }, [userLocation, debouncedSearchQuery, selectedCategory]);
 
   // Handle manual country change
   const handleCountryChange = (countryCode: CountryCode) => {
@@ -140,8 +135,8 @@ export default function Home() {
         userLocation={userLocation}
         onCountryChange={handleCountryChange}
         onRefreshGps={handleRefreshGps}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        searchQuery={searchInput}
+        onSearchChange={setSearchInput}
         selectedDomain={selectedDomain}
         onDomainChange={setSelectedDomain}
         isLocating={isLocating}
@@ -312,11 +307,11 @@ export default function Home() {
             </div>
             <h4 className="text-lg font-bold text-slate-900">No products found</h4>
             <p className="text-xs text-slate-500">
-              No offers matching "{searchQuery}" {selectedDomain !== "all" ? `on ${selectedDomain}` : ""} in {userLocation.countryName}. Try resetting filters.
+              No offers matching "{debouncedSearchQuery}" {selectedDomain !== "all" ? `on ${selectedDomain}` : ""} in {userLocation.countryName}. Try resetting filters.
             </p>
             <button
               onClick={() => {
-                setSearchQuery("");
+                setSearchInput("");
                 setSelectedDomain("all");
                 setSelectedCategory(ALL_CATEGORIES_ID);
                 setFilterType("all");
@@ -343,74 +338,6 @@ export default function Home() {
 
       </main>
 
-      {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 text-xs py-10 px-4 sm:px-6 lg:px-8 border-t border-slate-800 mt-12">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-slate-950 font-black">
-                B2B
-              </div>
-              <div>
-                <span className="text-white font-bold text-base block">BeforeToBuy.com</span>
-                <span className="text-[10px] text-slate-500">
-                  Operated by{" "}
-                  <a href="https://portanx.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline font-semibold">
-                    PortanX - Catalin Portan
-                  </a>{" "}
-                  (CHE-373.501.736)
-                </span>
-              </div>
-            </div>
-
-            {/* Footer Legal & Info Links */}
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-medium">
-              <Link href="/about" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
-                <HelpCircle className="w-3.5 h-3.5" /> About B2B
-              </Link>
-              <span>•</span>
-              <Link href="/categories" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
-                <Layers className="w-3.5 h-3.5 text-emerald-400" /> Categories
-              </Link>
-              <span>•</span>
-              <Link href="/stores" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
-                <Store className="w-3.5 h-3.5 text-emerald-400" /> Stores Directory
-              </Link>
-              <span>•</span>
-              <Link href="/contact" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
-                <Mail className="w-3.5 h-3.5" /> Contact
-              </Link>
-              <span>•</span>
-              <Link href="/affiliate-disclosure" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
-                <Info className="w-3.5 h-3.5" /> Affiliate Disclosure
-              </Link>
-              <span>•</span>
-              <Link href="/impressum" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
-                <Building2 className="w-3.5 h-3.5" /> Impressum
-              </Link>
-              <span>•</span>
-              <Link href="/privacy" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
-                <Lock className="w-3.5 h-3.5" /> Privacy
-              </Link>
-              <span>•</span>
-              <Link href="/terms" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
-                <FileText className="w-3.5 h-3.5" /> Terms
-              </Link>
-            </div>
-          </div>
-
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
-            <p>
-              © 2026 BeforeToBuy.com | PortanX - Catalin Portan, Flurstrasse 24, 3014 Bern, Switzerland. All rights reserved.
-            </p>
-            <p className="flex items-center gap-1">
-              <Shield className="w-3.5 h-3.5 text-emerald-400" /> Beta demo — merchant feed integrations in progress.
-            </p>
-          </div>
-        </div>
-      </footer>
-
-      {/* Affiliate Disclosure Modal */}
       <AffiliateDisclosureModal
         isOpen={isDisclosureOpen}
         onClose={() => setIsDisclosureOpen(false)}

@@ -2,26 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SHOPPING_CATEGORIES } from "@/lib/categories";
 import { ArrowRight, Layers, ChevronRight } from "lucide-react";
+import { PageShell } from "@/components/PageShell";
+import { createPageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Shopping Categories | BeforeToBuy.com",
   description:
-    "Browse BeforeToBuy.com categories: cross-border savings, local pickup, Audio, Photo + Video, Gaming, Smartphones & more — built for smart price comparison.",
-};
+    "Browse BeforeToBuy.com categories: cross-border savings, local pickup, Audio, Photo + Video, Gaming, Smartphones and more.",
+  path: "/categories",
+});
 
 export default function CategoriesPage() {
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div>
-          <Link
-            href="/"
-            className="inline-flex items-center text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl transition-all"
-          >
-            ← Back to BeforeToBuy.com
-          </Link>
-        </div>
-
+    <PageShell maxWidthClass="max-w-6xl">
+      <div className="space-y-8">
         <div className="bg-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-800 space-y-3">
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full inline-flex items-center gap-1.5">
             <Layers className="w-3.5 h-3.5" /> Category Directory
@@ -91,6 +85,6 @@ export default function CategoriesPage() {
           })}
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

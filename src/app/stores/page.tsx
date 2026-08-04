@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ALL_MERCHANT_DOMAINS, COUNTRIES } from "@/lib/countries";
-import { CountryCode, MerchantDomainInfo } from "@/types";
 import {
   Store,
   Globe,
@@ -14,10 +13,9 @@ import {
   CheckCircle2,
   Filter,
   ArrowRight,
-  Layers,
   Sparkles,
-  Building2,
 } from "lucide-react";
+import { PageShell } from "@/components/PageShell";
 
 export default function StoresDirectoryPage() {
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
@@ -53,23 +51,8 @@ export default function StoresDirectoryPage() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-6xl mx-auto space-y-8">
-        
-        {/* Navigation Back */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl transition-all"
-          >
-            ← Back to BeforeToBuy.com
-          </Link>
-          <span className="text-xs font-semibold text-slate-400">
-            Integrated Merchant Domains Directory
-          </span>
-        </div>
-
-        {/* Hero Header */}
+    <PageShell maxWidthClass="max-w-6xl">
+      <div className="space-y-8">
         <div className="bg-slate-900 text-white p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-800 space-y-4 relative overflow-hidden">
           <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
           
@@ -113,9 +96,10 @@ export default function StoresDirectoryPage() {
             <div className="flex-1 relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
-                type="text"
+                type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                aria-label="Search merchant domains"
                 placeholder="Search merchant domain e.g. digitec.ch, amazon.de, brack.ch, emag.ro..."
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition-all placeholder:text-slate-400"
               />
@@ -292,6 +276,6 @@ export default function StoresDirectoryPage() {
         )}
 
       </div>
-    </div>
+    </PageShell>
   );
 }

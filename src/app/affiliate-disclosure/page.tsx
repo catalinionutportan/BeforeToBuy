@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
   ShieldCheck,
   Building2,
@@ -7,35 +6,22 @@ import {
   CheckCircle2,
   ExternalLink,
   Info,
-  DollarSign,
-  Lock,
 } from "lucide-react";
+import { PageShell } from "@/components/PageShell";
+import { createPageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "Affiliate Disclosure & Transparency Statement | BeforeToBuy.com",
   description:
-    "Official Affiliate Disclosure statement for BeforeToBuy.com operated by PortanX - Catalin Portan. Learn how affiliate links and merchant referral commissions work.",
-};
+    "Official Affiliate Disclosure statement for BeforeToBuy.com operated by PortanX - Catalin Portan.",
+  path: "/affiliate-disclosure",
+});
 
 export default function AffiliateDisclosurePage() {
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-4xl mx-auto space-y-8">
-        
-        {/* Navigation Back */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl transition-all"
-          >
-            ← Back to BeforeToBuy.com
-          </Link>
-          <span className="text-xs font-semibold text-slate-400">
-            Official Disclosure Document
-          </span>
-        </div>
+    <PageShell>
+      <div className="space-y-8">
 
-        {/* Header */}
         <div className="bg-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-800 space-y-3">
           <div className="flex items-center gap-2">
             <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full">
@@ -167,6 +153,6 @@ export default function AffiliateDisclosurePage() {
         </div>
 
       </div>
-    </div>
+    </PageShell>
   );
 }

@@ -1,46 +1,30 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  ShoppingBag,
   MapPin,
-  ShieldCheck,
   Zap,
   Building2,
-  Users,
   Search,
   ExternalLink,
   DollarSign,
   HeartHandshake,
   CheckCircle2,
-  Globe,
   ArrowRight,
 } from "lucide-react";
+import { PageShell } from "@/components/PageShell";
+import { createPageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = createPageMetadata({
   title: "About Us & How It Works | BeforeToBuy.com",
   description:
-    "Learn how BeforeToBuy.com helps you compare prices, check local Click & Collect stock in Switzerland & Europe, and save money before you buy.",
-};
+    "Learn how BeforeToBuy.com helps you compare demo prices, explore categories, and save money before you buy.",
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-4xl mx-auto space-y-10">
-        
-        {/* Navigation Back */}
-        <div className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="inline-flex items-center text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl transition-all"
-          >
-            ← Back to BeforeToBuy.com
-          </Link>
-          <span className="text-xs font-semibold text-slate-400">
-            Operated by PortanX - Catalin Portan
-          </span>
-        </div>
-
-        {/* Hero Banner */}
+    <PageShell>
+      <div className="space-y-10">
         <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8 sm:p-12 rounded-3xl shadow-xl border border-slate-800 space-y-4 relative overflow-hidden">
           <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full inline-block">
@@ -208,6 +192,6 @@ export default function AboutPage() {
         </div>
 
       </div>
-    </div>
+    </PageShell>
   );
 }
