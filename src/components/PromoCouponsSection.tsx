@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { PromoCoupon, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
+import { openConsentPreferences } from "@/lib/consent";
+import { useConsent } from "@/lib/use-consent";
 import { Ticket, Copy, Check, ExternalLink, Flame, Sparkles, Clock } from "lucide-react";
 
 interface PromoCouponsSectionProps {
@@ -15,6 +17,7 @@ export function PromoCouponsSection({
   userLocation,
 }: PromoCouponsSectionProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const { affiliate } = useConsent();
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
 
   const handleCopyCode = (coupon: PromoCoupon) => {
@@ -109,7 +112,13 @@ export function PromoCouponsSection({
                   <a
                     href={coupon.affiliateUrl}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener noreferrer sponsored nofollow"
+                    onClick={(event) => {
+                      if (!affiliate) {
+                        event.preventDefault();
+                        openConsentPreferences();
+                      }
+                    }}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1 shadow-xs"
                   >
                     <span>Use Code</span>

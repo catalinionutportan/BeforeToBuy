@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { Offer, Product, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
+import { openConsentPreferences } from "@/lib/consent";
+import { useConsent } from "@/lib/use-consent";
 import {
   ExternalLink,
   MapPin,
@@ -26,7 +28,20 @@ export function ProductCard({
   userLocation,
   onSelectOffer,
 }: ProductCardProps) {
+  const { affiliate } = useConsent();
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
+
+  const handleAffiliateClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    offer: Offer
+  ) => {
+    if (!affiliate) {
+      event.preventDefault();
+      openConsentPreferences();
+      return;
+    }
+    onSelectOffer(product, offer);
+  };
 
   const sortedOffers = [...product.offers].sort((a, b) => a.price - b.price);
   const bestOffer = sortedOffers[0];
@@ -151,8 +166,9 @@ export function ProductCard({
                       href={offer.purchaseUrl}
                       target="_blank"
                       rel="noopener noreferrer sponsored nofollow"
-                      onClick={() => onSelectOffer(product, offer)}
+                      onClick={(event) => handleAffiliateClick(event, offer)}
                       className="bg-slate-900 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 text-[11px] shadow-xs group/btn shrink-0"
+                      title={affiliate ? undefined : "Accept affiliate cookies to open store links"}
                     >
                       <span>Search Store</span>
                       <ExternalLink className="w-3 h-3 opacity-80 group-hover/btn:translate-x-0.5 transition-transform" aria-hidden="true" />

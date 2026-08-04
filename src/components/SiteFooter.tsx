@@ -9,7 +9,9 @@ import {
   Lock,
   FileText,
   Shield,
+  Cookie,
 } from "lucide-react";
+import { ManageCookiePreferencesButton } from "@/components/ManageCookiePreferencesButton";
 
 export function SiteFooter() {
   return (
@@ -69,6 +71,10 @@ export function SiteFooter() {
               <Lock className="w-3.5 h-3.5" aria-hidden="true" /> Privacy
             </Link>
             <span aria-hidden="true">•</span>
+            <Link href="/cookies" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+              <Cookie className="w-3.5 h-3.5" aria-hidden="true" /> Cookies
+            </Link>
+            <span aria-hidden="true">•</span>
             <Link href="/terms" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
               <FileText className="w-3.5 h-3.5" aria-hidden="true" /> Terms
             </Link>
@@ -80,10 +86,13 @@ export function SiteFooter() {
             © 2026 BeforeToBuy.com | PortanX - Catalin Portan, Flurstrasse 24, 3014 Bern, Switzerland.
             All rights reserved.
           </p>
-          <p className="flex items-center gap-1">
-            <Shield className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
-            Beta demo — merchant feed integrations in progress.
-          </p>
+          <div className="flex items-center gap-3">
+            <ManageCookiePreferencesButton />
+            <p className="flex items-center gap-1">
+              <Shield className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
+              Beta demo — merchant feed integrations in progress.
+            </p>
+          </div>
         </div>
       </div>
     </footer>

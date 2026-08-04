@@ -9,6 +9,7 @@ import {
   Building2,
   Lock,
   FileText,
+  Cookie,
 } from "lucide-react";
 
 const NAV_LINKS = [
@@ -19,6 +20,7 @@ const NAV_LINKS = [
   { href: "/affiliate-disclosure", label: "Affiliate", icon: Info },
   { href: "/impressum", label: "Impressum", icon: Building2 },
   { href: "/privacy", label: "Privacy", icon: Lock },
+  { href: "/cookies", label: "Cookies", icon: Cookie },
   { href: "/terms", label: "Terms", icon: FileText },
 ] as const;
 

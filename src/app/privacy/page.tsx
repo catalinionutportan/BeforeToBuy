@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ShieldCheck, Lock, MapPin, Database, Eye } from "lucide-react";
+import Link from "next/link";
+import { ShieldCheck, Lock, MapPin, Database, Eye, Cookie, Mail } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { createPageMetadata } from "@/lib/metadata";
 
@@ -19,76 +20,120 @@ export default function PrivacyPage() {
           </span>
           <h1 className="text-3xl font-extrabold">Datenschutz & Privacy Policy</h1>
           <p className="text-slate-300 text-sm">
-            Konform mit dem Schweizer Datenschutzgesetz (nDSG / revDSG) & EU-DSGVO (GDPR)
+            Konform mit dem Schweizer Datenschutzgesetz (nDSG / revDSG) & EU-DSGVO (GDPR) — initial draft, not legal certification
           </p>
         </div>
 
-        {/* Main Content */}
         <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-6 text-sm text-slate-700 leading-relaxed">
-          
-          <div className="space-y-2">
+          <section className="space-y-2">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-emerald-600" />
               1. Verantwortliche Stelle / Data Controller
             </h2>
             <p className="text-xs text-slate-600">
-              Verantwortlich für die Datenverarbeitung auf der Webseite <strong>BeforeToBuy.com</strong> ist:<br />
-              <strong>PortanX - Catalin Portan</strong><br />
-              Flurstrasse 24, CH-3014 Bern, Schweiz<br />
-              UID: CHE-373.501.736 | E-Mail: <a href="mailto:admin@portanx.com" className="text-emerald-700 underline">admin@portanx.com</a>
+              Verantwortlich für die Datenverarbeitung auf der Webseite <strong>BeforeToBuy.com</strong> ist:
+              <br />
+              <strong>PortanX - Catalin Portan</strong>
+              <br />
+              Flurstrasse 24, CH-3014 Bern, Schweiz
+              <br />
+              UID: CHE-373.501.736 | E-Mail:{" "}
+              <a href="mailto:admin@portanx.com" className="text-emerald-700 underline">
+                admin@portanx.com
+              </a>
             </p>
-          </div>
+          </section>
 
-          <div className="space-y-2 border-t border-slate-100 pt-4">
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Cookie className="w-5 h-5 text-emerald-600" />
+              2. Cookies & Consent
+            </h2>
+            <p className="text-xs text-slate-600">
+              We use essential local storage for consent preferences. Optional location and affiliate features run only after you accept them in the cookie banner. See our{" "}
+              <Link href="/cookies" className="text-emerald-700 underline font-semibold">
+                Cookie Policy
+              </Link>{" "}
+              for details.
+            </p>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <MapPin className="w-5 h-5 text-emerald-600" />
-              2. GPS-Standortdaten (Location-Based Shopping)
+              3. Location Data (consent-based)
             </h2>
             <p className="text-xs text-slate-600">
-              <strong>Geolokalisation:</strong> Unsere Anwendung bietet Funktionen zur standortbasierten Preisvergleichung und Anzeige von "Click & Collect"-Geschäften in Deiner Nähe.
+              Location features are <strong>not activated automatically</strong>. With your consent:
             </p>
             <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
-              <li>GPS-Daten werden im Browser abgefragt und können zur Standortbestimmung an unseren Server sowie an OpenStreetMap/Nominatim übermittelt werden.</li>
-              <li>Bei fehlender GPS-Freigabe kann eine ungefähre Standortbestimmung über IP-Adresse erfolgen (ipapi.co).</li>
-              <li>Wir speichern <strong>keine dauerhaften Bewegungsprofile</strong>; Standortdaten dienen der Demo-Funktion für Händler- und Distanzanzeige.</li>
+              <li>Approximate location may be derived from your IP address (ipapi.co via our server).</li>
+              <li>If you click &quot;Use GPS&quot;, browser GPS coordinates may be sent to our server and Nominatim for reverse geocoding.</li>
+              <li>We do not store permanent movement profiles; location is used for demo country/city display only.</li>
+              <li>Without consent, you can still browse using manual country selection (default: Switzerland).</li>
             </ul>
-          </div>
+          </section>
 
-          <div className="space-y-2 border-t border-slate-100 pt-4">
+          <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Database className="w-5 h-5 text-emerald-600" />
-              3. Affiliate-Links & Tracking
+              4. Affiliate Links & Processors
             </h2>
             <p className="text-xs text-slate-600">
-              BeforeToBuy.com ist ein kostenloser Dienst, der sich über Affiliate-Provisionen finanziert. Wenn Du auf einen Kaufen-Link klickst, wirst Du zum offiziellen Online-Shop (z. B. Digitec Galaxus, Amazon, MediaMarkt, eMAG) weitergeleitet.
+              Outbound merchant links are disabled until you accept affiliate consent. Partner stores may set their own cookies when you visit them.
             </p>
-            <p className="text-xs text-slate-600">
-              Dabei werden Tracking-Parameter (Cookies/Session-IDs) der Partner-Netzwerke (AWIN, Amazon Associates, 2Performant, CJ Affiliate) verwendet, um zu bestätigen, dass der Kauf über BeforeToBuy.com vermittelt wurde. Für Dich entstehen dabei <strong>keinerlei Zusatzkosten</strong>.
-            </p>
-          </div>
+            <p className="text-xs text-slate-600 font-semibold mt-2">Sub-processors / recipients:</p>
+            <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
+              <li>Vercel Inc. — hosting & CDN (USA/EU)</li>
+              <li>ipapi.co — IP geolocation (Location consent)</li>
+              <li>OpenStreetMap Foundation (Nominatim) — reverse geocoding (Location consent)</li>
+              <li>Resend — contact form email (when configured)</li>
+              <li>Merchant partners — Amazon, Digitec Galaxus, MediaMarkt, eMAG, etc. (Affiliate consent)</li>
+            </ul>
+          </section>
 
-          <div className="space-y-2 border-t border-slate-100 pt-4">
+          <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Lock className="w-5 h-5 text-emerald-600" />
-              4. Server-Log-Files & Hosting
+              5. Server Logs & Contact Data
             </h2>
             <p className="text-xs text-slate-600">
-              Beim Aufrufen unserer Website werden durch das globale Edge-Netzwerk (Vercel) automatisch Informationen an den Server gesendet und temporär in Logfiles gespeichert (z. B. IP-Adresse, Browsertyp, Betriebssystem, Referrer URL, Zeitstempel). Dies dient der technischen Stabilität und Sicherheit.
+              Vercel edge logs may temporarily record IP address, browser type, referrer, and timestamps for security and stability. Contact form data (name, email, message) is processed to respond to your inquiry and deleted when no longer needed.
             </p>
-          </div>
+          </section>
 
-          <div className="space-y-2 border-t border-slate-100 pt-4">
+          <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Eye className="w-5 h-5 text-emerald-600" />
-              5. Deine Rechte / Your Rights
+              6. Your Rights & DSAR Procedure
             </h2>
             <p className="text-xs text-slate-600">
-              Gemäss dem Schweizer Datenschutzgesetz (nDSG) sowie der DSGVO haben Nutzer das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung ihrer personenbezogenen Daten. Wende Dich bei Fragen direkt an <a href="mailto:admin@portanx.com" className="text-emerald-700 underline font-semibold">admin@portanx.com</a>.
+              Under Swiss nDSG and EU GDPR you may request access, rectification, deletion, restriction, portability, or object to processing of your personal data.
             </p>
-          </div>
-
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs space-y-2 mt-2">
+              <p className="font-bold text-slate-900 flex items-center gap-1.5">
+                <Mail className="w-4 h-4 text-emerald-600" />
+                How to submit a Data Subject Access Request (DSAR)
+              </p>
+              <ol className="list-decimal list-inside space-y-1 text-slate-600 pl-1">
+                <li>
+                  Email{" "}
+                  <a href="mailto:admin@portanx.com" className="text-emerald-700 underline font-semibold">
+                    admin@portanx.com
+                  </a>{" "}
+                  or use the{" "}
+                  <Link href="/contact" className="text-emerald-700 underline font-semibold">
+                    contact form
+                  </Link>{" "}
+                  with topic &quot;Data Privacy & Legal Request (DSAR)&quot;.
+                </li>
+                <li>Include your name, contact email, and the right you wish to exercise.</li>
+                <li>We may ask for reasonable identity verification before fulfilling the request.</li>
+                <li>We respond within <strong>30 days</strong> (GDPR Art. 12; nDSG comparable timeframe).</li>
+              </ol>
+            </div>
+          </section>
         </div>
-
       </div>
     </PageShell>
   );

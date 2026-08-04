@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CountryCode, Product, PromoCoupon, UserLocation } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
-import { detectUserLocation } from "@/lib/geolocation";
+import {
+  CONSENT_UPDATED_EVENT,
+  getConsentPreferences,
+  openConsentPreferences,
+} from "@/lib/consent";
+import { detectUserLocationGps, getLocationFromIp } from "@/lib/geolocation";
 import { fetchProductsForLocation } from "@/lib/api-aggregator";
 import { getActiveCouponsForCountry } from "@/lib/feed-parser";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
@@ -48,15 +53,29 @@ export default function Home() {
 
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
 
-  // Initialize GPS or IP Location on mount
+  // IP location only after Location consent (no auto-GPS)
   useEffect(() => {
-    async function initLocation() {
+    async function initIpLocation() {
       setIsLocating(true);
-      const loc = await detectUserLocation();
+      const loc = await getLocationFromIp();
       setUserLocation(loc);
       setIsLocating(false);
     }
-    initLocation();
+
+    const prefs = getConsentPreferences();
+    if (prefs?.location) {
+      initIpLocation();
+    }
+
+    const onConsentUpdated = () => {
+      const updated = getConsentPreferences();
+      if (updated?.location) {
+        initIpLocation();
+      }
+    };
+
+    window.addEventListener(CONSENT_UPDATED_EVENT, onConsentUpdated);
+    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, onConsentUpdated);
   }, []);
 
   // Read ?category= or ?q= from URL (links from /categories and /stores pages)
@@ -99,10 +118,16 @@ export default function Home() {
     setSelectedDomain("all");
   };
 
-  // Handle live GPS re-scan
+  // GPS only on explicit user action and with Location consent
   const handleRefreshGps = async () => {
+    const prefs = getConsentPreferences();
+    if (!prefs?.location) {
+      openConsentPreferences();
+      return;
+    }
+
     setIsLocating(true);
-    const loc = await detectUserLocation();
+    const loc = await detectUserLocationGps();
     setUserLocation(loc);
     setIsLocating(false);
   };

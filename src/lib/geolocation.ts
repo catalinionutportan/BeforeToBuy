@@ -24,6 +24,18 @@ export function calculateHaversineDistance(
   return Math.round(distance * 10) / 10; // 1 decimal place
 }
 
+function defaultLocation(): UserLocation {
+  const def = COUNTRIES[DEFAULT_COUNTRY];
+  return {
+    latitude: def.defaultCoordinates.lat,
+    longitude: def.defaultCoordinates.lng,
+    countryCode: DEFAULT_COUNTRY,
+    countryName: def.name,
+    city: def.defaultCoordinates.city,
+    isGps: false,
+  };
+}
+
 /**
  * Reverse geocode latitude and longitude to country code & city via internal API
  */
@@ -48,7 +60,7 @@ export async function reverseGeocode(
 }
 
 /**
- * IP-based geolocation fallback via internal API
+ * IP-based geolocation via internal API (requires Location consent)
  */
 export async function getLocationFromIp(): Promise<UserLocation> {
   try {
@@ -60,23 +72,15 @@ export async function getLocationFromIp(): Promise<UserLocation> {
     console.warn("IP Geolocation failed:", err);
   }
 
-  const def = COUNTRIES[DEFAULT_COUNTRY];
-  return {
-    latitude: def.defaultCoordinates.lat,
-    longitude: def.defaultCoordinates.lng,
-    countryCode: DEFAULT_COUNTRY,
-    countryName: def.name,
-    city: def.defaultCoordinates.city,
-    isGps: false,
-  };
+  return defaultLocation();
 }
 
 /**
- * Main geolocation detector: Tries GPS first, then IP, then default
+ * GPS-only detection on explicit user action (requires Location consent + browser permission)
  */
-export async function detectUserLocation(): Promise<UserLocation> {
+export async function detectUserLocationGps(): Promise<UserLocation> {
   if (typeof window === "undefined" || !navigator.geolocation) {
-    return await getLocationFromIp();
+    return defaultLocation();
   }
 
   return new Promise((resolve) => {
@@ -101,12 +105,16 @@ export async function detectUserLocation(): Promise<UserLocation> {
           isGps: true,
         });
       },
-      async (error) => {
+      (error) => {
         console.warn("GPS Permission denied or timed out:", error.message);
-        const ipLocation = await getLocationFromIp();
-        resolve(ipLocation);
+        resolve(defaultLocation());
       },
       options
     );
   });
+}
+
+/** @deprecated Use getLocationFromIp or detectUserLocationGps with consent checks */
+export async function detectUserLocation(): Promise<UserLocation> {
+  return getLocationFromIp();
 }
