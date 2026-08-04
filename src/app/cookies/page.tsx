@@ -34,7 +34,7 @@ export default function CookiesPage() {
               1. What we use
             </h2>
             <p className="text-xs text-slate-600">
-              BeforeToBuy.com is a price comparison demo. We do not run advertising cookies on our domain. We use browser local storage to remember your privacy choices and essential site preferences.
+              BeforeToBuy.com is a comparison demo. We do not run advertising cookies on our domain. We use browser local storage to display your choices and a signed, HttpOnly essential cookie so optional location APIs can verify those choices server-side.
             </p>
           </section>
 
@@ -58,7 +58,7 @@ export default function CookiesPage() {
                   <tr>
                     <td className="p-3 font-semibold">Essential</td>
                     <td className="p-3">Consent preferences, beta banner dismissal</td>
-                    <td className="p-3">localStorage (<code className="text-[10px]">b2b_consent_v2</code>)</td>
+                    <td className="p-3">localStorage (<code className="text-[10px]">b2b_consent_v3</code>) plus signed HttpOnly cookie (<code className="text-[10px]">b2b_consent</code>), up to 180 days</td>
                     <td className="p-3">Yes</td>
                   </tr>
                   <tr>

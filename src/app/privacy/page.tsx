@@ -55,7 +55,7 @@ export default function PrivacyPage() {
               2. Cookies & Consent
             </h2>
             <p className="text-xs text-slate-600">
-              We use essential local storage for consent preferences. Optional location and affiliate features run only after you accept them in the cookie banner. See our{" "}
+              We use essential local storage for the preference interface and a signed, HttpOnly consent cookie so the server can enforce optional location access. Location and affiliate features run only after you select those categories in the consent panel. See our{" "}
               <Link href="/cookies" className="text-emerald-700 underline font-semibold">
                 Cookie Policy
               </Link>{" "}

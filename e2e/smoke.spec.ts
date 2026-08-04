@@ -26,6 +26,28 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
   });
 
+  test("location APIs require signed server-side consent", async ({ request }) => {
+    const blocked = await request.get("/api/geocode?lat=46.948&lng=7.4474");
+    expect(blocked.status()).toBe(403);
+
+    const deniedConsent = await request.post("/api/consent", {
+      data: { location: false, affiliate: false },
+    });
+    expect(deniedConsent.ok()).toBeTruthy();
+    expect(deniedConsent.headers()["set-cookie"]).toContain("HttpOnly");
+    expect(deniedConsent.headers()["set-cookie"].toLowerCase()).toContain("samesite=strict");
+    expect((await request.get("/api/geocode?lat=46.948&lng=7.4474")).status()).toBe(403);
+
+    const grantedConsent = await request.post("/api/consent", {
+      data: { location: true, affiliate: false },
+    });
+    expect(grantedConsent.ok()).toBeTruthy();
+    expect((await request.get("/api/geocode?lat=invalid&lng=7.4474")).status()).toBe(400);
+
+    expect((await request.delete("/api/consent")).ok()).toBeTruthy();
+    expect((await request.get("/api/geocode?lat=46.948&lng=7.4474")).status()).toBe(403);
+  });
+
   test("health API distinguishes sample-only from production feeds", async ({ request }) => {
     const response = await request.get("/api/health");
     expect(response.ok()).toBeTruthy();

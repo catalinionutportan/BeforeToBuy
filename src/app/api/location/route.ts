@@ -2,8 +2,16 @@ import { NextResponse } from "next/server";
 import { CountryCode } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { hasServerConsent } from "@/lib/server-consent";
 
 export async function GET(request: Request) {
+  if (!hasServerConsent(request, "location")) {
+    return NextResponse.json(
+      { error: "Location consent is required." },
+      { status: 403 }
+    );
+  }
+
   const clientIp = getClientIp(request);
   const rateLimit = checkRateLimit(`location:${clientIp}`, 15, 60_000);
 

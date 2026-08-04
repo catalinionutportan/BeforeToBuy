@@ -50,12 +50,14 @@ git push origin main
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
+| `CONSENT_SIGNING_SECRET` | **Required** | Signs the HttpOnly consent cookie enforced by `/api/location` and `/api/geocode` (minimum 32 characters) |
 | `AWIN_FEED_URL_CH` | Optional | Production AWIN CSV for Switzerland |
 | `RESEND_API_KEY` | Optional | Contact form email delivery |
 | `CONTACT_TO_EMAIL` | Optional | Contact form recipient |
 | `CONTACT_FROM_EMAIL` | Optional | Contact form sender |
 
 Without `AWIN_FEED_URL_CH`, the sample feed in `src/data/sample-awin-brack-ch.csv` is used.
+Without `CONSENT_SIGNING_SECRET`, consent saving and location APIs fail closed in production.
 
 ---
 

@@ -7,21 +7,34 @@ import {
   acceptAllConsent,
   acceptEssentialConsent,
   getConsentPreferences,
-  openConsentPreferences,
+  saveConsentPreferences,
 } from "@/lib/consent";
 
 export function CookieConsentBanner() {
   const [isVisible, setIsVisible] = useState(false);
+  const [locationConsent, setLocationConsent] = useState(false);
+  const [affiliateConsent, setAffiliateConsent] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     const syncVisibility = () => {
-      setIsVisible(!getConsentPreferences());
+      const preferences = getConsentPreferences();
+      setLocationConsent(preferences?.location ?? false);
+      setAffiliateConsent(preferences?.affiliate ?? false);
+      setIsVisible(!preferences);
     };
 
     syncVisibility();
     const timer = setTimeout(syncVisibility, 800);
 
-    const openHandler = () => setIsVisible(true);
+    const openHandler = () => {
+      const preferences = getConsentPreferences();
+      setLocationConsent(preferences?.location ?? false);
+      setAffiliateConsent(preferences?.affiliate ?? false);
+      setSaveError(null);
+      setIsVisible(true);
+    };
     window.addEventListener("b2b-consent-open", openHandler);
 
     return () => {
@@ -30,15 +43,27 @@ export function CookieConsentBanner() {
     };
   }, []);
 
-  const handleAcceptAll = () => {
-    acceptAllConsent();
-    setIsVisible(false);
+  const saveAndClose = async (save: () => Promise<boolean>) => {
+    setIsSaving(true);
+    setSaveError(null);
+    const saved = await save();
+    setIsSaving(false);
+    if (saved) {
+      setIsVisible(false);
+    } else {
+      setSaveError("Unable to save privacy preferences. Please try again.");
+    }
   };
 
-  const handleEssentialOnly = () => {
-    acceptEssentialConsent();
-    setIsVisible(false);
-  };
+  const handleAcceptAll = () => saveAndClose(acceptAllConsent);
+  const handleEssentialOnly = () => saveAndClose(acceptEssentialConsent);
+  const handleSavePreferences = () =>
+    saveAndClose(() =>
+      saveConsentPreferences({
+        location: locationConsent,
+        affiliate: affiliateConsent,
+      })
+    );
 
   if (!isVisible) return null;
 
@@ -61,6 +86,7 @@ export function CookieConsentBanner() {
         <button
           type="button"
           onClick={handleEssentialOnly}
+          disabled={isSaving}
           aria-label="Close and accept essential only"
           className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
         >
@@ -72,24 +98,65 @@ export function CookieConsentBanner() {
         We use essential local storage for your preferences. With your permission, we also use approximate location (IP/GPS lookup) and enable outbound merchant links that may set affiliate tracking on partner stores.
       </p>
 
-      <ul className="text-[11px] text-slate-400 space-y-1 mb-4 list-disc list-inside">
-        <li><strong className="text-slate-300">Essential:</strong> required site preferences (always active)</li>
-        <li><strong className="text-slate-300">Location:</strong> IP/GPS lookup via our server, Nominatim, ipapi.co</li>
-        <li><strong className="text-slate-300">Affiliate:</strong> outbound store links that may use partner tracking</li>
-      </ul>
+      <div className="text-[11px] space-y-2 mb-4">
+        <div className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5">
+          <strong className="text-slate-200">Essential</strong>
+          <span className="text-slate-400"> — required preferences and signed consent proof (always active)</span>
+        </div>
+        <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={locationConsent}
+            onChange={(event) => setLocationConsent(event.target.checked)}
+            className="mt-0.5 accent-emerald-500"
+          />
+          <span>
+            <strong className="text-slate-200">Location</strong>
+            <span className="text-slate-400"> — IP/GPS lookup via our server, Nominatim, and ipapi.co</span>
+          </span>
+        </label>
+        <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={affiliateConsent}
+            onChange={(event) => setAffiliateConsent(event.target.checked)}
+            className="mt-0.5 accent-emerald-500"
+          />
+          <span>
+            <strong className="text-slate-200">Affiliate</strong>
+            <span className="text-slate-400"> — outbound merchant links that may use partner tracking</span>
+          </span>
+        </label>
+      </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-2 text-xs">
+      {saveError && (
+        <p role="alert" className="text-[11px] text-red-300 mb-3">
+          {saveError}
+        </p>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
         <button
           type="button"
           onClick={handleAcceptAll}
-          className="w-full sm:flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl transition-colors cursor-pointer text-center"
+          disabled={isSaving}
+          className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white font-bold py-2.5 px-3 rounded-xl transition-colors cursor-pointer text-center"
         >
           Accept All
         </button>
         <button
           type="button"
+          onClick={handleSavePreferences}
+          disabled={isSaving}
+          className="w-full bg-blue-700 hover:bg-blue-600 disabled:opacity-60 text-white font-bold py-2.5 px-3 rounded-xl transition-colors cursor-pointer text-center"
+        >
+          Save Selection
+        </button>
+        <button
+          type="button"
           onClick={handleEssentialOnly}
-          className="w-full sm:flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 px-4 rounded-xl transition-colors cursor-pointer text-center border border-slate-700"
+          disabled={isSaving}
+          className="w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-60 text-slate-300 font-semibold py-2.5 px-3 rounded-xl transition-colors cursor-pointer text-center border border-slate-700"
         >
           Essential Only
         </button>
@@ -102,13 +169,7 @@ export function CookieConsentBanner() {
         <Link href="/privacy" className="hover:text-emerald-400 underline">
           Privacy Policy
         </Link>
-        <button
-          type="button"
-          onClick={() => openConsentPreferences()}
-          className="hover:text-emerald-400 underline"
-        >
-          Change preferences
-        </button>
+        <span>Consent version 3</span>
       </div>
     </div>
   );
