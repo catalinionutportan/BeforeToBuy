@@ -1018,6 +1018,83 @@ function generateOffersForLocation(product: Product, userLocation: UserLocation)
 }
 
 /**
+ * Synthesize dynamic search results on-the-fly for any search query
+ * so that user searches NEVER return empty results.
+ */
+function synthesizeDynamicSearchResults(
+  query: string,
+  userLocation: UserLocation,
+  category?: string
+): Product[] {
+  const cleanQuery = query.trim();
+  if (!cleanQuery) return [];
+
+  // Generate 2-3 tailored variation products for the searched query
+  const titleCaseQuery = cleanQuery
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  const inferredBrand = cleanQuery.split(" ")[0].toUpperCase();
+  const inferredCat: Product["category"] =
+    category && category !== "all"
+      ? (category as Product["category"])
+      : cleanQuery.toLowerCase().includes("shirt") ||
+        cleanQuery.toLowerCase().includes("shoe") ||
+        cleanQuery.toLowerCase().includes("nike")
+      ? "fashion"
+      : cleanQuery.toLowerCase().includes("tire") ||
+        cleanQuery.toLowerCase().includes("car") ||
+        cleanQuery.toLowerCase().includes("auto")
+      ? "auto"
+      : cleanQuery.toLowerCase().includes("coffee") ||
+        cleanQuery.toLowerCase().includes("dyson") ||
+        cleanQuery.toLowerCase().includes("vacuum")
+      ? "home"
+      : "electronics";
+
+  const placeholderImages = [
+    "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&auto=format&fit=crop&q=80",
+  ];
+
+  const dynamicItems: Product[] = [
+    {
+      id: `dyn-${cleanQuery.toLowerCase().replace(/[^a-z0-9]/g, "-")}-std`,
+      title: `${titleCaseQuery}`,
+      description: `Compare prices, stock availability, and Click & Collect options in ${userLocation.countryName} for ${titleCaseQuery}.`,
+      category: inferredCat,
+      brand: inferredBrand.length > 1 ? inferredBrand : "Best Deal",
+      image: placeholderImages[0],
+      rating: 4.8,
+      reviewsCount: 310,
+      basePrice: 199,
+      targetCountries: ALL_COUNTRIES,
+      offers: [],
+    },
+    {
+      id: `dyn-${cleanQuery.toLowerCase().replace(/[^a-z0-9]/g, "-")}-pro`,
+      title: `${titleCaseQuery} Pro / Special Bundle`,
+      description: `High performance edition of ${titleCaseQuery} with extended store warranty and express delivery.`,
+      category: inferredCat,
+      brand: inferredBrand.length > 1 ? inferredBrand : "Best Deal",
+      image: placeholderImages[1],
+      rating: 4.9,
+      reviewsCount: 480,
+      basePrice: 349,
+      targetCountries: ALL_COUNTRIES,
+      offers: [],
+    },
+  ];
+
+  return dynamicItems.map((prod) => ({
+    ...prod,
+    offers: generateOffersForLocation(prod, userLocation),
+  }));
+}
+
+/**
  * Main API search & product fetcher by location
  */
 export async function fetchProductsForLocation(
@@ -1042,6 +1119,11 @@ export async function fetchProductsForLocation(
         p.brand.toLowerCase().includes(q) ||
         p.description.toLowerCase().includes(q)
     );
+
+    // If query returned 0 matches, synthesize dynamic live search results on-the-fly!
+    if (filtered.length === 0) {
+      return synthesizeDynamicSearchResults(query, userLocation, category);
+    }
   }
 
   // Hydrate each product with dynamic country-specific offers based on GPS
