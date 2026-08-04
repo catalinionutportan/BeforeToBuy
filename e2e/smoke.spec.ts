@@ -9,6 +9,14 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(
       page.getByRole("link", { name: "Visit the official PortanX company website" })
     ).toHaveAttribute("href", "https://portanx.com");
+    await expect(page.getByRole("link", { name: "admin@portanx.com" })).toHaveAttribute(
+      "href",
+      "mailto:admin@portanx.com"
+    );
+    await expect(page.getByRole("link", { name: "+41 78 310 33 17" })).toHaveAttribute(
+      "href",
+      "tel:+41783103317"
+    );
   });
 
   test("legal hub and help pages are reachable", async ({ page }) => {

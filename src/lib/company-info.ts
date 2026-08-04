@@ -43,6 +43,8 @@ export const COMPANY = {
     signingAuthority: "Einzelunterschrift",
   },
   email: "admin@portanx.com",
+  phone: "+41 78 310 33 17",
+  phoneHref: "tel:+41783103317",
   website: "https://portanx.com",
   platformUrl: "https://www.beforetobuy.com",
   businessPurpose: {

@@ -4,6 +4,7 @@ import {
   Layers,
   Store,
   Mail,
+  Phone,
   Building2,
   Lock,
   FileText,
@@ -60,6 +61,26 @@ export function SiteFooter() {
                 className="h-auto w-full opacity-90 transition-all duration-300 group-hover:opacity-100 group-hover:brightness-110 group-focus-visible:opacity-100 group-focus-visible:brightness-110"
               />
             </a>
+
+            <div className="max-w-[280px] space-y-1.5 border-l-2 border-sky-500/50 pl-3 text-xs">
+              <p className="font-semibold uppercase tracking-[0.14em] text-slate-500">
+                PortanX contact
+              </p>
+              <a
+                href={`mailto:${COMPANY.email}`}
+                className="flex min-h-7 items-center gap-2 text-slate-300 transition-colors hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded-md"
+              >
+                <Mail className="h-3.5 w-3.5 text-sky-400" aria-hidden="true" />
+                {COMPANY.email}
+              </a>
+              <a
+                href={COMPANY.phoneHref}
+                className="flex min-h-7 items-center gap-2 text-slate-300 transition-colors hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 rounded-md"
+              >
+                <Phone className="h-3.5 w-3.5 text-sky-400" aria-hidden="true" />
+                {COMPANY.phone}
+              </a>
+            </div>
           </section>
 
           <nav aria-labelledby="footer-explore" className="space-y-3">
