@@ -92,7 +92,7 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
     icon: Plane,
     description: "Drones, RC models, action cams accessories, and smart gadgets.",
     subcategories: [
-      { id: "drones-quadcopters", label: "Drones & Quadcopters", searchKeywords: ["drone", "dji", "quadcopter", "fpv"] },
+      { id: "drones-quadcopters", label: "Drones & Quadcopters", searchKeywords: ["drone", "dji mini", "dji mavic", "dji avata", "quadcopter", "fpv drone"] },
       { id: "drones-accessories", label: "Drone Accessories", searchKeywords: ["drone battery", "propeller", "drone case"] },
       { id: "drones-rc", label: "RC Models & Toys", searchKeywords: ["rc car", "remote control", "rc model"] },
       { id: "drones-gadgets", label: "Smart Gadgets", searchKeywords: ["gadget", "smart home gadget", "tracker"] },
@@ -105,8 +105,8 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
     icon: Camera,
     description: "Compare camera bodies, lenses, batteries, flashes & pro accessories — full ecosystem, not just bodies.",
     subcategories: [
-      { id: "photo-mirrorless", label: "Mirrorless Cameras", labelDe: "Systemkameras / Mirrorless", searchKeywords: ["mirrorless", "sony alpha", "canon eos r", "nikon z", "fujifilm x", "camera body"] },
-      { id: "photo-dslr", label: "DSLR Cameras", labelDe: "Spiegelreflexkameras", searchKeywords: ["dslr", "canon eos", "nikon d", "digital slr"] },
+      { id: "photo-mirrorless", label: "Mirrorless Cameras", labelDe: "Systemkameras / Mirrorless", searchKeywords: ["mirrorless", "sony alpha", "canon eos r", "nikon z", "fujifilm x-t", "camera body"] },
+      { id: "photo-dslr", label: "DSLR Cameras", labelDe: "Spiegelreflexkameras", searchKeywords: ["dslr", "canon eos 90d", "canon eos 5d", "nikon d850", "nikon d7500", "digital slr"] },
       { id: "photo-compact", label: "Compact & Instant Cameras", labelDe: "Kompakt- & Sofortbildkameras", searchKeywords: ["compact camera", "point and shoot", "instax", "polaroid", "ricoh gr"] },
       { id: "photo-lenses", label: "Lenses & Adapters", labelDe: "Objektive & Adapter", searchKeywords: ["lens", "objektiv", "prime lens", "zoom lens", "sigma", "tamron", "rf mount", "fe mount", "z mount", "lens adapter"] },
       { id: "photo-action", label: "Action Cameras", labelDe: "Actioncams", searchKeywords: ["gopro", "action cam", "hero", "insta360", "dji action", "osmo action"] },
@@ -321,36 +321,30 @@ export function getParentCategoryId(categoryOrSubId: string): string | null {
   return null;
 }
 
-/** Match product text against category/subcategory filter */
+/** Match product against category/subcategory filter — strict ID match only (no keyword bleed). */
 export function productMatchesCategoryFilter(
   product: { title: string; description: string; brand: string; category: string; isFlashDeal?: boolean },
   categoryFilter: string
 ): boolean {
   if (!categoryFilter || categoryFilter === ALL_CATEGORIES_ID) return true;
 
-  // Direct product category match (exact id on product)
+  // Exact subcategory or module id stored on the product
   if (product.category === categoryFilter) return true;
 
   const parentId = getParentCategoryId(categoryFilter);
   const parentCat = parentId ? getCategoryById(parentId) : getCategoryById(categoryFilter);
 
-  // Parent module selected → match any product in that module or its subcategories
+  // Parent module selected → only products whose category belongs to that module
   if (parentCat && categoryFilter === parentCat.id) {
-    if (product.category === parentCat.id) return true;
     if (product.category.startsWith(`${parentCat.id}-`)) return true;
-    // Keyword fallback for parent module
-    const allKeywords = parentCat.subcategories.flatMap((s) => s.searchKeywords);
-    const text = `${product.title} ${product.description} ${product.brand}`.toLowerCase();
-    return allKeywords.some((kw) => text.includes(kw.toLowerCase()));
+    // Before You Buy uses compare-* ids under before-you-buy module
+    if (parentCat.id === "before-you-buy" && product.category.startsWith("compare-")) return true;
+    return false;
   }
 
-  // Subcategory selected
+  // Subcategory selected → strict match only (already checked above)
   const sub = getSubcategoryById(categoryFilter);
-  if (sub) {
-    if (product.category === sub.id) return true;
-    const text = `${product.title} ${product.description} ${product.brand}`.toLowerCase();
-    return sub.searchKeywords.some((kw) => text.includes(kw.toLowerCase()));
-  }
+  if (sub) return false;
 
   // Promo categories
   if (categoryFilter === "sale" || categoryFilter.startsWith("sale-")) {

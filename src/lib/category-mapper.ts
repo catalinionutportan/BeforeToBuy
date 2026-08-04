@@ -13,17 +13,24 @@ import { SHOPPING_CATEGORIES } from "@/lib/categories";
 
 /** Merchant category path fragments → BeforeToBuy subcategory (checked first) */
 const MERCHANT_CATEGORY_RULES: { patterns: RegExp; subcategoryId: string }[] = [
-  { patterns: /ink|toner|cartridge|druckerpatrone|cartouche/i, subcategoryId: "office-ink-toner" },
-  { patterns: /printer|scanner|multifunction|drucker/i, subcategoryId: "office-printers" },
-  { patterns: /office furniture|desk|chair|home office|büromöbel|ergonomic/i, subcategoryId: "office-home" },
-  { patterns: /shredder|laminator|label printer|office tech|projector|whiteboard/i, subcategoryId: "office-tech" },
-  { patterns: /headphone|kopfhörer|earphone|headset/i, subcategoryId: "audio-headphones" },
-  { patterns: /speaker|soundbar|lautsprecher/i, subcategoryId: "audio-speakers" },
-  { patterns: /camera|objektiv|lens|mirrorless|dslr|foto/i, subcategoryId: "photo-mirrorless" },
-  { patterns: /laptop|notebook|macbook|pc/i, subcategoryId: "notebooks-laptops" },
-  { patterns: /smartphone|iphone|mobile phone|handy/i, subcategoryId: "mobile-smartphones" },
-  { patterns: /gaming|playstation|xbox|nintendo/i, subcategoryId: "gaming-consoles" },
-  { patterns: /television|tv|oled|fernseher/i, subcategoryId: "tv-televisions" },
+  // Photo + Video (specific before broad)
+  { patterns: /\b(dslr|spiegelreflex|eos\s*\d+d|nikon d\d)/i, subcategoryId: "photo-dslr" },
+  { patterns: /\b(mirrorless|systemkamera|eos r|alpha\s*[67]|nikon z\d|fujifilm x-)/i, subcategoryId: "photo-mirrorless" },
+  { patterns: /\b(instax|polaroid|compact camera|point.?and.?shoot|sofortbild)/i, subcategoryId: "photo-compact" },
+  { patterns: /\b(gopro|action cam|osmo action|insta360|action camera)/i, subcategoryId: "photo-action" },
+  { patterns: /\b(objektiv|camera lens|zoom lens|prime lens|\b\d+mm f\/)/i, subcategoryId: "photo-lenses" },
+  { patterns: /\b(drone battery|propeller|drone case)/i, subcategoryId: "drones-accessories" },
+  { patterns: /\b(mavic|mini \d pro|quadcopter|\bfpv drone\b|dji air)/i, subcategoryId: "drones-quadcopters" },
+  { patterns: /\b(ink|toner|cartridge|druckerpatrone)/i, subcategoryId: "office-ink-toner" },
+  { patterns: /\b(printer|scanner|multifunction|drucker)/i, subcategoryId: "office-printers" },
+  { patterns: /\b(office furniture|desk|chair|home office|büromöbel|ergonomic)/i, subcategoryId: "office-home" },
+  { patterns: /\b(shredder|laminator|label printer|office tech)/i, subcategoryId: "office-tech" },
+  { patterns: /\b(headphone|kopfhörer|earphone|headset)/i, subcategoryId: "audio-headphones" },
+  { patterns: /\b(speaker|soundbar|lautsprecher)/i, subcategoryId: "audio-speakers" },
+  { patterns: /\b(laptop|notebook|macbook)/i, subcategoryId: "notebooks-laptops" },
+  { patterns: /\b(smartphone|iphone|mobile phone|handy)/i, subcategoryId: "mobile-smartphones" },
+  { patterns: /\b(playstation|xbox|nintendo)/i, subcategoryId: "gaming-consoles" },
+  { patterns: /\b(television|\btv\b|oled|fernseher)/i, subcategoryId: "tv-televisions" },
 ];
 
 const FALLBACK_SUBCATEGORY = "compare-cross-border";
