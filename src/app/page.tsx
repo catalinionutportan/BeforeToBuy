@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { CountryCode, Offer, Product, PromoCoupon, UserLocation } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { detectUserLocation } from "@/lib/geolocation";
@@ -23,6 +24,9 @@ import {
   Layers,
   SearchX,
   Flame,
+  Building2,
+  FileText,
+  Lock,
 } from "lucide-react";
 
 export default function Home() {
@@ -291,26 +295,35 @@ export default function Home() {
               <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-slate-950 font-black">
                 B2B
               </div>
-              <span className="text-white font-bold text-base">BeforeToBuy.com</span>
+              <div>
+                <span className="text-white font-bold text-base block">BeforeToBuy.com</span>
+                <span className="text-[10px] text-slate-500">Operated by PortanX - Catalin Portan (CHE-373.501.736)</span>
+              </div>
             </div>
 
+            {/* Legal Links */}
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium">
-              <button onClick={() => setIsDisclosureOpen(true)} className="hover:text-white transition-colors">
+              <Link href="/impressum" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+                <Building2 className="w-3.5 h-3.5" /> Impressum
+              </Link>
+              <span>•</span>
+              <Link href="/privacy" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5" /> Datenschutz / Privacy
+              </Link>
+              <span>•</span>
+              <Link href="/terms" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+                <FileText className="w-3.5 h-3.5" /> Terms (AGB)
+              </Link>
+              <span>•</span>
+              <button onClick={() => setIsDisclosureOpen(true)} className="hover:text-emerald-400 text-slate-300 transition-colors">
                 Affiliate Disclosure
               </button>
-              <span>•</span>
-              <span className="text-slate-500">Switzerland 🇨🇭</span>
-              <span className="text-slate-500">Germany 🇩🇪</span>
-              <span className="text-slate-500">France 🇫🇷</span>
-              <span className="text-slate-500">Romania 🇷🇴</span>
-              <span className="text-slate-500">UK 🇬🇧</span>
-              <span className="text-slate-500">USA 🇺🇸</span>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
             <p>
-              © 2026 BeforeToBuy.com. All product names, logos, and brands are property of their respective owners.
+              © 2026 BeforeToBuy.com | PortanX - Catalin Portan, Flurstrasse 24, 3014 Bern, Switzerland. All rights reserved.
             </p>
             <p className="flex items-center gap-1">
               <Shield className="w-3.5 h-3.5 text-emerald-400" /> Powered by AWIN, Digitec Galaxus Merchant, Amazon Associates, 2Performant & CJ API Streams.
