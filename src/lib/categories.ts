@@ -17,6 +17,7 @@ import {
   Percent,
   PackageOpen,
   Layers,
+  Globe,
   type LucideIcon,
 } from "lucide-react";
 
@@ -37,37 +38,51 @@ export interface ShoppingCategory {
   isPromo?: boolean; // Sale, Clearance, Used
 }
 
-/** Digitec/Galaxus-style shopping category tree for BeforeToBuy.com */
+/** BeforeToBuy.com category tree — comparison-first, not a retailer catalog clone.
+ *  Depth where buyers compare prices (cameras + accessories, audio gear, tech).
+ *  Unique "Before You Buy" modules highlight GPS, cross-border & local pickup value. */
 export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
+  {
+    id: "before-you-buy",
+    label: "Before You Buy",
+    labelDe: "Before You Buy",
+    icon: Globe,
+    description: "Cross-border savings, local pickup near you, smart accessories & refurb vs new — only on BeforeToBuy.",
+    subcategories: [
+      { id: "compare-cross-border", label: "Cross-Border Savings", labelDe: "Grenzüberschreitend sparen", searchKeywords: ["cross border", "import savings", "cheaper abroad", "ch vs de", "eu price", "international deal"] },
+      { id: "compare-local-pickup", label: "Pick Up Near You", labelDe: "Abholung in der Nähe", searchKeywords: ["click collect", "pickup", "near me", "local store", "same day", "branch"] },
+      { id: "compare-accessories", label: "Smart Accessory Picks", labelDe: "Sinnvolles Zubehör", searchKeywords: ["accessory", "spare battery", "case", "charger", "must have", "bundle", "replacement"] },
+      { id: "compare-refurb", label: "Refurb vs New", labelDe: "Refurb vs Neu", searchKeywords: ["refurb", "refurbished", "renewed", "used", "second hand", "outlet"] },
+    ],
+  },
   {
     id: "audio",
     label: "Audio",
     labelDe: "Audio",
     icon: Headphones,
-    description: "Headphones, speakers, Hi-Fi, home cinema audio, microphones & studio gear.",
+    description: "Compare headphones, speakers, Hi-Fi & studio gear across CH, DE, RO & EU stores.",
     subcategories: [
-      { id: "audio-headphones", label: "Headphones & Earphones", labelDe: "Kopfhörer & Ohrhörer", searchKeywords: ["headphone", "earphone", "airpods", "wh-1000", "bose", "sony"] },
-      { id: "audio-speakers", label: "Speakers & Soundbars", labelDe: "Lautsprecher & Soundbars", searchKeywords: ["speaker", "soundbar", "sonos", "marshall", "bluetooth speaker"] },
-      { id: "audio-hifi", label: "Hi-Fi & Stereo", labelDe: "Hi-Fi & Stereo", searchKeywords: ["hifi", "stereo", "amplifier", "receiver", "turntable"] },
-      { id: "audio-home-cinema", label: "Home Cinema Audio", labelDe: "Heimkino Audio", searchKeywords: ["subwoofer", "surround", "home cinema audio", "av receiver"] },
-      { id: "audio-microphones", label: "Microphones & Recording", labelDe: "Mikrofone & Recording", searchKeywords: ["microphone", "mic", "audio interface", "podcast"] },
-      { id: "audio-dj-studio", label: "DJ & Studio Equipment", labelDe: "DJ & Studio Equipment", searchKeywords: ["dj", "mixer", "controller", "studio monitor"] },
-      { id: "audio-car", label: "Car Audio", labelDe: "Car Audio", searchKeywords: ["car audio", "car speaker", "subwoofer car"] },
-      { id: "audio-portable", label: "Portable Audio", labelDe: "Portable Audio", searchKeywords: ["portable speaker", "mp3", "walkman", "ipod"] },
-      { id: "audio-cables", label: "Cables & Adapters", labelDe: "Kabel & Adapter", searchKeywords: ["audio cable", "jack", "xlr", "optical cable"] },
+      { id: "audio-headphones", label: "Headphones & Headsets", labelDe: "Kopfhörer & Headsets", searchKeywords: ["headphone", "headset", "earphone", "airpods", "wh-1000", "bose", "sony", "sennheiser", "gaming headset"] },
+      { id: "audio-speakers", label: "Speakers & Soundbars", labelDe: "Lautsprecher & Soundbars", searchKeywords: ["speaker", "soundbar", "subwoofer", "bookshelf speaker", "bluetooth speaker", "marshall", "jbl"] },
+      { id: "audio-wireless", label: "Wireless & Multiroom", labelDe: "Wireless & Multiroom", searchKeywords: ["smart speaker", "multiroom", "sonos", "echo", "nest audio", "homepod", "bluesound", "whole home"] },
+      { id: "audio-hifi", label: "Hi-Fi & Turntables", labelDe: "Hi-Fi & Plattenspieler", searchKeywords: ["hifi", "amplifier", "receiver", "turntable", "vinyl", "dac", "stereo"] },
+      { id: "audio-portable", label: "Portable Players", labelDe: "Portable Player", searchKeywords: ["walkman", "mp3 player", "dap", "cd player", "digital audio player", "fiio"] },
+      { id: "audio-car", label: "In-Car Audio", labelDe: "Car Audio", searchKeywords: ["car audio", "car speaker", "carplay", "android auto", "car amplifier", "dash stereo"] },
+      { id: "audio-studio", label: "Studio, Podcast & DJ", labelDe: "Studio, Podcast & DJ", searchKeywords: ["studio monitor", "audio interface", "microphone", "podcast", "dj controller", "shure", "focusrite", "pioneer ddj"] },
+      { id: "audio-accessories", label: "Cables & Spare Parts", labelDe: "Kabel & Ersatzteile", searchKeywords: ["xlr cable", "ear pads", "speaker cable", "phono cartridge", "audio adapter", "replacement parts"] },
     ],
   },
   {
     id: "office-stationery",
-    label: "Office + Stationery",
-    labelDe: "Büro + Schreibwaren",
+    label: "Office + Work",
+    labelDe: "Büro + Arbeit",
     icon: Briefcase,
-    description: "Printers, office supplies, paper, pens, and workplace accessories.",
+    description: "Compare printers, ink & toner, home office gear & office tech — where price differences actually matter.",
     subcategories: [
-      { id: "office-printers", label: "Printers & Scanners", searchKeywords: ["printer", "scanner", "multifunction", "inkjet", "laser"] },
-      { id: "office-supplies", label: "Office Supplies", searchKeywords: ["office", "stapler", "folder", "organizer"] },
-      { id: "office-stationery", label: "Stationery & Writing", searchKeywords: ["pen", "notebook", "paper", "stationery"] },
-      { id: "office-furniture", label: "Office Furniture", searchKeywords: ["desk", "chair", "office furniture", "monitor arm"] },
+      { id: "office-printers", label: "Printers & Scanners", labelDe: "Drucker & Scanner", searchKeywords: ["printer", "scanner", "multifunction", "inkjet", "laser", "mfp", "epson", "hp laserjet", "brother"] },
+      { id: "office-ink-toner", label: "Ink & Toner", labelDe: "Tinte & Toner", searchKeywords: ["ink", "toner", "cartridge", "druckerpatrone", "ink cartridge", "toner cartridge", "xl ink", "compatible toner"] },
+      { id: "office-home", label: "Home Office & Ergonomics", labelDe: "Homeoffice & Ergonomie", searchKeywords: ["desk", "office chair", "ergonomic", "monitor arm", "standing desk", "home office", "office furniture", "lumbar"] },
+      { id: "office-tech", label: "Office Technology", labelDe: "Bürotechnik", searchKeywords: ["shredder", "laminator", "label printer", "document scanner", "projector office", "calculator", "binding machine", "office equipment"] },
     ],
   },
   {
@@ -88,7 +103,7 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
     label: "Photo + Video",
     labelDe: "Foto + Video",
     icon: Camera,
-    description: "Cameras, lenses, flashes, batteries, tripods, gimbals, filters, and full photo/video accessory range.",
+    description: "Compare camera bodies, lenses, batteries, flashes & pro accessories — full ecosystem, not just bodies.",
     subcategories: [
       { id: "photo-mirrorless", label: "Mirrorless Cameras", labelDe: "Systemkameras / Mirrorless", searchKeywords: ["mirrorless", "sony alpha", "canon eos r", "nikon z", "fujifilm x", "camera body"] },
       { id: "photo-dslr", label: "DSLR Cameras", labelDe: "Spiegelreflexkameras", searchKeywords: ["dslr", "canon eos", "nikon d", "digital slr"] },

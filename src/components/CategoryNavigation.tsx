@@ -48,7 +48,7 @@ export function CategoryNavigation({
 
   return (
     <div className="space-y-3">
-      {/* Main category modules (Digitec-style horizontal scroll) */}
+      {/* Category modules — horizontal scroll */}
       <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
         <button
           onClick={() => {
@@ -106,7 +106,7 @@ export function CategoryNavigation({
           <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
             <ChevronRight className="w-3.5 h-3.5 text-emerald-600" />
             <span>
-              {(activeModule ?? getCategoryById(expandedModule!))?.label} — Subcategories
+              {(activeModule ?? getCategoryById(expandedModule!))?.label} — refine comparison
             </span>
           </div>
 

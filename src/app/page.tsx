@@ -204,7 +204,7 @@ export default function Home() {
         {/* Promos & Vouchers Section Highlighted at Top */}
         <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
 
-        {/* Digitec-style Category Modules + Subcategories */}
+        {/* BeforeToBuy category modules + comparison filters */}
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
           <CategoryNavigation
             selectedCategory={selectedCategory}

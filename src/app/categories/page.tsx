@@ -6,7 +6,7 @@ import { ArrowRight, Layers, ChevronRight } from "lucide-react";
 export const metadata: Metadata = {
   title: "Shopping Categories | BeforeToBuy.com",
   description:
-    "Browse all BeforeToBuy.com shopping categories: Audio, Gaming + VR, Smartphones, Notebooks, TV + Home Cinema, and more — structured like Digitec/Galaxus.",
+    "Browse BeforeToBuy.com categories: cross-border savings, local pickup, Audio, Photo + Video, Gaming, Smartphones & more — built for smart price comparison.",
 };
 
 export default function CategoriesPage() {
@@ -26,10 +26,9 @@ export default function CategoriesPage() {
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full inline-flex items-center gap-1.5">
             <Layers className="w-3.5 h-3.5" /> Category Directory
           </span>
-          <h1 className="text-3xl font-extrabold tracking-tight">Shopping Categories & Subcategories</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">Compare by Category</h1>
           <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
-            Full category tree aligned with major Swiss/EU retailers (Digitec, Galaxus, Amazon, MediaMarkt).
-            Each module includes dedicated subcategories for precise price comparison.
+            BeforeToBuy organizes products around how you shop — cross-border deals, local pickup, and deep accessory coverage — not a copy of any single retailer.
           </p>
         </div>
 

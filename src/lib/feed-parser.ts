@@ -1,4 +1,5 @@
 import { CountryCode, Offer, Product, PromoCoupon } from "@/types";
+import { mapToBeforeToBuyCategory } from "@/lib/category-mapper";
 
 /**
  * Standard interface for raw item inside an AWIN Datafeed (CSV / XML)
@@ -95,11 +96,18 @@ export function parseAwinCsvFeed(csvContent: string, targetCountry: CountryCode)
       .slice(0, 30)}`;
 
     if (!productsMap.has(productId)) {
+      const mappedCategory = mapToBeforeToBuyCategory({
+        merchantCategory: row.category_name,
+        title: row.product_name,
+        description: row.description,
+        brand: row.brand_name,
+      });
+
       productsMap.set(productId, {
         id: productId,
         title: row.product_name,
         description: row.description || row.product_name,
-        category: "electronics",
+        category: mappedCategory,
         brand: row.brand_name || "Generic",
         image: row.merchant_image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
         rating: 4.7,
