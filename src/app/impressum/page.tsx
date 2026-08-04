@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Building2, Scale } from "lucide-react";
+import { Building2, FileCheck2, Scale } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CompanyDetailsCard } from "@/components/CompanyDetailsCard";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
@@ -22,7 +22,7 @@ export default function ImpressumPage() {
           </span>
           <h1 className="text-3xl font-extrabold">Impressum</h1>
           <p className="text-slate-300 text-sm">
-            Offizielle Angaben gemäss Schweizerischem Recht (E-Commerce-Gesetz & UWG)
+            Offizielle Anbieterangaben gemäss Schweizer Recht und Art. 3 Abs. 1 lit. s UWG
           </p>
         </div>
 
@@ -38,6 +38,30 @@ export default function ImpressumPage() {
             </h2>
             <p className="text-xs text-slate-600">{COMPANY.businessPurpose.de}</p>
             <p className="text-xs text-slate-500">{COMPANY.businessPurpose.en}</p>
+          </section>
+
+          <section className="space-y-3 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <FileCheck2 className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              Handelsregistereintrag / Commercial Register Publication
+            </h2>
+            <div className="grid grid-cols-1 gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 sm:grid-cols-2">
+              <p><strong className="text-slate-800">Rubrik:</strong> {COMPANY.registryPublication.registerCategory}</p>
+              <p><strong className="text-slate-800">Unterrubrik:</strong> {COMPANY.registryPublication.subcategory}</p>
+              <p><strong className="text-slate-800">SHAB Publikation:</strong> {COMPANY.registryPublication.publicationDate}</p>
+              <p><strong className="text-slate-800">Meldungsnummer:</strong> {COMPANY.registryPublication.shabMessageNumber}</p>
+              <p><strong className="text-slate-800">Tagesregister:</strong> Nr. {COMPANY.registryPublication.dailyRegisterNumber} vom {COMPANY.registryPublication.dailyRegisterDate}</p>
+              <p><strong className="text-slate-800">Kontaktstelle:</strong> {COMPANY.registryPublication.registryOffice}</p>
+            </div>
+            <p className="text-xs text-slate-600">
+              <strong>Eingetragene Person:</strong> {COMPANY.registeredPerson.name},{" "}
+              {COMPANY.registeredPerson.nationalityDe}, in {COMPANY.registeredPerson.residence},{" "}
+              {COMPANY.registeredPerson.role}, mit{" "}
+              {COMPANY.registeredPerson.signingAuthority}.
+            </p>
+            <p className="text-[11px] text-slate-500">
+              Publizierende Stelle: {COMPANY.registryPublication.publishingOffice}.
+            </p>
           </section>
 
           <section className="space-y-3 border-t border-slate-100 pt-4 text-xs text-slate-500 leading-relaxed">

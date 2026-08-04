@@ -8,7 +8,7 @@ export const COMPANY = {
     de: "Einzelunternehmen",
     ro: "Întreprindere individuală",
   },
-  owner: "Catalin Portan",
+  owner: "Catalin Ionut Portan",
   address: {
     street: "Flurstrasse 24",
     postalCode: "3014",
@@ -23,12 +23,31 @@ export const COMPANY = {
   hrNumber: "CH-036.1.108.540-6",
   commercialRegistry: "Handelsregister des Kantons Bern",
   registrationDate: "2026-07-24",
+  registryPublication: {
+    registerCategory: "Handelsregistereintragungen",
+    subcategory: "Neueintrag",
+    publicationDate: "2026-07-29",
+    shabMessageNumber: "HR01-1006718835",
+    dailyRegisterNumber: "14193",
+    dailyRegisterDate: "2026-07-24",
+    publishingOffice:
+      "Bundesamt für Justiz (BJ), Eidgenössisches Amt für das Handelsregister",
+    registryOffice: "Handelsregisteramt des Kantons Bern",
+  },
+  registeredPerson: {
+    name: "Portan, Catalin Ionut",
+    nationality: "Romanian",
+    nationalityDe: "rumänischer Staatsangehöriger",
+    residence: "Bern",
+    role: "Inhaber",
+    signingAuthority: "Einzelunterschrift",
+  },
   email: "admin@portanx.com",
   website: "https://portanx.com",
   platformUrl: "https://www.beforetobuy.com",
   businessPurpose: {
-    en: "Development of software, mobile apps, web platforms and digital services. Operator of the price comparison platform BeforeToBuy.com.",
-    de: "Entwicklung von Software, mobilen Apps, Webplattformen und digitalen Dienstleistungen. Betreiber der Preisvergleichsplattform BeforeToBuy.com.",
+    en: "Development of software, mobile apps, web platforms and digital services.",
+    de: "Entwicklung von Software, mobilen Apps, Webplattformen und digitalen Dienstleistungen.",
   },
 } as const;
 
