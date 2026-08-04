@@ -14,6 +14,7 @@ import {
   Globe,
   Sparkles,
   ShoppingBag,
+  Info,
 } from "lucide-react";
 
 interface ProductCardProps {
@@ -172,6 +173,12 @@ export function ProductCard({
                 </div>
               );
             })}
+          </div>
+
+          {/* Mandatory Price Disclaimer */}
+          <div className="text-[10px] text-slate-400 flex items-center gap-1 pt-1.5">
+            <Info className="w-3 h-3 shrink-0 text-slate-400" />
+            <span>Prices are indicative & updated from partner feeds. Final price on store checkout.</span>
           </div>
         </div>
 

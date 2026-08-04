@@ -82,4 +82,5 @@ export interface Product {
   offers: Offer[];
   targetCountries: CountryCode[];
   isFlashDeal?: boolean;
+  basePrice?: number;
 }

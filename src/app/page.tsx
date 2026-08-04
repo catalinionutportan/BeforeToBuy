@@ -27,6 +27,8 @@ import {
   Building2,
   FileText,
   Lock,
+  Mail,
+  HelpCircle,
 } from "lucide-react";
 
 export default function Home() {
@@ -307,23 +309,31 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Legal Links */}
-            <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium">
+            {/* Footer Legal & Info Links */}
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-medium">
+              <Link href="/about" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+                <HelpCircle className="w-3.5 h-3.5" /> About B2B
+              </Link>
+              <span>•</span>
+              <Link href="/contact" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+                <Mail className="w-3.5 h-3.5" /> Contact
+              </Link>
+              <span>•</span>
+              <Link href="/affiliate-disclosure" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+                <Info className="w-3.5 h-3.5" /> Affiliate Disclosure
+              </Link>
+              <span>•</span>
               <Link href="/impressum" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
                 <Building2 className="w-3.5 h-3.5" /> Impressum
               </Link>
               <span>•</span>
               <Link href="/privacy" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
-                <Lock className="w-3.5 h-3.5" /> Datenschutz / Privacy
+                <Lock className="w-3.5 h-3.5" /> Privacy
               </Link>
               <span>•</span>
               <Link href="/terms" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
-                <FileText className="w-3.5 h-3.5" /> Terms (AGB)
+                <FileText className="w-3.5 h-3.5" /> Terms
               </Link>
-              <span>•</span>
-              <button onClick={() => setIsDisclosureOpen(true)} className="hover:text-emerald-400 text-slate-300 transition-colors">
-                Affiliate Disclosure
-              </button>
             </div>
           </div>
 
