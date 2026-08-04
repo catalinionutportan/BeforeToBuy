@@ -29,6 +29,10 @@ import {
   Lock,
   Mail,
   HelpCircle,
+  Store,
+  ExternalLink,
+  ArrowRight,
+  Sparkles,
 } from "lucide-react";
 
 export default function Home() {
@@ -43,12 +47,15 @@ export default function Home() {
 
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedDomain, setSelectedDomain] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [filterType, setFilterType] = useState<"all" | "pickup" | "deals">("all");
   const [products, setProducts] = useState<Product[]>([]);
   const [coupons, setCoupons] = useState<PromoCoupon[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(true);
   const [isDisclosureOpen, setIsDisclosureOpen] = useState<boolean>(false);
+
+  const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
 
   // Initialize GPS or IP Location on mount
   useEffect(() => {
@@ -88,6 +95,7 @@ export default function Home() {
       longitude: targetCountry.defaultCoordinates.lng,
       isGps: false,
     }));
+    setSelectedDomain("all");
   };
 
   // Handle live GPS re-scan
@@ -106,8 +114,17 @@ export default function Home() {
     { id: "auto", label: "Auto & Tires", icon: Car },
   ];
 
-  // Filter products by pickup or deals view
+  // Filter products by pickup, deals, or domain view
   const displayedProducts = products.filter((prod) => {
+    // Filter by specific merchant domain if selected
+    if (selectedDomain !== "all") {
+      const hasOfferInDomain = prod.offers.some((o) =>
+        o.storeName.toLowerCase().includes(selectedDomain.split(".")[0].toLowerCase()) ||
+        o.purchaseUrl.toLowerCase().includes(selectedDomain.toLowerCase())
+      );
+      if (!hasOfferInDomain) return false;
+    }
+
     if (filterType === "pickup") {
       return prod.offers.some((o) => o.type === "local_pickup");
     }
@@ -127,6 +144,8 @@ export default function Home() {
         onRefreshGps={handleRefreshGps}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        selectedDomain={selectedDomain}
+        onDomainChange={setSelectedDomain}
         isLocating={isLocating}
       />
 
@@ -137,6 +156,52 @@ export default function Home() {
         onRefreshGps={handleRefreshGps}
         isLocating={isLocating}
       />
+
+      {/* Merchant Stores & Integrated Domains Banner Bar */}
+      <div className="bg-slate-900 text-white border-b border-slate-800 py-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full sm:w-auto pb-1 sm:pb-0">
+            <span className="font-extrabold text-emerald-400 shrink-0 uppercase tracking-wider text-[11px] flex items-center gap-1">
+              <Store className="w-3.5 h-3.5" /> Filter Domain:
+            </span>
+
+            <button
+              onClick={() => setSelectedDomain("all")}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
+                selectedDomain === "all"
+                  ? "bg-emerald-500 text-slate-950 shadow-xs"
+                  : "bg-slate-800 hover:bg-slate-700 text-slate-300"
+              }`}
+            >
+              All Stores ({currentCountryInfo.merchantDomains.length})
+            </button>
+
+            {currentCountryInfo.merchantDomains.map((merchant) => (
+              <button
+                key={merchant.id}
+                onClick={() => setSelectedDomain(merchant.domain)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer border ${
+                  selectedDomain === merchant.domain
+                    ? "bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs"
+                    : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300"
+                }`}
+              >
+                {merchant.domain}
+              </button>
+            ))}
+          </div>
+
+          <Link
+            href="/stores"
+            className="text-slate-300 hover:text-emerald-400 font-bold shrink-0 inline-flex items-center gap-1 text-[11px] hover:underline"
+          >
+            <span>Full Stores Directory ({COUNTRIES.CH.merchantDomains.length + COUNTRIES.DE.merchantDomains.length}+)</span>
+            <ArrowRight className="w-3 h-3 text-emerald-400" />
+          </Link>
+
+        </div>
+      </div>
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
@@ -219,6 +284,11 @@ export default function Home() {
           <div>
             <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
               <span>Comparing Deals in {userLocation.countryName}</span>
+              {selectedDomain !== "all" && (
+                <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-md border border-emerald-300">
+                  Store Domain: {selectedDomain}
+                </span>
+              )}
               <span className="text-slate-400 font-normal text-sm">({displayedProducts.length} items found)</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -259,11 +329,12 @@ export default function Home() {
             </div>
             <h4 className="text-lg font-bold text-slate-900">No products found</h4>
             <p className="text-xs text-slate-500">
-              No offers matching "{searchQuery}" in {userLocation.countryName}. Try clearing your search query or switching country filters.
+              No offers matching "{searchQuery}" {selectedDomain !== "all" ? `on ${selectedDomain}` : ""} in {userLocation.countryName}. Try resetting filters.
             </p>
             <button
               onClick={() => {
                 setSearchQuery("");
+                setSelectedDomain("all");
                 setSelectedCategory("all");
                 setFilterType("all");
               }}
@@ -313,6 +384,10 @@ export default function Home() {
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-medium">
               <Link href="/about" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
                 <HelpCircle className="w-3.5 h-3.5" /> About B2B
+              </Link>
+              <span>•</span>
+              <Link href="/stores" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+                <Store className="w-3.5 h-3.5 text-emerald-400" /> Stores Directory
               </Link>
               <span>•</span>
               <Link href="/contact" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">

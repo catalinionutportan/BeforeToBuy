@@ -1,5 +1,19 @@
 export type CountryCode = "CH" | "DE" | "FR" | "RO" | "GB" | "US";
 
+export interface MerchantDomainInfo {
+  id: string;
+  name: string;
+  domain: string; // e.g. "digitec.ch", "galaxus.ch", "amazon.de"
+  websiteUrl: string; // e.g. "https://www.digitec.ch"
+  countryCode: CountryCode;
+  affiliateNetwork: string; // e.g. "Galaxus Merchant Network", "AWIN CH", "Amazon Associates DE/CH"
+  category: string; // e.g. "Electronics & Tech", "General Retail & Marketplace"
+  hasClickAndCollect: boolean;
+  status: "Active Integration" | "API Verified" | "Datafeed Connected";
+  badge?: string;
+  description: string;
+}
+
 export interface CountryInfo {
   code: CountryCode;
   name: string;
@@ -13,6 +27,7 @@ export interface CountryInfo {
     city: string;
   };
   supportedStores: string[];
+  merchantDomains: MerchantDomainInfo[];
   affiliateNetworks: string[];
 }
 

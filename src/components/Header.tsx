@@ -1,8 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
-import { MapPin, Navigation, ShoppingBag, Globe, Search, ShieldCheck } from "lucide-react";
+import {
+  MapPin,
+  Navigation,
+  ShoppingBag,
+  Globe,
+  Search,
+  ShieldCheck,
+  Store,
+  ExternalLink,
+} from "lucide-react";
 
 interface HeaderProps {
   userLocation: UserLocation;
@@ -10,6 +20,8 @@ interface HeaderProps {
   onRefreshGps: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  selectedDomain?: string;
+  onDomainChange?: (domain: string) => void;
   isLocating: boolean;
 }
 
@@ -19,6 +31,8 @@ export function Header({
   onRefreshGps,
   searchQuery,
   onSearchChange,
+  selectedDomain = "all",
+  onDomainChange,
   isLocating,
 }: HeaderProps) {
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
@@ -27,10 +41,21 @@ export function Header({
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
       {/* Top micro bar for free app & affiliate disclosure notice */}
       <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-          <span>100% Free Price Comparison & GPS Shopping Engine</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="font-medium">100% Free Price Comparison & GPS Engine</span>
+          </div>
+          <span>•</span>
+          <Link
+            href="/stores"
+            className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 underline underline-offset-2"
+          >
+            <Store className="w-3.5 h-3.5" />
+            <span>Integrated Store Domains ({currentCountryInfo.merchantDomains.length} in {currentCountryInfo.code})</span>
+          </Link>
         </div>
+
         <div className="flex items-center gap-3">
           <span className="hidden md:inline text-slate-400">
             Detected: <strong className="text-white">{userLocation.city}, {userLocation.countryName} {currentCountryInfo.flag}</strong>
@@ -46,7 +71,7 @@ export function Header({
           
           {/* Logo & Brand */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
                 <ShoppingBag className="w-5 h-5" />
               </div>
@@ -58,7 +83,7 @@ export function Header({
                   GPS-Driven Local & Online Price Match
                 </p>
               </div>
-            </div>
+            </Link>
 
             {/* Mobile Country Selector */}
             <div className="md:hidden flex items-center gap-2">
@@ -76,15 +101,40 @@ export function Header({
             </div>
           </div>
 
-          {/* Search bar */}
-          <div className="flex-1 max-w-xl relative">
-            <div className="relative">
+          {/* Search bar with Store Domain Filter */}
+          <div className="flex-1 max-w-2xl flex items-center gap-2">
+            
+            {/* Merchant Domain Filter Selector */}
+            {onDomainChange && (
+              <div className="hidden sm:flex items-center gap-1 bg-slate-100 px-2 py-2 rounded-xl border border-slate-200 shrink-0">
+                <Store className="w-3.5 h-3.5 text-slate-500" />
+                <select
+                  value={selectedDomain}
+                  onChange={(e) => onDomainChange(e.target.value)}
+                  className="bg-transparent text-xs font-bold text-slate-800 border-0 outline-none cursor-pointer max-w-[130px] truncate"
+                >
+                  <option value="all">All Domains</option>
+                  {currentCountryInfo.merchantDomains.map((m) => (
+                    <option key={m.id} value={m.domain}>
+                      {m.domain}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Text Search Input */}
+            <div className="flex-1 relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder={`Search products, electronics, stores in ${userLocation.countryName}...`}
+                placeholder={
+                  selectedDomain && selectedDomain !== "all"
+                    ? `Search products on ${selectedDomain}...`
+                    : `Search products, electronics, stores in ${userLocation.countryName}...`
+                }
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-100 hover:bg-slate-100/80 focus:bg-white text-sm rounded-xl border border-transparent focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none font-medium placeholder:text-slate-400"
               />
               {searchQuery && (
@@ -96,6 +146,7 @@ export function Header({
                 </button>
               )}
             </div>
+
           </div>
 
           {/* Desktop Country Selector & GPS Refresh Button */}
