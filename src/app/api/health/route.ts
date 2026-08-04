@@ -1,0 +1,96 @@
+import { NextResponse } from "next/server";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { getIntegrationSummary } from "@/lib/merchant-integrations";
+import { fetchMergedProductsForLocation } from "@/lib/product-service";
+import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import { LEGAL_DOCUMENT_VERSION, LEGAL_LAST_UPDATED } from "@/lib/legal-config";
+import { SITE_PHASE } from "@/lib/site-config";
+
+export const dynamic = "force-dynamic";
+
+async function checkSampleFeedFile() {
+  try {
+    const filePath = path.join(process.cwd(), "src", "data", "sample-awin-brack-ch.csv");
+    const content = await fs.readFile(filePath, "utf8");
+    const lines = content.trim().split("\n").filter(Boolean);
+    return {
+      status: lines.length >= 2 ? ("ok" as const) : ("error" as const),
+      rows: Math.max(0, lines.length - 1),
+    };
+  } catch {
+    return { status: "error" as const, rows: 0 };
+  }
+}
+
+async function checkProductsMerge() {
+  try {
+    const country = COUNTRIES[DEFAULT_COUNTRY];
+    const result = await fetchMergedProductsForLocation({
+      latitude: country.defaultCoordinates.lat,
+      longitude: country.defaultCoordinates.lng,
+      countryCode: DEFAULT_COUNTRY,
+      countryName: country.name,
+      city: country.defaultCoordinates.city,
+      isGps: false,
+    });
+
+    const ok = result.products.length > 0 && result.meta.liveOfferCount >= 0;
+    return {
+      status: ok ? ("ok" as const) : ("error" as const),
+      productCount: result.products.length,
+      liveOfferCount: result.meta.liveOfferCount,
+    };
+  } catch (error) {
+    return {
+      status: "error" as const,
+      productCount: 0,
+      liveOfferCount: 0,
+      message: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+export async function GET() {
+  const startedAt = Date.now();
+  const [sampleFeed, productsMerge] = await Promise.all([
+    checkSampleFeedFile(),
+    checkProductsMerge(),
+  ]);
+
+  const integrations = getIntegrationSummary();
+  const checks = {
+    app: { status: "ok" as const },
+    sampleFeed,
+    productsMerge,
+    integrations: {
+      status: integrations.hasLiveData ? ("ok" as const) : ("warn" as const),
+      liveMerchantIds: integrations.liveMerchantIds,
+      hasProductionFeed: integrations.hasProductionFeed,
+      sampleFeeds: integrations.sampleFeeds,
+    },
+  };
+
+  const hasError = sampleFeed.status === "error" || productsMerge.status === "error";
+  const overallStatus = hasError ? "unhealthy" : "healthy";
+
+  return NextResponse.json(
+    {
+      status: overallStatus,
+      sitePhase: SITE_PHASE,
+      legalDocumentVersion: LEGAL_DOCUMENT_VERSION,
+      legalLastUpdated: LEGAL_LAST_UPDATED,
+      commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || null,
+      environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "unknown",
+      checks,
+      responseMs: Date.now() - startedAt,
+      timestamp: new Date().toISOString(),
+    },
+    {
+      status: hasError ? 503 : 200,
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    }
+  );
+}

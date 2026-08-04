@@ -19,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/terms",
     "/complaints",
     "/accessibility",
+    "/status",
   ];
 
   return routes.map((route) => ({

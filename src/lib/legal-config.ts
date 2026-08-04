@@ -18,6 +18,7 @@ export const LEGAL_PAGES = [
   { href: "/complaints", label: "Complaints Procedure", category: "support" },
   { href: "/accessibility", label: "Accessibility Statement", category: "support" },
   { href: "/help", label: "Help & FAQ", category: "support" },
+  { href: "/status", label: "Platform Status", category: "support" },
 ] as const;
 
 export const RETENTION_SCHEDULE = [

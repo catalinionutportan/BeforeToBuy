@@ -12,6 +12,7 @@ import {
   Cookie,
   Scale,
   LifeBuoy,
+  Activity,
 } from "lucide-react";
 import { ManageCookiePreferencesButton } from "@/components/ManageCookiePreferencesButton";
 
@@ -55,6 +56,10 @@ export function SiteFooter() {
             <span aria-hidden="true">•</span>
             <Link href="/stores" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
               <Store className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" /> Stores
+            </Link>
+            <span aria-hidden="true">•</span>
+            <Link href="/status" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+              <Activity className="w-3.5 h-3.5" aria-hidden="true" /> Status
             </Link>
             <span aria-hidden="true">•</span>
             <Link href="/help" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
