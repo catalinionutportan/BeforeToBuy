@@ -1,0 +1,104 @@
+"use client";
+
+import { CountryCode, UserLocation } from "@/types";
+import { COUNTRIES } from "@/lib/countries";
+import { MapPin, Store, Navigation, Radio, CheckCircle2, ArrowRightLeft } from "lucide-react";
+
+interface LocationBannerProps {
+  userLocation: UserLocation;
+  onCountryChange: (countryCode: CountryCode) => void;
+  onRefreshGps: () => void;
+  isLocating: boolean;
+}
+
+export function LocationBanner({
+  userLocation,
+  onCountryChange,
+  onRefreshGps,
+  isLocating,
+}: LocationBannerProps) {
+  const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
+
+  return (
+    <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white py-6 px-4 sm:px-6 lg:px-8 border-b border-slate-800 relative overflow-hidden">
+      {/* Decorative background glow */}
+      <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/3 -mb-8 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+        
+        {/* Left column: Location Status */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2.5 w-2.5 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+              <Radio className="w-3.5 h-3.5" />
+              {userLocation.isGps ? "Live GPS Coordinates Active" : "IP Geolocation Detected"}
+            </span>
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-2">
+            <span>Shopping in {userLocation.city}, {userLocation.countryName}</span>
+            <span className="text-3xl">{currentCountryInfo.flag}</span>
+          </h2>
+
+          <p className="text-sm text-slate-300 max-w-2xl">
+            Showing live real-time offers, prices, and Click & Collect availability calculated specifically for <strong className="text-white">{userLocation.countryName}</strong> in <strong className="text-emerald-400">{currentCountryInfo.currency}</strong>.
+          </p>
+
+          {/* Supported Stores Badge List */}
+          <div className="pt-2 flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-slate-400 flex items-center gap-1 font-medium">
+              <Store className="w-3.5 h-3.5 text-emerald-400" /> Stores indexed in {currentCountryInfo.name}:
+            </span>
+            {currentCountryInfo.supportedStores.map((store) => (
+              <span
+                key={store}
+                className="bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors"
+              >
+                {store}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Right column: Quick Switcher / Country Selector */}
+        <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="text-xs text-slate-300 font-medium">
+            <div className="flex items-center gap-1.5 text-white font-semibold mb-1">
+              <ArrowRightLeft className="w-3.5 h-3.5 text-emerald-400" /> Change Country / Region
+            </div>
+            <span>Switch to view pricing in another country</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <select
+              value={userLocation.countryCode}
+              onChange={(e) => onCountryChange(e.target.value as CountryCode)}
+              className="bg-slate-900 text-white font-semibold text-xs border border-emerald-500/40 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-emerald-400 cursor-pointer"
+            >
+              {Object.values(COUNTRIES).map((c) => (
+                <option key={c.code} value={c.code} className="bg-slate-900 text-white">
+                  {c.flag} {c.name} ({c.currency})
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={onRefreshGps}
+              disabled={isLocating}
+              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-500/20 flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <Navigation className={`w-3.5 h-3.5 ${isLocating ? "animate-spin" : ""}`} />
+              <span>{isLocating ? "GPS..." : "Re-Scan GPS"}</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
