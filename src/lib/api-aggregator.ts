@@ -2034,10 +2034,14 @@ export async function fetchProductsForLocation(
 
   // Hydrate each product with dynamic country-specific offers based on GPS
   return filtered.map((prod) => {
-    const offers = generateOffersForLocation(prod, userLocation);
+    const offers = generateOffersForLocation(prod, userLocation).map((offer) => ({
+      ...offer,
+      source: "demo" as const,
+    }));
     return {
       ...prod,
       offers,
+      catalogSource: "demo" as const,
     };
   });
 }

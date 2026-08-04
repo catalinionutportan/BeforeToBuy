@@ -37,7 +37,7 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     affiliateNetwork: "AWIN Switzerland",
     category: "Electronics, Home & DIY",
     hasClickAndCollect: true,
-    status: "Demo Catalog",
+    status: "Live Feed",
     badge: "Same-Day Delivery CH 🇨🇭",
     description: "Famous Swiss online store offering express same-day shipping on over 200,000 products.",
   },

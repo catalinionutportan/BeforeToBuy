@@ -10,8 +10,8 @@ import {
   openConsentPreferences,
 } from "@/lib/consent";
 import { detectUserLocationGps, getLocationFromIp } from "@/lib/geolocation";
-import { fetchProductsForLocation } from "@/lib/api-aggregator";
 import { getActiveCouponsForCountry } from "@/lib/feed-parser";
+import type { ProductFetchMeta } from "@/lib/product-service";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { Header } from "@/components/Header";
 import { LocationBanner } from "@/components/LocationBanner";
@@ -50,6 +50,7 @@ export default function Home() {
   const [coupons, setCoupons] = useState<PromoCoupon[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(true);
   const [isDisclosureOpen, setIsDisclosureOpen] = useState<boolean>(false);
+  const [catalogMeta, setCatalogMeta] = useState<ProductFetchMeta | null>(null);
 
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
 
@@ -92,12 +93,42 @@ export default function Home() {
   useEffect(() => {
     async function loadProductsAndCoupons() {
       setIsLoadingProducts(true);
-      const prods = await fetchProductsForLocation(userLocation, debouncedSearchQuery, selectedCategory);
-      setProducts(prods);
+
+      try {
+        const params = new URLSearchParams({
+          country: userLocation.countryCode,
+          lat: String(userLocation.latitude),
+          lng: String(userLocation.longitude),
+        });
+
+        if (debouncedSearchQuery.trim()) {
+          params.set("q", debouncedSearchQuery.trim());
+        }
+
+        if (selectedCategory !== ALL_CATEGORIES_ID) {
+          params.set("category", selectedCategory);
+        }
+
+        const response = await fetch(`/api/products?${params.toString()}`);
+        if (!response.ok) {
+          throw new Error("Product API request failed");
+        }
+
+        const data = (await response.json()) as {
+          products: Product[];
+          meta: ProductFetchMeta;
+        };
+
+        setProducts(data.products || []);
+        setCatalogMeta(data.meta || null);
+      } catch (error) {
+        console.error("Failed to load products:", error);
+        setProducts([]);
+        setCatalogMeta(null);
+      }
 
       const activeCoupons = getActiveCouponsForCountry(userLocation.countryCode);
       setCoupons(activeCoupons);
-
       setIsLoadingProducts(false);
     }
     loadProductsAndCoupons();
@@ -173,6 +204,8 @@ export default function Home() {
         onCountryChange={handleCountryChange}
         onRefreshGps={handleRefreshGps}
         isLocating={isLocating}
+        liveOfferCount={catalogMeta?.liveOfferCount || 0}
+        hasSampleFeed={catalogMeta?.hasSampleFeed || false}
       />
 
       {/* Merchant Stores & Integrated Domains Banner Bar */}
@@ -295,7 +328,22 @@ export default function Home() {
               <span className="text-slate-400 font-normal text-sm">({displayedProducts.length} items found)</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Demo catalog prices for <strong className="text-slate-800">{userLocation.city}</strong> — confirm final price on the merchant site
+              {catalogMeta && catalogMeta.liveOfferCount > 0 ? (
+                <>
+                  Hybrid catalog for <strong className="text-slate-800">{userLocation.city}</strong> —{" "}
+                  <strong className="text-emerald-700">{catalogMeta.liveOfferCount} live feed offer(s)</strong>{" "}
+                  {catalogMeta.hasSampleFeed && !catalogMeta.hasProductionFeed
+                    ? "(Brack.ch sample AWIN feed)"
+                    : catalogMeta.hasProductionFeed
+                      ? "(production merchant feeds)"
+                      : ""}
+                  ; other merchants remain demo. Confirm final price on the merchant site.
+                </>
+              ) : (
+                <>
+                  Demo catalog prices for <strong className="text-slate-800">{userLocation.city}</strong> — confirm final price on the merchant site
+                </>
+              )}
             </p>
           </div>
 

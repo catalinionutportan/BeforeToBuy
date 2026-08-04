@@ -136,8 +136,17 @@ export function ProductCard({
                     )}
 
                     <div>
-                      <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                      <div className="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                         <span>{offer.storeName}</span>
+                        <span
+                          className={`font-bold text-[9px] px-1.5 py-0.2 rounded uppercase tracking-wide ${
+                            offer.source === "live"
+                              ? "bg-blue-100 text-blue-800 border border-blue-200"
+                              : "bg-slate-200 text-slate-600 border border-slate-300"
+                          }`}
+                        >
+                          {offer.source === "live" ? "Live" : "Demo"}
+                        </span>
                         {isCheapest && (
                           <span className="bg-emerald-600 text-white font-bold text-[9px] px-1.5 py-0.2 rounded">
                             BEST PRICE

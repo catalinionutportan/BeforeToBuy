@@ -9,6 +9,8 @@ interface LocationBannerProps {
   onCountryChange: (countryCode: CountryCode) => void;
   onRefreshGps: () => void;
   isLocating: boolean;
+  liveOfferCount?: number;
+  hasSampleFeed?: boolean;
 }
 
 export function LocationBanner({
@@ -16,6 +18,8 @@ export function LocationBanner({
   onCountryChange,
   onRefreshGps,
   isLocating,
+  liveOfferCount = 0,
+  hasSampleFeed = false,
 }: LocationBannerProps) {
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
 
@@ -46,7 +50,20 @@ export function LocationBanner({
           </h2>
 
           <p className="text-sm text-slate-300 max-w-2xl">
-            Showing demo catalog offers and estimated Click &amp; Collect distances for <strong className="text-white">{userLocation.countryName}</strong> in <strong className="text-emerald-400">{currentCountryInfo.currency}</strong>. Prices are illustrative until live merchant feeds are connected.
+            {liveOfferCount > 0 ? (
+              <>
+                Hybrid catalog for <strong className="text-white">{userLocation.countryName}</strong> in{" "}
+                <strong className="text-emerald-400">{currentCountryInfo.currency}</strong>.{" "}
+                <strong className="text-emerald-300">{liveOfferCount} live feed offer(s)</strong>{" "}
+                {hasSampleFeed ? "from Brack.ch sample AWIN feed" : "from connected merchant feeds"}; other merchants remain demo catalog.
+              </>
+            ) : (
+              <>
+                Showing demo catalog offers and estimated Click &amp; Collect distances for{" "}
+                <strong className="text-white">{userLocation.countryName}</strong> in{" "}
+                <strong className="text-emerald-400">{currentCountryInfo.currency}</strong>. Prices are illustrative until live merchant feeds are connected.
+              </>
+            )}
           </p>
 
           {/* Supported Stores Badge List */}

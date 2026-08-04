@@ -9,7 +9,7 @@ export interface MerchantDomainInfo {
   affiliateNetwork: string; // e.g. "Galaxus Merchant Network", "AWIN CH", "Amazon Associates DE/CH"
   category: string; // e.g. "Electronics & Tech", "General Retail & Marketplace"
   hasClickAndCollect: boolean;
-  status: "Planned Integration" | "Demo Catalog" | "Search Redirect";
+  status: "Planned Integration" | "Demo Catalog" | "Search Redirect" | "Live Feed";
   badge?: string;
   description: string;
 }
@@ -70,6 +70,8 @@ export interface Offer {
   nearbyBranch?: PhysicalStoreBranch;
   badge?: string; // e.g. "Cheapest Online", "Closest to You", "Best Click & Collect"
   promoCode?: string; // e.g. "SUMMER10"
+  source?: "live" | "demo";
+  feedMerchantId?: string;
 }
 
 export interface PromoCoupon {
@@ -98,4 +100,5 @@ export interface Product {
   targetCountries: CountryCode[];
   isFlashDeal?: boolean;
   basePrice?: number;
+  catalogSource?: "live" | "demo" | "mixed";
 }

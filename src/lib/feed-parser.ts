@@ -43,22 +43,48 @@ export interface RawGalaxusFeedItem {
   }[];
 }
 
+function parseCsvLine(line: string): string[] {
+  const values: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      inQuotes = !inQuotes;
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      values.push(current.trim());
+      current = "";
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current.trim());
+  return values.map((value) => value.replace(/^"|"$/g, ""));
+}
+
 /**
  * Parser for AWIN CSV / Datafeed lines
  */
-export function parseAwinCsvFeed(csvContent: string, targetCountry: CountryCode): Product[] {
-  const lines = csvContent.split("\n");
+export function parseAwinCsvFeed(
+  csvContent: string,
+  targetCountry: CountryCode,
+  feedMerchantId?: string
+): Product[] {
+  const lines = csvContent.split(/\r?\n/).filter((line) => line.trim());
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""));
+  const headers = parseCsvLine(lines[0]).map((header) => header.trim());
   const productsMap = new Map<string, Product>();
 
   for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue;
-
-    // Simple CSV parser handling quotes
-    const values = line.split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
+    const values = parseCsvLine(lines[i]);
     const row: Record<string, string> = {};
     headers.forEach((header, index) => {
       row[header] = values[index] || "";
@@ -87,13 +113,15 @@ export function parseAwinCsvFeed(csvContent: string, targetCountry: CountryCode)
       affiliateNetwork: `AWIN ${targetCountry}`,
       type: "online",
       promoCode: row.promo_code,
-      badge: discountPercentage && discountPercentage >= 20 ? `-${discountPercentage}% FLASH DEAL` : undefined,
+      source: "live",
+      feedMerchantId,
+      badge:
+        discountPercentage && discountPercentage >= 20
+          ? `-${discountPercentage}% LIVE DEAL`
+          : "Live price",
     };
 
-    const productId = `prod-${row.brand_name?.toLowerCase().replace(/\s+/g, "-") || "gen"}-${row.product_name
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "-")
-      .slice(0, 30)}`;
+    const productId = `live-${row.aw_product_id}`;
 
     if (!productsMap.has(productId)) {
       const mappedCategory = mapToBeforeToBuyCategory({
@@ -114,6 +142,7 @@ export function parseAwinCsvFeed(csvContent: string, targetCountry: CountryCode)
         reviewsCount: 120,
         targetCountries: [targetCountry],
         isFlashDeal: discountPercentage ? discountPercentage >= 15 : false,
+        catalogSource: "live",
         offers: [offer],
       });
     } else {
