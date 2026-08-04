@@ -89,7 +89,7 @@ export interface Product {
   id: string;
   title: string;
   description: string;
-  category: "electronics" | "fashion" | "home" | "auto" | "groceries";
+  category: string; // Digitec-style module or subcategory id (see src/lib/categories.ts)
   image: string;
   rating: number;
   reviewsCount: number;

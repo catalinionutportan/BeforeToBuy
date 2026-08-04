@@ -12,16 +12,13 @@ import { LocationBanner } from "@/components/LocationBanner";
 import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
 import { AffiliateDisclosureModal } from "@/components/AffiliateDisclosureModal";
+import { CategoryNavigation } from "@/components/CategoryNavigation";
+import { ALL_CATEGORIES_ID, getCategoryLabel } from "@/lib/categories";
 import {
-  Laptop,
-  Shirt,
-  Home as HomeIcon,
-  Car,
   SlidersHorizontal,
   Info,
   MapPin,
   Shield,
-  Layers,
   SearchX,
   Flame,
   Building2,
@@ -30,9 +27,8 @@ import {
   Mail,
   HelpCircle,
   Store,
-  ExternalLink,
   ArrowRight,
-  Sparkles,
+  Layers,
 } from "lucide-react";
 
 export default function Home() {
@@ -48,7 +44,7 @@ export default function Home() {
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedDomain, setSelectedDomain] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORIES_ID);
   const [filterType, setFilterType] = useState<"all" | "pickup" | "deals">("all");
   const [products, setProducts] = useState<Product[]>([]);
   const [coupons, setCoupons] = useState<PromoCoupon[]>([]);
@@ -66,6 +62,13 @@ export default function Home() {
       setIsLocating(false);
     }
     initLocation();
+  }, []);
+
+  // Read ?category= from URL (links from /categories page)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const cat = new URLSearchParams(window.location.search).get("category");
+    if (cat) setSelectedCategory(cat);
   }, []);
 
   // Fetch products & active vouchers when location, search, or category changes
@@ -105,14 +108,6 @@ export default function Home() {
     setUserLocation(loc);
     setIsLocating(false);
   };
-
-  const categories = [
-    { id: "all", label: "All Categories", icon: Layers },
-    { id: "electronics", label: "Electronics & Tech", icon: Laptop },
-    { id: "fashion", label: "Fashion & Shoes", icon: Shirt },
-    { id: "home", label: "Home & Appliances", icon: HomeIcon },
-    { id: "auto", label: "Auto & Tires", icon: Car },
-  ];
 
   // Filter products by pickup, deals, or domain view
   const displayedProducts = products.filter((prod) => {
@@ -209,39 +204,20 @@ export default function Home() {
         {/* Promos & Vouchers Section Highlighted at Top */}
         <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
 
-        {/* Category & Filter Navigation */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          
-          {/* Category Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 lg:pb-0">
-            {categories.map((cat) => {
-              const Icon = cat.icon;
-              const isSelected = selectedCategory === cat.id;
-
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
-                    isSelected
-                      ? "bg-slate-900 text-white shadow-sm"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900"
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${isSelected ? "text-emerald-400" : "text-slate-400"}`} />
-                  <span>{cat.label}</span>
-                </button>
-              );
-            })}
-          </div>
+        {/* Digitec-style Category Modules + Subcategories */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+          <CategoryNavigation
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+          />
 
           {/* Quick Offer Filter */}
-          <div className="flex items-center gap-2 border-t lg:border-t-0 border-slate-100 pt-3 lg:pt-0 shrink-0">
+          <div className="flex items-center gap-2 border-t border-slate-100 pt-3 shrink-0">
             <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
               <SlidersHorizontal className="w-3.5 h-3.5" /> Filter:
             </span>
 
-            <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1">
+            <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 flex-wrap">
               <button
                 onClick={() => setFilterType("all")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
@@ -276,14 +252,18 @@ export default function Home() {
               </button>
             </div>
           </div>
-
         </div>
 
         {/* Results Bar Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+            <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2 flex-wrap">
               <span>Comparing Deals in {userLocation.countryName}</span>
+              {selectedCategory !== ALL_CATEGORIES_ID && (
+                <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-md border border-emerald-300">
+                  {getCategoryLabel(selectedCategory)}
+                </span>
+              )}
               {selectedDomain !== "all" && (
                 <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-md border border-emerald-300">
                   Store Domain: {selectedDomain}
@@ -335,7 +315,7 @@ export default function Home() {
               onClick={() => {
                 setSearchQuery("");
                 setSelectedDomain("all");
-                setSelectedCategory("all");
+                setSelectedCategory(ALL_CATEGORIES_ID);
                 setFilterType("all");
               }}
               className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
@@ -384,6 +364,10 @@ export default function Home() {
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-medium">
               <Link href="/about" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
                 <HelpCircle className="w-3.5 h-3.5" /> About B2B
+              </Link>
+              <span>•</span>
+              <Link href="/categories" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">
+                <Layers className="w-3.5 h-3.5 text-emerald-400" /> Categories
               </Link>
               <span>•</span>
               <Link href="/stores" className="hover:text-emerald-400 text-slate-300 transition-colors flex items-center gap-1">

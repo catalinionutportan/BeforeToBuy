@@ -1,6 +1,7 @@
 import { CountryCode, PhysicalStoreBranch, Product, UserLocation } from "@/types";
 import { COUNTRIES } from "./countries";
 import { calculateHaversineDistance } from "./geolocation";
+import { productMatchesCategoryFilter, ALL_CATEGORIES_ID } from "./categories";
 
 // Physical store branches database across countries for Click & Collect
 const STORE_BRANCHES: Record<CountryCode, PhysicalStoreBranch[]> = {
@@ -197,7 +198,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-iphone-16-pro",
     title: "Apple iPhone 16 Pro 256GB Natural Titanium",
     description: "Latest Apple flagship phone with A18 Pro chip, 48MP Fusion camera, and Titanium design.",
-    category: "electronics",
+    category: "mobile-smartphones",
     brand: "Apple",
     image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
@@ -210,7 +211,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-macbook-air-m3",
     title: 'Apple MacBook Air 15" M3 16GB / 512GB SSD Space Grey',
     description: "Supercharged by M3, extraordinarily thin laptop with up to 18 hours battery life.",
-    category: "electronics",
+    category: "notebooks-laptops",
     brand: "Apple",
     image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -223,7 +224,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-sony-wh1000xm5",
     title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones",
     description: "Industry-leading noise canceling with two processors and 8 microphones.",
-    category: "electronics",
+    category: "audio-headphones",
     brand: "Sony",
     image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80",
     rating: 4.7,
@@ -236,20 +237,21 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-samsung-s24-ultra",
     title: "Samsung Galaxy S24 Ultra 512GB Titanium Black",
     description: "Galaxy AI powered smartphone with 200MP camera and built-in S Pen.",
-    category: "electronics",
+    category: "mobile-smartphones",
     brand: "Samsung",
     image: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
     reviewsCount: 1120,
     basePrice: 1150,
     targetCountries: ALL_COUNTRIES,
+    isFlashDeal: true,
     offers: [],
   },
   {
     id: "prod-ipad-air-m2",
     title: 'Apple iPad Air 11" M2 128GB Starlight Wi-Fi',
     description: "Lightweight power with M2 chip, Liquid Retina display, and Apple Pencil Pro support.",
-    category: "electronics",
+    category: "mobile-tablets",
     brand: "Apple",
     image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -262,7 +264,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-apple-watch-s10",
     title: "Apple Watch Series 10 GPS 46mm Jet Black Aluminium",
     description: "Thinnest Apple Watch with largest display, sleep apnea detection, and fast charging.",
-    category: "electronics",
+    category: "wearables-smartwatch",
     brand: "Apple",
     image: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=600&auto=format&fit=crop&q=80",
     rating: 4.7,
@@ -275,20 +277,21 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-ps5-digital-slim",
     title: "Sony PlayStation 5 Digital Edition Slim 1TB Console",
     description: "Sleek slim design with 1TB SSD storage, 4K 120Hz gaming, and DualSense controller.",
-    category: "electronics",
+    category: "gaming-consoles",
     brand: "Sony",
     image: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
     reviewsCount: 3100,
     basePrice: 449,
     targetCountries: ALL_COUNTRIES,
+    isFlashDeal: true,
     offers: [],
   },
   {
     id: "prod-nintendo-switch-oled",
     title: "Nintendo Switch OLED Model White Console",
     description: "Vibrant 7-inch OLED screen, wide adjustable stand, and 64GB internal storage.",
-    category: "electronics",
+    category: "gaming-consoles",
     brand: "Nintendo",
     image: "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -301,7 +304,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-bose-qc-ultra",
     title: "Bose QuietComfort Ultra Headphones Black",
     description: "World-class active noise cancellation with spatial immersive audio and custom calibration.",
-    category: "electronics",
+    category: "audio-headphones",
     brand: "Bose",
     image: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&auto=format&fit=crop&q=80",
     rating: 4.7,
@@ -314,7 +317,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-lg-oled-55c3",
     title: 'LG OLED evo C3 55" 4K Smart TV 120Hz Dolby Vision',
     description: "Self-lit OLED pixels, α9 AI Processor Gen6, 120Hz refresh rate, ideal for PS5 gaming.",
-    category: "electronics",
+    category: "tv-televisions",
     brand: "LG",
     image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
@@ -327,7 +330,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-asus-rog-ally",
     title: "Asus ROG Ally Z1 Extreme Handheld 512GB Gaming PC",
     description: "Full Windows 11 handheld gaming system with 7-inch 120Hz FHD touchscreen.",
-    category: "electronics",
+    category: "gaming-pc-handheld",
     brand: "Asus",
     image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&auto=format&fit=crop&q=80",
     rating: 4.6,
@@ -340,7 +343,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-gopro-hero12",
     title: "GoPro HERO12 Black 5.3K Action Camera",
     description: "Incredible 5.3K60 HDR video, HyperSmooth 6.0 stabilization, and rugged waterproof body.",
-    category: "electronics",
+    category: "photo-action",
     brand: "GoPro",
     image: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80",
     rating: 4.7,
@@ -353,7 +356,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-marshall-stanmore3",
     title: "Marshall Stanmore III Bluetooth Home Speaker",
     description: "Iconic vintage amplifier styling with rich room-filling stereo acoustics.",
-    category: "electronics",
+    category: "audio-speakers",
     brand: "Marshall",
     image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -366,7 +369,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-logitech-mx-master3s",
     title: "Logitech MX Master 3S Performance Wireless Mouse",
     description: "8000 DPI track-anywhere sensor, Quiet Clicks, and MagSpeed electromagnetic scrolling.",
-    category: "electronics",
+    category: "peripherals-keyboard-mouse",
     brand: "Logitech",
     image: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
@@ -379,7 +382,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-dell-xps-13",
     title: 'Dell XPS 13 Intel Core Ultra 7 16GB / 512GB SSD',
     description: "Premium CNC machined aluminum ultrabook with InfinityEdge FHD display.",
-    category: "electronics",
+    category: "notebooks-laptops",
     brand: "Dell",
     image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&auto=format&fit=crop&q=80",
     rating: 4.7,
@@ -392,7 +395,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-sonos-era-300",
     title: "Sonos Era 300 Smart Speaker with Spatial Audio & Dolby Atmos",
     description: "Acoustic masterpiece delivering immersive spatial audio with Wi-Fi & Bluetooth.",
-    category: "electronics",
+    category: "audio-speakers",
     brand: "Sonos",
     image: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -405,7 +408,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-garmin-fenix7",
     title: "Garmin Fenix 7 Pro Solar Multisport GPS Watch",
     description: "Solar charging lens, built-in LED flashlight, topo maps, and endurance metrics.",
-    category: "electronics",
+    category: "wearables-smartwatch",
     brand: "Garmin",
     image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
@@ -420,7 +423,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-dyson-v15",
     title: "Dyson V15 Detect Absolute Cordless Vacuum Cleaner",
     description: "Most powerful, intelligent cordless vacuum with laser illumination.",
-    category: "home",
+    category: "home-appliances",
     brand: "Dyson",
     image: "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=600&auto=format&fit=crop&q=80",
     rating: 4.6,
@@ -433,7 +436,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-delonghi-magnifica",
     title: "De'Longhi Magnifica S Automatic Espresso Coffee Machine",
     description: "Bean-to-cup espresso and cappuccino machine with manual milk frother.",
-    category: "home",
+    category: "home-kitchen",
     brand: "De'Longhi",
     image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80",
     rating: 4.7,
@@ -446,7 +449,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-irobot-roomba-j7",
     title: "iRobot Roomba Combo j7+ Robot Vacuum & Mop",
     description: "Retractable mop pad, PrecisionVision navigation to avoid pet obstacles.",
-    category: "home",
+    category: "home-appliances",
     brand: "iRobot",
     image: "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=600&auto=format&fit=crop&q=80",
     rating: 4.6,
@@ -459,20 +462,21 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-ninja-foodi-dualzone",
     title: "Ninja Foodi MAX DualZone 9.5L Air Fryer AF400EU",
     description: "2 independent cooking zones, Sync Finish technology, oil-free healthy frying.",
-    category: "home",
+    category: "home-kitchen",
     brand: "Ninja",
     image: "https://images.unsplash.com/photo-1585515320310-259814833e62?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
     reviewsCount: 4200,
     basePrice: 195,
     targetCountries: ALL_COUNTRIES,
+    isFlashDeal: true,
     offers: [],
   },
   {
     id: "prod-sage-barista-touch",
     title: "Sage The Barista Touch Stainless Steel Espresso Machine",
     description: "Automated touchscreen espresso machine with integrated grinder and microfoam milk.",
-    category: "home",
+    category: "home-kitchen",
     brand: "Sage",
     image: "https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -485,7 +489,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-kitchenaid-artisan",
     title: "KitchenAid Artisan 4.8L Stand Mixer Empire Red",
     description: "Full metal construction, 10 speeds, iconic tilt-head planetary mixing action.",
-    category: "home",
+    category: "home-kitchen",
     brand: "KitchenAid",
     image: "https://images.unsplash.com/photo-1594385208974-2e75f8d7bb48?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
@@ -498,7 +502,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-nespresso-vertuo-pop",
     title: "Nespresso Vertuo Pop Coffee Machine Spicy Red",
     description: "Centrifusion barcode coffee extraction technology with 4 cup sizes.",
-    category: "home",
+    category: "home-kitchen",
     brand: "Nespresso",
     image: "https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?w=600&auto=format&fit=crop&q=80",
     rating: 4.5,
@@ -511,7 +515,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-tefal-optigrill",
     title: "Tefal OptiGrill Elite Smart Electric Grill",
     description: "Automatic thickness sensor measuring and cooking indicator for rare to well-done.",
-    category: "home",
+    category: "home-kitchen",
     brand: "Tefal",
     image: "https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=600&auto=format&fit=crop&q=80",
     rating: 4.7,
@@ -524,7 +528,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-miele-c3-vacuum",
     title: "Miele Complete C3 Silence EcoLine Canister Vacuum",
     description: "Ultra quiet 550W motor, AirClean Silence filter, made in Germany quality.",
-    category: "home",
+    category: "home-appliances",
     brand: "Miele",
     image: "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
@@ -537,7 +541,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-braun-series9",
     title: "Braun Series 9 Pro+ Electric Shaver with SmartCare Center",
     description: "5 synchronized shaving elements, ProLift trimmer, 100% waterproof made in Germany.",
-    category: "home",
+    category: "home-personal-care",
     brand: "Braun",
     image: "https://images.unsplash.com/photo-1621607512214-68297480165e?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -552,20 +556,21 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-nike-air-max",
     title: "Nike Air Max 270 Black & White Sneakers",
     description: "Boasts Nike's biggest heel Air unit yet for a super-soft ride that feels as impossible as it looks.",
-    category: "fashion",
+    category: "wearables-accessories",
     brand: "Nike",
     image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80",
     rating: 4.6,
     reviewsCount: 1890,
     basePrice: 140,
     targetCountries: ALL_COUNTRIES,
+    isFlashDeal: true,
     offers: [],
   },
   {
     id: "prod-adidas-ultraboost",
     title: "Adidas Ultraboost Light Running Shoes Core Black",
     description: "Lightest Ultraboost ever with Light BOOST midsole and Continental Rubber outsole.",
-    category: "fashion",
+    category: "wearables-accessories",
     brand: "Adidas",
     image: "https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=600&auto=format&fit=crop&q=80",
     rating: 4.7,
@@ -578,7 +583,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-on-cloud5",
     title: "On Running Cloud 5 All-Black Swiss Engineering Shoes",
     description: "Swiss engineered lightweight everyday shoes with Speedboard and CloudTec cushioning.",
-    category: "fashion",
+    category: "wearables-accessories",
     brand: "On",
     image: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
@@ -591,7 +596,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-salomon-speedcross6",
     title: "Salomon Speedcross 6 GTX Trail Running Shoes Black",
     description: "GORE-TEX waterproof membrane, Mud Contagrip lugged outsole for Swiss mountain trails.",
-    category: "fashion",
+    category: "wearables-accessories",
     brand: "Salomon",
     image: "https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -604,7 +609,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-birkenstock-arizona",
     title: "Birkenstock Arizona Birko-Flor Mocca Sandals",
     description: "Anatomically shaped original cork-latex footbed with durable synthetic leather straps.",
-    category: "fashion",
+    category: "wearables-accessories",
     brand: "Birkenstock",
     image: "https://images.unsplash.com/photo-1603808033192-082d6919d3e1?w=600&auto=format&fit=crop&q=80",
     rating: 4.7,
@@ -617,7 +622,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-rayban-wayfarer",
     title: "Ray-Ban Original Wayfarer Classic G-15 Sunglasses",
     description: "Iconic acetate sunglasses with crystal green UV-blocking lenses.",
-    category: "fashion",
+    category: "wearables-accessories",
     brand: "Ray-Ban",
     image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -630,7 +635,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-northface-nuptse",
     title: "The North Face 1996 Retro Nuptse 700-Down Jacket",
     description: "Boxy silhouette 700-fill goose down insulated puffer jacket.",
-    category: "fashion",
+    category: "wearables-accessories",
     brand: "The North Face",
     image: "https://images.unsplash.com/photo-1544441893-675973e31985?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
@@ -643,7 +648,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-fjallraven-kanken",
     title: "Fjällräven Kånken Classic Backpack Ox Red",
     description: "Durable Vinylon F fabric Scandinavian classic everyday backpack.",
-    category: "fashion",
+    category: "wearables-accessories",
     brand: "Fjällräven",
     image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80",
     rating: 4.7,
@@ -658,7 +663,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-michelin-tires",
     title: "Michelin Pilot Sport 5 225/45 R17 94Y Summer Tire",
     description: "High performance summer tire designed for longevity and precise steering control.",
-    category: "auto",
+    category: "drones-gadgets",
     brand: "Michelin",
     image: "https://images.unsplash.com/photo-1578844251758-2f71da64c96f?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
@@ -671,7 +676,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-continental-winter",
     title: "Continental WinterContact TS 870 205/55 R16 91H Winter Tire",
     description: "Maximum winter safety and snow grip for Alpine conditions.",
-    category: "auto",
+    category: "drones-gadgets",
     brand: "Continental",
     image: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -684,7 +689,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-noco-gb40",
     title: "NOCO Boost Plus GB40 1000 Amp 12V UltraSafe Lithium Jump Starter",
     description: "Jump starts dead batteries up to 6.0L gas and 3.0L diesel engines in seconds.",
-    category: "auto",
+    category: "drones-gadgets",
     brand: "NOCO",
     image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=600&auto=format&fit=crop&q=80",
     rating: 4.8,
@@ -697,7 +702,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-nextbase-522gw",
     title: "Nextbase 522GW 1440p HD Wi-Fi Dash Cam with Emergency SOS",
     description: "3-inch HD IPS touch screen, Polarizing filter, Alexa built-in and GPS logging.",
-    category: "auto",
+    category: "drones-gadgets",
     brand: "Nextbase",
     image: "https://images.unsplash.com/photo-1508974239320-0a029497e820?w=600&auto=format&fit=crop&q=80",
     rating: 4.6,
@@ -710,7 +715,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     id: "prod-ctek-mxs5",
     title: "CTEK MXS 5.0 Automatic 12V 5A Battery Charger & Maintainer",
     description: "Microprocessor controlled charger with automatic temperature compensation.",
-    category: "auto",
+    category: "drones-gadgets",
     brand: "CTEK",
     image: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&auto=format&fit=crop&q=80",
     rating: 4.9,
@@ -1036,22 +1041,29 @@ function synthesizeDynamicSearchResults(
     .join(" ");
 
   const inferredBrand = cleanQuery.split(" ")[0].toUpperCase();
-  const inferredCat: Product["category"] =
-    category && category !== "all"
-      ? (category as Product["category"])
-      : cleanQuery.toLowerCase().includes("shirt") ||
-        cleanQuery.toLowerCase().includes("shoe") ||
-        cleanQuery.toLowerCase().includes("nike")
-      ? "fashion"
-      : cleanQuery.toLowerCase().includes("tire") ||
-        cleanQuery.toLowerCase().includes("car") ||
-        cleanQuery.toLowerCase().includes("auto")
-      ? "auto"
-      : cleanQuery.toLowerCase().includes("coffee") ||
-        cleanQuery.toLowerCase().includes("dyson") ||
-        cleanQuery.toLowerCase().includes("vacuum")
-      ? "home"
-      : "electronics";
+  const q = cleanQuery.toLowerCase();
+  const inferredCat: string =
+    category && category !== ALL_CATEGORIES_ID
+      ? category
+      : q.includes("headphone") || q.includes("speaker") || q.includes("audio")
+      ? "audio-headphones"
+      : q.includes("iphone") || q.includes("samsung") || q.includes("phone")
+      ? "mobile-smartphones"
+      : q.includes("macbook") || q.includes("laptop") || q.includes("notebook")
+      ? "notebooks-laptops"
+      : q.includes("playstation") || q.includes("xbox") || q.includes("gaming")
+      ? "gaming-consoles"
+      : q.includes("tv") || q.includes("oled")
+      ? "tv-televisions"
+      : q.includes("camera") || q.includes("gopro")
+      ? "photo-action"
+      : q.includes("watch") || q.includes("garmin")
+      ? "wearables-smartwatch"
+      : q.includes("coffee") || q.includes("kitchen") || q.includes("dyson") || q.includes("vacuum")
+      ? "home-kitchen"
+      : q.includes("drone")
+      ? "drones-quadcopters"
+      : "notebooks-pcs";
 
   const placeholderImages = [
     "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80",
@@ -1107,8 +1119,8 @@ export async function fetchProductsForLocation(
     p.targetCountries.includes(userLocation.countryCode)
   );
 
-  if (category && category !== "all") {
-    filtered = filtered.filter((p) => p.category === category);
+  if (category && category !== ALL_CATEGORIES_ID) {
+    filtered = filtered.filter((p) => productMatchesCategoryFilter(p, category));
   }
 
   if (query && query.trim() !== "") {
