@@ -297,7 +297,13 @@ export default function Home() {
               </div>
               <div>
                 <span className="text-white font-bold text-base block">BeforeToBuy.com</span>
-                <span className="text-[10px] text-slate-500">Operated by PortanX - Catalin Portan (CHE-373.501.736)</span>
+                <span className="text-[10px] text-slate-500">
+                  Operated by{" "}
+                  <a href="https://portanx.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline font-semibold">
+                    PortanX - Catalin Portan
+                  </a>{" "}
+                  (CHE-373.501.736)
+                </span>
               </div>
             </div>
 

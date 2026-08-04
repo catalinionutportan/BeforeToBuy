@@ -78,12 +78,21 @@ export default function ImpressumPage() {
 
           {/* Contact & Business Purpose */}
           <div className="space-y-4 border-t border-slate-100 pt-6 text-sm text-slate-700">
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-emerald-600" />
-              <strong>Kontakt / Contact Email:</strong>
-              <a href="mailto:admin@portanx.com" className="text-emerald-700 font-semibold hover:underline">
-                admin@portanx.com
-              </a>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-xs">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-emerald-600" />
+                <strong>Website der Firma:</strong>
+                <a href="https://portanx.com" target="_blank" rel="noopener noreferrer" className="text-emerald-700 font-bold hover:underline">
+                  https://portanx.com
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-emerald-600" />
+                <strong>Email:</strong>
+                <a href="mailto:admin@portanx.com" className="text-emerald-700 font-semibold hover:underline">
+                  admin@portanx.com
+                </a>
+              </div>
             </div>
 
             <div className="bg-emerald-50/50 border border-emerald-200/60 rounded-2xl p-4 text-xs space-y-1 text-slate-800">
