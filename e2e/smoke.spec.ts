@@ -6,6 +6,9 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.getByText(/Beta\s*\/?\s*Demo/i).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: /Shopping in/i })).toBeVisible({ timeout: 15_000 });
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
+    await expect(
+      page.getByRole("link", { name: "Visit the official PortanX company website" })
+    ).toHaveAttribute("href", "https://portanx.com");
   });
 
   test("legal hub and help pages are reachable", async ({ page }) => {

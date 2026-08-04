@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   Layers,
   Store,
@@ -11,7 +12,6 @@ import {
   Scale,
   LifeBuoy,
   Activity,
-  ArrowUpRight,
   CircleHelp,
   Compass,
 } from "lucide-react";
@@ -48,11 +48,17 @@ export function SiteFooter() {
               href={COMPANY.website}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-200 transition-colors hover:border-emerald-500/60 hover:text-emerald-300"
+              aria-label="Visit the official PortanX company website"
+              className="group block w-full max-w-[280px] overflow-hidden rounded-xl border border-slate-700 bg-black transition-all duration-300 hover:border-sky-400 hover:shadow-[0_0_24px_rgba(56,189,248,0.32)] focus-visible:border-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 active:scale-[0.99] active:border-sky-400 active:shadow-[0_0_18px_rgba(56,189,248,0.3)]"
             >
-              <Building2 className="h-4 w-4 text-emerald-400" aria-hidden="true" />
-              Visit PortanX company website
-              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+              <Image
+                src="/portanx-logo.png"
+                alt="PortanX"
+                width={640}
+                height={200}
+                sizes="(max-width: 640px) 80vw, 280px"
+                className="h-auto w-full opacity-90 transition-all duration-300 group-hover:opacity-100 group-hover:brightness-110 group-focus-visible:opacity-100 group-focus-visible:brightness-110"
+              />
             </a>
           </section>
 
