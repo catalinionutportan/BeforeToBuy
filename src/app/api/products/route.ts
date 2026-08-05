@@ -12,7 +12,7 @@ function generateUuid(): string {
   });
 }
 
-const VALID_COUNTRIES = new Set<CountryCode>(["CH", "DE", "FR", "RO", "GB", "US"]);
+const VALID_COUNTRIES = new Set<CountryCode>(Object.keys(COUNTRIES) as CountryCode[]);
 
 function parseCountry(value: string | null): CountryCode {
   const code = (value || DEFAULT_COUNTRY).toUpperCase() as CountryCode;
