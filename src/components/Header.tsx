@@ -64,10 +64,7 @@ export function Header({
           >
             <Store className="w-3.5 h-3.5" />
             <span>
-              Integrated Store Domains (
-              {currentCountryInfo.merchantDomains.filter((m) => !m.isCrossBorder).length} in{" "}
-              {currentCountryInfo.code})
-            </span>
+              Integrated Store Domains ({currentCountryInfo.merchantDomains.filter((m) => !m.isCrossBorder).length} in{" "}{currentCountryInfo.code})            </span>
           </Link>
         </div>
 

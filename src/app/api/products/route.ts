@@ -4,6 +4,14 @@ import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
 
+// Simple UUID v4 generator for tracking errors
+function generateUuid(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 const VALID_COUNTRIES = new Set<CountryCode>(["CH", "DE", "FR", "RO", "GB", "US"]);
 
 function parseCountry(value: string | null): CountryCode {
@@ -59,7 +67,8 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Product fetch failed:", error);
-    return NextResponse.json({ error: "Unable to load products." }, { status: 500 });
+    const trackingId = generateUuid();
+    console.error(`Product fetch failed (Tracking ID: ${trackingId}):`, error);
+    return NextResponse.json({ error: "Unable to load products.", trackingId }, { status: 500 });
   }
 }

@@ -456,19 +456,7 @@ export default function Home() {
             <p className="text-xs text-slate-500 mt-0.5">
               {catalogMeta &&
               (catalogMeta.productionOfferCount > 0 || catalogMeta.sampleOfferCount > 0) ? (
-                <>
-                  Hybrid catalog for <strong className="text-slate-800">{userLocation.city}</strong> —{" "}
-                  {catalogMeta.productionOfferCount > 0 && (
-                    <><strong className="text-emerald-700">{catalogMeta.productionOfferCount} production-feed offer(s)</strong>.{" "}</>
-                  )}
-                  {catalogMeta.sampleOfferCount > 0 && (
-                    <><strong className="text-amber-700">{catalogMeta.sampleOfferCount} sample offer(s)</strong> are illustrative and not live.{" "}</>
-                  )}
-                  {catalogMeta.gtinLinkedProductCount > 0 && (
-                    <>{catalogMeta.gtinLinkedProductCount} products linked by GTIN.{" "}</>
-                  )}
-                  Other merchants remain demo. Confirm final price on the merchant site.
-                </>
+                <><strong className="text-emerald-700">{catalogMeta.productionOfferCount} production-feed offer(s)</strong>. <strong className="text-amber-700">{catalogMeta.sampleOfferCount} sample offer(s)</strong> are illustrative and not live. {catalogMeta.gtinLinkedProductCount} products linked by GTIN. Other merchants remain demo. Confirm final price on the merchant site.</>
               ) : (
                 <>
                   Demo catalog prices for <strong className="text-slate-800">{userLocation.city}</strong>
