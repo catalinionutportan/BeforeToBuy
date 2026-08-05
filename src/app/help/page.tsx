@@ -4,10 +4,12 @@ import { HelpCircle, ChevronDown } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY } from "@/lib/company-info";
+import { HOME_UI } from "@/lib/i18n/ui";
+import { useBrowseLocale } from "@/lib/i18n/client";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Help & FAQ | BeforeToBuy.com",
-  description: "Frequently asked questions about BeforeToBuy.com production-feed, sample, and demo prices, affiliate links, and privacy.",
+  title: HOME_UI.en.helpMetaTitle,
+  description: HOME_UI.en.helpMetaDescription,
   path: "/help",
 });
 
@@ -102,16 +104,16 @@ export default function HelpPage() {
         <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-md border border-slate-800 space-y-2">
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-flex items-center gap-1.5">
             <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
-            Help Center
+            {homeUi.helpCenter}
           </span>
-          <h1 className="text-3xl font-extrabold">Help & FAQ</h1>
+          <h1 className="text-3xl font-extrabold">{homeUi.helpAndFAQ}</h1>
           <p className="text-slate-300 text-sm">
-            Common questions about how BeforeToBuy.com works, our Beta/Demo status, and merchant policies.
+            {homeUi.helpIntro}
           </p>
         </div>
 
         <div className="space-y-6">
-          {FAQ_SECTIONS.map((section) => (
+          {faqSections.map((section) => (
             <section key={section.title} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-3">
               <h2 className="text-lg font-bold text-slate-900">{section.title}</h2>
               <div className="space-y-2">
@@ -135,21 +137,21 @@ export default function HelpPage() {
         </div>
 
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-xs text-emerald-950 space-y-2">
-          <p className="font-bold">Still need help?</p>
+          <p className="font-bold">{homeUi.stillNeedHelp}</p>
           <p>
-            Visit our{" "}
+            {homeUi.visitOur}{" "}
             <Link href="/contact" className="underline font-semibold">
-              contact page
+              {homeUi.contactPage}
             </Link>
             ,{" "}
             <Link href="/complaints" className="underline font-semibold">
-              complaints procedure
+              {homeUi.complaintsProcedure}
             </Link>
-            , or{" "}
+            , {homeUi.or}{" "}
             <Link href="/legal" className="underline font-semibold">
-              legal hub
+              {homeUi.legalHub}
             </Link>
-            .
+            {homeUi.dot}
           </p>
         </div>
       </div>

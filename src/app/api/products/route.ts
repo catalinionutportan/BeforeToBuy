@@ -6,6 +6,12 @@ import { fetchMergedProductsForLocation } from "@/lib/product-service";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 
+// Basic sanitization function to prevent injection attacks
+function sanitizeString(input: string | null | undefined): string | undefined {
+  if (!input) return undefined;
+  return input.replace(/[<>\"'`%{};\\\/]/g, "").trim(); // Remove potentially harmful characters
+}
+
 // Simple UUID v4 generator for tracking errors
 function generateUuid(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -53,8 +59,8 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const countryCode = parseCountry(searchParams.get("country"));
-  const query = searchParams.get("q") || undefined;
-  const category = searchParams.get("category") || undefined;
+  const query = sanitizeString(searchParams.get("q"));
+  const category = sanitizeString(searchParams.get("category"));
   const userLocation = buildUserLocation(
     countryCode,
     searchParams.get("lat"),

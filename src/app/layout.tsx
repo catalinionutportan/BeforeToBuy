@@ -20,7 +20,7 @@ export async function generateMetadata({
   return {
     title: ui.metaTitle,
     description: ui.metaDescription,
-    metadataBase: new URL("https://www.beforetobuy.com"),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.beforetobuy.com"),
     keywords: keywords,
     authors: [{ name: "PortanX - Catalin Portan", url: "https://portanx.com" }],
     openGraph: {

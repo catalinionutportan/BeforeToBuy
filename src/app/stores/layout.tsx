@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { createPageMetadata } from "@/lib/metadata";
+import { HOME_UI } from "@/lib/i18n/ui";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Merchant Stores Directory | BeforeToBuy.com",
-  description:
-    "Browse partner merchant domains listed on BeforeToBuy.com across Switzerland, Germany, France, Romania, UK, and USA.",
+  title: HOME_UI.en.storesMetaTitle,
+  description: HOME_UI.en.storesMetaDescription,
   path: "/stores",
 });
 
