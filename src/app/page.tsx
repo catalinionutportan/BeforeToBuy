@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { CountryCode, Product, PromoCoupon, UserLocation } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
@@ -17,7 +18,7 @@ import { Header } from "@/components/Header";
 import { LocationBanner } from "@/components/LocationBanner";
 import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
-import { AffiliateDisclosureModal } from "@/components/AffiliateDisclosureModal";
+// import { AffiliateDisclosureModal } from "@/components/AffiliateDisclosureModal"; // Removed direct import
 import { CategoryNavigation } from "@/components/CategoryNavigation";
 import {
   CollectionNavigation,
@@ -47,6 +48,10 @@ import {
   Store,
   ArrowRight,
 } from "lucide-react";
+
+const AffiliateDisclosureModal = dynamic(() => import("@/components/AffiliateDisclosureModal"), {
+  ssr: false,
+});
 
 export default function Home() {
   const [userLocation, setUserLocation] = useState<UserLocation>({
@@ -555,10 +560,12 @@ export default function Home() {
 
       </main>
 
-      <AffiliateDisclosureModal
-        isOpen={isDisclosureOpen}
-        onClose={() => setIsDisclosureOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <AffiliateDisclosureModal
+          isOpen={isDisclosureOpen}
+          onClose={() => setIsDisclosureOpen(false)}
+        />
+      </Suspense>
     </div>
   );
 }
