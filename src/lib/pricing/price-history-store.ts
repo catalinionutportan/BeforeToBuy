@@ -7,8 +7,9 @@ import {
   PRICE_HISTORY_META_KEY,
   type PriceHistoryPoint,
 } from "@/lib/pricing/price-history-keys";
+import { getRedis, isRedisConfigured, isKvConfigured } from "@/lib/redis";
 
-export type PriceHistoryBackend = "memory" | "file" | "kv";
+export type PriceHistoryBackend = "memory" | "file" | "redis" | "kv";
 
 export interface PriceHistoryMeta {
   trackedOffers: number;
@@ -189,46 +190,43 @@ class FilePriceHistoryStore implements PriceHistoryStore {
   }
 }
 
-class KvPriceHistoryStore implements PriceHistoryStore {
-  readonly backend = "kv" as const;
-
-  private async kvClient() {
-    const { kv } = await import("@vercel/kv");
-    return kv;
-  }
+class RedisPriceHistoryStore implements PriceHistoryStore {
+  readonly backend = "redis" as const;
 
   async getPoints(key: string): Promise<PriceHistoryPoint[]> {
     try {
-      const kv = await this.kvClient();
-      const points = await kv.get<PriceHistoryPoint[]>(encodePriceHistoryKvKey(key));
+      const redis = getRedis();
+      const points = await redis.get<PriceHistoryPoint[]>(encodePriceHistoryKvKey(key));
       return [...(points ?? [])];
     } catch (error) {
-      console.error("[price-history] KV read failed:", error);
+      console.error("[price-history] Redis read failed:", error);
       return [];
     }
   }
 
   async getMultiplePoints(keys: string[]): Promise<Map<string, PriceHistoryPoint[]>> {
     try {
-      const kv = await this.kvClient();
-      const kvKeys = keys.map(encodePriceHistoryKvKey);
-      const resultsArray = await Promise.all(kvKeys.map((k) => kv.get<PriceHistoryPoint[]>(k)));
+      const redis = getRedis();
+      const redisKeys = keys.map(encodePriceHistoryKvKey);
+      const resultsArray = await Promise.all(
+        redisKeys.map((k) => redis.get<PriceHistoryPoint[]>(k))
+      );
       const resultMap = new Map<string, PriceHistoryPoint[]>();
       keys.forEach((originalKey, index) => {
         resultMap.set(originalKey, resultsArray[index] ?? []);
       });
       return resultMap;
     } catch (error) {
-      console.error("[price-history] KV batch read failed:", error);
+      console.error("[price-history] Redis batch read failed:", error);
       return new Map();
     }
   }
 
   async appendPoint(key: string, point: PriceHistoryPoint): Promise<boolean> {
     try {
-      const kv = await this.kvClient();
-      const kvKey = encodePriceHistoryKvKey(key);
-      const points = (await kv.get<PriceHistoryPoint[]>(kvKey)) ?? [];
+      const redis = getRedis();
+      const redisKey = encodePriceHistoryKvKey(key);
+      const points = (await redis.get<PriceHistoryPoint[]>(redisKey)) ?? [];
       const last = points[points.length - 1];
 
       if (
@@ -243,27 +241,27 @@ class KvPriceHistoryStore implements PriceHistoryStore {
       const isNewKey = points.length === 0;
       const nextPoints = trimPoints([...points, point]);
 
-      await kv.set(kvKey, nextPoints);
+      await redis.set(redisKey, nextPoints);
       if (isNewKey) {
-        await kv.sadd(PRICE_HISTORY_INDEX_KEY, key);
-        await kv.hincrby(PRICE_HISTORY_META_KEY, "trackedOffers", 1);
+        await redis.sadd(PRICE_HISTORY_INDEX_KEY, key);
+        await redis.hincrby(PRICE_HISTORY_META_KEY, "trackedOffers", 1);
       }
-      await kv.hincrby(PRICE_HISTORY_META_KEY, "totalPoints", 1);
-      await kv.hset(PRICE_HISTORY_META_KEY, { lastSnapshotAt: point.recordedAt });
+      await redis.hincrby(PRICE_HISTORY_META_KEY, "totalPoints", 1);
+      await redis.hset(PRICE_HISTORY_META_KEY, { lastSnapshotAt: point.recordedAt });
 
       return true;
     } catch (error) {
-      console.error("[price-history] KV write failed:", error);
+      console.error("[price-history] Redis write failed:", error);
       return false;
     }
   }
 
   async getMeta(): Promise<PriceHistoryMeta> {
     try {
-      const kv = await this.kvClient();
+      const redis = getRedis();
       const [indexSize, meta] = await Promise.all([
-        kv.scard(PRICE_HISTORY_INDEX_KEY),
-        kv.hgetall<Record<string, string | number>>(PRICE_HISTORY_META_KEY),
+        redis.scard(PRICE_HISTORY_INDEX_KEY),
+        redis.hgetall<Record<string, string | number>>(PRICE_HISTORY_META_KEY),
       ]);
 
       return {
@@ -274,7 +272,7 @@ class KvPriceHistoryStore implements PriceHistoryStore {
         backend: this.backend,
       };
     } catch (error) {
-      console.error("[price-history] KV meta read failed:", error);
+      console.error("[price-history] Redis meta read failed:", error);
       return {
         trackedOffers: 0,
         totalPoints: 0,
@@ -285,19 +283,19 @@ class KvPriceHistoryStore implements PriceHistoryStore {
 
   async clear(): Promise<void> {
     try {
-      const kv = await this.kvClient();
-      const keys = await kv.smembers<string[]>(PRICE_HISTORY_INDEX_KEY);
+      const redis = getRedis();
+      const keys = (await redis.smembers(PRICE_HISTORY_INDEX_KEY)) as string[];
       if (keys.length > 0) {
-        await kv.del(
+        await redis.del(
           ...keys.map((key) => encodePriceHistoryKvKey(key)),
           PRICE_HISTORY_INDEX_KEY,
           PRICE_HISTORY_META_KEY
         );
       } else {
-        await kv.del(PRICE_HISTORY_INDEX_KEY, PRICE_HISTORY_META_KEY);
+        await redis.del(PRICE_HISTORY_INDEX_KEY, PRICE_HISTORY_META_KEY);
       }
     } catch (error) {
-      console.error("[price-history] KV clear failed:", error);
+      console.error("[price-history] Redis clear failed:", error);
     }
   }
 }
@@ -306,21 +304,19 @@ let storeInstance: PriceHistoryStore | undefined;
 let testStoreInstance: MemoryPriceHistoryStore | undefined;
 let forceTestStore = false;
 
-export function isKvConfigured(): boolean {
-  return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
-}
+export { isKvConfigured, isRedisConfigured };
 
 function shouldUseMemoryStore(): boolean {
   return (
     process.env.NODE_ENV === "test" ||
     forceTestStore ||
-    (process.env.NODE_ENV === "production" && !isKvConfigured())
+    (process.env.NODE_ENV === "production" && !isRedisConfigured())
   );
 }
 
 export function getPriceHistoryBackend(): PriceHistoryBackend {
   if (shouldUseMemoryStore()) return "memory";
-  if (isKvConfigured()) return "kv";
+  if (isRedisConfigured()) return "redis";
   return "file";
 }
 
@@ -333,8 +329,8 @@ export function getPriceHistoryStore(): PriceHistoryStore {
   }
 
   if (!storeInstance) {
-    storeInstance = isKvConfigured()
-      ? new KvPriceHistoryStore()
+    storeInstance = isRedisConfigured()
+      ? new RedisPriceHistoryStore()
       : new FilePriceHistoryStore();
   }
 

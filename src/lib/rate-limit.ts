@@ -1,28 +1,29 @@
-import { kv } from "@vercel/kv";
+import { getRedis, isRedisConfigured } from "@/lib/redis";
 
 const RATELIMIT_PREFIX = "ratelimit:";
 
 /**
- * Persistent rate limiter for serverless API routes using Vercel KV (Redis).
- * Leverages Redis INCR and EXPIRE for atomic operations.
+ * Persistent rate limiter for serverless API routes using Upstash Redis.
+ * Uses INCR + EXPIRE for atomic sliding fixed windows.
  */
 export async function checkRateLimit(
   key: string,
   limit = 30,
   windowMs = 60_000
 ): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
-  const kvKey = `${RATELIMIT_PREFIX}${key}`;
+  const redisKey = `${RATELIMIT_PREFIX}${key}`;
   const windowSeconds = Math.ceil(windowMs / 1000);
 
   try {
-    const count = await kv.incr(kvKey);
+    const redis = getRedis();
+    const count = await redis.incr(redisKey);
 
     if (count === 1) {
-      await kv.expire(kvKey, windowSeconds);
+      await redis.expire(redisKey, windowSeconds);
     }
 
     if (count > limit) {
-      const ttl = await kv.ttl(kvKey);
+      const ttl = await redis.ttl(redisKey);
       return {
         allowed: false,
         retryAfterSeconds: Math.max(1, ttl),
@@ -31,13 +32,11 @@ export async function checkRateLimit(
 
     return { allowed: true, retryAfterSeconds: 0 };
   } catch (error) {
-    console.error("Rate limit KV error:", error);
-    // Fail closed only when KV is configured (expected to work). Without KV
+    console.error("Rate limit Redis error:", error);
+    // Fail closed only when Redis is configured (expected to work). Without Redis
     // (local `next start`, CI e2e), fail open so APIs remain usable.
     const failOpen =
-      process.env.RATE_LIMIT_FAIL_OPEN === "1" ||
-      !process.env.KV_REST_API_URL ||
-      !process.env.KV_REST_API_TOKEN;
+      process.env.RATE_LIMIT_FAIL_OPEN === "1" || !isRedisConfigured();
     if (!failOpen) {
       return { allowed: false, retryAfterSeconds: 60 };
     }
