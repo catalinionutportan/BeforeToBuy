@@ -1,22 +1,28 @@
 import type { Metadata } from "next";
+import { DEFAULT_LOCALE, SITE_LOCALES, SiteLocale } from "./i18n/locales";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.beforetobuy.com";
 
-const HREFLANG_LOCALES = {
-  en: `${SITE_URL}`,
-  de: `${SITE_URL}`,
-  fr: `${SITE_URL}`,
-  ro: `${SITE_URL}`,
-  "x-default": `${SITE_URL}`,
-} as const;
+function buildAlternates(path: string, currentLocale: SiteLocale) {
+  const alternates: { hrefLang: string; href: string }[] = [];
+  
+  for (const locale of SITE_LOCALES) {
+    const localizedPath = locale === DEFAULT_LOCALE ? path : `/${locale}${path}`;
+    alternates.push({
+      hrefLang: locale,
+      href: `${SITE_URL}${localizedPath}`,
+    });
+  }
 
-function buildAlternates(path: string) {
-  const url = `${SITE_URL}${path}`;
+  // Add x-default
+  alternates.push({
+    hrefLang: "x-default",
+    href: `${SITE_URL}${path.startsWith(`/${DEFAULT_LOCALE}`) ? path : `/${DEFAULT_LOCALE}${path}`}`,
+  });
+
   return {
-    canonical: url,
-    languages: Object.fromEntries(
-      Object.entries(HREFLANG_LOCALES).map(([locale, base]) => [locale, `${base}${path}`])
-    ),
+    canonical: `${SITE_URL}${path.startsWith(`/${currentLocale}`) ? path : `/${currentLocale}${path}`}`,
+    languages: Object.fromEntries(alternates.map(alt => [alt.hrefLang, alt.href])),
   } satisfies Metadata["alternates"];
 }
 
@@ -25,18 +31,20 @@ export function createPageMetadata({
   description,
   path = "",
   index = true,
+  locale: currentLocale = DEFAULT_LOCALE,
 }: {
   title: string;
   description: string;
   path?: string;
   index?: boolean;
+  locale?: SiteLocale;
 }): Metadata {
   const url = `${SITE_URL}${path}`;
 
   return {
     title,
     description,
-    alternates: buildAlternates(path),
+    alternates: buildAlternates(path, currentLocale),
     robots: index ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: {
       title,
@@ -44,7 +52,7 @@ export function createPageMetadata({
       url,
       siteName: "BeforeToBuy.com",
       type: "website",
-      locale: "en_US",
+      locale: `${currentLocale}_${currentLocale.toUpperCase()}`, // e.g., en_US, de_DE, fr_FR
     },
     twitter: {
       card: "summary_large_image",
@@ -59,18 +67,20 @@ export function createCategoryMetadata({
   description,
   path,
   index = true,
+  locale = DEFAULT_LOCALE,
 }: {
   title: string;
   description: string;
   path: string;
   index?: boolean;
+  locale?: SiteLocale;
 }): Metadata {
-  return createPageMetadata({ title, description, path, index });
+  return createPageMetadata({ title, description, path, index, locale });
 }
 
 export const defaultOpenGraph: Metadata["openGraph"] = {
   siteName: "BeforeToBuy.com",
   type: "website",
-  locale: "en_US",
+  locale: "en_US", // This will now be overridden by createPageMetadata's dynamic locale
   url: SITE_URL,
 };
