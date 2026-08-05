@@ -143,6 +143,7 @@ export const HOME_UI: Record<
     allRightsReserved: "© {year} {companyPlatformName}. All rights reserved.",
     companyInfo: "{companyLegalName} · {companyUid} · {companyAddressStreet}, CH-{companyAddressPostalCode} {companyAddressCity}",
     betaDemoDisclaimer: "Beta/Demo: Brack.ch uses AWIN sample data unless a production feed is configured. Always confirm final price and availability with the merchant.",
+    learnHowItWorks: "Learn how it works",
   },
   de: {
     tagline: "GPS-Preisvergleich lokal & online",
@@ -265,6 +266,7 @@ export const HOME_UI: Record<
     allRightsReserved: "© {year} {companyPlatformName}. Alle Rechte vorbehalten.",
     companyInfo: "{companyLegalName} · {companyUid} · {companyAddressStreet}, CH-{companyAddressPostalCode} {companyAddressCity}",
     betaDemoDisclaimer: "Beta/Demo: Brack.ch verwendet AWIN-Beispieldaten, sofern kein Produktions-Feed konfiguriert ist. Bestätigen Sie immer den endgültigen Preis und die Verfügbarkeit beim Händler.",
+    learnHowItWorks: "Erfahren Sie, wie es funktioniert",
   },
   fr: {
     tagline: "Comparaison de prix GPS locale & en ligne",
@@ -387,6 +389,7 @@ export const HOME_UI: Record<
     allRightsReserved: "© {year} {companyPlatformName}. Tous droits réservés.",
     companyInfo: "{companyLegalName} · {companyUid} · {companyAddressStreet}, CH-{companyAddressPostalCode} {companyAddressCity}",
     betaDemoDisclaimer: "Bêta/Démo: Brack.ch utilise des données d'échantillon AWIN, sauf si un flux de production est configuré. Toujours confirmer le prix final et la disponibilité auprès du commerçant.",
+    learnHowItWorks: "Découvrez comment ça marche",
   },
   it: {
     tagline: "Confronto prezzi GPS locale e online",
@@ -509,6 +512,7 @@ export const HOME_UI: Record<
     allRightsReserved: "© {year} {companyPlatformName}. Tutti i diritti riservati.",
     companyInfo: "{companyLegalName} · {companyUid} · {companyAddressStreet}, CH-{companyAddressPostalCode} {companyAddressCity}",
     betaDemoDisclaimer: "Beta/Demo: Brack.ch utilizza dati di esempio AWIN a meno che non sia configurato un feed di produzione. Conferma sempre il prezzo finale e la disponibilità con il commerciante.",
+    learnHowItWorks: "Scopri come funziona",
   },
   ro: {
     tagline: "Comparație prețuri GPS local & online",
@@ -631,6 +635,7 @@ export const HOME_UI: Record<
     allRightsReserved: "© {year} {companyPlatformName}. Toate drepturile rezervate.",
     companyInfo: "{companyLegalName} · {companyUid} · {companyAddressStreet}, CH-{companyAddressPostalCode} {companyAddressCity}",
     betaDemoDisclaimer: "Beta/Demo: Brack.ch utilizează date eșantion AWIN, cu excepția cazului în care este configurat un feed de producție. Confirmați întotdeauna prețul final și disponibilitatea la comerciant.",
+    learnHowItWorks: "Află cum funcționează",
   },
 };
 
