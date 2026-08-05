@@ -7,7 +7,7 @@
     "build": "next build",
     "postinstall": "patch-package",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest --run",
     "test:e2e": "playwright test",
