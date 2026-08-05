@@ -241,6 +241,10 @@ export const HOME_UI: Record<
     hrNr: "HR-Nr:",
     email: "Email:",
     companyWebsite: "Company Website:",
+    invalidRequestOrigin: "Invalid request origin.",
+    invalidJsonBody: "Invalid JSON body.",
+    expectedBooleanPreferences: "Expected boolean location and affiliate preferences.",
+    consentServiceNotConfigured: "Consent service is not configured.",
   },
   de: {
     tagline: "GPS-Preisvergleich lokal & online",
@@ -462,6 +466,10 @@ export const HOME_UI: Record<
     hrNr: "HR-Nr:",
     email: "E-Mail:",
     companyWebsite: "Firmenwebsite:",
+    invalidRequestOrigin: "Ungültiger Anfrageursprung.",
+    invalidJsonBody: "Ungültiger JSON-Text.",
+    expectedBooleanPreferences: "Erwartete boolesche Standort- und Affiliate-Einstellungen.",
+    consentServiceNotConfigured: "Zustimmungsdienst ist nicht konfiguriert.",
   },
   fr: {
     tagline: "Comparaison de prix GPS locale & en ligne",
@@ -684,6 +692,10 @@ export const HOME_UI: Record<
     hrNr: "HR-Nr:",
     email: "E-mail:",
     companyWebsite: "Site web de l'entreprise:",
+    invalidRequestOrigin: "Origine de la requête invalide.",
+    invalidJsonBody: "Corps JSON invalide.",
+    expectedBooleanPreferences: "Préférences de localisation et d'affiliation booléennes attendues.",
+    consentServiceNotConfigured: "Le service de consentement n'est pas configuré.",
   },
   it: {
     tagline: "Confronto prezzi GPS locale e online",
@@ -905,6 +917,10 @@ export const HOME_UI: Record<
     hrNr: "Numero HR:",
     email: "Email:",
     companyWebsite: "Sito web aziendale:",
+    invalidRequestOrigin: "Origine richiesta non valida.",
+    invalidJsonBody: "Corpo JSON non valido.",
+    expectedBooleanPreferences: "Previste preferenze booleane per posizione e affiliazione.",
+    consentServiceNotConfigured: "Servizio di consenso non configurato.",
   },
   ro: {
     tagline: "Comparație prețuri GPS local & online",
@@ -1126,6 +1142,10 @@ export const HOME_UI: Record<
     hrNr: "Nr. Reg. Com.:",
     email: "Email:",
     companyWebsite: "Site web companie:",
+    invalidRequestOrigin: "Originea cererii este invalidă.",
+    invalidJsonBody: "Corpul JSON este invalid.",
+    expectedBooleanPreferences: "Sunt așteptate preferințe booleene pentru locație și afiliere.",
+    consentServiceNotConfigured: "Serviciul de consimțământ nu este configurat.",
   },
 };
 

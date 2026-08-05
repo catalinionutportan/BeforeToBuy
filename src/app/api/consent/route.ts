@@ -5,6 +5,11 @@ import {
 } from "@/lib/consent-config";
 import { createConsentToken } from "@/lib/server-consent";
 
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
+
 function hasValidOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
   if (!origin || request.headers.get("sec-fetch-site") === "same-origin") return true;
@@ -23,14 +28,14 @@ function hasValidOrigin(request: Request): boolean {
 
 export async function POST(request: Request) {
   if (!hasValidOrigin(request)) {
-    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+    return NextResponse.json({ error: homeUi.invalidRequestOrigin }, { status: 403 });
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    return NextResponse.json({ error: homeUi.invalidJsonBody }, { status: 400 });
   }
 
   if (
@@ -40,7 +45,7 @@ export async function POST(request: Request) {
     typeof (body as { affiliate?: unknown }).affiliate !== "boolean"
   ) {
     return NextResponse.json(
-      { error: "Expected boolean location and affiliate preferences." },
+      { error: homeUi.expectedBooleanPreferences },
       { status: 400 }
     );
   }
@@ -49,7 +54,7 @@ export async function POST(request: Request) {
   const token = createConsentToken(preferences);
   if (!token) {
     return NextResponse.json(
-      { error: "Consent service is not configured." },
+      { error: homeUi.consentServiceNotConfigured },
       { status: 503 }
     );
   }
@@ -69,7 +74,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   if (!hasValidOrigin(request)) {
-    return NextResponse.json({ error: "Invalid request origin." }, { status: 403 });
+    return NextResponse.json({ error: homeUi.invalidRequestOrigin }, { status: 403 });
   }
 
   const response = NextResponse.json({ cleared: true });
