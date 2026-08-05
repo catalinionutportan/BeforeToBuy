@@ -359,7 +359,7 @@ export const HOME_UI: Record<
     "product_title_prod-nespresso-vertuo-pop": "Nespresso Vertuo Pop Coffee Machine Spicy Red",
     "product_description_prod-nespresso-vertuo-pop": "Centrifusion barcode coffee extraction technology with 4 cup sizes.",
     "product_title_prod-tefal-optigrill": "Tefal OptiGrill Elite Smart Electric Grill",
-    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done."
+    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done.",
 
     priceSnapshotFailed: "Price snapshot failed",
     geocodeLocationConsentRequired: "Location consent is required.",
@@ -1153,7 +1153,7 @@ export const HOME_UI: Record<
     "product_title_prod-nespresso-vertuo-pop": "Nespresso Vertuo Pop Coffee Machine Spicy Red",
     "product_description_prod-nespresso-vertuo-pop": "Centrifusion barcode coffee extraction technology with 4 cup sizes.",
     "product_title_prod-tefal-optigrill": "Tefal OptiGrill Elite Smart Electric Grill",
-    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done."
+    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done.",
 
     geolocationPermissionDenied: "Accès à la localisation refusé. Veuillez activer les services de localisation dans les paramètres de votre navigateur pour utiliser le GPS.",
     geolocationPositionUnavailable: "Impossible de déterminer votre position. Veuillez réessayer ou vérifier les paramètres de votre appareil.",
@@ -1663,7 +1663,7 @@ export const HOME_UI: Record<
     "product_title_prod-nespresso-vertuo-pop": "Nespresso Vertuo Pop Coffee Machine Spicy Red",
     "product_description_prod-nespresso-vertuo-pop": "Centrifusion barcode coffee extraction technology with 4 cup sizes.",
     "product_title_prod-tefal-optigrill": "Tefal OptiGrill Elite Smart Electric Grill",
-    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done."
+    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done.",
 
     geolocationPermissionDenied: "Accesso alla posizione negato. Abilita i servizi di localizzazione nelle impostazioni del browser per utilizzare il GPS.",
     geolocationPositionUnavailable: "Impossibile determinare la tua posizione. Riprova o controlla le impostazioni del tuo dispositivo.",
@@ -1892,7 +1892,7 @@ export const HOME_UI: Record<
     "product_title_prod-nespresso-vertuo-pop": "Nespresso Vertuo Pop Coffee Machine Spicy Red",
     "product_description_prod-nespresso-vertuo-pop": "Centrifusion barcode coffee extraction technology with 4 cup sizes.",
     "product_title_prod-tefal-optigrill": "Tefal OptiGrill Elite Smart Electric Grill",
-    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done."
+    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done.",
 
     geocodeLocationConsentRequired: "È richiesto il consenso alla localizzazione.",
     geocodeTooManyRequests: "Troppe richieste. Riprova più tardi.",
@@ -2386,7 +2386,7 @@ export const HOME_UI: Record<
     "product_title_prod-nespresso-vertuo-pop": "Nespresso Vertuo Pop Coffee Machine Spicy Red",
     "product_description_prod-nespresso-vertuo-pop": "Centrifusion barcode coffee extraction technology with 4 cup sizes.",
     "product_title_prod-tefal-optigrill": "Tefal OptiGrill Elite Smart Electric Grill",
-    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done."
+    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done.",
 
     invalidJsonBody: "Corpul JSON este invalid.",
     expectedBooleanPreferences: "Sunt așteptate preferințe booleene pentru locație și afiliere.",
@@ -2625,14 +2625,14 @@ export const HOME_UI: Record<
     termsThirdPartyContractsBody1: "Contractele de cumpărare se încheie exclusiv între utilizator și comerciantul online respectiv.",
     termsThirdPartyContractsBody2: "{platformName} nu este nici parte contractuală, nici reprezentant al comercianților. Livrarea, plata, returul, garanția și responsabilitatea sunt reglementate de comerciant. Vezi",
   },
-};
+}
 
 export function formatUi(
   template: string,
-  values: Record<string, string | number>
+  values: Record<string, string | number>,
 ): string {
   return Object.entries(values).reduce(
     (text, [key, value]) => text.replaceAll(`{${key}}`, String(value)),
-    template
+    template,
   );
 }

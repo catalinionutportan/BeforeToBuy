@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { fetchProductsForLocation } from './api-aggregator';
+import { fetchProductsForLocation, generateOffersForLocation } from './api-aggregator';
 import * as chOffers from './offers/ch-offers';
 import * as deOffers from './offers/de-offers';
 import * as frOffers from './offers/fr-offers';
@@ -13,6 +13,23 @@ vi.mock('./offers/fr-offers');
 vi.mock('./offers/ro-offers');
 vi.mock('./offers/gb-offers');
 vi.mock('./offers/us-offers');
+
+const mockCountryPriceMultipliers = {
+  CH: 1.15,
+  DE: 1.0,
+  FR: 1.02,
+  RO: 4.98,
+  GB: 0.85,
+  US: 1.05,
+};
+
+// Mock the global fetch function for fetchCountryPriceMultipliers
+global.fetch = vi.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve(mockCountryPriceMultipliers),
+  } as Response)
+);
 
 describe('API Aggregator', () => {
   // Global mocks to ensure all generateOffersForLocation calls return a valid array
@@ -107,5 +124,43 @@ describe('API Aggregator', () => {
     const productsWithOffers = products.filter(p => p.offers.length > 0);
     expect(productsWithOffers.length).toBe(0);
     expect(roOffers.getRoOffers).toHaveBeenCalled();
+  });
+
+  it('should use dynamically fetched country price multipliers', async () => {
+    const mockProduct = {
+      id: 'test-product',
+      basePrice: 100,
+      targetCountries: ['DE'],
+    } as any;
+    const mockUserLocation = {
+      latitude: 52.52,
+      longitude: 13.405,
+      countryCode: 'DE',
+      countryName: 'Germany',
+      city: 'Berlin',
+      isGps: false,
+    };
+
+    // Ensure getDeOffers returns a mock offer to allow price calculation to proceed
+    vi.spyOn(deOffers, 'getDeOffers').mockResolvedValueOnce([
+      {
+        id: 'offer-de-dynamic',
+        storeName: 'Dynamic Mock Store DE',
+        price: 0, // This will be enriched by enrichOfferPricing
+        currency: 'EUR',
+        deliveryCost: 0,
+        purchaseUrl: 'http://mock.de/dynamic',
+        source: 'production-live',
+        type: 'delivery',
+        deliveryTime: '1-2 days',
+      },
+    ]);
+
+    const offers = await generateOffersForLocation(mockProduct, mockUserLocation);
+
+    expect(global.fetch).toHaveBeenCalledWith('/data/country-price-multipliers.json');
+    // The base price is 100, and for DE, the multiplier is 1.0, so targetPrice should be 100.
+    expect(offers[0].price).toBe(100);
+    expect(deOffers.getDeOffers).toHaveBeenCalled();
   });
 });
