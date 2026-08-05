@@ -30,7 +30,16 @@ To get the project up and running locally, follow these steps:
     # or pnpm install
     ```
 3.  **Environment Variables:**
-    (If needed, create a `.env.local` file in the root directory and add any necessary environment variables here. Consult with the project owner for specific variables like Vercel KV connection strings.)
+    Create a `.env.local` file in the root directory and add the following environment variables:
+    ```
+    # Datadog RUM (Real User Monitoring)
+    NEXT_PUBLIC_DATADOG_APPLICATION_ID="your_datadog_application_id"
+    NEXT_PUBLIC_DATADOG_CLIENT_TOKEN="your_datadog_client_token"
+    NEXT_PUBLIC_DATADOG_SERVICE="beforetobuy-frontend"
+    NEXT_PUBLIC_DATADOG_ENV="development" # or 'production', 'staging'
+    # DATADOG_SITE (e.g., datadoghq.eu if in Europe. Default is datadoghq.com, set in instrumentation.ts)
+    ```
+    Consult with the project owner for specific variables like Vercel KV connection strings and Datadog credentials.
 
 ## Available Scripts
 
