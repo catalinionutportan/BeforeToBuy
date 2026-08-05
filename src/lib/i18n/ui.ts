@@ -307,7 +307,7 @@ export const HOME_UI: Record<
     "product_title_prod-nespresso-vertuo-pop": "Nespresso Vertuo Pop Coffee Machine Spicy Red",
     "product_description_prod-nespresso-vertuo-pop": "Centrifusion barcode coffee extraction technology with 4 cup sizes.",
     "product_title_prod-tefal-optigrill": "Tefal OptiGrill Elite Smart Electric Grill",
-    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done."
+    "product_description_prod-tefal-optigrill": "Automatic thickness sensor measuring and cooking indicator for rare to well-done.",
 
     companyName: "BeforeToBuy.com",
     "product_title_prod-iphone-16-pro": "Apple iPhone 16 Pro 256GB Natural Titanium",
