@@ -204,10 +204,10 @@ export function ProductCard({
               const priceTrend = getPriceTrend(offer.priceHistory ?? []);
               const sourceLabel =
                 offer.source === "production-live"
-                  ? "Production feed"
+                  ? ui.productionFeedLabel
                   : offer.source === "sample"
-                    ? "Sample"
-                    : "Demo";
+                    ? ui.sampleFeedLabel
+                    : ui.demoFeedLabel;
 
               return (
                 <div
@@ -247,7 +247,7 @@ export function ProductCard({
                         </span>
                         {isLowestFeed && (
                           <span className="bg-emerald-600 text-white font-bold text-[9px] px-1.5 py-0.2 rounded">
-                            LOWEST TOTAL
+                            {ui.lowestTotalLabel}
                           </span>
                         )}
                         {priceTrend === "down" && (
@@ -290,7 +290,7 @@ export function ProductCard({
                       rel="noopener noreferrer sponsored nofollow"
                       onClick={(event) => handleAffiliateClick(event, offer)}
                       className="bg-slate-900 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 text-[11px] shadow-xs group/btn shrink-0"
-                      title={affiliate ? undefined : "Accept affiliate cookies to open store links"}
+                      title={affiliate ? undefined : ui.acceptAffiliateCookiesHint}
                     >
                       <span>{offer.source === "production-live" ? ui.viewOfferButton : ui.searchStoreButton}</span>
                       <ExternalLink className="w-3 h-3 opacity-80 group-hover/btn:translate-x-0.5 transition-transform" aria-hidden="true" />
