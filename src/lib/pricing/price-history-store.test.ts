@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  getPriceHistoryBackend,
   getPriceHistoryStore,
   resetPriceHistoryStoreForTests,
 } from "./price-history-store";

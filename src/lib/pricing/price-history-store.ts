@@ -276,18 +276,18 @@ export function isKvConfigured(): boolean {
   return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
 }
 
-function useMemoryStore(): boolean {
+function shouldUseMemoryStore(): boolean {
   return process.env.NODE_ENV === "test" || forceTestStore;
 }
 
 export function getPriceHistoryBackend(): PriceHistoryBackend {
-  if (useMemoryStore()) return "memory";
+  if (shouldUseMemoryStore()) return "memory";
   if (isKvConfigured()) return "kv";
   return "file";
 }
 
 export function getPriceHistoryStore(): PriceHistoryStore {
-  if (useMemoryStore()) {
+  if (shouldUseMemoryStore()) {
     if (!testStoreInstance) {
       testStoreInstance = new MemoryPriceHistoryStore();
     }
