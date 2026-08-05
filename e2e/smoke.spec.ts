@@ -136,7 +136,9 @@ test.describe("BeforeToBuy smoke E2E", () => {
     const body = await response.json();
     expect(body.meta.feedMerchants["ch-brack"]).toBe(6);
     expect(body.meta.feedMerchants["ch-digitec"]).toBe(2);
-    expect(body.meta.feedProductCount).toBeGreaterThanOrEqual(16);
+    // feedProductCount is GTIN-merged across merchants (16 raw rows -> fewer canonical products)
+    expect(body.meta.feedProductCount).toBeGreaterThanOrEqual(12);
+    expect(body.meta.priceHistory?.enabled).toBe(true);
   });
 
   test("mapping report API exposes review queue for feed products", async ({ request }) => {
