@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { ShieldCheck, X, Sparkles } from "lucide-react";
+import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 
 interface AffiliateDisclosureModalProps {
   isOpen: boolean;
@@ -13,6 +15,8 @@ export function AffiliateDisclosureModal({
   onClose,
 }: AffiliateDisclosureModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const { locale: browseLocale } = useBrowseLocale("CH"); // Default to CH for initial render, actual countryCode might be dynamic
+  const homeUi = HOME_UI[browseLocale];
 
   useEffect(() => {
     if (!isOpen) return;
@@ -46,7 +50,7 @@ export function AffiliateDisclosureModal({
           ref={closeButtonRef}
           type="button"
           onClick={onClose}
-          aria-label="Close affiliate disclosure dialog"
+          aria-label={homeUi.closeAffiliateDisclosure}
           className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors"
         >
           <X className="w-5 h-5" aria-hidden="true" />
@@ -58,31 +62,31 @@ export function AffiliateDisclosureModal({
           </div>
           <div>
             <h3 id="affiliate-disclosure-title" className="text-xl font-bold text-slate-900">
-              100% Free App & Affiliate Disclosure
+              {homeUi.freeAppAffiliateDisclosureTitle}
             </h3>
-            <p className="text-xs text-slate-500 font-medium">How BeforeToBuy.com works & monetizes</p>
+            <p className="text-xs text-slate-500 font-medium">{homeUi.howAppWorksMonetizes}</p>
           </div>
         </div>
 
         <div className="space-y-3 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4">
           <p>
-            This application is <strong className="text-slate-900">completely free for all users</strong>. We do not charge subscription fees, hidden service fees, or mark up any product prices.
+            This application is <strong className="text-slate-900">{homeUi.completelyFreeForUsers}</strong>. {homeUi.noSubscriptionFees}
           </p>
 
           <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2 text-xs">
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-emerald-600" aria-hidden="true" />
-              How commissions work:
+              {homeUi.howCommissionsWork}
             </div>
             <ul className="list-disc list-inside space-y-1.5 text-slate-600">
-              <li>When you click a store link, you are redirected to the official partner store (e.g. Digitec Galaxus, Amazon, MediaMarkt, eMAG).</li>
-              <li>You complete the order directly on their official checkout page.</li>
-              <li>If you complete a purchase, the store may pay us a small affiliate referral commission at zero extra cost to you.</li>
+              <li>{homeUi.clickStoreLinkRedirect}</li>
+              <li>{homeUi.completeOrderOnOfficialPage}</li>
+              <li>{homeUi.affiliateCommissionZeroCost}</li>
             </ul>
           </div>
 
           <p className="text-xs text-slate-500">
-            Location data is used to estimate store distances and filter regional demo offers. Your exact location is not sold.
+            {homeUi.locationDataDisclaimer}
           </p>
         </div>
 
@@ -92,7 +96,7 @@ export function AffiliateDisclosureModal({
             onClick={onClose}
             className="w-full bg-slate-900 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition-colors text-sm shadow-md"
           >
-            Understood & Continue
+            {homeUi.understoodContinue}
           </button>
         </div>
       </div>
