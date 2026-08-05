@@ -5,6 +5,9 @@ export type SiteLocale = "en" | "de" | "fr" | "it" | "ro";
 
 export const SITE_LOCALES: readonly SiteLocale[] = ["en", "de", "fr", "it", "ro"] as const;
 
+/** Swiss official languages + English. Language must NOT require changing country. */
+export const SWISS_UI_LOCALES: readonly SiteLocale[] = ["de", "fr", "it", "en"] as const;
+
 export const SITE_LOCALE_LABELS: Record<SiteLocale, string> = {
   en: "English",
   de: "Deutsch",
@@ -21,6 +24,25 @@ export function normalizeLocale(value: string | null | undefined): SiteLocale | 
   if (!value) return null;
   const normalized = value.trim().toLowerCase().slice(0, 2);
   return isSiteLocale(normalized) ? normalized : null;
+}
+
+/**
+ * Languages offered in the switcher for the current shopping country.
+ * CH keeps DE/FR/IT/EN without forcing France/Italy/etc. as the market.
+ */
+export function localesForCountry(countryCode: CountryCode): readonly SiteLocale[] {
+  switch (countryCode) {
+    case "CH":
+      return SWISS_UI_LOCALES;
+    case "DE":
+      return ["de", "en"] as const;
+    case "FR":
+      return ["fr", "en"] as const;
+    case "RO":
+      return ["ro", "en"] as const;
+    default:
+      return SITE_LOCALES;
+  }
 }
 
 /** Default UI language from country when the user has not chosen a language. */

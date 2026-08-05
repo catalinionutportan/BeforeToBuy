@@ -18,6 +18,7 @@ export const HOME_UI: Record<
     noProductsTitle: string;
     noProductsBody: string;
     language: string;
+    countryMarket: string;
   }
 > = {
   en: {
@@ -36,6 +37,7 @@ export const HOME_UI: Record<
     noProductsTitle: "No products found",
     noProductsBody: "No offers matching the current filters in {country}. Try resetting filters.",
     language: "Language",
+    countryMarket: "Country / market",
   },
   de: {
     tagline: "GPS-Preisvergleich lokal & online",
@@ -54,6 +56,7 @@ export const HOME_UI: Record<
     noProductsBody:
       "Keine Angebote für die aktuellen Filter in {country}. Filter zurücksetzen und erneut versuchen.",
     language: "Sprache",
+    countryMarket: "Land / Markt",
   },
   fr: {
     tagline: "Comparaison de prix GPS locale & en ligne",
@@ -72,6 +75,7 @@ export const HOME_UI: Record<
     noProductsBody:
       "Aucune offre pour les filtres actuels en {country}. Réinitialisez les filtres.",
     language: "Langue",
+    countryMarket: "Pays / marché",
   },
   it: {
     tagline: "Confronto prezzi GPS locale e online",
@@ -90,6 +94,7 @@ export const HOME_UI: Record<
     noProductsBody:
       "Nessuna offerta per i filtri attuali in {country}. Reimposta i filtri.",
     language: "Lingua",
+    countryMarket: "Paese / mercato",
   },
   ro: {
     tagline: "Comparație prețuri GPS local & online",
@@ -108,6 +113,7 @@ export const HOME_UI: Record<
     noProductsBody:
       "Nicio ofertă pentru filtrele curente în {country}. Resetează filtrele.",
     language: "Limbă",
+    countryMarket: "Țară / piață",
   },
 };
 

@@ -71,9 +71,11 @@ export default function Home() {
   const [catalogMeta, setCatalogMeta] = useState<ProductFetchMeta | null>(null);
 
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
-  const { locale: browseLocale, setLocale: setBrowseLocale } = useBrowseLocale(
-    userLocation.countryCode
-  );
+  const {
+    locale: browseLocale,
+    setLocale: setBrowseLocale,
+    availableLocales,
+  } = useBrowseLocale(userLocation.countryCode);
   const categoryUi = CATEGORY_UI[browseLocale];
   const offerFilterUi = OFFER_FILTER_UI[browseLocale];
   const homeUi = HOME_UI[browseLocale];
@@ -312,6 +314,7 @@ export default function Home() {
         isLocating={isLocating}
         locale={browseLocale}
         onLocaleChange={setBrowseLocale}
+        availableLocales={availableLocales}
       />
 
       {/* GPS & Country Location Banner */}

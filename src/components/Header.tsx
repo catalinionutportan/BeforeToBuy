@@ -26,6 +26,7 @@ interface HeaderProps {
   isLocating: boolean;
   locale: SiteLocale;
   onLocaleChange: (locale: SiteLocale) => void;
+  availableLocales: readonly SiteLocale[];
 }
 
 export function Header({
@@ -39,6 +40,7 @@ export function Header({
   isLocating,
   locale,
   onLocaleChange,
+  availableLocales,
 }: HeaderProps) {
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
   const ui = HOME_UI[locale];
@@ -104,11 +106,13 @@ export function Header({
                 locale={locale}
                 onLocaleChange={onLocaleChange}
                 label={ui.language}
+                availableLocales={availableLocales}
                 compact
               />
               <select
                 value={userLocation.countryCode}
                 onChange={(e) => onCountryChange(e.target.value as CountryCode)}
+                aria-label={ui.countryMarket}
                 className="bg-slate-100 text-xs border-0 rounded-lg py-1.5 px-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500"
               >
                 {Object.values(COUNTRIES).map((c) => (
@@ -167,6 +171,7 @@ export function Header({
               locale={locale}
               onLocaleChange={onLocaleChange}
               label={ui.language}
+              availableLocales={availableLocales}
             />
 
             <button
@@ -181,12 +186,19 @@ export function Header({
               <span>{isLocating ? `${ui.detectGps}...` : ui.detectGps}</span>
             </button>
 
-            <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+            <div
+              className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200"
+              title={ui.countryMarket}
+            >
               <Globe className="w-4 h-4 text-slate-500 ml-1" />
+              <span className="text-[10px] uppercase tracking-wide text-slate-500 font-bold">
+                {ui.countryMarket}
+              </span>
               <select
                 value={userLocation.countryCode}
                 onChange={(e) => onCountryChange(e.target.value as CountryCode)}
-                className="bg-transparent text-xs font-semibold text-slate-800 border-0 outline-none pr-1 cursor-pointer"
+                aria-label={ui.countryMarket}
+                className="bg-transparent text-xs font-semibold text-slate-800 border-0 outline-none pr-1 cursor-pointer max-w-[10rem]"
               >
                 {Object.values(COUNTRIES).map((c) => (
                   <option key={c.code} value={c.code}>
