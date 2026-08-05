@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test:unit": "tsx --test src/lib/*.test.ts",
+    "test:unit": "tsx --test $(find src/lib -name '*.test.ts' -print)",
     "test:e2e": "playwright test",
     "smoke:prod": "node scripts/smoke-production.mjs"
   },

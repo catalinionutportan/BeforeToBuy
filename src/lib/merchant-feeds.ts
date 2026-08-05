@@ -9,6 +9,7 @@ import {
 import { parseConfiguredFeed } from "@/lib/feed-loader";
 import { productMatchesCategoryFilter, ALL_CATEGORIES_ID } from "@/lib/categories";
 import { buildMappingReport, type MappingLogEntry, type MappingReport } from "@/lib/mapping-log";
+import { mergeFeedProductsByIdentity } from "@/lib/product-identity/merge-products";
 
 type FeedCacheEntry = {
   fetchedAt: number;
@@ -93,6 +94,7 @@ async function loadFeedForMerchant(
   const offerSource: Extract<OfferSource, "production-live" | "sample"> =
     source === "remote" ? "production-live" : "sample";
   const parsed = parseConfiguredFeed(feed, content, feed.country, offerSource);
+  const fetchedAtIso = new Date().toISOString();
   const products = parsed.products.map((product) => ({
     ...product,
     catalogSource: offerSource,
@@ -100,6 +102,7 @@ async function loadFeedForMerchant(
       ...offer,
       source: offerSource,
       feedMerchantId: feed.merchantId,
+      fetchedAt: fetchedAtIso,
     })),
   }));
 
@@ -143,8 +146,10 @@ export async function getFeedProducts(
     }
   }
 
+  const mergedProducts = mergeFeedProductsByIdentity(allProducts);
+
   return {
-    products: filterFeedProducts(allProducts, query, category),
+    products: filterFeedProducts(mergedProducts, query, category),
     sources: Array.from(sources),
     mappingLog: allMappingLog,
     merchantProductCounts,

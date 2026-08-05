@@ -1,6 +1,9 @@
 import { CountryCode, Offer, OfferSource, Product, PromoCoupon } from "@/types";
 import { mapToBeforeToBuyCategoryWithMetadata } from "@/lib/category-mapper";
 import { createMappingLogEntry, type MappingLogEntry } from "@/lib/mapping-log";
+import { resolveGtin } from "@/lib/product-identity/gtin";
+import { enrichProductIdentity } from "@/lib/product-identity/merge-products";
+import { enrichOfferPricing } from "@/lib/pricing/total-price";
 
 /**
  * Standard interface for raw item inside an AWIN Datafeed (CSV / XML)
@@ -21,6 +24,8 @@ export interface RawAwinFeedItem {
   in_stock: string; // "1" or "0"
   delivery_cost?: string;
   promo_code?: string;
+  ean?: string;
+  gtin?: string;
 }
 
 /**
@@ -71,6 +76,27 @@ function parseCsvLine(line: string): string[] {
   return values.map((value) => value.replace(/^"|"$/g, ""));
 }
 
+function readAwinGtin(row: Record<string, string>): string | undefined {
+  for (const [key, value] of Object.entries(row)) {
+    const normalizedKey = key.toLowerCase();
+    if (
+      (normalizedKey === "ean" ||
+        normalizedKey === "gtin" ||
+        normalizedKey === "ean13" ||
+        normalizedKey === "product_gtin" ||
+        normalizedKey === "upc") &&
+      value
+    ) {
+      return resolveGtin(value);
+    }
+  }
+  return undefined;
+}
+
+function finalizeFeedProducts(products: Product[]): Product[] {
+  return products.map(enrichProductIdentity);
+}
+
 /**
  * Parser for AWIN CSV / Datafeed lines
  */
@@ -104,7 +130,9 @@ export function parseAwinCsvFeed(
         ? Math.round(((originalPrice - price) / originalPrice) * 100)
         : undefined;
 
-    const offer: Offer = {
+    const gtin = readAwinGtin(row);
+
+    const offer: Offer = enrichOfferPricing({
       id: `awin-${row.aw_product_id}`,
       storeName: row.merchant_name || "AWIN Merchant",
       price,
@@ -120,14 +148,15 @@ export function parseAwinCsvFeed(
       promoCode: isProduction ? row.promo_code : undefined,
       source,
       feedMerchantId,
+      merchantProductId: row.aw_product_id,
       badge: isProduction
         ? discountPercentage && discountPercentage >= 20
           ? `-${discountPercentage}% feed discount`
           : "Production feed"
         : "Sample feed",
-    };
+    });
 
-    const productId = `feed-${row.aw_product_id}`;
+    const productId = gtin ? `feed-gtin-${gtin}` : `feed-${row.aw_product_id}`;
 
     if (!productsMap.has(productId)) {
       const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
@@ -152,6 +181,7 @@ export function parseAwinCsvFeed(
         id: productId,
         title: row.product_name,
         description: row.description || row.product_name,
+        gtin,
         category: categoryMapping.categoryId,
         categoryAssignment: {
           method: categoryMapping.method,
@@ -172,7 +202,7 @@ export function parseAwinCsvFeed(
   }
 
   return {
-    products: Array.from(productsMap.values()),
+    products: finalizeFeedProducts(Array.from(productsMap.values())),
     mappingLog,
   };
 }
@@ -221,7 +251,7 @@ export function parseGalaxusJsonFeed(
         ? Math.round(((originalPrice - price) / originalPrice) * 100)
         : undefined;
 
-    const onlineOffer: Offer = {
+    const onlineOffer: Offer = enrichOfferPricing({
       id: `galaxus-${row.gtin}-online`,
       storeName,
       price,
@@ -236,8 +266,9 @@ export function parseGalaxusJsonFeed(
       type: "online",
       source,
       feedMerchantId,
+      merchantProductId: row.gtin,
       badge: isProduction ? "Production feed" : "Sample feed",
-    };
+    });
 
     const offers: Offer[] = [onlineOffer];
 
@@ -254,7 +285,7 @@ export function parseGalaxusJsonFeed(
       void branch;
     }
 
-    const productId = `feed-${feedMerchantId}-${row.gtin}`;
+    const productId = `feed-gtin-${row.gtin}`;
     const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
       merchantId: feedMerchantId,
       merchantCategory: row.merchant_category,
@@ -277,6 +308,7 @@ export function parseGalaxusJsonFeed(
       id: productId,
       title: row.title,
       description: row.description || row.title,
+      gtin: resolveGtin(row.gtin),
       category: categoryMapping.categoryId,
       categoryAssignment: {
         method: categoryMapping.method,
@@ -294,7 +326,7 @@ export function parseGalaxusJsonFeed(
   }
 
   return {
-    products: Array.from(productsMap.values()),
+    products: finalizeFeedProducts(Array.from(productsMap.values())),
     mappingLog,
   };
 }

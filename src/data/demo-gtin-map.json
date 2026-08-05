@@ -1,0 +1,20 @@
+{
+  "prod-iphone-16-pro": {
+    "gtin": "7612345678001",
+    "variantKey": "256gb+natural-titanium+pro"
+  },
+  "prod-macbook-air-m3": {
+    "gtin": "7612345678901",
+    "variantKey": "256gb+air+midnight"
+  },
+  "prod-sony-wh1000xm5": {
+    "gtin": "7612345678902"
+  },
+  "prod-dyson-v15": {
+    "gtin": "7612345678911"
+  },
+  "prod-samsung-s24-ultra": {
+    "gtin": "7612345678999",
+    "variantKey": "512gb+titanium-black+ultra"
+  }
+}

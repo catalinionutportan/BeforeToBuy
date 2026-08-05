@@ -54,6 +54,13 @@ export interface PhysicalStoreBranch {
   stockStatus: "In Stock" | "Low Stock" | "Pickup Today" | "Order Required";
 }
 
+export interface PriceHistoryPoint {
+  price: number;
+  totalPrice: number;
+  recordedAt: string;
+  source: OfferSource;
+}
+
 export interface Offer {
   id: string;
   storeName: string;
@@ -65,6 +72,7 @@ export interface Offer {
   inStock: boolean;
   deliveryTime: string; // e.g. "Tomorrow", "1-2 days", "Pick up in 15 min"
   deliveryCost: number;
+  totalPrice?: number; // price + deliveryCost (excl. VAT/customs)
   purchaseUrl: string; // Affiliate link
   affiliateNetwork: string; // e.g. "Amazon Associates CH", "AWIN CH", "Galaxus Partner"
   type: "online" | "local_pickup" | "cross_border";
@@ -73,6 +81,9 @@ export interface Offer {
   promoCode?: string; // e.g. "SUMMER10"
   source: OfferSource;
   feedMerchantId?: string;
+  merchantProductId?: string;
+  fetchedAt?: string;
+  priceHistory?: PriceHistoryPoint[];
 }
 
 export interface PromoCoupon {
@@ -92,6 +103,9 @@ export interface Product {
   id: string;
   title: string;
   description: string;
+  gtin?: string;
+  variantKey?: string;
+  canonicalKey?: string;
   category: string; // BeforeToBuy module or subcategory id (see src/lib/categories.ts)
   categoryAssignment?: {
     method:

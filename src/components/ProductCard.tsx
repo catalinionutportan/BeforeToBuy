@@ -5,6 +5,8 @@ import { Offer, Product, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { openConsentPreferences } from "@/lib/consent";
 import { useConsent } from "@/lib/use-consent";
+import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
+import { getPriceTrend } from "@/lib/pricing/price-history";
 import {
   ExternalLink,
   MapPin,
@@ -42,10 +44,12 @@ export function ProductCard({
     onSelectOffer(product, offer);
   };
 
-  const sortedOffers = [...product.offers].sort((a, b) => a.price - b.price);
-  const productionOffers = sortedOffers.filter((offer) => offer.source === "production-live");
-  const lowestProductionPrice = productionOffers[0]?.price;
-  const verifiedBadgeOffer = productionOffers.find((offer) => offer.badge);
+  const sortedOffers = sortOffersByTotalPrice(product.offers);
+  const feedOffers = sortedOffers.filter((offer) => offer.source !== "demo");
+  const lowestFeedTotal = feedOffers[0]
+    ? feedOffers[0].totalPrice ?? computeTotalPrice(feedOffers[0])
+    : undefined;
+  const verifiedBadgeOffer = feedOffers.find((offer) => offer.badge);
 
   const pickupOffer = product.offers.find(
     (o) => o.source === "production-live" && o.type === "local_pickup" && o.nearbyBranch
@@ -114,9 +118,11 @@ export function ProductCard({
           </div>
 
           <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-            {product.offers.map((offer) => {
-              const isLowestProduction =
-                offer.source === "production-live" && offer.price === lowestProductionPrice;
+            {sortedOffers.map((offer) => {
+              const totalPrice = offer.totalPrice ?? computeTotalPrice(offer);
+              const isLowestFeed =
+                offer.source !== "demo" && totalPrice === lowestFeedTotal;
+              const priceTrend = getPriceTrend(offer.priceHistory ?? []);
               const sourceLabel =
                 offer.source === "production-live"
                   ? "Production feed"
@@ -128,7 +134,7 @@ export function ProductCard({
                 <div
                   key={offer.id}
                   className={`p-2.5 rounded-xl border text-xs flex items-center justify-between transition-all ${
-                    isLowestProduction
+                    isLowestFeed
                       ? "bg-emerald-50/50 border-emerald-300/80 hover:bg-emerald-100/50"
                       : "bg-slate-50 border-slate-200/60 hover:bg-slate-100/80"
                   }`}
@@ -156,9 +162,14 @@ export function ProductCard({
                         >
                           {sourceLabel}
                         </span>
-                        {isLowestProduction && (
+                        {isLowestFeed && (
                           <span className="bg-emerald-600 text-white font-bold text-[9px] px-1.5 py-0.2 rounded">
-                            LOWEST PRODUCTION FEED
+                            LOWEST TOTAL
+                          </span>
+                        )}
+                        {priceTrend === "down" && (
+                          <span className="bg-green-100 text-green-800 font-bold text-[9px] px-1.5 py-0.2 rounded">
+                            PRICE DOWN
                           </span>
                         )}
                       </div>
@@ -179,14 +190,14 @@ export function ProductCard({
                     <div>
                       <div className="font-black text-sm text-slate-900">
                         {currentCountryInfo.currencySymbol}
-                        {offer.price.toLocaleString()}
+                        {totalPrice.toLocaleString()}
                       </div>
                       <div className="text-[9px] text-slate-400 font-medium">
-                        {offer.source === "production-live"
-                          ? offer.deliveryCost === 0
-                            ? "Feed reports free shipping"
-                            : `+${offer.deliveryCost} delivery`
-                          : "Delivery and stock not verified"}
+                        {offer.source === "demo"
+                          ? "Illustrative total — search merchant site"
+                          : offer.deliveryCost === 0
+                            ? `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + free delivery`
+                            : `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + ${offer.deliveryCost} delivery`}
                       </div>
                     </div>
 
