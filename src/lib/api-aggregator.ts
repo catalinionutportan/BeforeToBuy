@@ -132,5 +132,5 @@ export async function fetchProductsForLocation(
       offers,
       catalogSource: "demo" as const,
     };
-  });
+  }));
 }

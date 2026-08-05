@@ -1151,8 +1151,7 @@ export const HOME_UI: Record<
     romanianDisclosureTitle: "🇷🇴 Déclaration de Divulgation en Roumain",
     romanianDisclosureText: "BeforeToBuy.com est un comparateur de prix gratuit exploité par PortanX - Catalin Portan (UID CHE-373.501.736), Berne, Suisse. Nous participons à des réseaux d'affiliation tels que AWIN, Amazon Associates, Digitec Galaxus Merchant, CJ Affiliate et 2Performant. Si vous effectuez un achat après avoir cliqué sur un lien de notre site, nous pouvons recevoir une commission de référence du magasin, sans aucun coût supplémentaire pour vous.",
     participatingAffiliateNetworks: "3. Réseaux d'Affiliation & Programmes Commerciaux Participants",
-    affiliateNetworksIntro: "{companyPlatformName} participe ou prépare des intégrations avec des réseaux d'affiliation. Brack.ch (CH) utilise les données d'échantillon AWIN par défaut et les liens de flux de production uniquement si le flux de production est explicitement configuré :
-",
+    affiliateNetworksIntro: "{companyPlatformName} participe ou prépare des intégrations avec des réseaux d\'affiliation. Brack.ch (CH) utilise les données d\'échantillon AWIN par défaut et les liens de flux de production uniquement si le flux de production est explicitement configuré :\n",
     responsibleCompanyInformation: "4. Informations sur l'entreprise responsable",
     company: "Entreprise:",
     address: "Adresse:",
