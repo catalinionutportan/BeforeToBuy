@@ -8,7 +8,7 @@ import {
 } from "@/lib/category-routes";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://www.beforetobuy.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.beforetobuy.com";
 
   const staticRoutes: MetadataRoute.Sitemap = [
     "",
