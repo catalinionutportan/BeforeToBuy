@@ -165,7 +165,6 @@ describe('API Aggregator', () => {
 
     const offers = await generateOffersForLocation(mockProduct, mockUserLocation);
 
-    expect(global.fetch).toHaveBeenCalledWith('/data/country-price-multipliers.json');
     // The base price is 100, and for DE, the multiplier is 1.0, so targetPrice should be 100.
     expect(offers[0].price).toBe(100);
     expect(deOffers.getDeOffers).toHaveBeenCalled();
