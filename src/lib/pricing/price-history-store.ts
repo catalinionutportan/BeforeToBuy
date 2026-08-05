@@ -1,4 +1,3 @@
-import "server-only";
 import fs from "node:fs/promises";
 import path from "node:path";
 import {
@@ -278,7 +277,11 @@ export function isKvConfigured(): boolean {
 }
 
 function shouldUseMemoryStore(): boolean {
-  return process.env.NODE_ENV === "test" || forceTestStore;
+  return (
+    process.env.NODE_ENV === "test" ||
+    forceTestStore ||
+    (process.env.NODE_ENV === "production" && !isKvConfigured())
+  );
 }
 
 export function getPriceHistoryBackend(): PriceHistoryBackend {
