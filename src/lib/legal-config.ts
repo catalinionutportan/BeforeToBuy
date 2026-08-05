@@ -6,6 +6,8 @@ export const LEGAL_DRAFT_NOTICE = {
   en: "Initial draft prepared without qualified legal certification. Before commercial reliance, have these documents reviewed by a Swiss/EU lawyer for your target markets.",
   de: "Erstentwurf ohne qualifizierte Rechtsberatung. Vor geschäftlicher Nutzung sollten diese Dokumente für Ihre Zielmärkte von einem Schweizer/EU-Anwalt geprüft werden.",
   ro: "Draft inițial, fără certificare juridică calificată. Înainte de utilizare comercială, documentele ar trebui revizuite de un avocat elvețian/UE pentru piețele vizate.",
+  fr: "Projet initial préparé sans certification légale qualifiée. Avant toute utilisation commerciale, faites réviser ces documents par un avocat suisse/UE pour vos marchés cibles.",
+  it: "Bozza iniziale preparata senza certificazione legale qualificata. Prima dell'affidamento commerciale, questi documenti devono essere esaminati da un avvocato svizzero/UE per i vostri mercati di riferimento.",
 } as const;
 
 export const LEGAL_PAGES = [

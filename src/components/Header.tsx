@@ -64,7 +64,8 @@ export function Header({
           >
             <Store className="w-3.5 h-3.5" />
             <span>
-              {ui.integratedStoreDomains} ({currentCountryInfo.merchantDomains.filter((m) => !m.isCrossBorder).length} {ui.inCountry}{" "}{currentCountryInfo.code})            </span>
+              {ui.integratedStoreDomains} {formatUi(ui.integratedStoreDomainsCount, { count: currentCountryInfo.merchantDomains.filter((m) => !m.isCrossBorder).length, countryCode: currentCountryInfo.code })}
+            </span>
           </Link>
         </div>
 
