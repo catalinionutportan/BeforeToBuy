@@ -11,7 +11,7 @@ import {
 
 const NAV_LINKS = [
   { href: "/about", label: "About", icon: HelpCircle },
-  { href: "/categories", label: "Categories", icon: Layers },
+  { href: "/", label: "Compare", icon: Layers },
   { href: "/stores", label: "Stores", icon: Store },
   { href: "/help", label: "Help", icon: LifeBuoy },
   { href: "/contact", label: "Contact", icon: Mail },

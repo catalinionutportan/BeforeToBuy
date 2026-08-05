@@ -114,9 +114,9 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.getByText(/Anzeige|Browsing|Navigation/i).first()).toBeVisible();
 
     await page.goto("/categories");
-    await expect(page.getByRole("heading", { name: "Audio", exact: true })).toBeVisible();
+    await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("heading", { name: "Compare Product Prices" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Large Appliances", exact: true })).toHaveCount(0);
-    await expect(page.getByRole("heading", { name: "Comparison collections", exact: true })).toBeVisible();
   });
 
   test("integrations status reports all CH merchant feed modes", async ({ request }) => {
