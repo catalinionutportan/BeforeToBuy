@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runPriceSnapshotJob } from "@/lib/pricing/price-snapshot-job";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -16,7 +20,7 @@ function isAuthorized(request: NextRequest): boolean {
 
 export async function GET(request: NextRequest) {
   if (!isAuthorized(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: homeUi.unauthorized }, { status: 401 });
   }
 
   try {
@@ -28,7 +32,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "Price snapshot failed",
+        error: error instanceof Error ? error.message : homeUi.priceSnapshotFailed,
       },
       { status: 500 }
     );
