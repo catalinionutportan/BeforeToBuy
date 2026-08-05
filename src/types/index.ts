@@ -13,6 +13,8 @@ export interface MerchantDomainInfo {
   status: "Planned Integration" | "Demo Catalog" | "Search Redirect" | "Sample Feed" | "Live Feed";
   badge?: string;
   description: string;
+  /** Shown in CH browse only when the Cross-border collection is active. */
+  isCrossBorder?: boolean;
 }
 
 export interface CountryInfo {

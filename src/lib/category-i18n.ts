@@ -207,7 +207,8 @@ export const CATEGORY_UI: Record<
     browsing: "Browsing",
     inDepartment: "in",
     comparisonCollections: "Comparison collections",
-    collectionsHint: "Offer-based views — not product categories",
+    collectionsHint:
+      "Offer-based views — Cross-border unlocks foreign delivery (e.g. Amazon.de)",
     emptyCategoryTitle: "No offers in this category yet",
     emptyCategoryBody:
       "There are no comparable offers for this selection in {country} right now. Try another category or reset filters.",
@@ -220,7 +221,8 @@ export const CATEGORY_UI: Record<
     browsing: "Anzeige",
     inDepartment: "in",
     comparisonCollections: "Vergleichssammlungen",
-    collectionsHint: "Angebotsbasierte Ansichten — keine Produktkategorien",
+    collectionsHint:
+      "Angebotsbasierte Ansichten — Grenzüberschreitend zeigt Auslandslieferung (z. B. Amazon.de)",
     emptyCategoryTitle: "Noch keine Angebote in dieser Kategorie",
     emptyCategoryBody:
       "Für diese Auswahl gibt es derzeit keine vergleichbaren Angebote in {country}. Wähle eine andere Kategorie oder setze die Filter zurück.",
@@ -233,7 +235,8 @@ export const CATEGORY_UI: Record<
     browsing: "Navigation",
     inDepartment: "dans",
     comparisonCollections: "Collections de comparaison",
-    collectionsHint: "Vues basées sur les offres — pas des catégories produit",
+    collectionsHint:
+      "Vues basées sur les offres — Transfrontalier débloque la livraison étrangère (ex. Amazon.de)",
     emptyCategoryTitle: "Pas encore d'offres dans cette catégorie",
     emptyCategoryBody:
       "Aucune offre comparable pour cette sélection en {country} pour le moment. Essayez une autre catégorie ou réinitialisez les filtres.",
@@ -246,7 +249,8 @@ export const CATEGORY_UI: Record<
     browsing: "Navigare",
     inDepartment: "în",
     comparisonCollections: "Colecții de comparație",
-    collectionsHint: "Vizualizări bazate pe oferte — nu categorii de produs",
+    collectionsHint:
+      "Vizualizări bazate pe oferte — Transfrontalier deblochează livrarea din străinătate (ex. Amazon.de)",
     emptyCategoryTitle: "Încă nu există oferte în această categorie",
     emptyCategoryBody:
       "Nu există oferte comparabile pentru selecția curentă în {country} momentan. Încearcă altă categorie sau resetează filtrele.",

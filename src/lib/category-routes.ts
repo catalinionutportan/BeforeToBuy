@@ -2,9 +2,11 @@ import {
   ALL_CATEGORIES_ID,
   COMPARISON_COLLECTION_FILTERS,
   getCategoryById,
+  getLegacyMultiParentPrimaryDepartment,
   getParentCategoryId,
   getSubcategoryById,
   isCollectionFilter,
+  isLegacyMultiParentGroup,
   resolveCategoryAlias,
 } from "@/lib/categories";
 
@@ -23,6 +25,12 @@ export function collectionBrowsePath(collectionId: string): string {
 /** Resolve any category/collection id to its canonical browse path. */
 export function categoryBrowsePath(categoryId: string): string | null {
   if (!categoryId || categoryId === ALL_CATEGORIES_ID) return null;
+
+  // Old mixed Home+Kitchen parent lands on Kitchen + Coffee (primary department).
+  if (isLegacyMultiParentGroup(categoryId)) {
+    const primary = getLegacyMultiParentPrimaryDepartment(categoryId);
+    if (primary) return departmentCategoryPath(primary);
+  }
 
   const resolved = resolveCategoryAlias(categoryId);
 

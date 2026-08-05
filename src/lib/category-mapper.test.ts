@@ -100,7 +100,7 @@ test("Galaxus, Interdiscount, Fust and MediaMarkt have dedicated exact maps", ()
       merchantCategory: "Large Household Appliances",
       title: "Washer",
     }),
-    "large-appliances"
+    "large-fridges-freezers"
   );
   assert.equal(
     mapToBeforeToBuyCategory({

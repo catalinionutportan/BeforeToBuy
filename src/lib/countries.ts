@@ -108,8 +108,10 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     category: "Global Marketplace & Tech",
     hasClickAndCollect: false,
     status: "Planned Integration",
-    badge: "Swiss Customs Cleared 🇨🇭",
-    description: "Delivers millions of items directly to Swiss addresses with automatic Swiss VAT clearance.",
+    badge: "Cross-border · opt-in",
+    description:
+      "Foreign delivery into Switzerland. Hidden by default — enable the Cross-border collection to compare with Swiss stores.",
+    isCrossBorder: true,
   },
 
   // --- Germany (DE) ---

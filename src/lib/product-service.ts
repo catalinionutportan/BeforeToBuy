@@ -21,6 +21,7 @@ import {
   resolveCategoryAlias,
   UNMAPPED_CATEGORY_ID,
 } from "@/lib/categories";
+import { applyCrossBorderVisibility } from "@/lib/offers/cross-border";
 
 async function attachPriceHistory(products: Product[]): Promise<Product[]> {
   return Promise.all(
@@ -83,9 +84,12 @@ export async function fetchMergedProductsForLocation(
     },
     {}
   );
-  const products = category
+  const categoryMatched = category
     ? visibleProducts.filter((product) => productMatchesCategoryFilter(product, category))
     : visibleProducts;
+  // Collection counts use the full offer set; the returned list hides cross-border
+  // unless the Cross-border collection is selected (CH default = Swiss offers only).
+  const products = applyCrossBorderVisibility(categoryMatched, category);
   const unmappedProductCount = feedResult.products.filter(
     (product) => product.category === UNMAPPED_CATEGORY_ID
   ).length;

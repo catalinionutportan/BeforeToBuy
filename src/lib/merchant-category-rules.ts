@@ -35,10 +35,9 @@ export const MAPPING_CONFIDENCE = {
   combinedPattern: 0.7,
 } as const;
 
-const VALID_CATEGORY_IDS = new Set([
-  ...SHOPPING_CATEGORIES.map((category) => category.id),
-  ...SHOPPING_CATEGORIES.flatMap((category) => category.subcategories.map((sub) => sub.id)),
-]);
+const VALID_LEAF_CATEGORY_IDS = new Set(
+  SHOPPING_CATEGORIES.flatMap((category) => category.subcategories.map((sub) => sub.id))
+);
 
 /** Shared exact maps for Swiss retailer feed labels (DE/EN/FR variants). */
 const SHARED_SWISS_EXACT: Record<string, string> = {
@@ -80,10 +79,10 @@ const SHARED_SWISS_EXACT: Record<string, string> = {
   drohnen: "drones-quadcopters",
   printers: "office-printers",
   drucker: "office-printers",
-  "large appliances": "large-appliances",
-  haushaltgeräte: "large-appliances",
-  "kitchen appliances": "kitchen-coffee",
-  küchengeräte: "kitchen-coffee",
+  "large appliances": "large-fridges-freezers",
+  haushaltgeräte: "large-fridges-freezers",
+  "kitchen appliances": "kitchen-coffee-machines",
+  küchengeräte: "kitchen-coffee-machines",
   "vacuum cleaners": "cleaning-vacuums",
   staubsauger: "cleaning-vacuums",
 };
@@ -162,11 +161,11 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     exact: exactRules({
       "mobile telephony": "mobile-smartphones",
       "it & electronics": "notebooks-laptops",
-      "household & living": "home-kitchen",
-      "garden & diy": "diy-garden-power",
-      "sport & outdoor": "mobility-sport-outdoor",
+      "household & living": "cleaning-vacuums",
+      "garden & diy": "diy-power-tools",
+      "sport & outdoor": "sport-fitness-equipment",
       "baby & child": "baby-monitoring-feeding",
-      "beauty & health": "home-personal-care",
+      "beauty & health": "care-shaving-hair-removal",
     }),
     patterns: SHARED_SWISS_PATTERNS,
   },
@@ -176,19 +175,19 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "it & office": "notebooks-laptops",
       "photo & video": "photo-mirrorless",
       "gaming & entertainment": "gaming-consoles",
-      "household appliances": "large-appliances",
-      "kitchen & household": "kitchen-coffee",
+      "household appliances": "large-fridges-freezers",
+      "kitchen & household": "kitchen-coffee-machines",
     }),
     patterns: SHARED_SWISS_PATTERNS,
   },
   "ch-fust": {
     exact: exactRules({
-      "large household appliances": "large-appliances",
-      "kitchen appliances": "kitchen-coffee",
+      "large household appliances": "large-fridges-freezers",
+      "kitchen appliances": "kitchen-coffee-machines",
       "tv & audio": "tv-televisions",
       "computing & tablets": "notebooks-laptops",
       "photo & video": "photo-mirrorless",
-      haushalt: "large-appliances",
+      haushalt: "large-fridges-freezers",
     }),
     patterns: [
       ...SHARED_SWISS_PATTERNS,
@@ -203,8 +202,8 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "computers & office": "notebooks-laptops",
       "photo & camcorders": "photo-mirrorless",
       "gaming & vr": "gaming-consoles",
-      "large appliances": "large-appliances",
-      "small appliances": "kitchen-coffee",
+      "large appliances": "large-fridges-freezers",
+      "small appliances": "kitchen-coffee-machines",
     }),
     patterns: SHARED_SWISS_PATTERNS,
   },
@@ -256,21 +255,25 @@ export function validateMerchantCategoryRules(): string[] {
       if (subcategoryId === UNMAPPED_CATEGORY_ID) {
         errors.push(`${merchantId}: exact map "${rawCategory}" must not target unmapped`);
       }
-      if (!VALID_CATEGORY_IDS.has(subcategoryId)) {
-        errors.push(`${merchantId}: exact map "${rawCategory}" → unknown category "${subcategoryId}"`);
+      if (!VALID_LEAF_CATEGORY_IDS.has(subcategoryId)) {
+        errors.push(
+          `${merchantId}: exact map "${rawCategory}" → non-leaf or unknown category "${subcategoryId}"`
+        );
       }
     }
 
     for (const rule of ruleSet.patterns) {
-      if (!VALID_CATEGORY_IDS.has(rule.subcategoryId)) {
-        errors.push(`${merchantId}: pattern → unknown category "${rule.subcategoryId}"`);
+      if (!VALID_LEAF_CATEGORY_IDS.has(rule.subcategoryId)) {
+        errors.push(
+          `${merchantId}: pattern → non-leaf or unknown category "${rule.subcategoryId}"`
+        );
       }
     }
   }
 
   for (const rule of GLOBAL_CATEGORY_PATTERN_RULES) {
-    if (!VALID_CATEGORY_IDS.has(rule.subcategoryId)) {
-      errors.push(`global: pattern → unknown category "${rule.subcategoryId}"`);
+    if (!VALID_LEAF_CATEGORY_IDS.has(rule.subcategoryId)) {
+      errors.push(`global: pattern → non-leaf or unknown category "${rule.subcategoryId}"`);
     }
   }
 

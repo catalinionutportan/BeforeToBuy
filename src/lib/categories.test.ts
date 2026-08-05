@@ -70,6 +70,17 @@ test("legacy mixed home category remains backward compatible", () => {
     ),
     true
   );
+  // Coarse legacy leaves must not collide with the old parent filter id.
+  assert.equal(resolveCategoryAlias("home-kitchen"), "kitchen-coffee-machines");
+  assert.equal(resolveCategoryAlias("home-appliances"), "cleaning-vacuums");
+  assert.equal(getParentCategoryId("care-shaving-hair-removal"), "personal-care-health-baby");
+  assert.equal(
+    productMatchesCategoryFilter(
+      { ...baseProduct, category: "care-shaving-hair-removal" },
+      "kitchen-coffee-machines"
+    ),
+    false
+  );
 });
 
 test("deal collection requires verified production discount metadata", () => {
@@ -147,4 +158,10 @@ test("Swiss merchant registry retires Microspot in favor of active retailers", (
   assert.ok(swissMerchantIds.has("ch-interdiscount"));
   assert.ok(swissMerchantIds.has("ch-fust"));
   assert.equal(MERCHANT_ID_ALIASES["ch-microspot"], "ch-interdiscount");
+});
+
+test("Amazon.de is marked cross-border for CH opt-in browse", () => {
+  const amazonDeCh = ALL_MERCHANT_DOMAINS.find((merchant) => merchant.id === "ch-amazon-de");
+  assert.ok(amazonDeCh);
+  assert.equal(amazonDeCh.isCrossBorder, true);
 });

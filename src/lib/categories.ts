@@ -496,7 +496,6 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
     icon: ChefHat,
     description: "Small kitchen appliances and durable preparation equipment.",
     subcategories: [
-      legacySubcategory("home-kitchen"),
       subcategory("kitchen-coffee-machines", "Coffee Machines", "Kaffeemaschinen", ["coffee machine", "espresso machine", "kaffeemaschine", "nespresso"]),
       subcategory("kitchen-machines-mixers", "Kitchen Machines & Mixers", "Küchenmaschinen + Mixer", ["kitchen machine", "stand mixer", "blender", "mixer"]),
       subcategory("kitchen-cooking-appliances", "Cooking Appliances", "Kochgeräte", ["air fryer", "multicooker", "rice cooker", "fritteuse"]),
@@ -512,7 +511,6 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
     icon: Layers,
     description: "Cleaning, laundry care and indoor climate equipment.",
     subcategories: [
-      legacySubcategory("home-appliances"),
       subcategory("cleaning-vacuums", "Vacuum Cleaners", "Staubsauger", ["vacuum cleaner", "cordless vacuum", "staubsauger"]),
       subcategory("cleaning-robots", "Robot Vacuums", "Saugroboter", ["robot vacuum", "roomba", "saugroboter"]),
       subcategory("cleaning-floor-care", "Steam & Floor Cleaning", "Dampf- + Bodenreinigung", ["steam cleaner", "floor cleaner", "dampfreiniger"]),
@@ -529,7 +527,6 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
     icon: Watch,
     description: "Personal-care devices, home health measurement and durable baby technology.",
     subcategories: [
-      legacySubcategory("home-personal-care"),
       subcategory("care-shaving-hair-removal", "Shaving & Hair Removal", "Rasieren + Haarentfernung", ["shaver", "epilator", "hair removal", "rasierer"]),
       subcategory("care-hair-styling", "Hair Styling", "Haarstyling", ["hair dryer", "hair styler", "straightener", "haartrockner"]),
       subcategory("care-oral", "Oral Care", "Zahnpflege", ["electric toothbrush", "oral care", "zahnbürste"]),
@@ -772,11 +769,51 @@ const LEGACY_PARENT_ALIASES: Record<string, string> = {
 
 const LEGACY_LEAF_ALIASES: Record<string, string> = {
   "mobile-smartwatch-phone": "wearables-smartwatch",
+  // Coarse legacy Home+Kitchen leaves → leaf-only v2 IDs (no parent/leaf id collision).
+  "home-kitchen": "kitchen-coffee-machines",
+  "home-appliances": "cleaning-vacuums",
+  "home-personal-care": "care-shaving-hair-removal",
 };
 
-const LEGACY_MULTI_PARENT_GROUPS: Record<string, string[]> = {
-  "home-kitchen": ["home-appliances", "home-kitchen", "home-personal-care", "home-smart-home"],
+/** Old mixed Home + Kitchen parent — kept for `?category=home-kitchen` URLs only. */
+const LEGACY_HOME_KITCHEN_LEAF_IDS = [
+  "kitchen-coffee-machines",
+  "kitchen-machines-mixers",
+  "kitchen-cooking-appliances",
+  "kitchen-microwaves",
+  "kitchen-breakfast",
+  "kitchen-water-treatment",
+  "cleaning-vacuums",
+  "cleaning-robots",
+  "cleaning-floor-care",
+  "climate-cooling",
+  "climate-heating",
+  "climate-air-care",
+  "laundry-ironing-sewing",
+  "care-shaving-hair-removal",
+  "care-hair-styling",
+  "care-oral",
+  "health-monitors-scales",
+  "health-massage-recovery",
+  "baby-monitoring-feeding",
+  "home-smart-home",
+  "smart-home-lighting",
+  "smart-home-security",
+  "smart-home-climate",
+] as const;
+
+const LEGACY_MULTI_PARENT_GROUPS: Record<string, readonly string[]> = {
+  "home-kitchen": LEGACY_HOME_KITCHEN_LEAF_IDS,
 };
+
+export function isLegacyMultiParentGroup(categoryId: string): boolean {
+  return Boolean(LEGACY_MULTI_PARENT_GROUPS[categoryId]);
+}
+
+export function getLegacyMultiParentPrimaryDepartment(categoryId: string): string | null {
+  if (categoryId === "home-kitchen") return "kitchen-coffee";
+  return null;
+}
 
 export function resolveCategoryAlias(categoryId: string): string {
   return LEGACY_LEAF_ALIASES[categoryId] ?? LEGACY_PARENT_ALIASES[categoryId] ?? categoryId;

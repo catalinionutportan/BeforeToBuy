@@ -61,6 +61,10 @@ export default function Home() {
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
   const browseLocale = localeFromCountry(userLocation.countryCode);
   const categoryUi = CATEGORY_UI[browseLocale];
+  const crossBorderCollectionActive = selectedCategory === "compare-cross-border";
+  const domainFilterMerchants = currentCountryInfo.merchantDomains.filter(
+    (merchant) => crossBorderCollectionActive || !merchant.isCrossBorder
+  );
 
   // IP location only after Location consent (no auto-GPS)
   useEffect(() => {
@@ -179,6 +183,15 @@ export default function Home() {
     handleCategoryChange(filterId === ALL_CATEGORIES_ID ? ALL_CATEGORIES_ID : filterId);
   };
 
+  // Drop cross-border domain chip selection when leaving that collection.
+  useEffect(() => {
+    if (crossBorderCollectionActive || selectedDomain === "all") return;
+    const selected = currentCountryInfo.merchantDomains.find(
+      (merchant) => merchant.domain === selectedDomain
+    );
+    if (selected?.isCrossBorder) setSelectedDomain("all");
+  }, [crossBorderCollectionActive, currentCountryInfo, selectedDomain]);
+
   // GPS only on explicit user action and with Location consent
   const handleRefreshGps = async () => {
     const prefs = getConsentPreferences();
@@ -255,10 +268,10 @@ export default function Home() {
                   : "bg-slate-800 hover:bg-slate-700 text-slate-300"
               }`}
             >
-              All Stores ({currentCountryInfo.merchantDomains.length})
+              All Stores ({domainFilterMerchants.length})
             </button>
 
-            {currentCountryInfo.merchantDomains.map((merchant) => (
+            {domainFilterMerchants.map((merchant) => (
               <button
                 key={merchant.id}
                 onClick={() => setSelectedDomain(merchant.domain)}
