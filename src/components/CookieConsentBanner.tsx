@@ -3,12 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Cookie, X } from "lucide-react";
-import {
-  acceptAllConsent,
-  acceptEssentialConsent,
-  getConsentPreferences,
-  saveConsentPreferences,
-} from "@/lib/consent";
+import { acceptAllConsent, acceptEssentialConsent, getConsentPreferences, saveConsentPreferences } from "@/lib/consent";
+import { useBrowseLocale } from "@/hooks/useBrowseLocale";
+import { HOME_UI } from "@/lib/i18n/ui";
 
 export function CookieConsentBanner() {
   const [isVisible, setIsVisible] = useState(false);
@@ -51,7 +48,7 @@ export function CookieConsentBanner() {
     if (saved) {
       setIsVisible(false);
     } else {
-      setSaveError("Unable to save privacy preferences. Please try again.");
+      setSaveError(homeUi.unableToSavePreferences);
     }
   };
 
@@ -80,14 +77,14 @@ export function CookieConsentBanner() {
             <Cookie className="w-4 h-4" aria-hidden="true" />
           </div>
           <h4 id="cookie-consent-title" className="font-bold text-sm text-white">
-            Cookie & Privacy Preferences
+            {homeUi.cookiePrivacyPreferences}
           </h4>
         </div>
         <button
           type="button"
           onClick={handleEssentialOnly}
           disabled={isSaving}
-          aria-label="Close and accept essential only"
+          aria-label={homeUi.closeAndAcceptEssential}
           className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
         >
           <X className="w-4 h-4" />
@@ -95,13 +92,13 @@ export function CookieConsentBanner() {
       </div>
 
       <p className="text-xs text-slate-300 leading-relaxed mb-3">
-        We use essential local storage for your preferences. With your permission, we also use approximate location (IP/GPS lookup) and enable outbound merchant links that may set affiliate tracking on partner stores.
+        {homeUi.essentialLocalStorageDescription}
       </p>
 
       <div className="text-[11px] space-y-2 mb-4">
         <div className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5">
-          <strong className="text-slate-200">Essential</strong>
-          <span className="text-slate-400"> — required preferences and signed consent proof (always active)</span>
+          <strong className="text-slate-200">{homeUi.essential}</strong>
+          <span className="text-slate-400">{homeUi.requiredPreferences}</span>
         </div>
         <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
           <input
@@ -111,8 +108,8 @@ export function CookieConsentBanner() {
             className="mt-0.5 accent-emerald-500"
           />
           <span>
-            <strong className="text-slate-200">Location</strong>
-            <span className="text-slate-400"> — IP/GPS lookup via our server, Nominatim, and ipapi.co</span>
+            <strong className="text-slate-200">{homeUi.location}</strong>
+            <span className="text-slate-400">{homeUi.locationDescription}</span>
           </span>
         </label>
         <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
@@ -123,8 +120,8 @@ export function CookieConsentBanner() {
             className="mt-0.5 accent-emerald-500"
           />
           <span>
-            <strong className="text-slate-200">Affiliate</strong>
-            <span className="text-slate-400"> — outbound merchant links that may use partner tracking</span>
+            <strong className="text-slate-200">{homeUi.affiliate}</strong>
+            <span className="text-slate-400">{homeUi.affiliateDescription}</span>
           </span>
         </label>
       </div>
@@ -142,7 +139,7 @@ export function CookieConsentBanner() {
           disabled={isSaving}
           className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white font-bold py-2.5 px-3 rounded-xl transition-colors cursor-pointer text-center"
         >
-          Accept All
+          {homeUi.acceptAll}
         </button>
         <button
           type="button"
@@ -150,7 +147,7 @@ export function CookieConsentBanner() {
           disabled={isSaving}
           className="w-full bg-blue-700 hover:bg-blue-600 disabled:opacity-60 text-white font-bold py-2.5 px-3 rounded-xl transition-colors cursor-pointer text-center"
         >
-          Save Selection
+          {homeUi.saveSelection}
         </button>
         <button
           type="button"
@@ -158,18 +155,18 @@ export function CookieConsentBanner() {
           disabled={isSaving}
           className="w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-60 text-slate-300 font-semibold py-2.5 px-3 rounded-xl transition-colors cursor-pointer text-center border border-slate-700"
         >
-          Essential Only
+          {homeUi.essentialOnly}
         </button>
       </div>
 
       <div className="mt-3 text-[11px] text-slate-400 flex items-center justify-between border-t border-slate-800/80 pt-2 gap-3">
-        <Link href="/cookies" className="hover:text-emerald-400 underline">
-          Cookie Policy
+        <Link href="/cookies" locale={browseLocale} className="hover:text-emerald-400 underline">
+          {homeUi.cookiePolicy}
         </Link>
-        <Link href="/privacy" className="hover:text-emerald-400 underline">
-          Privacy Policy
+        <Link href="/privacy" locale={browseLocale} className="hover:text-emerald-400 underline">
+          {homeUi.privacyPolicy}
         </Link>
-        <span>Consent version 3</span>
+        <span>{homeUi.consentVersion} 3</span>
       </div>
     </div>
   );
