@@ -1,0 +1,22 @@
+[
+  {
+    "id": "gb-currys-lon",
+    "storeName": "Currys",
+    "branchName": "London Oxford Street",
+    "address": "145 Oxford St, London W1D 2JD",
+    "city": "London",
+    "latitude": 51.5152,
+    "longitude": -0.136,
+    "stockStatus": "In Stock"
+  },
+  {
+    "id": "gb-argos-manc",
+    "storeName": "Argos",
+    "branchName": "Manchester Arndale",
+    "address": "Arndale Centre, Manchester M4 3AQ",
+    "city": "Manchester",
+    "latitude": 53.4839,
+    "longitude": -2.2415,
+    "stockStatus": "Pickup Today"
+  }
+]

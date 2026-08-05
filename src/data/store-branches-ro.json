@@ -1,0 +1,22 @@
+[
+  {
+    "id": "ro-altex-buc",
+    "storeName": "Altex.ro",
+    "branchName": "București Unirea Shopping Center",
+    "address": "Piața Unirii 1, București",
+    "city": "București",
+    "latitude": 44.4275,
+    "longitude": 26.1033,
+    "stockStatus": "In Stock"
+  },
+  {
+    "id": "ro-emag-cluj",
+    "storeName": "eMAG.ro",
+    "branchName": "Showroom eMAG Cluj-Napoca",
+    "address": "Calea Florești 56, Cluj-Napoca",
+    "city": "Cluj-Napoca",
+    "latitude": 46.7588,
+    "longitude": 23.5511,
+    "stockStatus": "In Stock"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "fr-fnac-par",
+    "storeName": "Fnac.com",
+    "branchName": "Paris Forum des Halles",
+    "address": "1 Rue Pierre Lescot, 75001 Paris",
+    "city": "Paris",
+    "latitude": 48.8619,
+    "longitude": 2.347,
+    "stockStatus": "In Stock"
+  },
+  {
+    "id": "fr-darty-lyon",
+    "storeName": "Darty",
+    "branchName": "Lyon Part-Dieu",
+    "address": "17 Rue Dr Bouchut, 69003 Lyon",
+    "city": "Lyon",
+    "latitude": 45.7606,
+    "longitude": 4.8594,
+    "stockStatus": "Pickup Today"
+  }
+]

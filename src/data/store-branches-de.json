@@ -1,0 +1,22 @@
+[
+  {
+    "id": "de-mediamarkt-ber",
+    "storeName": "MediaMarkt DE",
+    "branchName": "Berlin Alexanderplatz",
+    "address": "Grunerstraße 20, 10179 Berlin",
+    "city": "Berlin",
+    "latitude": 52.5218,
+    "longitude": 13.4132,
+    "stockStatus": "In Stock"
+  },
+  {
+    "id": "de-saturn-muc",
+    "storeName": "Saturn.de",
+    "branchName": "München Theresienhöhe",
+    "address": "Schwanthalerstraße 115, 80339 München",
+    "city": "München",
+    "latitude": 48.1364,
+    "longitude": 11.5432,
+    "stockStatus": "In Stock"
+  }
+]
