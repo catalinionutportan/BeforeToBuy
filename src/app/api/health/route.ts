@@ -7,6 +7,10 @@ import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { LEGAL_DOCUMENT_VERSION, LEGAL_LAST_UPDATED } from "@/lib/legal-config";
 import { getPriceHistoryBackend, getPriceHistoryStats } from "@/lib/pricing/price-history";
 import { SITE_PHASE } from "@/lib/site-config";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +27,7 @@ async function checkSampleFeedFiles() {
 
         return {
           merchantId: feed.merchantId,
-          status: rows > 0 ? ("ok" as const) : ("error" as const),
+          status: rows > 0 ? (homeUi.healthStatusOk as const) : (homeUi.healthStatusError as const),
           rows,
         };
       } catch {
@@ -58,7 +62,7 @@ async function checkProductsMerge() {
 
     const ok = result.products.length > 0;
     return {
-      status: ok ? ("ok" as const) : ("error" as const),
+      status: ok ? (homeUi.healthStatusOk as const) : (homeUi.healthStatusError as const),
       productCount: result.products.length,
       productionOfferCount: result.meta.productionOfferCount,
       sampleOfferCount: result.meta.sampleOfferCount,
@@ -69,7 +73,7 @@ async function checkProductsMerge() {
       productCount: 0,
       productionOfferCount: 0,
       sampleOfferCount: 0,
-      message: error instanceof Error ? error.message : "Unknown error",
+      message: error instanceof Error ? error.message : homeUi.healthCheckUnknownError,
     };
   }
 }
@@ -89,11 +93,11 @@ export async function GET() {
 
   const integrations = getIntegrationSummary();
   const checks = {
-    app: { status: "ok" as const },
+    app: { status: homeUi.healthStatusOk as const },
     sampleFeed,
     productsMerge,
     integrations: {
-      status: integrations.hasProductionFeed ? ("ok" as const) : ("warn" as const),
+      status: integrations.hasProductionFeed ? (homeUi.healthStatusOk as const) : (homeUi.healthStatusWarn as const),
       feedMerchantIds: integrations.feedMerchantIds,
       productionMerchantIds: integrations.productionMerchantIds,
       hasProductionFeed: integrations.hasProductionFeed,
@@ -101,7 +105,7 @@ export async function GET() {
       merchants: integrations.merchants,
     },
     priceHistory: {
-      status: priceHistoryStats.totalPoints > 0 ? ("ok" as const) : ("warn" as const),
+      status: priceHistoryStats.totalPoints > 0 ? (homeUi.healthStatusOk as const) : (homeUi.healthStatusWarn as const),
       backend: priceHistoryStats.backend ?? getPriceHistoryBackend(),
       trackedOffers: priceHistoryStats.trackedOffers,
       totalPoints: priceHistoryStats.totalPoints,
@@ -111,10 +115,10 @@ export async function GET() {
 
   const hasError = sampleFeed.status === "error" || productsMerge.status === "error";
   const overallStatus = hasError
-    ? "unhealthy"
+    ? homeUi.healthStatusUnhealthy
     : integrations.hasProductionFeed
-      ? "healthy"
-      : "degraded";
+      ? homeUi.healthStatusHealthy
+      : homeUi.healthStatusDegraded;
 
   return NextResponse.json(
     {
@@ -123,7 +127,7 @@ export async function GET() {
       legalDocumentVersion: LEGAL_DOCUMENT_VERSION,
       legalLastUpdated: LEGAL_LAST_UPDATED,
       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || null,
-      environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "unknown",
+      environment: process.env.VERCEL_ENV || process.env.NODE_ENV || homeUi.healthCheckEnvironmentUnknown,
       checks,
       responseMs: Date.now() - startedAt,
       timestamp: new Date().toISOString(),
