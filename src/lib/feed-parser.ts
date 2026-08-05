@@ -236,7 +236,7 @@ export async function parseAwinCsvFeedStream(
             ? Math.round(((originalPrice - price) / originalPrice) * 100)
             : undefined;
 
-        const gtin = readAwinGtin(row);
+        const gtin = readAwinGtin(row as unknown as Record<string, string>);
 
         const offer: Offer = enrichOfferPricing({
           id: `awin-${row.aw_product_id}`,
@@ -459,7 +459,7 @@ export async function parseGalaxusJsonFeedStream(
   const pipeline = chain([
     jsonStream,
     streamArray.withParser(),
-  ]);
+  ] as Parameters<typeof chain>[0]);
 
   return new Promise((resolve, reject) => {
     pipeline.on('data', ({ value: row }: { value: RawGalaxusFeedItem }) => {

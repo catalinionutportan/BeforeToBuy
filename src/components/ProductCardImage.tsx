@@ -1,11 +1,12 @@
 import Image from "next/image";
 import { Product } from "@/types";
 import { HOME_UI } from "@/lib/i18n/ui";
+import type { SiteLocale } from "@/lib/i18n/locales";
 import { Sparkles } from "lucide-react";
 
 interface ProductCardImageProps {
   product: Product;
-  locale: string;
+  locale: SiteLocale;
   verifiedBadgeOffer?: { badge: string };
 }
 

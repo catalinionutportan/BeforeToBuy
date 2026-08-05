@@ -45,7 +45,11 @@ async function fetchRemoteFeed(url: string, provider: FeedConfig["provider"]): P
     throw new Error(`Feed fetch failed (${response.status}) for ${url}`);
   }
 
-  return response.body;
+  if (!response.body) {
+    throw new Error(`Feed fetch returned empty body for ${url}`);
+  }
+
+  return response.body as unknown as NodeJS.ReadableStream;
 }
 
 function filterFeedProducts(

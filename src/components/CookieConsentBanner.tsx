@@ -3,11 +3,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Cookie, X } from "lucide-react";
-import { acceptAllConsent, acceptEssentialConsent, getConsentPreferences, saveConsentPreferences } from "@/lib/consent";
-import { useBrowseLocale } from "@/hooks/useBrowseLocale";
+import {
+  acceptAllConsent,
+  acceptEssentialConsent,
+  getConsentPreferences,
+  saveConsentPreferences,
+} from "@/lib/consent";
+import { DEFAULT_COUNTRY } from "@/lib/countries";
+import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 import { HOME_UI } from "@/lib/i18n/ui";
 
 export function CookieConsentBanner() {
+  const { locale: browseLocale } = useBrowseLocale(DEFAULT_COUNTRY);
+  const homeUi = HOME_UI[browseLocale];
+
   const [isVisible, setIsVisible] = useState(false);
   const [locationConsent, setLocationConsent] = useState(false);
   const [affiliateConsent, setAffiliateConsent] = useState(false);
@@ -160,10 +169,10 @@ export function CookieConsentBanner() {
       </div>
 
       <div className="mt-3 text-[11px] text-slate-400 flex items-center justify-between border-t border-slate-800/80 pt-2 gap-3">
-        <Link href="/cookies" locale={browseLocale} className="hover:text-emerald-400 underline">
+        <Link href="/cookies" className="hover:text-emerald-400 underline">
           {homeUi.cookiePolicy}
         </Link>
-        <Link href="/privacy" locale={browseLocale} className="hover:text-emerald-400 underline">
+        <Link href="/privacy" className="hover:text-emerald-400 underline">
           {homeUi.privacyPolicy}
         </Link>
         <span>{homeUi.consentVersion} 3</span>

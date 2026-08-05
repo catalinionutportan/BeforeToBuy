@@ -54,3 +54,63 @@ export async function reverseGeocode(
     throw new Error("Unable to determine location from coordinates.");
   }
 }
+
+/**
+ * Approximate location from client IP via internal API (requires location consent cookie).
+ */
+export async function getLocationFromIp(): Promise<UserLocation> {
+  const res = await fetch("/api/location");
+  if (!res.ok) {
+    throw new Error(`IP location API failed with status: ${res.status}`);
+  }
+  const data = (await res.json()) as Partial<UserLocation>;
+  if (
+    typeof data.latitude !== "number" ||
+    typeof data.longitude !== "number" ||
+    !data.countryCode
+  ) {
+    throw new Error("IP location API returned incomplete data");
+  }
+  return {
+    latitude: data.latitude,
+    longitude: data.longitude,
+    countryCode: data.countryCode,
+    countryName: data.countryName || COUNTRIES[data.countryCode]?.name || "Unknown",
+    city: data.city || COUNTRIES[data.countryCode]?.defaultCoordinates.city || "Unknown",
+    isGps: false,
+  };
+}
+
+/**
+ * Precise location from browser GPS + reverse geocode.
+ * Rejects with GeolocationPositionError when the browser geolocation API fails.
+ */
+export function detectUserLocationGps(): Promise<UserLocation> {
+  return new Promise((resolve, reject) => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      reject(new Error("Geolocation is not supported in this environment"));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const geo = await reverseGeocode(latitude, longitude);
+          resolve({
+            latitude,
+            longitude,
+            countryCode: geo.countryCode,
+            countryName: geo.countryName,
+            city: geo.city,
+            isGps: true,
+          });
+        } catch (error) {
+          reject(error);
+        }
+      },
+      (error) => reject(error),
+      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 }
+    );
+  });
+}

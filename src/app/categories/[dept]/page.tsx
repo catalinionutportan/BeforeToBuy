@@ -6,7 +6,6 @@ import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
 import { CategoryProductGrid } from "@/components/CategoryProductGrid";
 import {
   canonicalDepartmentPath,
-  departmentCategoryPath,
   subcategoryCategoryPath,
   validateDepartmentRoute,
 } from "@/lib/category-routes";
@@ -17,9 +16,11 @@ import { getCategoryById } from "@/lib/categories";
 import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { ChevronRight } from "lucide-react";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
-import { useBrowseLocale } from "@/lib/i18n/client";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 
 export const dynamic = "force-dynamic";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 interface DepartmentPageProps {
   params: Promise<{ dept: string }>;
@@ -40,16 +41,18 @@ export async function generateMetadata({ params }: DepartmentPageProps): Promise
   const locale = localeFromCountry(DEFAULT_COUNTRY);
   const label = getDepartmentLabel(route.deptId, locale);
   const catalog = await fetchDefaultCatalog(route.deptId);
-  const productCount = catalog.products.length;
 
   return createCategoryMetadata({
     title: formatUi(homeUi.categoryPriceComparisonMetaTitle, { label }),
-    description: formatUi(homeUi.categoryPriceComparisonMetaDescription, { label: label.toLowerCase() }),
+    description: formatUi(homeUi.categoryPriceComparisonMetaDescription, {
+      label: label.toLowerCase(),
+    }),
+    path: `/categories/${dept}`,
+    index: catalog.products.length > 0,
+  });
 }
 
 export default async function DepartmentCategoryPage({ params }: DepartmentPageProps) {
-  const { browseLocale } = useBrowseLocale();
-  const homeUi = HOME_UI[browseLocale];
   const { dept } = await params;
   const route = validateDepartmentRoute(dept);
   if (!route) notFound();

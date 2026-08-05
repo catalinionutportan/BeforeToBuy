@@ -1,1 +1,109 @@
-import { test, expect } from \"@playwright/test\";\n\ntest.describe(\"Search and Filter E2E tests\", () => {\n  test.beforeEach(async ({ page }) => {\n    await page.goto(\"/\");\n    // Ensure the page is loaded and the product grid is visible before each test\n    await expect(page.locator(\"article\").first()).toBeVisible({ timeout: 20_000 });\n  });\n\n  test(\"should perform a basic product search and display results\", async ({ page }) => {\n    const searchInput = page.getByPlaceholder(/Search products.../i);\n    await searchInput.fill(\"phone\");\n    await searchInput.press(\"Enter\");\n\n    await expect(page).toHaveURL(/search=phone/);\n    await expect(page.locator(\"article\").first()).toBeVisible();\n    const productTitles = await page.locator(\"article h3\").allTextContents();\n    expect(productTitles.some(title => title.toLowerCase().includes(\"phone\"))).toBeTruthy();\n  });\n\n  test(\"should display no results for an unknown search query\", async ({ page }) => {\n    const searchInput = page.getByPlaceholder(/Search products.../i);\n    await searchInput.fill(\"nonexistentproduct123\");\n    await searchInput.press(\"Enter\");\n\n    await expect(page).toHaveURL(/search=nonexistentproduct123/);\n    await expect(page.locator(\"article\")).toHaveCount(0);\n    await expect(page.getByText(/No products found/i)).toBeVisible();\n  });\n\n  test(\"should filter products by category\", async ({ page }) => {\n    await page.getByRole(\"button\", { name: /^Electronics$/i }).click();\n    await expect(page).toHaveURL(/category=electronics/);\n    await expect(page.locator(\"article\").first()).toBeVisible();\n\n    const productCategories = await page.locator(\"article p.text-xs\").allTextContents(); // Assuming category is in description\n    // This assertion might need to be more specific depending on how category is displayed\n    // For now, we'll just check if products are visible after filtering.\n  });\n\n  test(\"should filter products by merchant domain\", async ({ page }) => {\n    // First, dismiss cookie consent if visible to ensure elements are clickable\n    const essentialButton = page.getByRole(\"button\", { name: \"Essential Only\", exact: true });\n    if (await essentialButton.isVisible({ timeout: 5_000 })) {\n      await essentialButton.click();\n      await expect(page.getByRole(\"dialog\", { name: /Cookie & Privacy Preferences/i })).toHaveCount(0, {\n        timeout: 5_000,\n      });\n    }\n\n    const domainSelect = page.getByLabel(/Store Domain/i);\n    await domainSelect.selectOption({ label: \"brack.ch\" });\n\n    await expect(page).toHaveURL(/domain=brack.ch/);\n    await expect(page.locator(\"article\").first()).toBeVisible();\n    const merchantNames = await page.locator(\"article span.bg-blue-100\").allTextContents(); // Assuming merchant name is within this span\n    // This assertion needs to be more robust, checking the actual store names\n    // For now, we'll check if products are visible and the URL is correct.\n  });\n\n  test(\"should combine search and category filter\", async ({ page }) => {\n    const searchInput = page.getByPlaceholder(/Search products.../i);\n    await searchInput.fill(\"laptop\");\n    await searchInput.press(\"Enter\");\n    await expect(page).toHaveURL(/search=laptop/);\n\n    await page.getByRole(\"button\", { name: /^Electronics$/i }).click();\n    await expect(page).toHaveURL(/search=laptop&category=electronics/);\n    await expect(page.locator(\"article\").first()).toBeVisible();\n  });\n\n  test(\"should navigate to product details page\", async ({ page }) => {\n    await page.locator(\"article\").first().click();\n    await expect(page).toHaveURL(/\\/p\\/[^\\/]+/); // Expect URL like /p/{productId}\n    await expect(page.getByRole(\"heading\", { level: 1 })).toBeVisible();\n    await expect(page.getByText(/Offers in/i)).toBeVisible();\n  });\n\n  test(\"should select an offer and redirect to purchase URL\", async ({ page, context }) => {\n    await page.locator(\"article\").first().click();\n    await expect(page.getByText(/Offers in/i)).toBeVisible();\n\n    // Block affiliate tracking consent to test redirection behavior without actual navigation\n    // This will prevent the actual site from opening, allowing us to check the onClick handler\n    // (The handleAffiliateClick in ProductCardOffers prevents default if affiliate consent is not given)\n    const initialPageUrl = page.url();\n    const affiliateLink = page.locator(\"a\", { hasText: /View Offer|Search Store/i }).first();\n\n    // Assuming initial consent is not given, clicking should open consent preferences\n    await affiliateLink.click();\n    await expect(page.getByRole(\"dialog\", { name: /Cookie & Privacy Preferences/i })).toBeVisible();\n\n    // Grant affiliate consent\n    await page.getByRole(\"button\", { name: \"Accept All\", exact: true }).click();\n    await expect(page.getByRole(\"dialog\", { name: /Cookie & Privacy Preferences/i })).toHaveCount(0);\n\n    // Re-click the affiliate link after granting consent\n    // This time, it should open a new tab/window\n    const [popup] = await Promise.all([\n      context.waitForEvent(\'page\'),\n      affiliateLink.click()\n    ]);\n\n    expect(popup.url()).not.toBe(initialPageUrl);\n    expect(popup.url()).toMatch(/http/);\n    expect(popup.url()).toContain(/\/offer/);\n    await popup.close();\n  });\n});\n
+import { test, expect } from "@playwright/test";
+
+test.describe("Search and Filter E2E tests", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/");
+    // Ensure the page is loaded and the product grid is visible before each test
+    await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
+  });
+
+  test("should perform a basic product search and display results", async ({ page }) => {
+    const searchInput = page.getByPlaceholder(/Search products.../i);
+    await searchInput.fill("phone");
+    await searchInput.press("Enter");
+
+    await expect(page).toHaveURL(/search=phone/);
+    await expect(page.locator("article").first()).toBeVisible();
+    const productTitles = await page.locator("article h3").allTextContents();
+    expect(productTitles.some(title => title.toLowerCase().includes("phone"))).toBeTruthy();
+  });
+
+  test("should display no results for an unknown search query", async ({ page }) => {
+    const searchInput = page.getByPlaceholder(/Search products.../i);
+    await searchInput.fill("nonexistentproduct123");
+    await searchInput.press("Enter");
+
+    await expect(page).toHaveURL(/search=nonexistentproduct123/);
+    await expect(page.locator("article")).toHaveCount(0);
+    await expect(page.getByText(/No products found/i)).toBeVisible();
+  });
+
+  test("should filter products by category", async ({ page }) => {
+    await page.getByRole("button", { name: /^Electronics$/i }).click();
+    await expect(page).toHaveURL(/category=electronics/);
+    await expect(page.locator("article").first()).toBeVisible();
+
+    const productCategories = await page.locator("article p.text-xs").allTextContents(); // Assuming category is in description
+    // This assertion might need to be more specific depending on how category is displayed
+    // For now, we'll just check if products are visible after filtering.
+  });
+
+  test("should filter products by merchant domain", async ({ page }) => {
+    // First, dismiss cookie consent if visible to ensure elements are clickable
+    const essentialButton = page.getByRole("button", { name: "Essential Only", exact: true });
+    if (await essentialButton.isVisible({ timeout: 5_000 })) {
+      await essentialButton.click();
+      await expect(page.getByRole("dialog", { name: /Cookie & Privacy Preferences/i })).toHaveCount(0, {
+        timeout: 5_000,
+      });
+    }
+
+    const domainSelect = page.getByLabel(/Store Domain/i);
+    await domainSelect.selectOption({ label: "brack.ch" });
+
+    await expect(page).toHaveURL(/domain=brack.ch/);
+    await expect(page.locator("article").first()).toBeVisible();
+    const merchantNames = await page.locator("article span.bg-blue-100").allTextContents(); // Assuming merchant name is within this span
+    // This assertion needs to be more robust, checking the actual store names
+    // For now, we'll check if products are visible and the URL is correct.
+  });
+
+  test("should combine search and category filter", async ({ page }) => {
+    const searchInput = page.getByPlaceholder(/Search products.../i);
+    await searchInput.fill("laptop");
+    await searchInput.press("Enter");
+    await expect(page).toHaveURL(/search=laptop/);
+
+    await page.getByRole("button", { name: /^Electronics$/i }).click();
+    await expect(page).toHaveURL(/search=laptop&category=electronics/);
+    await expect(page.locator("article").first()).toBeVisible();
+  });
+
+  test("should navigate to product details page", async ({ page }) => {
+    await page.locator("article").first().click();
+    await expect(page).toHaveURL(/\/p\/[^\/]+/); // Expect URL like /p/{productId}
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.getByText(/Offers in/i)).toBeVisible();
+  });
+
+  test("should select an offer and redirect to purchase URL", async ({ page, context }) => {
+    await page.locator("article").first().click();
+    await expect(page.getByText(/Offers in/i)).toBeVisible();
+
+    // Block affiliate tracking consent to test redirection behavior without actual navigation
+    // This will prevent the actual site from opening, allowing us to check the onClick handler
+    // (The handleAffiliateClick in ProductCardOffers prevents default if affiliate consent is not given)
+    const initialPageUrl = page.url();
+    const affiliateLink = page.locator("a", { hasText: /View Offer|Search Store/i }).first();
+
+    // Assuming initial consent is not given, clicking should open consent preferences
+    await affiliateLink.click();
+    await expect(page.getByRole("dialog", { name: /Cookie & Privacy Preferences/i })).toBeVisible();
+
+    // Grant affiliate consent
+    await page.getByRole("button", { name: "Accept All", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: /Cookie & Privacy Preferences/i })).toHaveCount(0);
+
+    // Re-click the affiliate link after granting consent
+    // This time, it should open a new tab/window
+    const [popup] = await Promise.all([
+      context.waitForEvent('page'),
+      affiliateLink.click()
+    ]);
+
+    expect(popup.url()).not.toBe(initialPageUrl);
+    expect(popup.url()).toMatch(/http/);
+    expect(popup.url()).toContain("/offer");
+    await popup.close();
+  });
+});

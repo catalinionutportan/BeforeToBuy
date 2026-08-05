@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import { categoryBrowsePath } from "@/lib/category-routes";
-import { DEFAULT_LOCALE, isSiteLocale } from "@/lib/i18n/locales";
+import { DEFAULT_LOCALE, isSiteLocale, type SiteLocale } from "@/lib/i18n/locales";
 
 export function middleware(request: NextRequest) {
   let locale: string | undefined = undefined;

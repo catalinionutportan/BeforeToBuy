@@ -6,8 +6,10 @@ import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY, DATA_PROCESSORS, LEGAL_CONTACT } from "@/lib/company-info";
 import { DSAR_RESPONSE_DAYS, RETENTION_SCHEDULE } from "@/lib/legal-config";
-import { HOME_UI } from "@/lib/i18n/ui";
-import { useBrowseLocale } from "@/lib/i18n/client";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const metadata: Metadata = createPageMetadata({
   title: HOME_UI.en.privacyMetaTitle,
@@ -16,8 +18,6 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function PrivacyPage() {
-  const { browseLocale } = useBrowseLocale();
-  const homeUi = HOME_UI[browseLocale];
   return (
     <PageShell>
       <div className="space-y-8">

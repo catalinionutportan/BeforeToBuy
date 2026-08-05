@@ -6,8 +6,10 @@ import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY, LEGAL_CONTACT } from "@/lib/company-info";
 import { DSAR_RESPONSE_DAYS } from "@/lib/legal-config";
-import { HOME_UI } from "@/lib/i18n/ui";
-import { useBrowseLocale } from "@/lib/i18n/client";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const metadata: Metadata = createPageMetadata({
   title: HOME_UI.en.complaintsMetaTitle,
@@ -16,8 +18,6 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function ComplaintsPage() {
-  const { browseLocale } = useBrowseLocale();
-  const homeUi = HOME_UI[browseLocale];
   return (
     <PageShell maxWidthClass="max-w-3xl">
       <div className="space-y-8">

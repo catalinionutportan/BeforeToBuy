@@ -136,7 +136,7 @@ export function ProductCardOffers({
                     {offer.source === "demo"
                       ? ui.illustrativeTotalDisclaimer
                       : offer.deliveryCost === 0
-                        ? `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + ${ui.freeDelivery}`
+                        ? `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + free ${ui.delivery.toLowerCase()}`
                         : `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + ${offer.deliveryCost} ${ui.delivery}`}
                   </div>
                 </div>

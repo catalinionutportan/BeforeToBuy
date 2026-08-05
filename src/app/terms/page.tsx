@@ -5,8 +5,9 @@ import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY } from "@/lib/company-info";
-import { HOME_UI } from "@/lib/i18n/ui";
-import { useBrowseLocale } from "@/lib/i18n/client";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI.en;
 
 export const metadata: Metadata = createPageMetadata({
   title: HOME_UI.en.termsMetaTitle,
@@ -15,8 +16,6 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function TermsPage() {
-  const { browseLocale } = useBrowseLocale();
-  const homeUi = HOME_UI[browseLocale];
   return (
     <PageShell maxWidthClass="max-w-3xl">
       <div className="space-y-8">

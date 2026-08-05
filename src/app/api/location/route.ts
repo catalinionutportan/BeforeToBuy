@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   }
 
   const clientIp = getClientIp(request);
-  const rateLimit = checkRateLimit(`location:${clientIp}`, 15, 60_000);
+  const rateLimit = await checkRateLimit(`location:${clientIp}`, 15, 60_000);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(

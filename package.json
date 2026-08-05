@@ -14,6 +14,7 @@
     "smoke:prod": "node scripts/smoke-production.mjs"
   },
   "dependencies": {
+    "@datadog/browser-rum": "^7.7.0",
     "@datadog/browser-rum-nextjs": "^7.7.0",
     "@vercel/kv": "^3.0.0",
     "clsx": "^2.1.1",

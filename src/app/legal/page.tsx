@@ -7,18 +7,17 @@ import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { LEGAL_PAGES } from "@/lib/legal-config";
 import { HOME_UI } from "@/lib/i18n/ui";
-import { useBrowseLocale } from "@/lib/i18n/client";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const metadata: Metadata = createPageMetadata({
-  title: HOME_UI.en.legalMetaTitle,
-  description: HOME_UI.en.legalMetaDescription,
+  title: homeUi.legalMetaTitle,
+  description: homeUi.legalMetaDescription,
   path: "/legal",
 });
 
 export default function LegalHubPage() {
-  const { browseLocale } = useBrowseLocale();
-  const homeUi = HOME_UI[browseLocale];
-
   const CATEGORY_LABELS: Record<string, string> = {
     company: homeUi.company,
     legal: homeUi.legalAndPrivacy,
@@ -26,8 +25,7 @@ export default function LegalHubPage() {
     support: homeUi.supportAndAccessibility,
   };
 
-export default function LegalHubPage() {
-  const grouped = LEGAL_PAGES.reduce<Record<string, typeof LEGAL_PAGES[number][]>>((acc, page) => {
+  const grouped = LEGAL_PAGES.reduce<Record<string, (typeof LEGAL_PAGES)[number][]>>((acc, page) => {
     if (!acc[page.category]) acc[page.category] = [];
     acc[page.category].push(page);
     return acc;
@@ -42,9 +40,7 @@ export default function LegalHubPage() {
             {homeUi.legalHub}
           </span>
           <h1 className="text-3xl font-extrabold">{homeUi.legalAndCompanyInfo}</h1>
-          <p className="text-slate-300 text-sm">
-            {homeUi.legalHubIntro}
-          </p>
+          <p className="text-slate-300 text-sm">{homeUi.legalHubIntro}</p>
         </div>
 
         <LegalDraftNotice />

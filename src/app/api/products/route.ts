@@ -6,16 +6,21 @@ import { fetchMergedProductsForLocation } from "@/lib/product-service";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 
+const homeUi = HOME_UI[DEFAULT_LOCALE];
+
 // Basic sanitization function to prevent injection attacks
 function sanitizeString(input: string | null | undefined): string | undefined {
   if (!input) return undefined;
   return input.replace(/[<>\"'`%{};\\\/]/g, "").trim(); // Remove potentially harmful characters
 }
 
-// Simple UUID v4 generator for tracking errors
 function generateUuid(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 }
@@ -48,7 +53,7 @@ function buildUserLocation(
 
 export async function GET(request: Request) {
   const clientIp = getClientIp(request);
-  const rateLimit = checkRateLimit(`products:${clientIp}`, 60, 60_000);
+  const rateLimit = await checkRateLimit(`products:${clientIp}`, 60, 60_000);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(

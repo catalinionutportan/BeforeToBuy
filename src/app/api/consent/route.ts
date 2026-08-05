@@ -4,23 +4,34 @@ import {
   CONSENT_COOKIE_NAME,
 } from "@/lib/consent-config";
 import { createConsentToken } from "@/lib/server-consent";
-
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 function hasValidOrigin(request: Request): boolean {
+  const secFetchSite = request.headers.get("sec-fetch-site");
+  if (secFetchSite === "same-origin") return true;
+
   const origin = request.headers.get("origin");
-  if (!origin || request.headers.get("sec-fetch-site") === "same-origin") return true;
+  // Cookie mutations must include Origin (blocks simple CSRF without Origin).
+  if (!origin) return false;
 
   try {
     const originHost = new URL(origin).host;
-    const requestHost =
-      request.headers.get("x-forwarded-host") ||
-      request.headers.get("host") ||
-      new URL(request.url).host;
-    return originHost === requestHost;
+    const allowedHosts = new Set<string>([new URL(request.url).host]);
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (siteUrl) {
+      try {
+        allowedHosts.add(new URL(siteUrl).host);
+      } catch {
+        // ignore invalid site URL config
+      }
+    }
+
+    return allowedHosts.has(originHost);
   } catch {
     return false;
   }
@@ -29,6 +40,15 @@ function hasValidOrigin(request: Request): boolean {
 export async function POST(request: Request) {
   if (!hasValidOrigin(request)) {
     return NextResponse.json({ error: homeUi.invalidRequestOrigin }, { status: 403 });
+  }
+
+  const clientIp = getClientIp(request);
+  const rateLimit = await checkRateLimit(`consent:${clientIp}`, 20, 60_000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: homeUi.contactFormTooManyRequests },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
+    );
   }
 
   let body: unknown;
@@ -75,6 +95,15 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   if (!hasValidOrigin(request)) {
     return NextResponse.json({ error: homeUi.invalidRequestOrigin }, { status: 403 });
+  }
+
+  const clientIp = getClientIp(request);
+  const rateLimit = await checkRateLimit(`consent:${clientIp}`, 20, 60_000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: homeUi.contactFormTooManyRequests },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
+    );
   }
 
   const response = NextResponse.json({ cleared: true });

@@ -16,7 +16,7 @@ const SUBJECT_LABELS: Record<string, string> = {
 
 export async function POST(request: Request) {
   const clientIp = getClientIp(request);
-  const rateLimit = checkRateLimit(`contact:${clientIp}`, 5, 60_000);
+  const rateLimit = await checkRateLimit(`contact:${clientIp}`, 5, 60_000);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(

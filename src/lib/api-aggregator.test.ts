@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fetchProductsForLocation, generateOffersForLocation } from './api-aggregator';
+import type { UserLocation } from '@/types';
 import * as chOffers from './offers/ch-offers';
 import * as deOffers from './offers/de-offers';
 import * as frOffers from './offers/fr-offers';
@@ -50,10 +51,12 @@ describe('API Aggregator', () => {
         storeName: 'Mock Store CH',
         price: 100,
         currency: 'CHF',
+        inStock: true,
         deliveryCost: 5,
         purchaseUrl: 'http://mock.ch/offer1',
+        affiliateNetwork: 'Mock Network',
         source: 'production-live',
-        type: 'delivery',
+        type: 'online',
         deliveryTime: '2-3 days',
       },
     ]);
@@ -82,10 +85,12 @@ describe('API Aggregator', () => {
         storeName: 'Mock Store DE',
         price: 90,
         currency: 'EUR',
+        inStock: true,
         deliveryCost: 3,
         purchaseUrl: 'http://mock.de/offer1',
+        affiliateNetwork: 'Mock Network',
         source: 'production-live',
-        type: 'delivery',
+        type: 'online',
         deliveryTime: '1-2 days',
       },
     ]);
@@ -132,7 +137,7 @@ describe('API Aggregator', () => {
       basePrice: 100,
       targetCountries: ['DE'],
     } as any;
-    const mockUserLocation = {
+    const mockUserLocation: UserLocation = {
       latitude: 52.52,
       longitude: 13.405,
       countryCode: 'DE',
@@ -148,10 +153,12 @@ describe('API Aggregator', () => {
         storeName: 'Dynamic Mock Store DE',
         price: 0, // This will be enriched by enrichOfferPricing
         currency: 'EUR',
+        inStock: true,
         deliveryCost: 0,
         purchaseUrl: 'http://mock.de/dynamic',
+        affiliateNetwork: 'Mock Network',
         source: 'production-live',
-        type: 'delivery',
+        type: 'online',
         deliveryTime: '1-2 days',
       },
     ]);

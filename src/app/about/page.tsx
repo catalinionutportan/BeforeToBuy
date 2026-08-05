@@ -15,8 +15,9 @@ import { PageShell } from "@/components/PageShell";
 import { CompanyDetailsCard } from "@/components/CompanyDetailsCard";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY } from "@/lib/company-info";
-import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 import { HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI.en;
 
 export const metadata: Metadata = createPageMetadata({
   title: "About Us & How It Works",
@@ -25,8 +26,6 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function AboutPage() {
-  const { browseLocale } = useBrowseLocale();
-  const homeUi = HOME_UI[browseLocale];
   return (
     <PageShell>
       <div className="space-y-10">
@@ -159,7 +158,7 @@ export default function AboutPage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
             <div className="text-xs text-slate-500">
               {homeUi.companyDetailsQuestions}{" "}
-              <Link href="/legal" locale={browseLocale} className="text-emerald-700 font-bold hover:underline">
+              <Link href="/legal" className="text-emerald-700 font-bold hover:underline">
                 {homeUi.legalHub}
               </Link>{" "}
               ·{" "}
@@ -169,7 +168,6 @@ export default function AboutPage() {
             </div>
             <Link
               href="/contact"
-              locale={browseLocale}
               className="bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-colors inline-flex items-center gap-1.5"
             >
               <span>{homeUi.contactUs}</span>

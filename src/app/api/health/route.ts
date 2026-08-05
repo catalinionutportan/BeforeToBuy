@@ -9,6 +9,7 @@ import { getPriceHistoryBackend, getPriceHistoryStats } from "@/lib/pricing/pric
 import { SITE_PHASE } from "@/lib/site-config";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
+import { isInternalApiAuthorized } from "@/lib/internal-api-auth";
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
@@ -27,7 +28,7 @@ async function checkSampleFeedFiles() {
 
         return {
           merchantId: feed.merchantId,
-          status: rows > 0 ? (homeUi.healthStatusOk as const) : (homeUi.healthStatusError as const),
+          status: rows > 0 ? ("ok" as const) : ("error" as const),
           rows,
         };
       } catch {
@@ -62,7 +63,7 @@ async function checkProductsMerge() {
 
     const ok = result.products.length > 0;
     return {
-      status: ok ? (homeUi.healthStatusOk as const) : (homeUi.healthStatusError as const),
+      status: ok ? ("ok" as const) : ("error" as const),
       productCount: result.products.length,
       productionOfferCount: result.meta.productionOfferCount,
       sampleOfferCount: result.meta.sampleOfferCount,
@@ -78,7 +79,11 @@ async function checkProductsMerge() {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isInternalApiAuthorized(request)) {
+    return NextResponse.json({ error: homeUi.unauthorized }, { status: 401 });
+  }
+
   const startedAt = Date.now();
   const [sampleFeed, productsMerge, priceHistoryStats] = await Promise.all([
     checkSampleFeedFiles(),
@@ -93,11 +98,11 @@ export async function GET() {
 
   const integrations = getIntegrationSummary();
   const checks = {
-    app: { status: homeUi.healthStatusOk as const },
+    app: { status: "ok" as const },
     sampleFeed,
     productsMerge,
     integrations: {
-      status: integrations.hasProductionFeed ? (homeUi.healthStatusOk as const) : (homeUi.healthStatusWarn as const),
+      status: integrations.hasProductionFeed ? ("ok" as const) : ("warn" as const),
       feedMerchantIds: integrations.feedMerchantIds,
       productionMerchantIds: integrations.productionMerchantIds,
       hasProductionFeed: integrations.hasProductionFeed,
@@ -105,7 +110,7 @@ export async function GET() {
       merchants: integrations.merchants,
     },
     priceHistory: {
-      status: priceHistoryStats.totalPoints > 0 ? (homeUi.healthStatusOk as const) : (homeUi.healthStatusWarn as const),
+      status: priceHistoryStats.totalPoints > 0 ? ("ok" as const) : ("warn" as const),
       backend: priceHistoryStats.backend ?? getPriceHistoryBackend(),
       trackedOffers: priceHistoryStats.trackedOffers,
       totalPoints: priceHistoryStats.totalPoints,
@@ -115,10 +120,10 @@ export async function GET() {
 
   const hasError = sampleFeed.status === "error" || productsMerge.status === "error";
   const overallStatus = hasError
-    ? homeUi.healthStatusUnhealthy
+    ? "unhealthy"
     : integrations.hasProductionFeed
-      ? homeUi.healthStatusHealthy
-      : homeUi.healthStatusDegraded;
+      ? "healthy"
+      : "degraded";
 
   return NextResponse.json(
     {
@@ -127,7 +132,7 @@ export async function GET() {
       legalDocumentVersion: LEGAL_DOCUMENT_VERSION,
       legalLastUpdated: LEGAL_LAST_UPDATED,
       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || null,
-      environment: process.env.VERCEL_ENV || process.env.NODE_ENV || homeUi.healthCheckEnvironmentUnknown,
+      environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "unknown",
       checks,
       responseMs: Date.now() - startedAt,
       timestamp: new Date().toISOString(),

@@ -120,11 +120,13 @@ export async function generateOffersForLocation(product: Product, userLocation: 
           storeName: `Default Store ${country}`,
           price: targetPrice,
           currency: currency,
+          inStock: true,
           deliveryCost: 0,
           purchaseUrl: `http://example.com/default-offer/${product.id}`,
-          source: 'generated',
-          type: 'delivery',
-          deliveryTime: 'instant',
+          affiliateNetwork: "Demo",
+          source: "demo" as const,
+          type: "online" as const,
+          deliveryTime: "instant",
       }];
   }
 

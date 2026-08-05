@@ -16,8 +16,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
-import { HOME_UI } from "@/lib/i18n/ui";
-import { useBrowseLocale } from "@/lib/i18n/client";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 
 export default function StoresDirectoryPage() {
   const [selectedCountry, setSelectedCountry] = useState<string>("all");

@@ -41,12 +41,12 @@ export function useUserLocation(): UseUserLocationResult {
       setUserLocation(loc);
     } catch (error) {
       console.error("Error fetching IP location:", error);
-      setErrorMessage(homeUi.geolocationApiError); // Set user-friendly error message
-      setUserLocation(defaultLocation()); // Fallback to default location
+      setErrorMessage(homeUi.geolocationPositionUnavailable);
+      setUserLocation(defaultLocation());
     } finally {
       setIsLocating(false);
     }
-  }, [setErrorMessage, setUserLocation, homeUi.geolocationApiError]);
+  }, [homeUi.geolocationPositionUnavailable]);
 
   // IP location only after Location consent (no auto-GPS)
   useEffect(() => {
@@ -92,27 +92,31 @@ export function useUserLocation(): UseUserLocationResult {
     try {
       const loc = await detectUserLocationGps();
       setUserLocation(loc);
-      setErrorMessage(null); // Clear any previous error message on GPS success
+      setErrorMessage(null);
     } catch (error) {
       console.error("Error fetching GPS location:", error);
-      // Determine which user-friendly message to show based on the error
-      const message = (
-        error instanceof GeolocationPositionError
-          ? error.code === error.PERMISSION_DENIED
-            ? homeUi.geolocationPermissionDenied
-            : error.code === error.POSITION_UNAVAILABLE
-              ? homeUi.geolocationPositionUnavailable
-              : error.code === error.TIMEOUT
-                ? homeUi.geolocationTimeout
-                : homeUi.geolocationApiError
-          : homeUi.geolocationApiError
-      );
-      setErrorMessage(message); // Set user-friendly error message
-      setUserLocation(defaultLocation()); // Fallback to default location
+      const isGeoError =
+        typeof GeolocationPositionError !== "undefined" &&
+        error instanceof GeolocationPositionError;
+      const message = isGeoError
+        ? error.code === error.PERMISSION_DENIED
+          ? homeUi.geolocationPermissionDenied
+          : error.code === error.POSITION_UNAVAILABLE
+            ? homeUi.geolocationPositionUnavailable
+            : error.code === error.TIMEOUT
+              ? homeUi.geolocationTimeout
+              : homeUi.geolocationPositionUnavailable
+        : homeUi.geolocationPositionUnavailable;
+      setErrorMessage(message);
+      setUserLocation(defaultLocation());
     } finally {
       setIsLocating(false);
     }
-  }, [setIsLocating, setUserLocation, setErrorMessage]);
+  }, [
+    homeUi.geolocationPermissionDenied,
+    homeUi.geolocationPositionUnavailable,
+    homeUi.geolocationTimeout,
+  ]);
 
   return {
     userLocation,

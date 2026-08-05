@@ -2,18 +2,15 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { BetaDemoBanner } from "@/components/BetaDemoBanner";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { DatadogRum } from "@/components/DatadogRum";
 import { SiteFooter } from "@/components/SiteFooter";
 import { defaultOpenGraph } from "@/lib/metadata";
-import { useBrowseLocale } from "@/hooks/useBrowseLocale";
-import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { DEFAULT_LOCALE, type SiteLocale } from "@/lib/i18n/locales";
 import { ClientLocalizationProvider } from "@/components/ClientLocalizationProvider";
 import { HOME_UI } from "@/lib/i18n/ui";
 
-export async function generateMetadata({
-  params: { locale = DEFAULT_LOCALE },
-}: {
-  params: { locale: SiteLocale };
-}): Promise<Metadata> {
+export async function generateMetadata(): Promise<Metadata> {
+  const locale: SiteLocale = DEFAULT_LOCALE;
   const ui = HOME_UI[locale];
   const keywords = ui.metaKeywords.split(", ");
 
@@ -38,15 +35,16 @@ export async function generateMetadata({
 
 export default function RootLayout({
   children,
-  params: { locale = DEFAULT_LOCALE },
 }: Readonly<{
   children: React.ReactNode;
-  params: { locale: SiteLocale };
 }>) {
+  const locale: SiteLocale = DEFAULT_LOCALE;
+
   return (
     <html lang={locale}>
       <body className="antialiased font-sans bg-slate-50 text-slate-900 min-h-screen flex flex-col">
         <ClientLocalizationProvider currentLocale={locale}>
+          <DatadogRum />
           <BetaDemoBanner />
           <div className="flex-1 flex flex-col">{children}</div>
           <SiteFooter />

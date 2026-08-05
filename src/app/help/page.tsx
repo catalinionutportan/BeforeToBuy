@@ -4,98 +4,61 @@ import { HelpCircle, ChevronDown } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY } from "@/lib/company-info";
-import { HOME_UI } from "@/lib/i18n/ui";
-import { useBrowseLocale } from "@/lib/i18n/client";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
+
+const faqSections = [
+  {
+    title: homeUi.faqSectionAboutTitle,
+    items: [
+      { q: homeUi.faqSectionAboutQ1, a: homeUi.faqSectionAboutA1 },
+      { q: homeUi.faqSectionAboutQ2, a: homeUi.faqSectionAboutA2 },
+      { q: homeUi.faqSectionAboutQ3, a: homeUi.faqSectionAboutA3 },
+    ],
+  },
+  {
+    title: homeUi.faqSectionProductionFeedTitle,
+    items: [
+      { q: homeUi.faqSectionProductionFeedQ1, a: homeUi.faqSectionProductionFeedA1 },
+      { q: homeUi.faqSectionProductionFeedQ2, a: homeUi.faqSectionProductionFeedA2 },
+      { q: homeUi.faqSectionProductionFeedQ3, a: homeUi.faqSectionProductionFeedA3 },
+    ],
+  },
+  {
+    title: homeUi.faqSectionAffiliateLinksTitle,
+    items: [
+      { q: homeUi.faqSectionAffiliateLinksQ1, a: homeUi.faqSectionAffiliateLinksA1 },
+      { q: homeUi.faqSectionAffiliateLinksQ2, a: homeUi.faqSectionAffiliateLinksA2 },
+    ],
+  },
+  {
+    title: homeUi.faqSectionShippingTitle,
+    items: [
+      { q: homeUi.faqSectionShippingQ1, a: homeUi.faqSectionShippingA1 },
+      { q: homeUi.faqSectionShippingQ2, a: homeUi.faqSectionShippingA2 },
+      { q: homeUi.faqSectionShippingQ3, a: homeUi.faqSectionShippingA3 },
+    ],
+  },
+  {
+    title: homeUi.faqSectionPrivacyAccountTitle,
+    items: [
+      { q: homeUi.faqSectionPrivacyAccountQ1, a: homeUi.faqSectionPrivacyAccountA1 },
+      {
+        q: homeUi.faqSectionPrivacyAccountQ2,
+        a: formatUi(homeUi.faqSectionPrivacyAccountA2, { companyEmail: COMPANY.email }),
+      },
+      { q: homeUi.faqSectionPrivacyAccountQ3, a: homeUi.faqSectionPrivacyAccountA3 },
+    ],
+  },
+];
 
 export const metadata: Metadata = createPageMetadata({
   title: HOME_UI.en.helpMetaTitle,
   description: HOME_UI.en.helpMetaDescription,
   path: "/help",
 });
-
-const FAQ_SECTIONS = [
-  {
-    title: "About BeforeToBuy.com",
-    items: [
-      {
-        q: "What is BeforeToBuy.com?",
-        a: "A free comparison platform in Beta/Demo, operated by PortanX - Catalin Portan (Switzerland). We distinguish production-feed offers from illustrative sample and demo data before redirecting you to the merchant website.",
-      },
-      {
-        q: "Do you sell products directly?",
-        a: "No. We do not operate a checkout, hold inventory, or process payments. Purchases are completed only on merchant websites (Digitec, Amazon, Brack, eMAG, etc.).",
-      },
-      {
-        q: "Is the service free?",
-        a: "Yes, 100% free for consumers. We may earn affiliate commissions from merchants when you complete a qualifying purchase after clicking an outbound link — at no extra cost to you.",
-      },
-    ],
-  },
-  {
-    title: "Production feed vs Sample vs Demo prices",
-    items: [
-      {
-        q: 'What do "Production feed", "Sample", and "Demo" mean on offers?',
-        a: "Production-feed offers come from a configured merchant datafeed. Sample offers come from an illustrative test file and are not live merchant data. Demo offers are generated catalog examples. Always confirm the final price on the merchant site.",
-      },
-      {
-        q: "Why do prices differ from the merchant website?",
-        a: "Demo and sample prices are illustrative. Production-feed prices may lag behind merchant updates. Merchant websites are authoritative at checkout.",
-      },
-      {
-        q: "Are Click & Collect distances accurate?",
-        a: "Distances use sample branch coordinates for demo purposes unless connected to a merchant store-locator API. They are estimates, not guaranteed stock or pickup availability.",
-      },
-    ],
-  },
-  {
-    title: "Affiliate links & cookies",
-    items: [
-      {
-        q: "Why are store links blocked sometimes?",
-        a: "Outbound affiliate links require your consent in the cookie banner (Affiliate category). You can change preferences anytime via Cookie Settings in the footer.",
-      },
-      {
-        q: "Does clicking a link change the price I pay?",
-        a: "No. Referral commissions come from the merchant marketing budget and should not increase your price. See our Affiliate Disclosure for details.",
-      },
-    ],
-  },
-  {
-    title: "Shipping, returns, warranty & payments",
-    items: [
-      {
-        q: "Who handles shipping and delivery?",
-        a: "The merchant you buy from — not BeforeToBuy.com. Delivery times shown on our site are indicative. Check the merchant checkout for shipping options and costs.",
-      },
-      {
-        q: "How do returns, refunds, and warranty work?",
-        a: "All post-purchase rights (returns, refunds, warranty, consumer guarantees) are governed by the merchant you purchased from and applicable local law. Contact the merchant directly.",
-      },
-      {
-        q: "Does BeforeToBuy.com process my payment?",
-        a: "No. Payment cards and checkout flows are handled entirely by the merchant or their payment provider.",
-      },
-    ],
-  },
-  {
-    title: "Privacy & account",
-    items: [
-      {
-        q: "Do I need an account?",
-        a: "No account is required to browse and compare prices on BeforeToBuy.com.",
-      },
-      {
-        q: "How do I request my personal data (DSAR)?",
-        a: `Email ${COMPANY.email} or use the contact form with topic "Data Privacy & Legal Request (DSAR)". We respond within 30 days.`,
-      },
-      {
-        q: "Where can I read about cookies and location?",
-        a: "See our Privacy Policy and Cookie Policy, or use Cookie Settings in the footer.",
-      },
-    ],
-  },
-];
 
 export default function HelpPage() {
   return (

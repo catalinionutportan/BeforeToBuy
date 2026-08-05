@@ -1,9 +1,10 @@
-import { useEffect, useState, Suspense, useCallback } from "react";
+"use client";
+
+import { useEffect, useState, Suspense, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { CountryCode, Product, PromoCoupon } from "@/types";
-import { COUNTRIES }
- from "@/lib/countries";
+import { COUNTRIES } from "@/lib/countries";
 import { getActiveCouponsForCountry } from "@/lib/feed-parser";
 import type { ProductFetchMeta } from "@/lib/product-service";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
@@ -24,7 +25,8 @@ import {
   formatCategoryUi,
   getLocalizedCategoryLabel,
 } from "@/lib/category-i18n";
-import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
+import { useBrowseLocale } from "@/hooks/useBrowseLocale";
+import type { SiteLocale } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import {
   applyOfferFilters,
@@ -43,9 +45,15 @@ import {
 } from "lucide-react";
 import { sanitizeString } from "@/lib/utils/sanitization";
 
-const AffiliateDisclosureModal = dynamic(() => import("@/components/AffiliateDisclosureModal"), {
-  ssr: false,
-});
+const AffiliateDisclosureModal = dynamic(
+  () =>
+    import("@/components/AffiliateDisclosureModal").then((mod) => ({
+      default: mod.AffiliateDisclosureModal,
+    })),
+  {
+    ssr: false,
+  }
+);
 
 export default function Home() {
   const [searchInput, setSearchInput] = useState<string>("");
@@ -306,6 +314,7 @@ export default function Home() {
         isLocating={isLocating}
         productionOfferCount={catalogMeta?.productionOfferCount || 0}
         sampleOfferCount={catalogMeta?.sampleOfferCount || 0}
+        locale={browseLocale}
       />
 
       {/* Merchant Stores & Integrated Domains Banner Bar */}
@@ -344,7 +353,7 @@ export default function Home() {
           </div>
 
           <Link
-            href={{ pathname: "/stores", locale: browseLocale }}
+            href="/stores"
             className="text-slate-300 hover:text-emerald-400 font-bold shrink-0 inline-flex items-center gap-1 text-[11px] hover:underline"
           >
             <span>

@@ -4,6 +4,7 @@ import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { Store, Navigation, Radio, ArrowRightLeft } from "lucide-react";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
+import type { SiteLocale } from "@/lib/i18n/locales";
 
 interface LocationBannerProps {
   userLocation: UserLocation;
