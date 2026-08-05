@@ -30,7 +30,8 @@ const ALL_COUNTRIES: CountryCode[] = ["CH", "DE", "FR", "RO", "GB", "US"];
 const NON_CH_COUNTRIES: CountryCode[] = ALL_COUNTRIES.filter((code) => code !== "CH");
 
 /**
- * Generate localized offers dynamically for a given product and user location
+ * TODO: Refactor generateOffersForLocation to fetch offers from real affiliate APIs/databases
+ * instead of hardcoded logic, for production use. The current implementation is for demo purposes.
  */
 function generateOffersForLocation(product: Product, userLocation: UserLocation) {
   const country = userLocation.countryCode;
