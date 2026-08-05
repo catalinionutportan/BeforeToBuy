@@ -81,6 +81,7 @@ export const HOME_UI: Record<
     inCountry: "in",
     detected: "Detected:",
     betaDemo: "Beta Demo",
+    productFetchError: "Could not load products. Please try again later.",
   },
   de: {
     tagline: "GPS-Preisvergleich lokal & online",
@@ -141,6 +142,7 @@ export const HOME_UI: Record<
     inCountry: "in",
     detected: "Erkannt:",
     betaDemo: "Beta Demo",
+    productFetchError: "Produkte konnten nicht geladen werden. Bitte versuchen Sie es später erneut.",
   },
   fr: {
     tagline: "Comparaison de prix GPS locale & en ligne",
@@ -201,6 +203,7 @@ export const HOME_UI: Record<
     inCountry: "en",
     detected: "Détecté:",
     betaDemo: "Bêta Démo",
+    productFetchError: "Impossible de charger les produits. Veuillez réessayer plus tard.",
   },
   it: {
     tagline: "Confronto prezzi GPS locale e online",
@@ -261,6 +264,7 @@ export const HOME_UI: Record<
     inCountry: "in",
     detected: "Rilevato:",
     betaDemo: "Beta Demo",
+    productFetchError: "Impossibile caricare i prodotti. Riprova più tardi.",
   },
   ro: {
     tagline: "Comparație prețuri GPS local & online",
@@ -321,6 +325,7 @@ export const HOME_UI: Record<
     inCountry: "în",
     detected: "Detectat:",
     betaDemo: "Beta Demo",
+    productFetchError: "Nu s-au putut încărca produsele. Vă rugăm să încercați din nou mai târziu.",
   },
 };
 

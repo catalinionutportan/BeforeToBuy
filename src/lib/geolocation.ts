@@ -45,18 +45,14 @@ export async function reverseGeocode(
 ): Promise<{ countryCode: CountryCode; countryName: string; city: string }> {
   try {
     const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`);
-    if (res.ok) {
-      return await res.json();
+    if (!res.ok) {
+      throw new Error(`Reverse geocode API failed with status: ${res.status}`);
     }
+    return await res.json();
   } catch (err) {
-    console.warn("Reverse geocode failed, fallback to default", err);
+    console.error("Reverse geocode failed", err);
+    throw new Error("Unable to determine location from coordinates.");
   }
-
-  return {
-    countryCode: DEFAULT_COUNTRY,
-    countryName: COUNTRIES[DEFAULT_COUNTRY].name,
-    city: COUNTRIES[DEFAULT_COUNTRY].defaultCoordinates.city,
-  };
 }
 
 /**
@@ -65,14 +61,14 @@ export async function reverseGeocode(
 export async function getLocationFromIp(): Promise<UserLocation> {
   try {
     const res = await fetch("/api/location");
-    if (res.ok) {
-      return await res.json();
+    if (!res.ok) {
+      throw new Error(`IP Geolocation API failed with status: ${res.status}`);
     }
+    return await res.json();
   } catch (err) {
-    console.warn("IP Geolocation failed:", err);
+    console.error("IP Geolocation failed:", err);
+    throw new Error("Unable to determine location from IP.");
   }
-
-  return defaultLocation();
 }
 
 /**
@@ -80,10 +76,10 @@ export async function getLocationFromIp(): Promise<UserLocation> {
  */
 export async function detectUserLocationGps(): Promise<UserLocation> {
   if (typeof window === "undefined" || !navigator.geolocation) {
-    return defaultLocation();
+    throw new Error("Geolocation is not supported by your browser.");
   }
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const options = {
       enableHighAccuracy: true,
       timeout: 5000,
@@ -92,22 +88,33 @@ export async function detectUserLocationGps(): Promise<UserLocation> {
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        const geoInfo = await reverseGeocode(lat, lng);
+        try {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const geoInfo = await reverseGeocode(lat, lng);
 
-        resolve({
-          latitude: lat,
-          longitude: lng,
-          countryCode: geoInfo.countryCode,
-          countryName: geoInfo.countryName,
-          city: geoInfo.city,
-          isGps: true,
-        });
+          resolve({
+            latitude: lat,
+            longitude: lng,
+            countryCode: geoInfo.countryCode,
+            countryName: geoInfo.countryName,
+            city: geoInfo.city,
+            isGps: true,
+          });
+        } catch (error) {
+          console.error("Reverse geocode after GPS failed:", error);
+          reject(new Error("Unable to process GPS location."));
+        }
       },
       (error) => {
         console.warn("GPS Permission denied or timed out:", error.message);
-        resolve(defaultLocation());
+        let userMessage = "Unable to get GPS location.";
+        if (error.code === error.PERMISSION_DENIED) {
+          userMessage = "GPS permission denied. Please enable location services for this site.";
+        } else if (error.code === error.TIMEOUT) {
+          userMessage = "GPS location timed out. Please try again.";
+        }
+        reject(new Error(userMessage));
       },
       options
     );

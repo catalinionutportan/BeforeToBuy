@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState, Suspense, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -10,7 +8,7 @@ import {
   getConsentPreferences,
   openConsentPreferences,
 } from "@/lib/consent";
-import { detectUserLocationGps, getLocationFromIp } from "@/lib/geolocation";
+import { detectUserLocationGps, getLocationFromIp, defaultLocation } from "@/lib/geolocation"; // Import defaultLocation
 import { getActiveCouponsForCountry } from "@/lib/feed-parser";
 import type { ProductFetchMeta } from "@/lib/product-service";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
@@ -74,6 +72,7 @@ export default function Home() {
   const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(true);
   const [isDisclosureOpen, setIsDisclosureOpen] = useState<boolean>(false);
   const [catalogMeta, setCatalogMeta] = useState<ProductFetchMeta | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // New state for error messages
 
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
   const {
@@ -97,9 +96,16 @@ export default function Home() {
   useEffect(() => {
     async function initIpLocation() {
       setIsLocating(true);
-      const loc = await getLocationFromIp();
-      setUserLocation(loc);
-      setIsLocating(false);
+      try {
+        const loc = await getLocationFromIp();
+        setUserLocation(loc);
+      } catch (error) {
+        console.error("Error fetching IP location:", error);
+        setErrorMessage(homeUi.geolocationApiError); // Set user-friendly error message
+        setUserLocation(defaultLocation()); // Fallback to default location
+      } finally {
+        setIsLocating(false);
+      }
     }
 
     const prefs = getConsentPreferences();
@@ -116,7 +122,7 @@ export default function Home() {
 
     window.addEventListener(CONSENT_UPDATED_EVENT, onConsentUpdated);
     return () => window.removeEventListener(CONSENT_UPDATED_EVENT, onConsentUpdated);
-  }, []);
+  }, [setErrorMessage, setUserLocation]); // Added setErrorMessage and setUserLocation to dependencies
 
   // Read shareable browse state and respond to browser back/forward navigation.
   useEffect(() => {
@@ -158,6 +164,7 @@ export default function Home() {
   useEffect(() => {
     async function loadProductsAndCoupons() {
       setIsLoadingProducts(true);
+      setErrorMessage(null); // Clear previous errors before a new fetch
 
       try {
         const params = new URLSearchParams({
@@ -186,18 +193,21 @@ export default function Home() {
 
         setProducts(data.products || []);
         setCatalogMeta(data.meta || null);
+        setErrorMessage(null); // Clear any previous error message on success
       } catch (error) {
         console.error("Failed to load products:", error);
         setProducts([]);
         setCatalogMeta(null);
+        setErrorMessage(homeUi.productFetchError); // Set user-friendly error message
+      } finally {
+        setIsLoadingProducts(false);
       }
 
       const activeCoupons = getActiveCouponsForCountry(userLocation.countryCode);
       setCoupons(activeCoupons);
-      setIsLoadingProducts(false);
     }
     loadProductsAndCoupons();
-  }, [userLocation, debouncedSearchQuery, selectedCategory]);
+  }, [userLocation, debouncedSearchQuery, selectedCategory, homeUi.productFetchError, setErrorMessage, setProducts, setCatalogMeta, setCoupons]);
 
   // Handle manual country change
   const handleCountryChange = useCallback((countryCode: CountryCode) => {
@@ -303,10 +313,20 @@ export default function Home() {
     }
 
     setIsLocating(true);
-    const loc = await detectUserLocationGps();
-    setUserLocation(loc);
-    setIsLocating(false);
-  }, [setIsLocating, setUserLocation]);
+    try {
+      const loc = await detectUserLocationGps();
+      setUserLocation(loc);
+      setErrorMessage(null); // Clear any previous error message on GPS success
+    } catch (error) {
+      console.error("Error fetching GPS location:", error);
+      // Determine which user-friendly message to show based on the error
+      const message = error instanceof Error ? error.message : homeUi.geolocationApiError;
+      setErrorMessage(message); // Set user-friendly error message
+      setUserLocation(defaultLocation()); // Fallback to default location
+    } finally {
+      setIsLocating(false);
+    }
+  }, [setIsLocating, setUserLocation, setErrorMessage]);
 
   const brandOptions = collectBrandOptions(products);
   const displayedProducts = applyOfferFilters(products, activeOfferFilters);
@@ -514,6 +534,10 @@ export default function Home() {
                 <div className="bg-slate-200 h-10 rounded-xl w-full" />
               </div>
             ))}
+          </div>
+        ) : errorMessage ? ( // Display error message if set
+          <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl text-center">
+            <p className="font-bold">{errorMessage}</p>
           </div>
         ) : showCategoryEmptyState ? (
           <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-lg mx-auto space-y-4">
