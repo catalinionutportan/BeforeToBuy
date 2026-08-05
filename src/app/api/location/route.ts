@@ -4,10 +4,15 @@ import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { hasServerConsent } from "@/lib/server-consent";
 
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
+
 export async function GET(request: Request) {
   if (!hasServerConsent(request, "location")) {
     return NextResponse.json(
-      { error: "Location consent is required." },
+      { error: homeUi.geocodeLocationConsentRequired },
       { status: 403 }
     );
   }
@@ -17,7 +22,7 @@ export async function GET(request: Request) {
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: "Too many requests. Please try again later." },
+      { error: homeUi.geocodeTooManyRequests },
       {
         status: 429,
         headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
@@ -32,7 +37,7 @@ export async function GET(request: Request) {
         : "https://ipapi.co/json/";
 
     const res = await fetch(ipLookupUrl, {
-      headers: { "User-Agent": "BeforeToBuy/1.0 (admin@portanx.com)" },
+      headers: { "User-Agent": homeUi.userAgent },
       next: { revalidate: 3600 },
     });
 
@@ -52,7 +57,7 @@ export async function GET(request: Request) {
       });
     }
   } catch (error) {
-    console.warn("Server-side IP location fetch failed:", error);
+    console.warn(homeUi.serverSideIpLocationFailed, error);
   }
 
   const def = COUNTRIES[DEFAULT_COUNTRY];
