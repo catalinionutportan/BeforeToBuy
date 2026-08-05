@@ -15,6 +15,11 @@ import { PageShell } from "@/components/PageShell";
 import { createPageMetadata } from "@/lib/metadata";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
+import {
+  collectionBrowsePath,
+  departmentCategoryPath,
+  subcategoryCategoryPath,
+} from "@/lib/category-routes";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +71,7 @@ export default async function CategoriesPage() {
               {visibleCollections.map((collection) => (
                 <Link
                   key={collection.id}
-                  href={`/?category=${collection.id}`}
+                  href={collectionBrowsePath(collection.id)}
                   className="flex items-center justify-between rounded-2xl border border-orange-200 bg-white px-4 py-3 text-sm font-bold text-orange-900 hover:border-orange-300 transition-colors"
                 >
                   <span>{getCollectionLabel(collection.id, locale)}</span>
@@ -103,7 +108,7 @@ export default async function CategoriesPage() {
                     </div>
                   </div>
                   <Link
-                    href={`/?category=${cat.id}`}
+                    href={departmentCategoryPath(cat.id)}
                     className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1 shrink-0"
                   >
                     Compare <ArrowRight className="w-3 h-3" />
@@ -118,7 +123,7 @@ export default async function CategoriesPage() {
                     .map((sub) => (
                       <li key={sub.id}>
                         <Link
-                          href={`/?category=${sub.id}`}
+                          href={subcategoryCategoryPath(cat.id, sub.id)}
                           className="flex items-center justify-between text-xs font-semibold text-slate-700 hover:text-emerald-700 py-1.5 px-2 rounded-lg hover:bg-emerald-50 transition-colors group"
                         >
                           <span className="flex items-center gap-1.5">

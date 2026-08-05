@@ -92,6 +92,19 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(body.products.every((product: { category: string }) => product.category !== "unmapped")).toBeTruthy();
   });
 
+  test("legacy category query redirects to SEO category route", async ({ page }) => {
+    await page.goto("/?category=audio");
+    await expect(page).toHaveURL(/\/categories\/audio$/);
+    await expect(page.getByRole("heading", { name: "Audio", exact: true })).toBeVisible();
+  });
+
+  test("department SEO route renders products and breadcrumbs", async ({ page }) => {
+    await page.goto("/categories/audio");
+    await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Audio", exact: true })).toBeVisible();
+    await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
+  });
+
   test("category selection is shareable and empty departments stay hidden", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
