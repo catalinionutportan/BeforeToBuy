@@ -291,6 +291,10 @@ export const HOME_UI: Record<
     productsComparedInSwitzerland: "{count} products compared in Switzerland",
     subcategories: "Subcategories",
     noOffersAvailableInCategory: "No offers are available in this category for Switzerland yet.",
+    collectionNotFoundMetaTitle: "Collection Not Found | BeforeToBuy.com",
+    collectionNotFoundMetaDescription: "The requested comparison collection could not be found.",
+    collectionMetaTitle: "{label} | BeforeToBuy.com",
+    collectionMetaDescription: "Browse {label} comparison offers in Switzerland on BeforeToBuy.com.",
   },
   de: {
     tagline: "GPS-Preisvergleich lokal & online",
@@ -562,6 +566,10 @@ export const HOME_UI: Record<
     productsComparedInSwitzerland: "{count} Produkte verglichen in der Schweiz",
     subcategories: "Unterkategorien",
     noOffersAvailableInCategory: "Keine Angebote in dieser Kategorie für die Schweiz verfügbar.",
+    collectionNotFoundMetaTitle: "Sammlung nicht gefunden | BeforeToBuy.com",
+    collectionNotFoundMetaDescription: "Die angeforderte Vergleichssammlung konnte nicht gefunden werden.",
+    collectionMetaTitle: "{label} | BeforeToBuy.com",
+    collectionMetaDescription: "Durchsuchen Sie {label} Vergleichsangebote in der Schweiz auf BeforeToBuy.com.",
   },
   fr: {
     tagline: "Comparaison de prix GPS locale & en ligne",
@@ -834,6 +842,10 @@ export const HOME_UI: Record<
     productsComparedInSwitzerland: "{count} produits comparés en Suisse",
     subcategories: "Sous-catégories",
     noOffersAvailableInCategory: "Aucune offre n'est disponible dans cette catégorie pour la Suisse.",
+    collectionNotFoundMetaTitle: "Collection introuvable | BeforeToBuy.com",
+    collectionNotFoundMetaDescription: "La collection de comparaison demandée n'a pas pu être trouvée.",
+    collectionMetaTitle: "{label} | BeforeToBuy.com",
+    collectionMetaDescription: "Parcourez les offres de comparaison {label} en Suisse sur BeforeToBuy.com.",
   },
   it: {
     tagline: "Confronto prezzi GPS locale e online",
@@ -1105,6 +1117,10 @@ export const HOME_UI: Record<
     productsComparedInSwitzerland: "{count} prodotti confrontati in Svizzera",
     subcategories: "Sottocategorie",
     noOffersAvailableInCategory: "Nessuna offerta disponibile in questa categoria per la Svizzera.",
+    collectionNotFoundMetaTitle: "Collezione non trovata | BeforeToBuy.com",
+    collectionNotFoundMetaDescription: "La collezione di confronto richiesta non è stata trovata.",
+    collectionMetaTitle: "{label} | BeforeToBuy.com",
+    collectionMetaDescription: "Sfoglia le offerte di confronto {label} in Svizzera su BeforeToBuy.com.",
   },
   ro: {
     tagline: "Comparație prețuri GPS local & online",
@@ -1376,6 +1392,10 @@ export const HOME_UI: Record<
     productsComparedInSwitzerland: "{count} produse comparate în Elveția",
     subcategories: "Subcategorii",
     noOffersAvailableInCategory: "Nu sunt disponibile oferte în această categorie pentru Elveția încă.",
+    collectionNotFoundMetaTitle: "Colecție negăsită | BeforeToBuy.com",
+    collectionNotFoundMetaDescription: "Colecția de comparație solicitată nu a putut fi găsită.",
+    collectionMetaTitle: "{label} | BeforeToBuy.com",
+    collectionMetaDescription: "Răsfoiți ofertele de comparație {label} în Elveția pe BeforeToBuy.com.",
   },
 };
 

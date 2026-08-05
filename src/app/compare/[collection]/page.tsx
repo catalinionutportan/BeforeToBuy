@@ -12,6 +12,8 @@ import { createCategoryMetadata } from "@/lib/metadata";
 import { getCollectionLabel, localeFromCountry } from "@/lib/category-i18n";
 import { COMPARISON_COLLECTION_FILTERS } from "@/lib/categories";
 import { DEFAULT_COUNTRY } from "@/lib/countries";
+import { HOME_UI } from "@/lib/i18n/ui";
+import { useBrowseLocale } from "@/lib/i18n/client";
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +26,8 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
   const collectionId = validateCollectionRoute(collection);
   if (!collectionId) {
     return createCategoryMetadata({
-      title: "Collection Not Found | BeforeToBuy.com",
-      description: "The requested comparison collection could not be found.",
+      title: HOME_UI.en.collectionNotFoundMetaTitle,
+      description: HOME_UI.en.collectionNotFoundMetaDescription,
       path: `/compare/${collection}`,
       index: false,
     });
@@ -44,6 +46,8 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
 }
 
 export default async function ComparisonCollectionPage({ params }: CollectionPageProps) {
+  const { browseLocale } = useBrowseLocale();
+  const homeUi = HOME_UI[browseLocale];
   const { collection } = await params;
   const collectionId = validateCollectionRoute(collection);
   if (!collectionId) notFound();
