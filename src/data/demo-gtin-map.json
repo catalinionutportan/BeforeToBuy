@@ -8,7 +8,8 @@
     "variantKey": "256gb+air+midnight"
   },
   "prod-sony-wh1000xm5": {
-    "gtin": "7612345678902"
+    "gtin": "7612345678902",
+    "variantKey": "black"
   },
   "prod-dyson-v15": {
     "gtin": "7612345678911"
@@ -16,5 +17,92 @@
   "prod-samsung-s24-ultra": {
     "gtin": "7612345678999",
     "variantKey": "512gb+titanium-black+ultra"
+  },
+  "prod-ipad-air-m2": {
+    "gtin": "7612345678002",
+    "variantKey": "256gb+blue"
+  },
+  "prod-apple-watch-s10": {
+    "gtin": "7612345678003",
+    "variantKey": "45mm+aluminium+black"
+  },
+  "prod-ps5-digital-slim": {
+    "gtin": "7612345678004"
+  },
+  "prod-nintendo-switch-oled": {
+    "gtin": "7612345678005",
+    "variantKey": "oled+white"
+  },
+  "prod-bose-qc-ultra": {
+    "gtin": "7612345678006",
+    "variantKey": "black"
+  },
+  "prod-lg-oled-55c3": {
+    "gtin": "7612345678007",
+    "variantKey": "55in"
+  },
+  "prod-asus-rog-ally": {
+    "gtin": "7612345678008",
+    "variantKey": "512gb"
+  },
+  "prod-gopro-hero12": {
+    "gtin": "7612345678009"
+  },
+  "prod-marshall-stanmore3": {
+    "gtin": "7612345678010",
+    "variantKey": "black"
+  },
+  "prod-logitech-mx-master3s": {
+    "gtin": "7612345678011"
+  },
+  "prod-dell-xps-13": {
+    "gtin": "7612345678012",
+    "variantKey": "16gb+512gb+platinum"
+  },
+  "prod-sonos-era-300": {
+    "gtin": "7612345678013"
+  },
+  "prod-garmin-fenix7": {
+    "gtin": "7612345678014",
+    "variantKey": "47mm"
+  },
+  "prod-delonghi-magnifica": {
+    "gtin": "7612345678015"
+  },
+  "prod-irobot-roomba-j7": {
+    "gtin": "7612345678016"
+  },
+  "prod-ninja-foodi-dualzone": {
+    "gtin": "7612345678017"
+  },
+  "prod-sage-barista-touch": {
+    "gtin": "7612345678018"
+  },
+  "prod-kitchenaid-artisan": {
+    "gtin": "7612345678019",
+    "variantKey": "empire-red"
+  },
+  "prod-nespresso-vertuo-pop": {
+    "gtin": "7612345678020",
+    "variantKey": "spicy-red"
+  },
+  "prod-tefal-optigrill": {
+    "gtin": "7612345678021"
+  },
+  "prod-miele-c3-vacuum": {
+    "gtin": "7612345678022"
+  },
+  "prod-braun-series9": {
+    "gtin": "7612345678023"
+  },
+  "prod-dji-mini4-pro": {
+    "gtin": "7612345678024",
+    "variantKey": "fly-more+rc2"
+  },
+  "prod-dji-mavic3-pro": {
+    "gtin": "7612345678025"
+  },
+  "prod-dji-avata2": {
+    "gtin": "7612345678026"
   }
 }

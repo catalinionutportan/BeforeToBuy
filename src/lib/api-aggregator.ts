@@ -191,6 +191,8 @@ const STORE_BRANCHES: Record<CountryCode, PhysicalStoreBranch[]> = {
 };
 
 const ALL_COUNTRIES: CountryCode[] = ["CH", "DE", "FR", "RO", "GB", "US"];
+/** Fashion/shoes are out of CH launch scope (wrong wearables mapping). */
+const NON_CH_COUNTRIES: CountryCode[] = ALL_COUNTRIES.filter((code) => code !== "CH");
 
 // Expanded multi-country products database (50 popular items in CH/EU)
 const BASE_PRODUCTS_DB: Product[] = [
@@ -552,7 +554,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     offers: [],
   },
 
-  // --- Fashion & Shoes ---
+  // --- Fashion & Shoes (excluded from CH launch — not wearables tech) ---
   {
     id: "prod-nike-air-max",
     title: "Nike Air Max 270 Black & White Sneakers",
@@ -563,7 +565,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     rating: 4.6,
     reviewsCount: 1890,
     basePrice: 140,
-    targetCountries: ALL_COUNTRIES,
+    targetCountries: NON_CH_COUNTRIES,
     isFlashDeal: true,
     offers: [],
   },
@@ -577,7 +579,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     rating: 4.7,
     reviewsCount: 1250,
     basePrice: 160,
-    targetCountries: ALL_COUNTRIES,
+    targetCountries: NON_CH_COUNTRIES,
     offers: [],
   },
   {
@@ -590,7 +592,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     rating: 4.9,
     reviewsCount: 2100,
     basePrice: 170,
-    targetCountries: ALL_COUNTRIES,
+    targetCountries: NON_CH_COUNTRIES,
     offers: [],
   },
   {
@@ -603,7 +605,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     rating: 4.8,
     reviewsCount: 940,
     basePrice: 155,
-    targetCountries: ALL_COUNTRIES,
+    targetCountries: NON_CH_COUNTRIES,
     offers: [],
   },
   {
@@ -616,7 +618,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     rating: 4.7,
     reviewsCount: 3100,
     basePrice: 95,
-    targetCountries: ALL_COUNTRIES,
+    targetCountries: NON_CH_COUNTRIES,
     offers: [],
   },
   {
@@ -629,7 +631,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     rating: 4.8,
     reviewsCount: 1780,
     basePrice: 135,
-    targetCountries: ALL_COUNTRIES,
+    targetCountries: NON_CH_COUNTRIES,
     offers: [],
   },
   {
@@ -642,7 +644,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     rating: 4.9,
     reviewsCount: 1450,
     basePrice: 290,
-    targetCountries: ALL_COUNTRIES,
+    targetCountries: NON_CH_COUNTRIES,
     offers: [],
   },
   {
@@ -655,7 +657,7 @@ const BASE_PRODUCTS_DB: Product[] = [
     rating: 4.7,
     reviewsCount: 2900,
     basePrice: 85,
-    targetCountries: ALL_COUNTRIES,
+    targetCountries: NON_CH_COUNTRIES,
     offers: [],
   },
 

@@ -7,6 +7,7 @@ import { openConsentPreferences } from "@/lib/consent";
 import { useConsent } from "@/lib/use-consent";
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import { getPriceTrend } from "@/lib/pricing/price-trend";
+import { formatOfferFreshness, getFreshestOfferTimestamp } from "@/lib/offers/freshness";
 import {
   ExternalLink,
   MapPin,
@@ -54,6 +55,7 @@ export function ProductCard({
   const pickupOffer = product.offers.find(
     (o) => o.source === "production-live" && o.type === "local_pickup" && o.nearbyBranch
   );
+  const freshestLabel = formatOfferFreshness(getFreshestOfferTimestamp(product.offers));
 
   return (
     <article className="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group">
@@ -92,6 +94,25 @@ export function ProductCard({
             {product.title}
           </h3>
           <p className="text-xs text-slate-500 mt-1 line-clamp-2">{product.description}</p>
+          {(product.gtin || product.variantKey || freshestLabel) && (
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
+              {product.gtin && (
+                <span className="rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-semibold">
+                  GTIN {product.gtin.replace(/^0+/, "") || product.gtin}
+                </span>
+              )}
+              {product.variantKey && (
+                <span className="rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-medium">
+                  {product.variantKey.replace(/\+/g, " · ")}
+                </span>
+              )}
+              {freshestLabel && (
+                <span className="rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-medium">
+                  {freshestLabel}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {pickupOffer && pickupOffer.nearbyBranch && (

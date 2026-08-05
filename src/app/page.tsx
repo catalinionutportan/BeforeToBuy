@@ -445,11 +445,18 @@ export default function Home() {
                   {catalogMeta.sampleOfferCount > 0 && (
                     <><strong className="text-amber-700">{catalogMeta.sampleOfferCount} sample offer(s)</strong> are illustrative and not live.{" "}</>
                   )}
+                  {catalogMeta.gtinLinkedProductCount > 0 && (
+                    <>{catalogMeta.gtinLinkedProductCount} products linked by GTIN.{" "}</>
+                  )}
                   Other merchants remain demo. Confirm final price on the merchant site.
                 </>
               ) : (
                 <>
-                  Demo catalog prices for <strong className="text-slate-800">{userLocation.city}</strong> — confirm final price on the merchant site
+                  Demo catalog prices for <strong className="text-slate-800">{userLocation.city}</strong>
+                  {catalogMeta?.gtinLinkedProductCount
+                    ? ` — ${catalogMeta.gtinLinkedProductCount} GTIN-linked`
+                    : ""}{" "}
+                  — confirm final price on the merchant site
                 </>
               )}
             </p>
