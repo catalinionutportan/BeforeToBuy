@@ -620,6 +620,120 @@ export interface ShoppingCollection {
   legacyIds: string[];
 }
 
+/** Offer-based comparison views — separate from product taxonomy. */
+export interface ComparisonCollectionFilter {
+  id: string;
+  label: string;
+  description: string;
+}
+
+export const COMPARISON_COLLECTION_FILTERS: ComparisonCollectionFilter[] = [
+  {
+    id: "compare-cross-border",
+    label: "Cross-border savings",
+    description: "Offers that may be cheaper when ordered from another country.",
+  },
+  {
+    id: "compare-local-pickup",
+    label: "Pick up near you",
+    description: "Click & Collect and local branch pickup options.",
+  },
+  {
+    id: "sale",
+    label: "Deals & price drops",
+    description: "Verified production-feed offers with merchant-supplied reductions.",
+  },
+  {
+    id: "compare-refurb",
+    label: "Refurbished & used",
+    description: "Renewed, refurbished and second-hand condition offers.",
+  },
+];
+
+export interface CategorySubcategoryGroup {
+  id: string;
+  label: string;
+  subcategoryIds: string[];
+}
+
+/** Optional level-3 grouping for large departments in browse UI. */
+export const CATEGORY_SUBCATEGORY_GROUPS: Record<string, CategorySubcategoryGroup[]> = {
+  "computers-tablets": [
+    {
+      id: "computers-core",
+      label: "Computers & displays",
+      subcategoryIds: [
+        "notebooks-laptops",
+        "notebooks-desktops",
+        "notebooks-monitors",
+        "notebooks-tablets-pc",
+        "computers-ereaders",
+      ],
+    },
+    {
+      id: "computers-peripherals",
+      label: "Peripherals & accessories",
+      subcategoryIds: [
+        "peripherals-keyboard-mouse",
+        "peripherals-webcam",
+        "peripherals-storage",
+        "peripherals-accessories",
+        "computers-docks",
+      ],
+    },
+  ],
+  "photo-video-drones-optics": [
+    {
+      id: "photo-cameras",
+      label: "Cameras",
+      subcategoryIds: [
+        "photo-mirrorless",
+        "photo-dslr",
+        "photo-compact",
+        "photo-action",
+        "photo-video-cameras",
+      ],
+    },
+    {
+      id: "photo-lenses-optics",
+      label: "Lenses & optics",
+      subcategoryIds: ["photo-lenses", "photo-binoculars", "photo-filters"],
+    },
+    {
+      id: "photo-accessories",
+      label: "Photo accessories",
+      subcategoryIds: [
+        "photo-flashes",
+        "photo-studio-lighting",
+        "photo-batteries",
+        "photo-memory",
+        "photo-tripods",
+        "photo-gimbals",
+        "photo-bags",
+        "photo-microphones",
+        "photo-remote",
+        "photo-mounts",
+        "photo-cleaning",
+        "photo-cables",
+      ],
+    },
+    {
+      id: "photo-drones",
+      label: "Drones & RC",
+      subcategoryIds: [
+        "drones-quadcopters",
+        "drones-accessories",
+        "drones-rc",
+        "drones-gadgets",
+      ],
+    },
+  ],
+};
+
+export function isCollectionFilter(categoryId: string): boolean {
+  return COMPARISON_COLLECTION_FILTERS.some((item) => item.id === categoryId);
+}
+
 export const SHOPPING_COLLECTIONS: ShoppingCollection[] = [
   {
     id: "before-you-buy",
@@ -777,6 +891,8 @@ export function getCategoryLabel(categoryId: string): string {
   if (sub) return sub.label;
   const cat = getCategoryById(resolvedId);
   if (cat) return cat.label;
+  const collectionFilter = COMPARISON_COLLECTION_FILTERS.find((item) => item.id === categoryId);
+  if (collectionFilter) return collectionFilter.label;
   const collection = SHOPPING_COLLECTIONS.find(
     (item) => item.id === categoryId || item.legacyIds.includes(categoryId)
   );

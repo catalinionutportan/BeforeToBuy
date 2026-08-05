@@ -2,6 +2,7 @@ import { Product, UserLocation } from "@/types";
 import { fetchProductsForLocation } from "@/lib/api-aggregator";
 import { getFeedProducts } from "@/lib/merchant-feeds";
 import {
+  COMPARISON_COLLECTION_FILTERS,
   getParentCategoryId,
   productMatchesCategoryFilter,
   resolveCategoryAlias,
@@ -155,6 +156,15 @@ export async function fetchMergedProductsForLocation(
     if (parentId) counts[parentId] = (counts[parentId] ?? 0) + 1;
     return counts;
   }, {});
+  const collectionCounts = COMPARISON_COLLECTION_FILTERS.reduce<Record<string, number>>(
+    (counts, collection) => {
+      counts[collection.id] = visibleProducts.filter((product) =>
+        productMatchesCategoryFilter(product, collection.id)
+      ).length;
+      return counts;
+    },
+    {}
+  );
   const products = category
     ? visibleProducts.filter((product) => productMatchesCategoryFilter(product, category))
     : visibleProducts;
@@ -184,6 +194,7 @@ export async function fetchMergedProductsForLocation(
       feedProductCount: feedResult.products.length,
       unmappedProductCount,
       categoryCounts,
+      collectionCounts,
       feedSources: feedResult.sources,
       hasProductionFeed: feedResult.sources.includes("remote"),
       hasSampleFeed: feedResult.sources.includes("sample"),

@@ -19,13 +19,20 @@ import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
 import { AffiliateDisclosureModal } from "@/components/AffiliateDisclosureModal";
 import { CategoryNavigation } from "@/components/CategoryNavigation";
-import { ALL_CATEGORIES_ID, getCategoryLabel } from "@/lib/categories";
 import {
-  SlidersHorizontal,
+  CollectionNavigation,
+  isActiveCollectionSelection,
+} from "@/components/CollectionNavigation";
+import { ALL_CATEGORIES_ID } from "@/lib/categories";
+import {
+  CATEGORY_UI,
+  formatCategoryUi,
+  getLocalizedCategoryLabel,
+  localeFromCountry,
+} from "@/lib/category-i18n";
+import {
   Info,
-  MapPin,
   SearchX,
-  Flame,
   Store,
   ArrowRight,
 } from "lucide-react";
@@ -45,7 +52,6 @@ export default function Home() {
   const debouncedSearchQuery = useDebouncedValue(searchInput, 350);
   const [selectedDomain, setSelectedDomain] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORIES_ID);
-  const [filterType, setFilterType] = useState<"all" | "pickup" | "deals">("all");
   const [products, setProducts] = useState<Product[]>([]);
   const [coupons, setCoupons] = useState<PromoCoupon[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(true);
@@ -53,6 +59,8 @@ export default function Home() {
   const [catalogMeta, setCatalogMeta] = useState<ProductFetchMeta | null>(null);
 
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
+  const browseLocale = localeFromCountry(userLocation.countryCode);
+  const categoryUi = CATEGORY_UI[browseLocale];
 
   // IP location only after Location consent (no auto-GPS)
   useEffect(() => {
@@ -167,6 +175,10 @@ export default function Home() {
     window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
   };
 
+  const handleCollectionChange = (filterId: string) => {
+    handleCategoryChange(filterId === ALL_CATEGORIES_ID ? ALL_CATEGORIES_ID : filterId);
+  };
+
   // GPS only on explicit user action and with Location consent
   const handleRefreshGps = async () => {
     const prefs = getConsentPreferences();
@@ -181,27 +193,25 @@ export default function Home() {
     setIsLocating(false);
   };
 
-  // Filter products by pickup, deals, or domain view
   const displayedProducts = products.filter((prod) => {
-    // Filter by specific merchant domain if selected
     if (selectedDomain !== "all") {
-      const hasOfferInDomain = prod.offers.some((o) =>
-        o.storeName.toLowerCase().includes(selectedDomain.split(".")[0].toLowerCase()) ||
-        o.purchaseUrl.toLowerCase().includes(selectedDomain.toLowerCase())
+      const hasOfferInDomain = prod.offers.some(
+        (o) =>
+          o.storeName.toLowerCase().includes(selectedDomain.split(".")[0].toLowerCase()) ||
+          o.purchaseUrl.toLowerCase().includes(selectedDomain.toLowerCase())
       );
       if (!hasOfferInDomain) return false;
     }
 
-    if (filterType === "pickup") {
-      return prod.offers.some((o) => o.type === "local_pickup");
-    }
-    if (filterType === "deals") {
-      return prod.offers.some(
-        (o) => o.source === "production-live" && (o.originalPrice || o.discountPercentage)
-      );
-    }
     return true;
   });
+
+  const showCategoryEmptyState =
+    !isLoadingProducts &&
+    displayedProducts.length === 0 &&
+    selectedCategory !== ALL_CATEGORIES_ID &&
+    debouncedSearchQuery.trim() === "" &&
+    selectedDomain === "all";
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -286,49 +296,15 @@ export default function Home() {
             selectedCategory={selectedCategory}
             onCategoryChange={handleCategoryChange}
             categoryCounts={catalogMeta?.categoryCounts}
+            locale={browseLocale}
           />
 
-          {/* Quick Offer Filter */}
-          <div className="flex items-center gap-2 border-t border-slate-100 pt-3 shrink-0">
-            <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-              <SlidersHorizontal className="w-3.5 h-3.5" /> Filter:
-            </span>
-
-            <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1 flex-wrap">
-              <button
-                onClick={() => setFilterType("all")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  filterType === "all"
-                    ? "bg-white text-slate-900 shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                All Offers
-              </button>
-              <button
-                onClick={() => setFilterType("deals")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                  filterType === "deals"
-                    ? "bg-orange-600 text-white shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                <Flame className="w-3 h-3" />
-                <span>Price Drops & Deals</span>
-              </button>
-              <button
-                onClick={() => setFilterType("pickup")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                  filterType === "pickup"
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                <MapPin className="w-3 h-3" />
-                <span>Click & Collect Nearby</span>
-              </button>
-            </div>
-          </div>
+          <CollectionNavigation
+            selectedCategory={selectedCategory}
+            onCollectionChange={handleCollectionChange}
+            collectionCounts={catalogMeta?.collectionCounts}
+            locale={browseLocale}
+          />
         </div>
 
         {/* Results Bar Header */}
@@ -338,7 +314,7 @@ export default function Home() {
               <span>Comparing Deals in {userLocation.countryName}</span>
               {selectedCategory !== ALL_CATEGORIES_ID && (
                 <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-md border border-emerald-300">
-                  {getCategoryLabel(selectedCategory)}
+                  {getLocalizedCategoryLabel(selectedCategory, browseLocale)}
                 </span>
               )}
               {selectedDomain !== "all" && (
@@ -395,6 +371,32 @@ export default function Home() {
               </div>
             ))}
           </div>
+        ) : showCategoryEmptyState ? (
+          <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-lg mx-auto space-y-4">
+            <div className="w-16 h-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+              <SearchX className="w-8 h-8" />
+            </div>
+            <h4 className="text-lg font-bold text-slate-900">{categoryUi.emptyCategoryTitle}</h4>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              {formatCategoryUi(categoryUi.emptyCategoryBody, {
+                country: userLocation.countryName,
+              })}
+            </p>
+            <p className="text-[11px] text-slate-400">
+              {getLocalizedCategoryLabel(selectedCategory, browseLocale)}
+              {isActiveCollectionSelection(selectedCategory)
+                ? " · comparison collection"
+                : ""}
+            </p>
+            <button
+              onClick={() => {
+                handleCategoryChange(ALL_CATEGORIES_ID);
+              }}
+              className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
+            >
+              {categoryUi.resetFilters}
+            </button>
+          </div>
         ) : displayedProducts.length === 0 ? (
           <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-4">
             <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
@@ -409,7 +411,6 @@ export default function Home() {
                 setSearchInput("");
                 setSelectedDomain("all");
                 handleCategoryChange(ALL_CATEGORIES_ID);
-                setFilterType("all");
                 if (typeof window !== "undefined") {
                   const url = new URL(window.location.href);
                   url.searchParams.delete("q");
@@ -418,7 +419,7 @@ export default function Home() {
               }}
               className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
             >
-              Reset Filters
+              {categoryUi.resetFilters}
             </button>
           </div>
         ) : (

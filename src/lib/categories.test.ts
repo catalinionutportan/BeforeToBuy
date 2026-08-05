@@ -1,17 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  getParentCategoryId,
-  productMatchesCategoryFilter,
-  resolveCategoryAlias,
+  COMPARISON_COLLECTION_FILTERS,
   SHOPPING_CATEGORIES,
   SHOPPING_COLLECTIONS,
+  getParentCategoryId,
+  isCollectionFilter,
+  productMatchesCategoryFilter,
+  resolveCategoryAlias,
   UNMAPPED_CATEGORY_ID,
 } from "./categories";
 import {
   mapToBeforeToBuyCategory,
   mapToBeforeToBuyCategoryWithMetadata,
 } from "./category-mapper";
+import { getDepartmentLabel, getCollectionLabel, localeFromCountry } from "./category-i18n";
 import { ALL_MERCHANT_DOMAINS, MERCHANT_ID_ALIASES } from "./countries";
 
 const baseProduct = {
@@ -118,6 +121,19 @@ test("known merchant categories retain deterministic mappings", () => {
     }),
     "notebooks-laptops"
   );
+});
+
+test("comparison collections stay separate from product taxonomy", () => {
+  assert.equal(COMPARISON_COLLECTION_FILTERS.length, 4);
+  assert.ok(isCollectionFilter("compare-local-pickup"));
+  assert.ok(!isCollectionFilter("audio-headphones"));
+});
+
+test("localized labels resolve by country locale", () => {
+  assert.equal(localeFromCountry("CH"), "de");
+  assert.equal(localeFromCountry("FR"), "fr");
+  assert.equal(getDepartmentLabel("audio", "fr"), "Audio");
+  assert.equal(getCollectionLabel("sale", "ro"), "Oferte & reduceri");
 });
 
 test("Swiss merchant registry retires Microspot in favor of active retailers", () => {
