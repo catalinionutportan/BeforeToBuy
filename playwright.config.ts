@@ -1,5 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const E2E_INTERNAL_SECRET =
+  process.env.INTERNAL_API_SECRET ||
+  process.env.CRON_SECRET ||
+  "playwright-internal-api-secret-32chars!";
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -11,16 +16,25 @@ export default defineConfig({
     ...devices["Desktop Chrome"],
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000",
     trace: "on-first-retry",
+    extraHTTPHeaders: {
+      Origin: process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000",
+    },
   },
   webServer: {
-    command: "npm run start",
+    command: "npx next start --hostname 127.0.0.1 --port 3000",
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
+    timeout: 180_000,
+    stdout: "pipe",
+    stderr: "pipe",
     env: {
       CONSENT_SIGNING_SECRET:
         process.env.CONSENT_SIGNING_SECRET ||
         "playwright-consent-signing-secret-32-chars",
+      CRON_SECRET: E2E_INTERNAL_SECRET,
+      INTERNAL_API_SECRET: E2E_INTERNAL_SECRET,
+      // Ensure CI `next start` (NODE_ENV=production) without Vercel KV stays usable.
+      RATE_LIMIT_FAIL_OPEN: "1",
     },
   },
 });

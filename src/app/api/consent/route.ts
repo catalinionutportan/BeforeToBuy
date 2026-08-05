@@ -19,19 +19,36 @@ function hasValidOrigin(request: Request): boolean {
   if (!origin) return false;
 
   try {
-    const originHost = new URL(origin).host;
-    const allowedHosts = new Set<string>([new URL(request.url).host]);
+    const originHost = new URL(origin).host.toLowerCase();
+    const allowedHosts = new Set<string>();
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    if (siteUrl) {
+    const addHost = (value: string | null | undefined) => {
+      if (!value) return;
       try {
-        allowedHosts.add(new URL(siteUrl).host);
+        // Accept raw Host headers ("127.0.0.1:3000") or absolute URLs.
+        const host = value.includes("://") ? new URL(value).host : value;
+        allowedHosts.add(host.toLowerCase());
       } catch {
-        // ignore invalid site URL config
+        // ignore invalid host values
       }
+    };
+
+    addHost(request.url);
+    addHost(request.headers.get("host"));
+    addHost(request.headers.get("x-forwarded-host"));
+    addHost(process.env.NEXT_PUBLIC_SITE_URL);
+
+    if (allowedHosts.has(originHost)) return true;
+
+    // Local/CI: treat localhost and 127.0.0.1 as equivalent.
+    const normalizeLoopback = (host: string) =>
+      host.replace(/^127\.0\.0\.1(?=:\d+$|$)/, "localhost").replace(/^\[::1\](?=:\d+$|$)/, "localhost");
+    const normalizedOrigin = normalizeLoopback(originHost);
+    for (const allowed of allowedHosts) {
+      if (normalizeLoopback(allowed) === normalizedOrigin) return true;
     }
 
-    return allowedHosts.has(originHost);
+    return false;
   } catch {
     return false;
   }

@@ -10,13 +10,10 @@ import { getFrOffers } from "./offers/fr-offers";
 import { getRoOffers } from "./offers/ro-offers";
 import { getGbOffers } from "./offers/gb-offers";
 import { getUsOffers } from "./offers/us-offers";
+import countryPriceMultipliers from "@/data/country-price-multipliers.json";
 
 export async function fetchCountryPriceMultipliers(): Promise<Record<CountryCode, number>> {
-  const response = await fetch('/data/country-price-multipliers.json');
-  if (!response.ok) {
-    throw new Error(`Failed to fetch country price multipliers: ${response.statusText}`);
-  }
-  return response.json();
+  return countryPriceMultipliers as Record<CountryCode, number>;
 }
 
 // Import store branches from JSON files

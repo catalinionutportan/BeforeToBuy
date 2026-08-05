@@ -32,8 +32,13 @@ export async function checkRateLimit(
     return { allowed: true, retryAfterSeconds: 0 };
   } catch (error) {
     console.error("Rate limit KV error:", error);
-    // Production: fail closed. Local/dev without KV: fail open so APIs stay usable.
-    if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") {
+    // Fail closed only when KV is configured (expected to work). Without KV
+    // (local `next start`, CI e2e), fail open so APIs remain usable.
+    const failOpen =
+      process.env.RATE_LIMIT_FAIL_OPEN === "1" ||
+      !process.env.KV_REST_API_URL ||
+      !process.env.KV_REST_API_TOKEN;
+    if (!failOpen) {
       return { allowed: false, retryAfterSeconds: 60 };
     }
     return { allowed: true, retryAfterSeconds: 0 };

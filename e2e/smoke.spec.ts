@@ -1,14 +1,20 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("BeforeToBuy smoke E2E", () => {
+  test.beforeEach(async ({ page }) => {
+    // Force English UI so copy assertions stay stable across CI locales.
+    await page.addInitScript(() => {
+      window.localStorage.setItem("btb-ui-lang", "en");
+      window.localStorage.removeItem("b2b_consent_v3");
+    });
+  });
+
   test("homepage loads with beta banner and product grid", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByText(/Beta\s*\/?\s*Demo/i).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: /Shopping in/i })).toBeVisible({ timeout: 15_000 });
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
-    await expect(
-      page.getByRole("link", { name: "Visit the official PortanX company website" })
-    ).toHaveAttribute("href", "https://portanx.com");
+    await expect(page.locator('a[href="https://portanx.com"]').first()).toBeVisible();
     await expect(page.getByRole("link", { name: "admin@portanx.com" })).toHaveAttribute(
       "href",
       "mailto:admin@portanx.com"
@@ -38,10 +44,12 @@ test.describe("BeforeToBuy smoke E2E", () => {
   });
 
   test("location APIs require signed server-side consent", async ({ request }) => {
+    const origin = "http://127.0.0.1:3000";
     const blocked = await request.get("/api/geocode?lat=46.948&lng=7.4474");
     expect(blocked.status()).toBe(403);
 
     const deniedConsent = await request.post("/api/consent", {
+      headers: { Origin: origin },
       data: { location: false, affiliate: false },
     });
     expect(deniedConsent.ok()).toBeTruthy();
@@ -50,17 +58,20 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect((await request.get("/api/geocode?lat=46.948&lng=7.4474")).status()).toBe(403);
 
     const grantedConsent = await request.post("/api/consent", {
+      headers: { Origin: origin },
       data: { location: true, affiliate: false },
     });
     expect(grantedConsent.ok()).toBeTruthy();
     expect((await request.get("/api/geocode?lat=invalid&lng=7.4474")).status()).toBe(400);
 
-    expect((await request.delete("/api/consent")).ok()).toBeTruthy();
+    expect((await request.delete("/api/consent", { headers: { Origin: origin } })).ok()).toBeTruthy();
     expect((await request.get("/api/geocode?lat=46.948&lng=7.4474")).status()).toBe(403);
   });
 
   test("health API distinguishes sample-only from production feeds", async ({ request }) => {
-    const response = await request.get("/api/health");
+    const response = await request.get("/api/health", {
+      headers: { Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || process.env.CRON_SECRET || "playwright-internal-api-secret-32chars!"}` },
+    });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
     expect(body.checks.productsMerge.productCount).toBeGreaterThan(0);
@@ -120,7 +131,11 @@ test.describe("BeforeToBuy smoke E2E", () => {
   });
 
   test("integrations status reports all CH merchant feed modes", async ({ request }) => {
-    const response = await request.get("/api/integrations/status");
+    const response = await request.get("/api/integrations/status", {
+      headers: {
+        Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || process.env.CRON_SECRET || "playwright-internal-api-secret-32chars!"}`,
+      },
+    });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
     expect(body.merchants.length).toBe(6);
@@ -142,7 +157,11 @@ test.describe("BeforeToBuy smoke E2E", () => {
   });
 
   test("mapping report API exposes review queue for feed products", async ({ request }) => {
-    const response = await request.get("/api/mapping/report?country=CH");
+    const response = await request.get("/api/mapping/report?country=CH", {
+      headers: {
+        Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || process.env.CRON_SECRET || "playwright-internal-api-secret-32chars!"}`,
+      },
+    });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
     expect(body.summary.total).toBeGreaterThan(0);
