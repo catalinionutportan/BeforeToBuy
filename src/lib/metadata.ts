@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-const SITE_URL = "https://www.beforetobuy.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.beforetobuy.com";
 
 const HREFLANG_LOCALES = {
   en: `${SITE_URL}`,

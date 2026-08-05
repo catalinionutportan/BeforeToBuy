@@ -81,7 +81,7 @@ export function ProductCard({
             },
             "offers": {
               "@type": "AggregateOffer",
-              "url": `https://www.beforetobuy.com/p/${product.id}`, // Placeholder URL, needs to be dynamic
+              "url": `${process.env.NEXT_PUBLIC_SITE_URL}/p/${product.id}`, // Placeholder URL, needs to be dynamic
               "priceCurrency": currentCountryInfo.currency,
               "lowPrice": lowestFeedTotal,
               "highPrice": sortedOffers[sortedOffers.length - 1]?.totalPrice ?? lowestFeedTotal,
