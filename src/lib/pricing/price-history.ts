@@ -17,22 +17,25 @@ export async function recordProductPriceHistory(
   recordedAt: string
 ): Promise<number> {
   const store = getPriceHistoryStore();
-  let appendedCount = 0;
+  const appendPromises: Promise<boolean>[] = [];
 
   for (const product of products) {
     for (const offer of product.offers) {
       if (offer.source === "demo") continue;
 
-      const appended = await store.appendPoint(buildPriceHistoryKey(product, offer), {
-        price: offer.price,
-        totalPrice: offer.totalPrice ?? computeTotalPrice(offer),
-        recordedAt,
-        source: offer.source,
-      });
-
-      if (appended) appendedCount += 1;
+      appendPromises.push(
+        store.appendPoint(buildPriceHistoryKey(product, offer), {
+          price: offer.price,
+          totalPrice: offer.totalPrice ?? computeTotalPrice(offer),
+          recordedAt,
+          source: offer.source,
+        })
+      );
     }
   }
+
+  const results = await Promise.all(appendPromises);
+  const appendedCount = results.filter(Boolean).length;
 
   return appendedCount;
 }

@@ -131,9 +131,15 @@ export async function getFeedProducts(
   const sources = new Set<"remote" | "sample">();
   const merchantProductCounts: Record<string, number> = {};
 
-  for (const feed of feeds) {
+  const feedPromises = feeds.map(async (feed) => {
     const { products, mappingLog, source } = await loadFeedForMerchant(feed);
-    merchantProductCounts[feed.merchantId] = products.length;
+    return { products, mappingLog, source, merchantId: feed.merchantId };
+  });
+
+  const results = await Promise.all(feedPromises);
+
+  for (const { products, mappingLog, source, merchantId } of results) {
+    merchantProductCounts[merchantId] = products.length;
     if (products.length > 0) {
       sources.add(source);
       allProducts.push(...products);
