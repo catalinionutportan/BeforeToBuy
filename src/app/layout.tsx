@@ -6,9 +6,9 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { defaultOpenGraph } from "@/lib/metadata";
 
 export const metadata: Metadata = {
-  title: "BeforeToBuy.com | Compare Prices & Local GPS Deals Before You Buy",
+  title: "BeforeToBuy.com | Compare Prices & Local GPS Deals (Beta/Demo)",
   description:
-    "BeforeToBuy.com - Free multi-country price comparison engine. Check local Click & Collect stock, flash deals and online prices in Switzerland, Germany, France, Romania, UK, and USA before you buy.",
+    "BeforeToBuy.com - Free multi-country price comparison in Beta/Demo. Explore illustrative deals and Click & Collect distances in Switzerland, Germany, France, Romania, UK, and USA.",
   metadataBase: new URL("https://www.beforetobuy.com"),
   keywords: [
     "price comparison",
@@ -23,13 +23,13 @@ export const metadata: Metadata = {
   authors: [{ name: "PortanX - Catalin Portan", url: "https://portanx.com" }],
   openGraph: {
     ...defaultOpenGraph,
-    title: "BeforeToBuy.com | Compare Prices Before You Buy",
+    title: "BeforeToBuy.com | Compare Prices & Local GPS Deals (Beta/Demo)",
     description:
       "Free multi-country price comparison in Beta/Demo. Explore illustrative deals and Click & Collect distances in Switzerland, Germany, France, Romania, UK, and USA.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BeforeToBuy.com | Compare Prices Before You Buy",
+    title: "BeforeToBuy.com | Compare Prices & Local GPS Deals (Beta/Demo)",
     description:
       "Free multi-country price comparison in Beta/Demo across Switzerland, Germany, France, Romania, UK, and USA.",
   },
