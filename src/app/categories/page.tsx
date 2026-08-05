@@ -4,15 +4,32 @@ import { SHOPPING_CATEGORIES } from "@/lib/categories";
 import { ArrowRight, Layers, ChevronRight } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { createPageMetadata } from "@/lib/metadata";
+import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import { fetchMergedProductsForLocation } from "@/lib/product-service";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Shopping Categories | BeforeToBuy.com",
   description:
-    "Browse BeforeToBuy.com categories: cross-border savings, local pickup, Audio, Photo + Video, Gaming, Smartphones and more.",
+    "Browse comparison-first categories for computers, phones, appliances, audio, gaming, photo, smart home and more.",
   path: "/categories",
 });
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const country = COUNTRIES[DEFAULT_COUNTRY];
+  const catalog = await fetchMergedProductsForLocation({
+    latitude: country.defaultCoordinates.lat,
+    longitude: country.defaultCoordinates.lng,
+    countryCode: country.code,
+    countryName: country.name,
+    city: country.defaultCoordinates.city,
+    isGps: false,
+  });
+  const visibleCategories = SHOPPING_CATEGORIES.filter(
+    (category) => (catalog.meta.categoryCounts[category.id] ?? 0) > 0
+  );
+
   return (
     <PageShell maxWidthClass="max-w-6xl">
       <div className="space-y-8">
@@ -22,12 +39,12 @@ export default function CategoriesPage() {
           </span>
           <h1 className="text-3xl font-extrabold tracking-tight">Compare by Category</h1>
           <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
-            BeforeToBuy organizes products around how you shop — cross-border deals, local pickup, and deep accessory coverage — not a copy of any single retailer.
+            BeforeToBuy uses a retailer-neutral product taxonomy. Promotions, condition, pickup and cross-border availability remain comparison filters rather than product categories.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {SHOPPING_CATEGORIES.map((cat) => {
+          {visibleCategories.map((cat) => {
             const Icon = cat.icon;
             return (
               <div
@@ -63,7 +80,9 @@ export default function CategoriesPage() {
                 <p className="text-xs text-slate-600 leading-relaxed">{cat.description}</p>
 
                 <ul className="space-y-1.5 border-t border-slate-100 pt-3">
-                  {cat.subcategories.map((sub) => (
+                  {cat.subcategories
+                    .filter((sub) => (catalog.meta.categoryCounts[sub.id] ?? 0) > 0)
+                    .map((sub) => (
                     <li key={sub.id}>
                       <Link
                         href={`/?category=${sub.id}`}
@@ -78,7 +97,7 @@ export default function CategoriesPage() {
                         )}
                       </Link>
                     </li>
-                  ))}
+                    ))}
                 </ul>
               </div>
             );

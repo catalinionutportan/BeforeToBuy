@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test:unit": "tsx --test src/lib/*.test.ts",
     "test:e2e": "playwright test",
     "smoke:prod": "node scripts/smoke-production.mjs"
   },
@@ -21,15 +22,16 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
+    "@playwright/test": "^1.51.0",
     "@types/node": "^22.13.4",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "autoprefixer": "^10.5.4",
     "eslint": "^9.39.5",
     "eslint-config-next": "^15.5.22",
-    "@playwright/test": "^1.51.0",
     "postcss": "^8.5.2",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.5",
     "typescript": "^5.7.3"
   }
 }

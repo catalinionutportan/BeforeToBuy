@@ -1,4 +1,4 @@
-import { SHOPPING_CATEGORIES } from "@/lib/categories";
+import { SHOPPING_CATEGORIES, UNMAPPED_CATEGORY_ID } from "@/lib/categories";
 
 /**
  * Maps merchant / affiliate feed categories + product text → BeforeToBuy subcategory id.
@@ -33,14 +33,12 @@ const MERCHANT_CATEGORY_RULES: { patterns: RegExp; subcategoryId: string }[] = [
   { patterns: /\b(television|\btv\b|oled|fernseher)/i, subcategoryId: "tv-televisions" },
 ];
 
-const FALLBACK_SUBCATEGORY = "compare-cross-border";
-
 function normalizeText(parts: (string | undefined)[]): string {
   return parts.filter(Boolean).join(" ").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 /** Score subcategory by keyword hits in combined product text */
-function inferFromKeywords(text: string): string | null {
+function inferFromKeywords(text: string): { subcategoryId: string; score: number } | null {
   let bestId: string | null = null;
   let bestScore = 0;
 
@@ -57,7 +55,7 @@ function inferFromKeywords(text: string): string | null {
     }
   }
 
-  return bestScore > 0 ? bestId : null;
+  return bestScore > 0 && bestId ? { subcategoryId: bestId, score: bestScore } : null;
 }
 
 export interface CategoryMappingInput {
@@ -67,34 +65,74 @@ export interface CategoryMappingInput {
   brand?: string;
 }
 
+export interface CategoryMappingResult {
+  categoryId: string;
+  method: "merchant-rule" | "keyword" | "combined-rule" | "unmapped";
+  confidence: number;
+  rawCategory?: string;
+}
+
 /**
  * Resolve a BeforeToBuy subcategory id from feed fields.
  * Order: merchant category rules → keyword inference → fallback.
  */
-export function mapToBeforeToBuyCategory(input: CategoryMappingInput): string {
+export function mapToBeforeToBuyCategoryWithMetadata(
+  input: CategoryMappingInput
+): CategoryMappingResult {
   const { merchantCategory, title, description, brand } = input;
   const combined = normalizeText([merchantCategory, title, description, brand]);
 
   if (merchantCategory) {
     for (const rule of MERCHANT_CATEGORY_RULES) {
-      if (rule.patterns.test(merchantCategory)) return rule.subcategoryId;
+      if (rule.patterns.test(merchantCategory)) {
+        return {
+          categoryId: rule.subcategoryId,
+          method: "merchant-rule",
+          confidence: 0.95,
+          rawCategory: merchantCategory,
+        };
+      }
     }
   }
 
   const fromKeywords = inferFromKeywords(combined);
-  if (fromKeywords) return fromKeywords;
+  if (fromKeywords) {
+    return {
+      categoryId: fromKeywords.subcategoryId,
+      method: "keyword",
+      confidence: Math.min(0.85, 0.55 + fromKeywords.score * 0.05),
+      rawCategory: merchantCategory,
+    };
+  }
 
   if (merchantCategory) {
     for (const rule of MERCHANT_CATEGORY_RULES) {
-      if (rule.patterns.test(combined)) return rule.subcategoryId;
+      if (rule.patterns.test(combined)) {
+        return {
+          categoryId: rule.subcategoryId,
+          method: "combined-rule",
+          confidence: 0.7,
+          rawCategory: merchantCategory,
+        };
+      }
     }
   }
 
-  return FALLBACK_SUBCATEGORY;
+  return {
+    categoryId: UNMAPPED_CATEGORY_ID,
+    method: "unmapped",
+    confidence: 0,
+    rawCategory: merchantCategory,
+  };
+}
+
+export function mapToBeforeToBuyCategory(input: CategoryMappingInput): string {
+  return mapToBeforeToBuyCategoryWithMetadata(input).categoryId;
 }
 
 /** Human-readable label for a mapped category id */
 export function getMappedCategoryLabel(subcategoryId: string): string {
+  if (subcategoryId === UNMAPPED_CATEGORY_ID) return "Unmapped";
   for (const categoryModule of SHOPPING_CATEGORIES) {
     const sub = categoryModule.subcategories.find((s) => s.id === subcategoryId);
     if (sub) return sub.label;

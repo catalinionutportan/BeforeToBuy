@@ -79,14 +79,19 @@ export default function Home() {
     return () => window.removeEventListener(CONSENT_UPDATED_EVENT, onConsentUpdated);
   }, []);
 
-  // Read ?category= or ?q= from URL (links from /categories and /stores pages)
+  // Read shareable browse state and respond to browser back/forward navigation.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    const cat = params.get("category");
-    const q = params.get("q");
-    if (cat) setSelectedCategory(cat);
-    if (q) setSearchInput(q);
+
+    const readBrowseState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setSelectedCategory(params.get("category") || ALL_CATEGORIES_ID);
+      setSearchInput(params.get("q") || "");
+    };
+
+    readBrowseState();
+    window.addEventListener("popstate", readBrowseState);
+    return () => window.removeEventListener("popstate", readBrowseState);
   }, []);
 
   // Fetch products when location, debounced search, or category changes
@@ -147,6 +152,19 @@ export default function Home() {
       isGps: false,
     }));
     setSelectedDomain("all");
+  };
+
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    if (typeof window === "undefined") return;
+
+    const url = new URL(window.location.href);
+    if (categoryId === ALL_CATEGORIES_ID) {
+      url.searchParams.delete("category");
+    } else {
+      url.searchParams.set("category", categoryId);
+    }
+    window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
   };
 
   // GPS only on explicit user action and with Location consent
@@ -266,7 +284,8 @@ export default function Home() {
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
           <CategoryNavigation
             selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
+            onCategoryChange={handleCategoryChange}
+            categoryCounts={catalogMeta?.categoryCounts}
           />
 
           {/* Quick Offer Filter */}
@@ -389,8 +408,13 @@ export default function Home() {
               onClick={() => {
                 setSearchInput("");
                 setSelectedDomain("all");
-                setSelectedCategory(ALL_CATEGORIES_ID);
+                handleCategoryChange(ALL_CATEGORIES_ID);
                 setFilterType("all");
+                if (typeof window !== "undefined") {
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete("q");
+                  window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+                }
               }}
               className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
             >

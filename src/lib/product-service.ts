@@ -1,6 +1,12 @@
 import { Product, UserLocation } from "@/types";
 import { fetchProductsForLocation } from "@/lib/api-aggregator";
 import { getFeedProducts } from "@/lib/merchant-feeds";
+import {
+  getParentCategoryId,
+  productMatchesCategoryFilter,
+  resolveCategoryAlias,
+  UNMAPPED_CATEGORY_ID,
+} from "@/lib/categories";
 
 function normalizeTitle(title: string): string {
   return title
@@ -134,11 +140,27 @@ export async function fetchMergedProductsForLocation(
   category?: string
 ) {
   const [demoProducts, feedResult] = await Promise.all([
-    fetchProductsForLocation(userLocation, query, category),
-    getFeedProducts(userLocation.countryCode, query, category),
+    fetchProductsForLocation(userLocation, query),
+    getFeedProducts(userLocation.countryCode, query),
   ]);
 
-  const products = mergeFeedAndDemoProducts(demoProducts, feedResult.products);
+  const mergedProducts = mergeFeedAndDemoProducts(demoProducts, feedResult.products);
+  const visibleProducts = mergedProducts.filter(
+    (product) => resolveCategoryAlias(product.category) !== UNMAPPED_CATEGORY_ID
+  );
+  const categoryCounts = visibleProducts.reduce<Record<string, number>>((counts, product) => {
+    const categoryId = resolveCategoryAlias(product.category);
+    counts[categoryId] = (counts[categoryId] ?? 0) + 1;
+    const parentId = getParentCategoryId(categoryId);
+    if (parentId) counts[parentId] = (counts[parentId] ?? 0) + 1;
+    return counts;
+  }, {});
+  const products = category
+    ? visibleProducts.filter((product) => productMatchesCategoryFilter(product, category))
+    : visibleProducts;
+  const unmappedProductCount = feedResult.products.filter(
+    (product) => product.category === UNMAPPED_CATEGORY_ID
+  ).length;
 
   const productionOfferCount = products.reduce(
     (count, product) =>
@@ -160,6 +182,8 @@ export async function fetchMergedProductsForLocation(
       sampleOfferCount,
       productionProductCount,
       feedProductCount: feedResult.products.length,
+      unmappedProductCount,
+      categoryCounts,
       feedSources: feedResult.sources,
       hasProductionFeed: feedResult.sources.includes("remote"),
       hasSampleFeed: feedResult.sources.includes("sample"),

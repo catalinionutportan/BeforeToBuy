@@ -13,11 +13,13 @@ import { ChevronDown, ChevronRight, Layers } from "lucide-react";
 interface CategoryNavigationProps {
   selectedCategory: string;
   onCategoryChange: (categoryId: string) => void;
+  categoryCounts?: Record<string, number>;
 }
 
 export function CategoryNavigation({
   selectedCategory,
   onCategoryChange,
+  categoryCounts,
 }: CategoryNavigationProps) {
   const [expandedModule, setExpandedModule] = useState<string | null>(() => {
     const parent = getParentCategoryId(selectedCategory);
@@ -37,6 +39,12 @@ export function CategoryNavigation({
       : getParentCategoryId(selectedCategory) ?? selectedCategory;
 
   const activeModule = activeParentId ? getCategoryById(activeParentId) : null;
+  const visibleCategories = SHOPPING_CATEGORIES.filter(
+    (category) =>
+      categoryCounts === undefined ||
+      (categoryCounts[category.id] ?? 0) > 0 ||
+      activeParentId === category.id
+  );
 
   const handleModuleClick = (moduleId: string, hasSubcategories: boolean) => {
     if (hasSubcategories) {
@@ -65,7 +73,7 @@ export function CategoryNavigation({
           <span>{CATEGORY_ALL_OPTION.label}</span>
         </button>
 
-        {SHOPPING_CATEGORIES.map((cat) => {
+        {visibleCategories.map((cat) => {
           const Icon = cat.icon;
           const isActive =
             selectedCategory === cat.id ||
@@ -111,7 +119,14 @@ export function CategoryNavigation({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {(activeModule ?? getCategoryById(expandedModule!))?.subcategories.map((sub) => {
+            {(activeModule ?? getCategoryById(expandedModule!))?.subcategories
+              .filter(
+                (sub) =>
+                  categoryCounts === undefined ||
+                  (categoryCounts[sub.id] ?? 0) > 0 ||
+                  selectedCategory === sub.id
+              )
+              .map((sub) => {
               const isSubSelected = selectedCategory === sub.id;
 
               return (
@@ -127,7 +142,7 @@ export function CategoryNavigation({
                   {sub.label}
                 </button>
               );
-            })}
+              })}
           </div>
         </div>
       )}

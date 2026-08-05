@@ -41,7 +41,7 @@ export interface ShoppingCategory {
 /** BeforeToBuy.com category tree — comparison-first, not a retailer catalog clone.
  *  Depth where buyers compare prices (cameras + accessories, audio gear, tech).
  *  Unique "Before You Buy" modules highlight GPS, cross-border & local pickup value. */
-export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
+const LEGACY_SHOPPING_CATEGORIES: ShoppingCategory[] = [
   {
     id: "before-you-buy",
     label: "Before You Buy",
@@ -295,15 +295,390 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
   },
 ];
 
+function legacySubcategory(id: string): ShoppingSubcategory {
+  for (const category of LEGACY_SHOPPING_CATEGORIES) {
+    const subcategory = category.subcategories.find((item) => item.id === id);
+    if (subcategory) return subcategory;
+  }
+  throw new Error(`Missing legacy subcategory: ${id}`);
+}
+
+function legacySubcategories(ids: string[]): ShoppingSubcategory[] {
+  return ids.map(legacySubcategory);
+}
+
+const subcategory = (
+  id: string,
+  label: string,
+  labelDe: string,
+  searchKeywords: string[]
+): ShoppingSubcategory => ({ id, label, labelDe, searchKeywords });
+
+/**
+ * Canonical comparison taxonomy v2.
+ *
+ * It is intentionally retailer-neutral: products belong to assignable product
+ * types, while promotions, condition, pickup and cross-border status are offer
+ * facets or curated collections.
+ */
+export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
+  {
+    id: "computers-tablets",
+    label: "Computers + Tablets",
+    labelDe: "Computer + Tablets",
+    icon: Laptop,
+    description: "Computers, tablets, displays, peripherals and accessories with comparable model specifications.",
+    subcategories: [
+      ...legacySubcategories([
+        "notebooks-laptops",
+        "notebooks-desktops",
+        "notebooks-monitors",
+        "notebooks-tablets-pc",
+        "peripherals-keyboard-mouse",
+        "peripherals-webcam",
+        "peripherals-storage",
+        "peripherals-accessories",
+      ]),
+      subcategory("computers-ereaders", "E-Readers", "E-Book-Reader", ["e-reader", "ereader", "kindle", "kobo"]),
+      subcategory("computers-docks", "Docks & Computer Accessories", "Docks & Computerzubehör", ["dock", "docking station", "laptop stand", "usb hub"]),
+    ],
+  },
+  {
+    id: "pc-components-storage",
+    label: "PC Components + Storage",
+    labelDe: "PC-Komponenten + Speicher",
+    icon: Cpu,
+    description: "Internal components and storage organized by technical product type.",
+    subcategories: [
+      ...legacySubcategories(["pc-gpu", "pc-cpu", "pc-ram-ssd", "pc-motherboard", "pc-cooling"]),
+      subcategory("pc-power-supplies", "Power Supplies", "Netzteile", ["power supply", "psu", "netzteil"]),
+      subcategory("pc-cases", "PC Cases", "PC-Gehäuse", ["pc case", "computer case", "gehäuse"]),
+    ],
+  },
+  {
+    id: "phones-wearables",
+    label: "Phones + Wearables",
+    labelDe: "Telefone + Wearables",
+    icon: Smartphone,
+    description: "Mobile communication, wearable technology and their model-specific accessories.",
+    subcategories: [
+      ...legacySubcategories([
+        "mobile-smartphones",
+        "mobile-tablets",
+        "mobile-accessories",
+        "wearables-smartwatch",
+        "wearables-fitness",
+        "wearables-accessories",
+      ]),
+      subcategory("mobile-feature-phones", "Feature Phones", "Mobiltelefone", ["feature phone", "senior phone", "mobile phone"]),
+      subcategory("mobile-fixed-line", "Fixed-Line Phones", "Festnetztelefone", ["landline", "dect", "fixed-line phone", "festnetz"]),
+      subcategory("mobile-navigation-radio", "Navigation & Radio", "Navigation + Funk", ["gps navigation", "sat nav", "walkie talkie", "funkgerät"]),
+    ],
+  },
+  {
+    id: "tv-home-cinema",
+    label: "TV + Home Cinema",
+    labelDe: "TV + Heimkino",
+    icon: Tv,
+    description: "Televisions, projection, media players and home-cinema accessories.",
+    subcategories: [
+      ...legacySubcategories(["tv-televisions", "tv-projectors", "tv-streaming", "tv-mounts"]),
+      subcategory("tv-screens", "Projection Screens", "Leinwände", ["projector screen", "projection screen", "leinwand"]),
+      subcategory("tv-home-cinema-systems", "Home Cinema Systems", "Heimkino-Systeme", ["home cinema", "home theater", "av receiver"]),
+    ],
+  },
+  {
+    id: "audio",
+    label: "Audio",
+    labelDe: "Audio",
+    icon: Headphones,
+    description: "Personal, portable, home, vehicle and professional audio.",
+    subcategories: legacySubcategories([
+      "audio-headphones",
+      "audio-speakers",
+      "audio-wireless",
+      "audio-hifi",
+      "audio-portable",
+      "audio-car",
+      "audio-studio",
+      "audio-accessories",
+    ]),
+  },
+  {
+    id: "gaming-vr",
+    label: "Gaming + VR",
+    labelDe: "Gaming + VR",
+    icon: Gamepad2,
+    description: "Gaming platforms, software, immersive hardware and accessories.",
+    subcategories: [
+      ...legacySubcategories(["gaming-consoles", "gaming-vr", "gaming-pc-handheld", "gaming-accessories", "gaming-games"]),
+      subcategory("gaming-simulation", "Simulation Gear", "Simulations-Zubehör", ["racing wheel", "flight stick", "sim racing"]),
+      subcategory("gaming-furniture", "Gaming Furniture", "Gaming-Möbel", ["gaming chair", "gaming desk"]),
+    ],
+  },
+  {
+    id: "photo-video-drones-optics",
+    label: "Photo + Video + Drones",
+    labelDe: "Foto + Video + Drohnen",
+    icon: Camera,
+    description: "Cameras, lenses, drones, optics and the complete capture accessory ecosystem.",
+    subcategories: legacySubcategories([
+      "photo-mirrorless",
+      "photo-dslr",
+      "photo-compact",
+      "photo-lenses",
+      "photo-action",
+      "photo-video-cameras",
+      "photo-flashes",
+      "photo-studio-lighting",
+      "photo-batteries",
+      "photo-memory",
+      "photo-tripods",
+      "photo-gimbals",
+      "photo-bags",
+      "photo-filters",
+      "photo-microphones",
+      "photo-remote",
+      "photo-mounts",
+      "photo-cleaning",
+      "photo-cables",
+      "photo-binoculars",
+      "drones-quadcopters",
+      "drones-accessories",
+      "drones-rc",
+      "drones-gadgets",
+    ]),
+  },
+  {
+    id: "network-smart-home-security",
+    label: "Network + Smart Home",
+    labelDe: "Netzwerk + Smart Home",
+    icon: Wifi,
+    description: "Connectivity, network storage, automation and connected security.",
+    subcategories: [
+      ...legacySubcategories(["networking-routers", "networking-switches", "networking-nas", "networking-cables", "home-smart-home"]),
+      subcategory("smart-home-lighting", "Smart Lighting & Plugs", "Smart Lighting + Stecker", ["smart light", "smart bulb", "smart plug", "philips hue"]),
+      subcategory("smart-home-security", "Smart Security", "Smart Security", ["security camera", "video doorbell", "alarm system"]),
+      subcategory("smart-home-climate", "Smart Climate Controls", "Smart Klima-Steuerung", ["smart thermostat", "climate control", "heating control"]),
+    ],
+  },
+  {
+    id: "office-printing",
+    label: "Office + Printing",
+    labelDe: "Büro + Drucken",
+    icon: Briefcase,
+    description: "Printing, document handling, conferencing and ergonomic office equipment.",
+    subcategories: [
+      ...legacySubcategories(["office-printers", "office-ink-toner", "office-home", "office-tech"]),
+      subcategory("office-conferencing", "Telephony & Conferencing", "Telefonie + Konferenzen", ["conference phone", "video conference", "speakerphone"]),
+      subcategory("office-presentation", "Presentation Equipment", "Präsentationstechnik", ["presentation", "interactive display", "presenter"]),
+    ],
+  },
+  {
+    id: "large-appliances",
+    label: "Large Appliances",
+    labelDe: "Haushaltsgrossgeräte",
+    icon: PackageOpen,
+    description: "Large household appliances where model, delivery and installation costs matter.",
+    subcategories: [
+      subcategory("large-fridges-freezers", "Refrigerators & Freezers", "Kühlschränke + Gefriergeräte", ["refrigerator", "fridge", "freezer", "kühlschrank", "gefrierschrank"]),
+      subcategory("large-washers-dryers", "Washing Machines & Dryers", "Waschmaschinen + Trockner", ["washing machine", "washer", "dryer", "tumbler", "waschmaschine"]),
+      subcategory("large-dishwashers", "Dishwashers", "Geschirrspüler", ["dishwasher", "geschirrspüler"]),
+      subcategory("large-ovens-hobs", "Ovens & Hobs", "Backöfen + Kochfelder", ["oven", "hob", "cooktop", "backofen", "kochfeld"]),
+      subcategory("large-built-in", "Built-In Appliances", "Einbaugeräte", ["built-in appliance", "einbaugerät"]),
+      subcategory("large-wine-coolers", "Wine Coolers", "Weinkühlschränke", ["wine cooler", "wine fridge", "weinkühlschrank"]),
+    ],
+  },
+  {
+    id: "kitchen-coffee",
+    label: "Kitchen + Coffee",
+    labelDe: "Küche + Kaffee",
+    icon: ChefHat,
+    description: "Small kitchen appliances and durable preparation equipment.",
+    subcategories: [
+      legacySubcategory("home-kitchen"),
+      subcategory("kitchen-coffee-machines", "Coffee Machines", "Kaffeemaschinen", ["coffee machine", "espresso machine", "kaffeemaschine", "nespresso"]),
+      subcategory("kitchen-machines-mixers", "Kitchen Machines & Mixers", "Küchenmaschinen + Mixer", ["kitchen machine", "stand mixer", "blender", "mixer"]),
+      subcategory("kitchen-cooking-appliances", "Cooking Appliances", "Kochgeräte", ["air fryer", "multicooker", "rice cooker", "fritteuse"]),
+      subcategory("kitchen-microwaves", "Microwaves", "Mikrowellen", ["microwave", "mikrowelle"]),
+      subcategory("kitchen-breakfast", "Breakfast Appliances", "Frühstücksgeräte", ["toaster", "kettle", "waffle maker", "wasserkocher"]),
+      subcategory("kitchen-water-treatment", "Water Treatment", "Wasseraufbereitung", ["water filter", "water treatment", "wassersprudler"]),
+    ],
+  },
+  {
+    id: "cleaning-laundry-climate",
+    label: "Cleaning + Home Climate",
+    labelDe: "Reinigung + Raumklima",
+    icon: Layers,
+    description: "Cleaning, laundry care and indoor climate equipment.",
+    subcategories: [
+      legacySubcategory("home-appliances"),
+      subcategory("cleaning-vacuums", "Vacuum Cleaners", "Staubsauger", ["vacuum cleaner", "cordless vacuum", "staubsauger"]),
+      subcategory("cleaning-robots", "Robot Vacuums", "Saugroboter", ["robot vacuum", "roomba", "saugroboter"]),
+      subcategory("cleaning-floor-care", "Steam & Floor Cleaning", "Dampf- + Bodenreinigung", ["steam cleaner", "floor cleaner", "dampfreiniger"]),
+      subcategory("climate-cooling", "Air Conditioners & Fans", "Klimageräte + Ventilatoren", ["air conditioner", "fan", "klimagerät", "ventilator"]),
+      subcategory("climate-heating", "Heating", "Heizen", ["heater", "radiator", "heizlüfter"]),
+      subcategory("climate-air-care", "Humidifiers & Dehumidifiers", "Luftbe- + Entfeuchter", ["humidifier", "dehumidifier", "air purifier"]),
+      subcategory("laundry-ironing-sewing", "Ironing & Sewing", "Bügeln + Nähen", ["iron", "ironing", "sewing machine", "bügeleisen", "nähmaschine"]),
+    ],
+  },
+  {
+    id: "personal-care-health-baby",
+    label: "Personal Care + Health",
+    labelDe: "Körperpflege + Gesundheit",
+    icon: Watch,
+    description: "Personal-care devices, home health measurement and durable baby technology.",
+    subcategories: [
+      legacySubcategory("home-personal-care"),
+      subcategory("care-shaving-hair-removal", "Shaving & Hair Removal", "Rasieren + Haarentfernung", ["shaver", "epilator", "hair removal", "rasierer"]),
+      subcategory("care-hair-styling", "Hair Styling", "Haarstyling", ["hair dryer", "hair styler", "straightener", "haartrockner"]),
+      subcategory("care-oral", "Oral Care", "Zahnpflege", ["electric toothbrush", "oral care", "zahnbürste"]),
+      subcategory("health-monitors-scales", "Health Monitors & Scales", "Gesundheitsmessgeräte + Waagen", ["blood pressure", "thermometer", "scale", "blutdruck"]),
+      subcategory("health-massage-recovery", "Massage & Recovery", "Massage + Regeneration", ["massager", "massage gun", "recovery"]),
+      subcategory("baby-monitoring-feeding", "Baby Monitoring & Feeding Tech", "Babyüberwachung + Fütterung", ["baby monitor", "breast pump", "bottle warmer", "sterilizer"]),
+    ],
+  },
+  {
+    id: "mobility-sport-outdoor",
+    label: "E-Mobility + Sport",
+    labelDe: "E-Mobilität + Sport",
+    icon: Plane,
+    description: "Electric mobility, fitness equipment and outdoor electronics.",
+    subcategories: [
+      subcategory("mobility-escooters", "E-Scooters", "E-Scooter", ["e-scooter", "electric scooter"]),
+      subcategory("mobility-ebikes", "E-Bikes", "E-Bikes", ["e-bike", "electric bike"]),
+      subcategory("sport-fitness-equipment", "Fitness Equipment", "Fitnessgeräte", ["treadmill", "exercise bike", "dumbbell", "fitness equipment"]),
+      subcategory("sport-electronics", "Sports Electronics", "Sportelektronik", ["bike computer", "gps watch", "heart rate monitor"]),
+      subcategory("outdoor-electronics", "Outdoor Electronics", "Outdoor-Elektronik", ["power station", "headlamp", "outdoor gps"]),
+      subcategory("mobility-accessories", "Mobility Accessories", "Mobilitätszubehör", ["scooter accessory", "bike accessory", "helmet"]),
+    ],
+  },
+  {
+    id: "diy-garden-power",
+    label: "DIY + Garden",
+    labelDe: "Baumarkt + Garten",
+    icon: Mouse,
+    description: "Tools, garden equipment, power products and standardized DIY hardware.",
+    subcategories: [
+      subcategory("diy-power-tools", "Power Tools", "Elektrowerkzeuge", ["drill", "saw", "power tool", "bohrmaschine"]),
+      subcategory("diy-hand-tools", "Hand Tools", "Handwerkzeuge", ["hand tool", "tool set", "werkzeug"]),
+      subcategory("garden-equipment", "Garden Equipment", "Gartengeräte", ["lawn mower", "garden tool", "rasenmäher"]),
+      subcategory("garden-grills", "Grills", "Grills", ["grill", "barbecue"]),
+      subcategory("diy-electrical", "Electrical Supplies", "Elektromaterial", ["electrical supplies", "extension lead", "steckdose"]),
+      subcategory("diy-batteries-chargers", "Batteries & Chargers", "Batterien + Ladegeräte", ["battery", "charger", "akku"]),
+      subcategory("diy-measuring", "Measuring Equipment", "Messgeräte", ["laser measure", "multimeter", "messgerät"]),
+      subcategory("vehicle-accessories", "Vehicle Accessories", "Fahrzeugzubehör", ["car accessory", "jump starter", "dash cam"]),
+    ],
+  },
+  {
+    id: "toys-hobby-rc",
+    label: "Toys + Hobby + RC",
+    labelDe: "Spielzeug + Hobby + RC",
+    icon: Gamepad2,
+    description: "Standardized toys, hobby products and remote-controlled models.",
+    subcategories: [
+      subcategory("toys-rc-models", "Remote-Controlled Models", "RC-Modelle", ["rc car", "remote controlled", "rc model"]),
+      subcategory("toys-building-sets", "Building Sets", "Bausets", ["lego", "building set", "construction toy"]),
+      subcategory("toys-electronic", "Electronic Toys", "Elektronisches Spielzeug", ["electronic toy", "robot toy"]),
+      subcategory("toys-board-games", "Board Games", "Brettspiele", ["board game", "brettspiel"]),
+      subcategory("hobby-creative", "Creative Hobby", "Kreativ-Hobby", ["craft kit", "creative hobby", "model kit"]),
+      subcategory("toys-accessories", "Toy Accessories", "Spielzeugzubehör", ["toy accessory", "replacement part"]),
+    ],
+  },
+  {
+    id: "software-digital",
+    label: "Software + Digital",
+    labelDe: "Software + Digital",
+    icon: Download,
+    description: "Comparable software editions, licenses and region-specific digital products.",
+    subcategories: [
+      ...legacySubcategories(["software-os", "software-security", "software-creative"]),
+      subcategory("software-office", "Office Software", "Office-Software", ["office software", "microsoft 365"]),
+      subcategory("software-utilities", "Utilities", "Dienstprogramme", ["utility software", "backup software", "pdf software"]),
+      subcategory("digital-gift-cards", "Digital Gift Cards", "Digitale Geschenkkarten", ["digital gift card", "store credit"]),
+    ],
+  },
+  {
+    id: "books-games-media",
+    label: "Books + Games + Media",
+    labelDe: "Bücher + Games + Medien",
+    icon: Globe,
+    description: "Identifier-based books and physical media suitable for exact product comparison.",
+    subcategories: [
+      subcategory("media-books", "Books", "Bücher", ["book", "isbn", "bücher"]),
+      subcategory("media-films", "Films", "Filme", ["blu-ray", "dvd", "film"]),
+      subcategory("media-music", "Music", "Musik", ["vinyl record", "music cd", "audio cd"]),
+      subcategory("media-audiobooks", "Audiobooks", "Hörbücher", ["audiobook", "hörbuch"]),
+    ],
+  },
+];
+
+export interface ShoppingCollection {
+  id: string;
+  label: string;
+  description: string;
+  legacyIds: string[];
+}
+
+export const SHOPPING_COLLECTIONS: ShoppingCollection[] = [
+  {
+    id: "before-you-buy",
+    label: "Before You Buy",
+    description: "Curated comparison views for cross-border, pickup, accessories and condition.",
+    legacyIds: ["compare-cross-border", "compare-local-pickup", "compare-accessories", "compare-refurb"],
+  },
+  {
+    id: "deals",
+    label: "Deals",
+    description: "Verified production offers with merchant-supplied price reductions.",
+    legacyIds: ["sale", "sale-flash", "sale-weekly", "clearance", "clearance-electronics", "clearance-home"],
+  },
+  {
+    id: "preowned",
+    label: "Refurbished + Used",
+    description: "Offer condition collection, separate from product identity.",
+    legacyIds: ["used", "used-refurbished", "used-secondhand"],
+  },
+];
+
+export const UNMAPPED_CATEGORY_ID = "unmapped";
+
+const LEGACY_PARENT_ALIASES: Record<string, string> = {
+  "notebooks-pcs": "computers-tablets",
+  peripherals: "computers-tablets",
+  "pc-components": "pc-components-storage",
+  "smartphones-tablets": "phones-wearables",
+  wearables: "phones-wearables",
+  "photo-video": "photo-video-drones-optics",
+  "drones-electronics": "photo-video-drones-optics",
+  networking: "network-smart-home-security",
+  "office-stationery": "office-printing",
+  software: "software-digital",
+};
+
+const LEGACY_LEAF_ALIASES: Record<string, string> = {
+  "mobile-smartwatch-phone": "wearables-smartwatch",
+};
+
+const LEGACY_MULTI_PARENT_GROUPS: Record<string, string[]> = {
+  "home-kitchen": ["home-appliances", "home-kitchen", "home-personal-care", "home-smart-home"],
+};
+
+export function resolveCategoryAlias(categoryId: string): string {
+  return LEGACY_LEAF_ALIASES[categoryId] ?? LEGACY_PARENT_ALIASES[categoryId] ?? categoryId;
+}
+
 export const ALL_CATEGORIES_ID = "all";
 
 export function getCategoryById(categoryId: string): ShoppingCategory | undefined {
-  return SHOPPING_CATEGORIES.find((c) => c.id === categoryId);
+  const resolvedId = resolveCategoryAlias(categoryId);
+  return SHOPPING_CATEGORIES.find((c) => c.id === resolvedId);
 }
 
 export function getSubcategoryById(subcategoryId: string): ShoppingSubcategory | undefined {
+  const resolvedId = resolveCategoryAlias(subcategoryId);
   for (const cat of SHOPPING_CATEGORIES) {
-    const sub = cat.subcategories.find((s) => s.id === subcategoryId);
+    const sub = cat.subcategories.find((s) => s.id === resolvedId);
     if (sub) return sub;
   }
   return undefined;
@@ -311,10 +686,11 @@ export function getSubcategoryById(subcategoryId: string): ShoppingSubcategory |
 
 export function getParentCategoryId(categoryOrSubId: string): string | null {
   if (categoryOrSubId === ALL_CATEGORIES_ID) return null;
-  const direct = getCategoryById(categoryOrSubId);
+  const resolvedId = resolveCategoryAlias(categoryOrSubId);
+  const direct = getCategoryById(resolvedId);
   if (direct) return direct.id;
   for (const cat of SHOPPING_CATEGORIES) {
-    if (cat.subcategories.some((s) => s.id === categoryOrSubId)) {
+    if (cat.subcategories.some((s) => s.id === resolvedId)) {
       return cat.id;
     }
   }
@@ -323,38 +699,72 @@ export function getParentCategoryId(categoryOrSubId: string): string | null {
 
 /** Match product against category/subcategory filter — strict ID match only (no keyword bleed). */
 export function productMatchesCategoryFilter(
-  product: { title: string; description: string; brand: string; category: string; isFlashDeal?: boolean },
+  product: {
+    title: string;
+    description: string;
+    brand: string;
+    category: string;
+    isFlashDeal?: boolean;
+    offers?: Array<{
+      source?: string;
+      type?: string;
+      originalPrice?: number;
+      discountPercentage?: number;
+    }>;
+  },
   categoryFilter: string
 ): boolean {
   if (!categoryFilter || categoryFilter === ALL_CATEGORIES_ID) return true;
 
-  // Exact subcategory or module id stored on the product
-  if (product.category === categoryFilter) return true;
+  const productCategory = resolveCategoryAlias(product.category);
+  const resolvedFilter = resolveCategoryAlias(categoryFilter);
 
-  const parentId = getParentCategoryId(categoryFilter);
-  const parentCat = parentId ? getCategoryById(parentId) : getCategoryById(categoryFilter);
-
-  // Parent module selected → only products whose category belongs to that module
-  if (parentCat && categoryFilter === parentCat.id) {
-    if (product.category.startsWith(`${parentCat.id}-`)) return true;
-    // Before You Buy uses compare-* ids under before-you-buy module
-    if (parentCat.id === "before-you-buy" && product.category.startsWith("compare-")) return true;
-    return false;
+  // Preserve the old mixed Home + Kitchen parent query across its v2 departments.
+  const legacyGroup = LEGACY_MULTI_PARENT_GROUPS[categoryFilter];
+  if (legacyGroup) {
+    return legacyGroup.map(resolveCategoryAlias).includes(productCategory);
   }
 
-  // Subcategory selected → strict match only (already checked above)
-  const sub = getSubcategoryById(categoryFilter);
+  // Exact assignable product type.
+  if (productCategory === resolvedFilter) return true;
+
+  // Parent department selected → match by actual tree membership, not id prefix.
+  const parentCat = getCategoryById(resolvedFilter);
+  if (parentCat) {
+    return parentCat.subcategories.some((subcategory) => subcategory.id === productCategory);
+  }
+
+  const sub = getSubcategoryById(resolvedFilter);
   if (sub) return false;
 
-  // Promo categories
-  if (categoryFilter === "sale" || categoryFilter.startsWith("sale-")) {
-    return Boolean(product.isFlashDeal) || product.title.toLowerCase().includes("deal");
+  // Legacy collection URLs remain functional, but collections are not taxonomy.
+  if (categoryFilter === "compare-cross-border") {
+    return Boolean(product.offers?.some((offer) => offer.type === "cross_border"));
   }
-  if (categoryFilter === "clearance" || categoryFilter.startsWith("clearance-")) {
-    return product.title.toLowerCase().includes("clearance") || Boolean(product.isFlashDeal);
+  if (categoryFilter === "compare-local-pickup") {
+    return Boolean(product.offers?.some((offer) => offer.type === "local_pickup"));
   }
-  if (categoryFilter === "used" || categoryFilter.startsWith("used-")) {
-    return product.title.toLowerCase().includes("refurb") || product.description.toLowerCase().includes("refurb");
+  if (
+    categoryFilter === "sale" ||
+    categoryFilter.startsWith("sale-") ||
+    categoryFilter === "clearance" ||
+    categoryFilter.startsWith("clearance-")
+  ) {
+    return Boolean(
+      product.offers?.some(
+        (offer) =>
+          offer.source === "production-live" &&
+          (Boolean(offer.originalPrice) || Boolean(offer.discountPercentage))
+      )
+    );
+  }
+  if (
+    categoryFilter === "compare-refurb" ||
+    categoryFilter === "used" ||
+    categoryFilter.startsWith("used-")
+  ) {
+    const text = `${product.title} ${product.description}`.toLowerCase();
+    return text.includes("refurb") || text.includes("renewed") || text.includes("occasion");
   }
 
   return false;
@@ -362,10 +772,17 @@ export function productMatchesCategoryFilter(
 
 export function getCategoryLabel(categoryId: string): string {
   if (categoryId === ALL_CATEGORIES_ID) return "All Categories";
-  const sub = getSubcategoryById(categoryId);
+  const resolvedId = resolveCategoryAlias(categoryId);
+  const sub = getSubcategoryById(resolvedId);
   if (sub) return sub.label;
-  const cat = getCategoryById(categoryId);
-  return cat?.label ?? categoryId;
+  const cat = getCategoryById(resolvedId);
+  if (cat) return cat.label;
+  const collection = SHOPPING_COLLECTIONS.find(
+    (item) => item.id === categoryId || item.legacyIds.includes(categoryId)
+  );
+  if (collection) return collection.label;
+  const legacyCategory = LEGACY_SHOPPING_CATEGORIES.find((item) => item.id === categoryId);
+  return legacyCategory?.label ?? categoryId;
 }
 
 /** Flat list for sitemap / SEO */

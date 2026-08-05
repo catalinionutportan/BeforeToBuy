@@ -1,5 +1,10 @@
 import { CountryCode, CountryInfo, MerchantDomainInfo } from "@/types";
 
+/** Historical merchant ids kept for feed/import compatibility. */
+export const MERCHANT_ID_ALIASES: Record<string, string> = {
+  "ch-microspot": "ch-interdiscount",
+};
+
 export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
   // --- Switzerland (CH) ---
   {
@@ -55,17 +60,30 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description: "Leading consumer electronics chain in Switzerland with dozens of local Click & Collect branches.",
   },
   {
-    id: "ch-microspot",
-    name: "Microspot.ch",
-    domain: "microspot.ch",
-    websiteUrl: "https://www.microspot.ch",
+    id: "ch-interdiscount",
+    name: "Interdiscount",
+    domain: "interdiscount.ch",
+    websiteUrl: "https://www.interdiscount.ch",
     countryCode: "CH",
     affiliateNetwork: "Coop Merchant Network",
-    category: "Electronics, Home & Beauty",
+    category: "Electronics, Appliances & Non-Food",
     hasClickAndCollect: true,
-    status: "Search Redirect",
-    badge: "Coop Group Swiss 🇨🇭",
-    description: "Coop Group's Swiss discount platform for electronics, home appliances, and lifestyle items.",
+    status: "Planned Integration",
+    badge: "Swiss Omnichannel Retailer 🇨🇭",
+    description: "Swiss electronics and non-food retailer that absorbed the former Microspot online assortment.",
+  },
+  {
+    id: "ch-fust",
+    name: "Fust",
+    domain: "fust.ch",
+    websiteUrl: "https://www.fust.ch",
+    countryCode: "CH",
+    affiliateNetwork: "Coop Merchant Network",
+    category: "Appliances, Household & Electronics",
+    hasClickAndCollect: true,
+    status: "Planned Integration",
+    badge: "Swiss Appliance Specialist 🇨🇭",
+    description: "Swiss specialist for large appliances, household technology, kitchen equipment, TV, audio and computing.",
   },
   {
     id: "ch-fnac",
@@ -360,7 +378,7 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: 8.5417,
       city: "Zürich",
     },
-    supportedStores: ["digitec.ch", "galaxus.ch", "brack.ch", "mediamarkt.ch", "microspot.ch", "fnac.ch", "amazon.de"],
+    supportedStores: ["digitec.ch", "galaxus.ch", "brack.ch", "mediamarkt.ch", "interdiscount.ch", "fust.ch", "fnac.ch", "amazon.de"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "CH"),
     affiliateNetworks: ["AWIN Switzerland", "Galaxus Merchant", "Amazon Associates DE/CH", "Rakuten CH"],
   },

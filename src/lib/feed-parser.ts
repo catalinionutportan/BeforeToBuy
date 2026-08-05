@@ -1,5 +1,5 @@
 import { CountryCode, Offer, OfferSource, Product, PromoCoupon } from "@/types";
-import { mapToBeforeToBuyCategory } from "@/lib/category-mapper";
+import { mapToBeforeToBuyCategoryWithMetadata } from "@/lib/category-mapper";
 
 /**
  * Standard interface for raw item inside an AWIN Datafeed (CSV / XML)
@@ -127,7 +127,7 @@ export function parseAwinCsvFeed(
     const productId = `feed-${row.aw_product_id}`;
 
     if (!productsMap.has(productId)) {
-      const mappedCategory = mapToBeforeToBuyCategory({
+      const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
         merchantCategory: row.category_name,
         title: row.product_name,
         description: row.description,
@@ -138,7 +138,12 @@ export function parseAwinCsvFeed(
         id: productId,
         title: row.product_name,
         description: row.description || row.product_name,
-        category: mappedCategory,
+        category: categoryMapping.categoryId,
+        categoryAssignment: {
+          method: categoryMapping.method,
+          confidence: categoryMapping.confidence,
+          rawCategory: categoryMapping.rawCategory,
+        },
         brand: row.brand_name || "Generic",
         image: row.merchant_image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
         targetCountries: [targetCountry],

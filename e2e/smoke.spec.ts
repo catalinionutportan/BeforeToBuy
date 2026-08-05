@@ -85,11 +85,30 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(sampleOffers.length).toBeGreaterThan(0);
     expect(sampleOffers.every((offer: { originalPrice?: number }) => offer.originalPrice === undefined)).toBeTruthy();
     expect(body.products.every((product: { rating?: number }) => product.rating === undefined)).toBeTruthy();
+    expect(body.meta.categoryCounts.audio).toBeGreaterThan(0);
+    expect(body.meta.unmappedProductCount).toBeGreaterThanOrEqual(0);
+    expect(body.products.every((product: { category: string }) => product.category !== "unmapped")).toBeTruthy();
+  });
+
+  test("category selection is shareable and empty departments stay hidden", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
+
+    await page.getByRole("button", { name: "Audio", exact: true }).click();
+    await expect(page).toHaveURL(/category=audio/);
+    await expect(page.getByText("Browsing:").first()).toContainText("Audio");
+
+    await page.goto("/categories");
+    await expect(page.getByRole("heading", { name: "Audio", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Large Appliances", exact: true })).toHaveCount(0);
   });
 
   test("stores page lists Brack as Sample Feed", async ({ page }) => {
     await page.goto("/stores");
     await expect(page.getByRole("heading", { name: "Brack.ch" })).toBeVisible();
     await expect(page.getByText("Sample Feed").first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Interdiscount" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Fust" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Microspot.ch" })).toHaveCount(0);
   });
 });

@@ -93,6 +93,11 @@ export interface Product {
   title: string;
   description: string;
   category: string; // BeforeToBuy module or subcategory id (see src/lib/categories.ts)
+  categoryAssignment?: {
+    method: "merchant-rule" | "keyword" | "combined-rule" | "unmapped" | "manual";
+    confidence: number;
+    rawCategory?: string;
+  };
   image: string;
   rating?: number;
   reviewsCount?: number;
