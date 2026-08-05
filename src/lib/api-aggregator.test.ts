@@ -117,12 +117,12 @@ describe('API Aggregator', () => {
       isGps: false,
     });
 
-    // The base products DB will still return products if their targetCountries includes 'RO'
-    // But since getRoOffers is mocked to return an empty array globally, product.offers will be empty
     expect(products).toBeDefined();
-    // Expect products that match RO target country, but their offers should be empty
+    // Since generateOffersForLocation now returns a default offer if no others are found,
+    // we expect products to have offers (the default ones).
     const productsWithOffers = products.filter(p => p.offers.length > 0);
-    expect(productsWithOffers.length).toBe(0);
+    expect(productsWithOffers.length).toBeGreaterThan(0);
+    expect(productsWithOffers[0].offers[0].storeName).toContain('Default Store RO');
     expect(roOffers.getRoOffers).toHaveBeenCalled();
   });
 

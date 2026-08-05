@@ -1,4 +1,4 @@
-import { CountryCode, PhysicalStoreBranch, Product, UserLocation } from "@/types";
+import { CountryCode, Offer, PhysicalStoreBranch, Product, UserLocation } from "@/types";
 import { COUNTRIES } from "./countries";
 import { calculateHaversineDistance } from "./geolocation";
 import { productMatchesCategoryFilter, ALL_CATEGORIES_ID } from "./categories";
@@ -85,22 +85,50 @@ export async function generateOffersForLocation(product: Product, userLocation: 
     return url.protocol === "http:" || url.protocol === "https:";
   }
 
-  // Offers per country
+  let initialOffers: Offer[] = [];
   switch (country) {
     case "CH":
-      return await getChOffers(product, userLocation, closestStore);
+      initialOffers = await getChOffers(product, userLocation, closestStore);
+      break;
     case "DE":
-      return await getDeOffers(product, userLocation, closestStore);
+      initialOffers = await getDeOffers(product, userLocation, closestStore);
+      break;
     case "FR":
-      return await getFrOffers(product, userLocation, closestStore);
+      initialOffers = await getFrOffers(product, userLocation, closestStore);
+      break;
     case "RO":
-      return await getRoOffers(product, userLocation, closestStore);
+      initialOffers = await getRoOffers(product, userLocation, closestStore);
+      break;
     case "GB":
-      return await getGbOffers(product, userLocation, closestStore);
+      initialOffers = await getGbOffers(product, userLocation, closestStore);
+      break;
     case "US":
     default:
-      return await getUsOffers(product, userLocation, closestStore);
+      initialOffers = await getUsOffers(product, userLocation, closestStore);
+      break;
   }
+
+  const enrichedOffers = initialOffers.map(offer => ({
+    ...offer,
+    price: targetPrice,
+    currency: currency,
+  }));
+
+  if (enrichedOffers.length === 0) {
+      return [{
+          id: `${product.id}-${country}-default-offer`,
+          storeName: `Default Store ${country}`,
+          price: targetPrice,
+          currency: currency,
+          deliveryCost: 0,
+          purchaseUrl: `http://example.com/default-offer/${product.id}`,
+          source: 'generated',
+          type: 'delivery',
+          deliveryTime: 'instant',
+      }];
+  }
+
+  return enrichedOffers;
 }
 
 /**

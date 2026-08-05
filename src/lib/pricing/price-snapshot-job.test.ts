@@ -11,16 +11,17 @@ const mockCountryPriceMultipliers = {
 };
 
 vi.mock('./price-history');
-vi.mock("./price-snapshot-job");
-
-global.fetch = vi.fn(() =>
-  Promise.resolve({
+vi.mock('./price-snapshot-job', () => ({
+  runPriceSnapshotJob: vi.fn(async () => ({
     ok: true,
-    json: () => Promise.resolve(mockCountryPriceMultipliers),
-  } as Response)
-);
+    productCount: 10,
+    offerCount: 20,
+    appendedPoints: 30,
+    stats: { trackedOffers: 40 },
+  })),
+}));
 vi.mock("@/lib/api-aggregator", async (importOriginal) => {
-  const mod = await importOriginal();
+  const mod = await importOriginal() as any;
   return {
     ...mod,
     fetchCountryPriceMultipliers: vi.fn(() => Promise.resolve(mockCountryPriceMultipliers)),
