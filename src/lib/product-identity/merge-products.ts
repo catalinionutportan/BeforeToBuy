@@ -28,15 +28,13 @@ function applyIdentity(product: Product, identity: ProductIdentity): Product {
 }
 
 export function enrichProductIdentity(product: Product): Product {
-  return applyIdentity(
-    product,
-    buildProductIdentity({
-      gtin: product.gtin,
-      variantKey: product.variantKey,
-      brand: product.brand,
-      title: product.title,
-    })
-  );
+  const identity = buildProductIdentity({
+    gtin: product.gtin,
+    variantKey: product.variantKey,
+    brand: product.brand,
+    title: product.title,
+  });
+  return applyIdentity(product, identity);
 }
 
 function mergeOffers(existing: Product, incoming: Product): Product {

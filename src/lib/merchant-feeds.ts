@@ -25,7 +25,9 @@ const feedCache = new Map<string, FeedCacheEntry>();
 
 async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {
   const filePath = path.join(process.cwd(), "src", "data", filename);
-  return createReadStream(filePath);
+  // stream-json/stream-chain expect string or Uint8Array chunks (utf8), not raw Buffer objects
+  // in some Node/stream-chain combinations.
+  return createReadStream(filePath, { encoding: "utf8" });
 }
 
 async function fetchRemoteFeed(url: string, provider: FeedConfig["provider"]): Promise<NodeJS.ReadableStream> {
