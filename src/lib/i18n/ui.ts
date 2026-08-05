@@ -173,6 +173,7 @@ export const HOME_UI: Record<
     metaTitle: "BeforeToBuy.com | Compare Prices & Local GPS Deals (Beta/Demo)",
     metaDescription: "BeforeToBuy.com - Free multi-country price comparison in Beta/Demo. Explore illustrative deals and Click & Collect distances in Switzerland, Germany, France, Romania, UK, and USA.",
     metaKeywords: "price comparison, Switzerland price compare, Digitec Galaxus deals, Amazon deals, Click and Collect nearby, BeforeToBuy, PortanX, Gutscheine Schweiz",
+    storeDomainLabel: "Store Domain:",
   },
   de: {
     tagline: "GPS-Preisvergleich lokal & online",
@@ -325,6 +326,7 @@ export const HOME_UI: Record<
     metaTitle: "BeforeToBuy.com | Preisvergleich & Lokale GPS-Angebote (Beta/Demo)",
     metaDescription: "BeforeToBuy.com - Kostenloser länderübergreifender Preisvergleich in Beta/Demo. Entdecken Sie illustrative Angebote und Click & Collect-Entfernungen in der Schweiz, Deutschland, Frankreich, Rumänien, Großbritannien und den USA.",
     metaKeywords: "Preisvergleich, Schweiz Preisvergleich, Digitec Galaxus Angebote, Amazon Angebote, Click und Collect in der Nähe, BeforeToBuy, PortanX, Gutscheine Schweiz",
+    storeDomainLabel: "Store Domain:",
   },
   fr: {
     tagline: "Comparaison de prix GPS locale & en ligne",
@@ -477,6 +479,7 @@ export const HOME_UI: Record<
     metaTitle: "BeforeToBuy.com | Comparaison de Prix & Offres GPS Locales (Bêta/Démo)",
     metaDescription: "BeforeToBuy.com - Comparaison de prix multi-pays gratuite en Bêta/Démo. Explorez les offres illustratives et les distances Click & Collect en Suisse, Allemagne, France, Roumanie, Royaume-Uni et États-Unis.",
     metaKeywords: "comparaison de prix, comparaison de prix Suisse, offres Digitec Galaxus, offres Amazon, Click and Collect à proximité, BeforeToBuy, PortanX, bons de réduction Suisse",
+    storeDomainLabel: "Domaine du magasin:",
   },
   it: {
     tagline: "Confronto prezzi GPS locale e online",
@@ -629,6 +632,7 @@ export const HOME_UI: Record<
     metaTitle: "BeforeToBuy.com | Confronto Prezzi & Offerte GPS Locali (Beta/Demo)",
     metaDescription: "BeforeToBuy.com - Confronto prezzi multi-paese gratuito in Beta/Demo. Esplora offerte illustrative e distanze Click & Collect in Svizzera, Germania, Francia, Romania, Regno Unito e Stati Uniti.",
     metaKeywords: "confronto prezzi, confronto prezzi Svizzera, offerte Digitec Galaxus, offerte Amazon, Click and Collect nelle vicinanze, BeforeToBuy, PortanX, buoni sconto Svizzera",
+    storeDomainLabel: "Dominio del negozio:",
   },
   ro: {
     tagline: "Comparație prețuri GPS local & online",
@@ -781,6 +785,7 @@ export const HOME_UI: Record<
     metaTitle: "BeforeToBuy.com | Comparație prețuri și oferte GPS locale (Beta/Demo)",
     metaDescription: "BeforeToBuy.com - Comparație gratuită de prețuri multi-țară în Beta/Demo. Explorează oferte ilustrative și distanțe Click & Collect în Elveția, Germania, Franța, România, Marea Britanie și SUA.",
     metaKeywords: "comparație prețuri, comparație prețuri Elveția, oferte Digitec Galaxus, oferte Amazon, Click and Collect în apropiere, BeforeToBuy, PortanX, vouchere Elveția",
+    storeDomainLabel: "Domeniul magazinului:",
   },
 };
 

@@ -490,7 +490,7 @@ export default function Home() {
               )}
               {selectedDomain !== "all" && (
                 <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-md border border-emerald-300">
-                  Store Domain: {selectedDomain}
+                  {homeUi.storeDomainLabel} {selectedDomain}
                 </span>
               )}
               {offerFilters.brand && (
