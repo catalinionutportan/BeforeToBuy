@@ -6,10 +6,17 @@ import {
   getCategoryById,
   getSubcategoryById,
 } from "@/lib/categories";
+import {
+  defaultLocaleFromCountry,
+  pickLocaleString,
+  type SiteLocale,
+} from "@/lib/i18n/locales";
 
-export type CategoryLocale = "en" | "de" | "fr" | "ro";
+/** @deprecated Prefer SiteLocale — kept as alias for existing imports. */
+export type CategoryLocale = SiteLocale;
+export type { SiteLocale };
 
-const DEPARTMENT_LABELS: Record<string, Record<CategoryLocale, string>> = {
+const DEPARTMENT_LABELS: Record<string, Partial<Record<SiteLocale, string>> & { en: string }> = {
   "computers-tablets": {
     en: "Computers + Tablets",
     de: "Computer + Tablets",
@@ -120,7 +127,7 @@ const DEPARTMENT_LABELS: Record<string, Record<CategoryLocale, string>> = {
   },
 };
 
-const GROUP_LABELS: Record<string, Record<CategoryLocale, string>> = {
+const GROUP_LABELS: Record<string, Partial<Record<SiteLocale, string>> & { en: string }> = {
   "computers-core": {
     en: "Computers & displays",
     de: "Computer & Displays",
@@ -159,29 +166,33 @@ const GROUP_LABELS: Record<string, Record<CategoryLocale, string>> = {
   },
 };
 
-const COLLECTION_LABELS: Record<string, Record<CategoryLocale, string>> = {
+const COLLECTION_LABELS: Record<string, Partial<Record<SiteLocale, string>> & { en: string }> = {
   "compare-cross-border": {
     en: "Cross-border savings",
     de: "Grenzüberschreitend sparen",
     fr: "Économies transfrontalières",
+    it: "Risparmi transfrontalieri",
     ro: "Economii transfrontaliere",
   },
   "compare-local-pickup": {
     en: "Pick up near you",
     de: "Abholung in der Nähe",
     fr: "Retrait près de chez vous",
+    it: "Ritiro vicino a te",
     ro: "Ridicare în apropiere",
   },
   sale: {
     en: "Deals & price drops",
     de: "Deals & Preissenkungen",
     fr: "Promotions & baisses de prix",
+    it: "Offerte e ribassi",
     ro: "Oferte & reduceri",
   },
   "compare-refurb": {
     en: "Refurbished & used",
     de: "Refurbished & Occasion",
     fr: "Reconditionné & occasion",
+    it: "Ricondizionato e usato",
     ro: "Recondiționat & second-hand",
   },
 };
@@ -257,6 +268,20 @@ export const CATEGORY_UI: Record<
     resetFilters: "Resetează filtrele",
     products: "produse",
   },
+  it: {
+    allCategories: "Tutte le categorie",
+    refineComparison: "affina il confronto",
+    browsing: "Navigazione",
+    inDepartment: "in",
+    comparisonCollections: "Collezioni di confronto",
+    collectionsHint:
+      "Viste basate sulle offerte — Transfrontaliero sblocca la consegna estera (es. Amazon.de)",
+    emptyCategoryTitle: "Nessuna offerta in questa categoria",
+    emptyCategoryBody:
+      "Non ci sono offerte confrontabili per questa selezione in {country} al momento. Prova un'altra categoria o reimposta i filtri.",
+    resetFilters: "Reimposta filtri",
+    products: "prodotti",
+  },
 };
 
 /** Labels for the homepage Offer filters row (matches category locale). */
@@ -313,43 +338,43 @@ export const OFFER_FILTER_UI: Record<
     freeDelivery: "Livrare gratuită",
     withEan: "Cu EAN",
   },
+  it: {
+    title: "Filtri offerte",
+    hint: "Affina per prezzo totale, marca, stock, consegna e EAN",
+    allBrands: "Tutte le marche",
+    maxTotal: "Totale max.",
+    anyPrice: "Qualsiasi",
+    inStock: "Disponibile",
+    freeDelivery: "Spedizione gratuita",
+    withEan: "Con EAN",
+  },
 };
 
-export function localeFromCountry(countryCode: CountryCode): CategoryLocale {
-  switch (countryCode) {
-    case "CH":
-    case "DE":
-      return "de";
-    case "FR":
-      return "fr";
-    case "RO":
-      return "ro";
-    default:
-      return "en";
-  }
+export function localeFromCountry(countryCode: CountryCode): SiteLocale {
+  return defaultLocaleFromCountry(countryCode);
 }
 
-export function getDepartmentLabel(departmentId: string, locale: CategoryLocale): string {
-  return (
-    DEPARTMENT_LABELS[departmentId]?.[locale] ??
-    getCategoryById(departmentId)?.label ??
-    departmentId
+export function getDepartmentLabel(departmentId: string, locale: SiteLocale): string {
+  return pickLocaleString(
+    DEPARTMENT_LABELS[departmentId],
+    locale,
+    getCategoryById(departmentId)?.label ?? departmentId
   );
 }
 
-export function getGroupLabel(groupId: string, locale: CategoryLocale): string {
-  return GROUP_LABELS[groupId]?.[locale] ?? groupId;
+export function getGroupLabel(groupId: string, locale: SiteLocale): string {
+  return pickLocaleString(GROUP_LABELS[groupId], locale, groupId);
 }
 
-export function getCollectionLabel(filterId: string, locale: CategoryLocale): string {
-  return (
-    COLLECTION_LABELS[filterId]?.[locale] ??
-    COMPARISON_COLLECTION_FILTERS.find((item) => item.id === filterId)?.label ??
-    filterId
+export function getCollectionLabel(filterId: string, locale: SiteLocale): string {
+  return pickLocaleString(
+    COLLECTION_LABELS[filterId],
+    locale,
+    COMPARISON_COLLECTION_FILTERS.find((item) => item.id === filterId)?.label ?? filterId
   );
 }
 
-export function getSubcategoryLabel(subcategoryId: string, locale: CategoryLocale): string {
+export function getSubcategoryLabel(subcategoryId: string, locale: SiteLocale): string {
   const sub = getSubcategoryById(subcategoryId);
   if (!sub) return subcategoryId;
   if (locale === "de" && sub.labelDe) return sub.labelDe;
