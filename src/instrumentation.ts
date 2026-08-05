@@ -19,7 +19,7 @@ export function register() {
   datadogRum.init({
     applicationId: DATADOG_APPLICATION_ID,
     clientToken: DATADOG_CLIENT_TOKEN,
-    site: 'datadoghq.com', // Or 'datadoghq.eu' if in Europe
+    site: process.env.NEXT_PUBLIC_DATADOG_SITE || 'datadoghq.com', // Or 'datadoghq.eu' if in Europe
     service: DATADOG_SERVICE,
     env: DATADOG_ENV,
     version: '1.0.0', // Consider dynamic versioning (e.g., from package.json)
