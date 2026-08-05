@@ -1,0 +1,33 @@
+[
+  {
+    "gtin": "7612345678901",
+    "title": "Apple MacBook Air 13 M3 256GB Midnight",
+    "description": "Digitec sample merchant feed row used until a production Galaxus feed URL is configured.",
+    "brand": "Apple",
+    "price_chf": 1049,
+    "original_price_chf": 1099,
+    "stock_status": "in_stock",
+    "product_url": "https://www.digitec.ch/en/s1/product/sample-macbook-air-m3",
+    "image_url": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&auto=format&fit=crop&q=80",
+    "merchant_category": "Notebooks & Tablets",
+    "branch_availability": [
+      {
+        "store_name": "Digitec Zurich",
+        "city": "Zurich",
+        "lat": 47.3769,
+        "lng": 8.5417
+      }
+    ]
+  },
+  {
+    "gtin": "7612345678902",
+    "title": "Sony WH-1000XM5 Wireless Noise Cancelling Headphones",
+    "description": "Sample Digitec feed headphones row for category mapping and merge tests.",
+    "brand": "Sony",
+    "price_chf": 329,
+    "stock_status": "in_stock",
+    "product_url": "https://www.digitec.ch/en/s1/product/sample-sony-wh1000xm5",
+    "image_url": "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=600&auto=format&fit=crop&q=80",
+    "merchant_category": "Headphones"
+  }
+]

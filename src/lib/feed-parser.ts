@@ -36,6 +36,7 @@ export interface RawGalaxusFeedItem {
   stock_status: string;
   product_url: string;
   image_url: string;
+  merchant_category?: string;
   branch_availability?: {
     store_name: string;
     city: string;
@@ -168,6 +169,128 @@ export function parseAwinCsvFeed(
     } else {
       productsMap.get(productId)!.offers.push(offer);
     }
+  }
+
+  return {
+    products: Array.from(productsMap.values()),
+    mappingLog,
+  };
+}
+
+function galaxusStoreName(feedMerchantId: string): string {
+  if (feedMerchantId === "ch-galaxus") return "Galaxus.ch";
+  return "Digitec.ch";
+}
+
+function galaxusAffiliateNetwork(feedMerchantId: string): string {
+  return feedMerchantId === "ch-galaxus" ? "Galaxus Partner Program" : "Galaxus Merchant Network";
+}
+
+/**
+ * Parser for Galaxus Merchant JSON feeds (Digitec / Galaxus).
+ */
+export function parseGalaxusJsonFeed(
+  jsonContent: string,
+  targetCountry: CountryCode,
+  feedMerchantId: string,
+  source: Extract<OfferSource, "production-live" | "sample">
+): { products: Product[]; mappingLog: MappingLogEntry[] } {
+  let rows: RawGalaxusFeedItem[] = [];
+  try {
+    const parsed = JSON.parse(jsonContent) as RawGalaxusFeedItem[] | { products: RawGalaxusFeedItem[] };
+    rows = Array.isArray(parsed) ? parsed : parsed.products ?? [];
+  } catch {
+    return { products: [], mappingLog: [] };
+  }
+
+  const productsMap = new Map<string, Product>();
+  const mappingLog: MappingLogEntry[] = [];
+  const isProduction = source === "production-live";
+  const storeName = galaxusStoreName(feedMerchantId);
+
+  for (const row of rows) {
+    if (!row.gtin || !row.title) continue;
+
+    const price = Number(row.price_chf) || 0;
+    const originalPrice =
+      isProduction && row.original_price_chf && row.original_price_chf > price
+        ? row.original_price_chf
+        : undefined;
+    const discountPercentage =
+      originalPrice && originalPrice > price
+        ? Math.round(((originalPrice - price) / originalPrice) * 100)
+        : undefined;
+
+    const onlineOffer: Offer = {
+      id: `galaxus-${row.gtin}-online`,
+      storeName,
+      price,
+      originalPrice,
+      discountPercentage,
+      currency: "CHF",
+      inStock: row.stock_status !== "out_of_stock" && row.stock_status !== "0",
+      deliveryTime: "1-3 Work Days",
+      deliveryCost: 0,
+      purchaseUrl: row.product_url || "#",
+      affiliateNetwork: galaxusAffiliateNetwork(feedMerchantId),
+      type: "online",
+      source,
+      feedMerchantId,
+      badge: isProduction ? "Production feed" : "Sample feed",
+    };
+
+    const offers: Offer[] = [onlineOffer];
+
+    if (row.branch_availability?.length) {
+      const branch = row.branch_availability[0];
+      offers.push({
+        ...onlineOffer,
+        id: `galaxus-${row.gtin}-pickup`,
+        type: "local_pickup",
+        deliveryTime: "Pick up today",
+        deliveryCost: 0,
+        badge: isProduction ? "Click & Collect" : "Sample pickup",
+      });
+      void branch;
+    }
+
+    const productId = `feed-${feedMerchantId}-${row.gtin}`;
+    const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: feedMerchantId,
+      merchantCategory: row.merchant_category,
+      title: row.title,
+      description: row.description,
+      brand: row.brand,
+    });
+
+    mappingLog.push(
+      createMappingLogEntry({
+        productId,
+        merchantId: feedMerchantId,
+        title: row.title,
+        rawCategory: row.merchant_category,
+        mapping: categoryMapping,
+      })
+    );
+
+    productsMap.set(productId, {
+      id: productId,
+      title: row.title,
+      description: row.description || row.title,
+      category: categoryMapping.categoryId,
+      categoryAssignment: {
+        method: categoryMapping.method,
+        confidence: categoryMapping.confidence,
+        rawCategory: categoryMapping.rawCategory,
+        proposedCategoryId: categoryMapping.proposedCategoryId,
+      },
+      brand: row.brand || "Generic",
+      image: row.image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
+      targetCountries: [targetCountry],
+      isFlashDeal: isProduction && discountPercentage ? discountPercentage >= 15 : false,
+      catalogSource: source,
+      offers,
+    });
   }
 
   return {

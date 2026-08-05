@@ -13,7 +13,7 @@
 |-------|-------|
 | Frontend | Next.js 15 App Router, React 19, Tailwind |
 | Hosting | Vercel (auto-deploy on push to `main`) |
-| Product data | Demo catalog + Brack.ch AWIN sample/production feed (CH) |
+| Product data | Demo catalog + multi-merchant sample/production feeds (CH) |
 | APIs | `/api/products`, `/api/health`, `/api/contact`, `/api/geocode`, `/api/location` |
 
 ---
@@ -51,12 +51,18 @@ git push origin main
 | Variable | Required | Purpose |
 |----------|----------|---------|
 | `CONSENT_SIGNING_SECRET` | **Required** | Signs the HttpOnly consent cookie enforced by `/api/location` and `/api/geocode` (minimum 32 characters) |
-| `AWIN_FEED_URL_CH` | Optional | Production AWIN CSV for Switzerland |
+| `AWIN_FEED_URL_CH_BRACK` | Optional | Production AWIN CSV for Brack.ch |
+| `AWIN_FEED_URL_CH` | Optional | Legacy alias for Brack production feed |
+| `AWIN_FEED_URL_CH_MEDIAMARKT` | Optional | Production AWIN CSV for MediaMarkt CH |
+| `AWIN_FEED_URL_CH_INTERDISCOUNT` | Optional | Production AWIN CSV for Interdiscount |
+| `AWIN_FEED_URL_CH_FUST` | Optional | Production AWIN CSV for Fust |
+| `GALAXUS_FEED_URL_CH_DIGITEC` | Optional | Production Galaxus merchant JSON for Digitec |
+| `GALAXUS_FEED_URL_CH_GALAXUS` | Optional | Production Galaxus merchant JSON for Galaxus |
 | `RESEND_API_KEY` | Optional | Contact form email delivery |
 | `CONTACT_TO_EMAIL` | Optional | Contact form recipient |
 | `CONTACT_FROM_EMAIL` | Optional | Contact form sender |
 
-Without `AWIN_FEED_URL_CH`, the sample feed in `src/data/sample-awin-brack-ch.csv` is used.
+Without per-merchant feed URLs, sample files under `src/data/` are used for all six CH retailers.
 Without `CONSENT_SIGNING_SECRET`, consent saving and location APIs fail closed in production.
 
 ---

@@ -186,6 +186,7 @@ export async function fetchMergedProductsForLocation(
     product.offers.some((offer) => offer.source === "production-live")
   ).length;
   const mappingReport = buildMappingReport(feedResult.mappingLog);
+  const feedMerchants = feedResult.merchantProductCounts;
 
   return {
     products,
@@ -201,6 +202,7 @@ export async function fetchMergedProductsForLocation(
       hasProductionFeed: feedResult.sources.includes("remote"),
       hasSampleFeed: feedResult.sources.includes("sample"),
       mappingSummary: mappingReport.summary,
+      feedMerchants,
     },
   };
 }

@@ -119,6 +119,26 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.getByRole("heading", { name: "Comparison collections", exact: true })).toBeVisible();
   });
 
+  test("integrations status reports all CH merchant feed modes", async ({ request }) => {
+    const response = await request.get("/api/integrations/status");
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    expect(body.merchants.length).toBe(6);
+    expect(body.sampleFeeds.length).toBe(6);
+    expect(body.feedMerchantIds).toContain("ch-brack");
+    expect(body.feedMerchantIds).toContain("ch-digitec");
+    expect(body.feedMerchantIds).toContain("ch-galaxus");
+  });
+
+  test("products API exposes per-merchant feed counts", async ({ request }) => {
+    const response = await request.get("/api/products?country=CH");
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    expect(body.meta.feedMerchants["ch-brack"]).toBe(6);
+    expect(body.meta.feedMerchants["ch-digitec"]).toBe(2);
+    expect(body.meta.feedProductCount).toBeGreaterThanOrEqual(16);
+  });
+
   test("mapping report API exposes review queue for feed products", async ({ request }) => {
     const response = await request.get("/api/mapping/report?country=CH");
     expect(response.ok()).toBeTruthy();

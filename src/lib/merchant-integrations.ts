@@ -1,6 +1,8 @@
 import { CountryCode } from "@/types";
 
-export type FeedProvider = "AWIN";
+export type FeedProvider = "AWIN" | "GALAXUS";
+export type FeedMode = "production" | "sample" | "unconfigured";
+export type FeedSampleFormat = "csv" | "json";
 
 export interface FeedConfig {
   provider: FeedProvider;
@@ -8,19 +10,119 @@ export interface FeedConfig {
   merchantId: string;
   merchantName: string;
   envVar: string;
+  /** Backward-compatible env vars checked when the primary env var is unset. */
+  legacyEnvVars?: string[];
   sampleFile?: string;
+  sampleFormat?: FeedSampleFormat;
 }
 
+export interface MerchantFeedStatus {
+  merchantId: string;
+  merchantName: string;
+  provider: FeedProvider;
+  country: CountryCode;
+  envVar: string;
+  mode: FeedMode;
+  configured: boolean;
+  sampleAvailable: boolean;
+}
+
+/** Primary CH merchant feed registry (C4). Production URLs activate via env vars. */
 export const MERCHANT_FEEDS: FeedConfig[] = [
   {
     provider: "AWIN",
     country: "CH",
     merchantId: "ch-brack",
     merchantName: "Brack.ch",
-    envVar: "AWIN_FEED_URL_CH",
+    envVar: "AWIN_FEED_URL_CH_BRACK",
+    legacyEnvVars: ["AWIN_FEED_URL_CH"],
     sampleFile: "sample-awin-brack-ch.csv",
+    sampleFormat: "csv",
+  },
+  {
+    provider: "GALAXUS",
+    country: "CH",
+    merchantId: "ch-digitec",
+    merchantName: "Digitec",
+    envVar: "GALAXUS_FEED_URL_CH_DIGITEC",
+    sampleFile: "sample-galaxus-digitec-ch.json",
+    sampleFormat: "json",
+  },
+  {
+    provider: "GALAXUS",
+    country: "CH",
+    merchantId: "ch-galaxus",
+    merchantName: "Galaxus",
+    envVar: "GALAXUS_FEED_URL_CH_GALAXUS",
+    sampleFile: "sample-galaxus-galaxus-ch.json",
+    sampleFormat: "json",
+  },
+  {
+    provider: "AWIN",
+    country: "CH",
+    merchantId: "ch-mediamarkt",
+    merchantName: "MediaMarkt CH",
+    envVar: "AWIN_FEED_URL_CH_MEDIAMARKT",
+    sampleFile: "sample-awin-mediamarkt-ch.csv",
+    sampleFormat: "csv",
+  },
+  {
+    provider: "AWIN",
+    country: "CH",
+    merchantId: "ch-interdiscount",
+    merchantName: "Interdiscount",
+    envVar: "AWIN_FEED_URL_CH_INTERDISCOUNT",
+    sampleFile: "sample-awin-interdiscount-ch.csv",
+    sampleFormat: "csv",
+  },
+  {
+    provider: "AWIN",
+    country: "CH",
+    merchantId: "ch-fust",
+    merchantName: "Fust",
+    envVar: "AWIN_FEED_URL_CH_FUST",
+    sampleFile: "sample-awin-fust-ch.csv",
+    sampleFormat: "csv",
   },
 ];
+
+export function getFeedConfig(merchantId: string): FeedConfig | undefined {
+  return MERCHANT_FEEDS.find((feed) => feed.merchantId === merchantId);
+}
+
+export function resolveFeedRemoteUrl(feed: FeedConfig): string | undefined {
+  const primary = process.env[feed.envVar]?.trim();
+  if (primary) return primary;
+
+  for (const legacyEnvVar of feed.legacyEnvVars ?? []) {
+    const legacy = process.env[legacyEnvVar]?.trim();
+    if (legacy) return legacy;
+  }
+
+  return undefined;
+}
+
+export function getFeedMode(feed: FeedConfig): FeedMode {
+  if (resolveFeedRemoteUrl(feed)) return "production";
+  if (feed.sampleFile) return "sample";
+  return "unconfigured";
+}
+
+export function getMerchantFeedStatuses(): MerchantFeedStatus[] {
+  return MERCHANT_FEEDS.map((feed) => {
+    const mode = getFeedMode(feed);
+    return {
+      merchantId: feed.merchantId,
+      merchantName: feed.merchantName,
+      provider: feed.provider,
+      country: feed.country,
+      envVar: feed.envVar,
+      mode,
+      configured: mode === "production",
+      sampleAvailable: Boolean(feed.sampleFile),
+    };
+  });
+}
 
 export function getAmazonConfig() {
   const accessKey = process.env.AMAZON_ACCESS_KEY;
@@ -38,7 +140,7 @@ export function getConfiguredFeedUrls(): Record<string, string> {
   const urls: Record<string, string> = {};
 
   for (const feed of MERCHANT_FEEDS) {
-    const url = process.env[feed.envVar];
+    const url = resolveFeedRemoteUrl(feed);
     if (url) {
       urls[feed.merchantId] = url;
     }
@@ -48,35 +150,38 @@ export function getConfiguredFeedUrls(): Record<string, string> {
 }
 
 export function isUsingSampleFeed(merchantId: string): boolean {
-  const feed = MERCHANT_FEEDS.find((item) => item.merchantId === merchantId);
+  const feed = getFeedConfig(merchantId);
   if (!feed) return false;
-  return !process.env[feed.envVar] && !!feed.sampleFile;
+  return getFeedMode(feed) === "sample";
 }
 
 export function getFeedMerchantIds(): string[] {
-  return MERCHANT_FEEDS.filter((feed) => {
-    return process.env[feed.envVar] || feed.sampleFile;
-  }).map((feed) => feed.merchantId);
+  return MERCHANT_FEEDS.filter((feed) => getFeedMode(feed) !== "unconfigured").map(
+    (feed) => feed.merchantId
+  );
 }
 
 export function getIntegrationSummary() {
-  const feedMerchantIds = getFeedMerchantIds();
-  const productionMerchantIds = MERCHANT_FEEDS.filter(
-    (feed) => process.env[feed.envVar]
-  ).map((feed) => feed.merchantId);
-  const configuredFeeds = MERCHANT_FEEDS.filter((feed) => process.env[feed.envVar]).map(
-    (feed) => feed.envVar
-  );
-  const sampleFeeds = MERCHANT_FEEDS.filter((feed) => isUsingSampleFeed(feed.merchantId)).map(
-    (feed) => feed.merchantId
-  );
+  const merchants = getMerchantFeedStatuses();
+  const feedMerchantIds = merchants
+    .filter((merchant) => merchant.mode !== "unconfigured")
+    .map((merchant) => merchant.merchantId);
+  const productionMerchantIds = merchants
+    .filter((merchant) => merchant.mode === "production")
+    .map((merchant) => merchant.merchantId);
+  const sampleFeeds = merchants
+    .filter((merchant) => merchant.mode === "sample")
+    .map((merchant) => merchant.merchantId);
 
   return {
     feedMerchantIds,
     productionMerchantIds,
-    configuredFeeds,
+    configuredFeeds: merchants
+      .filter((merchant) => merchant.configured)
+      .map((merchant) => merchant.envVar),
     sampleFeeds,
-    hasProductionFeed: configuredFeeds.length > 0,
+    merchants,
+    hasProductionFeed: productionMerchantIds.length > 0,
     hasFeedData: feedMerchantIds.length > 0,
   };
 }

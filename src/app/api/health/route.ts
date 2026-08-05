@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { getIntegrationSummary } from "@/lib/merchant-integrations";
+import { getIntegrationSummary, MERCHANT_FEEDS } from "@/lib/merchant-integrations";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { LEGAL_DOCUMENT_VERSION, LEGAL_LAST_UPDATED } from "@/lib/legal-config";
@@ -9,18 +9,38 @@ import { SITE_PHASE } from "@/lib/site-config";
 
 export const dynamic = "force-dynamic";
 
-async function checkSampleFeedFile() {
-  try {
-    const filePath = path.join(process.cwd(), "src", "data", "sample-awin-brack-ch.csv");
-    const content = await fs.readFile(filePath, "utf8");
-    const lines = content.trim().split("\n").filter(Boolean);
-    return {
-      status: lines.length >= 2 ? ("ok" as const) : ("error" as const),
-      rows: Math.max(0, lines.length - 1),
-    };
-  } catch {
-    return { status: "error" as const, rows: 0 };
-  }
+async function checkSampleFeedFiles() {
+  const results = await Promise.all(
+    MERCHANT_FEEDS.filter((feed) => feed.sampleFile).map(async (feed) => {
+      try {
+        const filePath = path.join(process.cwd(), "src", "data", feed.sampleFile!);
+        const content = await fs.readFile(filePath, "utf8");
+        const rows =
+          feed.sampleFormat === "json"
+            ? (JSON.parse(content) as unknown[]).length
+            : Math.max(0, content.trim().split("\n").filter(Boolean).length - 1);
+
+        return {
+          merchantId: feed.merchantId,
+          status: rows > 0 ? ("ok" as const) : ("error" as const),
+          rows,
+        };
+      } catch {
+        return {
+          merchantId: feed.merchantId,
+          status: "error" as const,
+          rows: 0,
+        };
+      }
+    })
+  );
+
+  const okCount = results.filter((item) => item.status === "ok").length;
+  return {
+    status: okCount === results.length ? ("ok" as const) : ("error" as const),
+    merchants: results,
+    rows: results.reduce((sum, item) => sum + item.rows, 0),
+  };
 }
 
 async function checkProductsMerge() {
@@ -56,7 +76,7 @@ async function checkProductsMerge() {
 export async function GET() {
   const startedAt = Date.now();
   const [sampleFeed, productsMerge] = await Promise.all([
-    checkSampleFeedFile(),
+    checkSampleFeedFiles(),
     checkProductsMerge(),
   ]);
 
@@ -71,6 +91,7 @@ export async function GET() {
       productionMerchantIds: integrations.productionMerchantIds,
       hasProductionFeed: integrations.hasProductionFeed,
       sampleFeeds: integrations.sampleFeeds,
+      merchants: integrations.merchants,
     },
   };
 

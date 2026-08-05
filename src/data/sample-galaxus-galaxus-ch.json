@@ -1,0 +1,32 @@
+[
+  {
+    "gtin": "7612345678911",
+    "title": "Dyson V15 Detect Absolute Vacuum Cleaner",
+    "description": "Galaxus sample merchant feed row for household category mapping tests.",
+    "brand": "Dyson",
+    "price_chf": 649,
+    "stock_status": "in_stock",
+    "product_url": "https://www.galaxus.ch/en/s1/product/sample-dyson-v15",
+    "image_url": "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=600&auto=format&fit=crop&q=80",
+    "merchant_category": "Household & Living",
+    "branch_availability": [
+      {
+        "store_name": "Galaxus Wohlen",
+        "city": "Wohlen",
+        "lat": 47.3492,
+        "lng": 8.2789
+      }
+    ]
+  },
+  {
+    "gtin": "7612345678912",
+    "title": "Samsung Galaxy S24 Ultra 256GB Titanium Gray",
+    "description": "Sample Galaxus feed smartphone row for merge and browse tests.",
+    "brand": "Samsung",
+    "price_chf": 969,
+    "stock_status": "in_stock",
+    "product_url": "https://www.galaxus.ch/en/s1/product/sample-galaxy-s24-ultra",
+    "image_url": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600&auto=format&fit=crop&q=80",
+    "merchant_category": "Mobile Telephony"
+  }
+]

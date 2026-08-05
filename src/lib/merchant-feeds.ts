@@ -1,8 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { CountryCode, OfferSource, Product } from "@/types";
-import { parseAwinCsvFeed } from "@/lib/feed-parser";
-import { MERCHANT_FEEDS } from "@/lib/merchant-integrations";
+import {
+  MERCHANT_FEEDS,
+  resolveFeedRemoteUrl,
+  type FeedConfig,
+} from "@/lib/merchant-integrations";
+import { parseConfiguredFeed } from "@/lib/feed-loader";
 import { productMatchesCategoryFilter, ALL_CATEGORIES_ID } from "@/lib/categories";
 import { buildMappingReport, type MappingLogEntry, type MappingReport } from "@/lib/mapping-log";
 
@@ -21,9 +25,14 @@ async function readSampleFeed(filename: string): Promise<string> {
   return fs.readFile(filePath, "utf8");
 }
 
-async function fetchRemoteFeed(url: string): Promise<string> {
+async function fetchRemoteFeed(url: string, provider: FeedConfig["provider"]): Promise<string> {
+  const accept =
+    provider === "GALAXUS"
+      ? "application/json, text/plain, */*"
+      : "text/csv, text/plain, */*";
+
   const response = await fetch(url, {
-    headers: { Accept: "text/csv, text/plain, */*" },
+    headers: { Accept: accept },
     next: { revalidate: 3600 },
   });
 
@@ -59,26 +68,23 @@ function filterFeedProducts(
 }
 
 async function loadFeedForMerchant(
-  feedEnvVar: string,
-  sampleFile: string | undefined,
-  country: CountryCode,
-  merchantId: string
+  feed: FeedConfig
 ): Promise<{ products: Product[]; mappingLog: MappingLogEntry[]; source: "remote" | "sample" }> {
-  const cacheKey = `${merchantId}:${country}`;
+  const cacheKey = `${feed.merchantId}:${feed.country}`;
   const cached = feedCache.get(cacheKey);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
     return { products: cached.products, mappingLog: cached.mappingLog, source: cached.source };
   }
 
-  const remoteUrl = process.env[feedEnvVar];
-  let csvContent: string;
+  const remoteUrl = resolveFeedRemoteUrl(feed);
+  let content: string;
   let source: "remote" | "sample";
 
   if (remoteUrl) {
-    csvContent = await fetchRemoteFeed(remoteUrl);
+    content = await fetchRemoteFeed(remoteUrl, feed.provider);
     source = "remote";
-  } else if (sampleFile) {
-    csvContent = await readSampleFeed(sampleFile);
+  } else if (feed.sampleFile) {
+    content = await readSampleFeed(feed.sampleFile);
     source = "sample";
   } else {
     return { products: [], mappingLog: [], source: "sample" };
@@ -86,14 +92,14 @@ async function loadFeedForMerchant(
 
   const offerSource: Extract<OfferSource, "production-live" | "sample"> =
     source === "remote" ? "production-live" : "sample";
-  const parsed = parseAwinCsvFeed(csvContent, country, merchantId, offerSource);
+  const parsed = parseConfiguredFeed(feed, content, feed.country, offerSource);
   const products = parsed.products.map((product) => ({
     ...product,
     catalogSource: offerSource,
     offers: product.offers.map((offer) => ({
       ...offer,
       source: offerSource,
-      feedMerchantId: merchantId,
+      feedMerchantId: feed.merchantId,
     })),
   }));
 
@@ -107,6 +113,10 @@ async function loadFeedForMerchant(
   return { products, mappingLog: parsed.mappingLog, source };
 }
 
+export function clearFeedCacheForTests() {
+  feedCache.clear();
+}
+
 export async function getFeedProducts(
   country: CountryCode,
   query?: string,
@@ -115,19 +125,17 @@ export async function getFeedProducts(
   products: Product[];
   sources: Array<"remote" | "sample">;
   mappingLog: MappingLogEntry[];
+  merchantProductCounts: Record<string, number>;
 }> {
   const feeds = MERCHANT_FEEDS.filter((feed) => feed.country === country);
   const allProducts: Product[] = [];
   const allMappingLog: MappingLogEntry[] = [];
   const sources = new Set<"remote" | "sample">();
+  const merchantProductCounts: Record<string, number> = {};
 
   for (const feed of feeds) {
-    const { products, mappingLog, source } = await loadFeedForMerchant(
-      feed.envVar,
-      feed.sampleFile,
-      feed.country,
-      feed.merchantId
-    );
+    const { products, mappingLog, source } = await loadFeedForMerchant(feed);
+    merchantProductCounts[feed.merchantId] = products.length;
     if (products.length > 0) {
       sources.add(source);
       allProducts.push(...products);
@@ -139,6 +147,7 @@ export async function getFeedProducts(
     products: filterFeedProducts(allProducts, query, category),
     sources: Array.from(sources),
     mappingLog: allMappingLog,
+    merchantProductCounts,
   };
 }
 
