@@ -33,20 +33,15 @@ const NON_CH_COUNTRIES: CountryCode[] = ALL_COUNTRIES.filter((code) => code !== 
  * TODO: Refactor generateOffersForLocation to fetch offers from real affiliate APIs/databases
  * instead of hardcoded logic, for production use. The current implementation is for demo purposes.
  */
+import countryPriceMultipliers from "@/data/country-price-multipliers.json";
+
 function generateOffersForLocation(product: Product, userLocation: UserLocation) {
   const country = userLocation.countryCode;
   const currInfo = COUNTRIES[country] || COUNTRIES.CH;
   const currency = currInfo.currency;
 
   // Base pricing multipliers per country based on purchasing power & tax
-  const countryPriceMultiplier: Record<CountryCode, number> = {
-    CH: 1.15, // Higher price in CHF
-    DE: 1.0,  // Standard EUR
-    FR: 1.02, // EUR
-    RO: 4.98, // RON rate approx
-    GB: 0.85, // GBP
-    US: 1.05, // USD
-  };
+  const countryPriceMultiplier: Record<CountryCode, number> = countryPriceMultipliers;
 
   const mult = countryPriceMultiplier[country] || 1.0;
 
