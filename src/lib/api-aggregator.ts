@@ -11,6 +11,14 @@ import { getRoOffers } from "./offers/ro-offers";
 import { getGbOffers } from "./offers/gb-offers";
 import { getUsOffers } from "./offers/us-offers";
 
+async function fetchCountryPriceMultipliers(): Promise<Record<CountryCode, number>> {
+  const response = await fetch('/data/country-price-multipliers.json');
+  if (!response.ok) {
+    throw new Error(`Failed to fetch country price multipliers: ${response.statusText}`);
+  }
+  return response.json();
+}
+
 // Import store branches from JSON files
 import chBranches from "@/data/store-branches-ch.json";
 import deBranches from "@/data/store-branches-de.json";
@@ -38,17 +46,13 @@ const NON_CH_COUNTRIES: CountryCode[] = ALL_COUNTRIES.filter((code) => code !== 
  * TODO: Refactor generateOffersForLocation to fetch offers from real affiliate APIs/databases
  * instead of hardcoded logic, for production use. The current implementation is for demo purposes.
  */
-import countryPriceMultipliers from "@/data/country-price-multipliers.json";
-
 async function generateOffersForLocation(product: Product, userLocation: UserLocation) {
   const country = userLocation.countryCode;
   const currInfo = COUNTRIES[country] || COUNTRIES.CH;
   const currency = currInfo.currency;
 
   // Base pricing multipliers per country based on purchasing power & tax
-  const countryPriceMultiplier: Record<CountryCode, number> = countryPriceMultipliers;
-
-  const mult = countryPriceMultiplier[country] || 1.0;
+  const mult = (await fetchCountryPriceMultipliers())[country] || 1.0;
 
   // Base price from product
   const basePrice = product.basePrice || 350;
