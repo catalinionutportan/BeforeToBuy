@@ -4,49 +4,54 @@ import { BetaDemoBanner } from "@/components/BetaDemoBanner";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { SiteFooter } from "@/components/SiteFooter";
 import { defaultOpenGraph } from "@/lib/metadata";
+import { useBrowseLocale } from "@/hooks/useBrowseLocale";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { ClientLocalizationProvider } from "@/components/ClientLocalizationProvider";
+import { HOME_UI } from "@/lib/i18n/ui";
 
-export const metadata: Metadata = {
-  title: "BeforeToBuy.com | Compare Prices & Local GPS Deals (Beta/Demo)",
-  description:
-    "BeforeToBuy.com - Free multi-country price comparison in Beta/Demo. Explore illustrative deals and Click & Collect distances in Switzerland, Germany, France, Romania, UK, and USA.",
-  metadataBase: new URL("https://www.beforetobuy.com"),
-  keywords: [
-    "price comparison",
-    "Switzerland price compare",
-    "Digitec Galaxus deals",
-    "Amazon deals",
-    "Click and Collect nearby",
-    "BeforeToBuy",
-    "PortanX",
-    "Gutscheine Schweiz",
-  ],
-  authors: [{ name: "PortanX - Catalin Portan", url: "https://portanx.com" }],
-  openGraph: {
-    ...defaultOpenGraph,
-    title: "BeforeToBuy.com | Compare Prices & Local GPS Deals (Beta/Demo)",
-    description:
-      "Free multi-country price comparison in Beta/Demo. Explore illustrative deals and Click & Collect distances in Switzerland, Germany, France, Romania, UK, and USA.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "BeforeToBuy.com | Compare Prices & Local GPS Deals (Beta/Demo)",
-    description:
-      "Free multi-country price comparison in Beta/Demo across Switzerland, Germany, France, Romania, UK, and USA.",
-  },
-};
+export async function generateMetadata({
+  params: { locale = DEFAULT_LOCALE },
+}: {
+  params: { locale: SiteLocale };
+}): Promise<Metadata> {
+  const ui = HOME_UI[locale];
+  const keywords = ui.metaKeywords.split(", ");
+
+  return {
+    title: ui.metaTitle,
+    description: ui.metaDescription,
+    metadataBase: new URL("https://www.beforetobuy.com"),
+    keywords: keywords,
+    authors: [{ name: "PortanX - Catalin Portan", url: "https://portanx.com" }],
+    openGraph: {
+      ...defaultOpenGraph,
+      title: ui.metaTitle,
+      description: ui.metaDescription,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: ui.metaTitle,
+      description: ui.metaDescription,
+    },
+  };
+}
 
 export default function RootLayout({
   children,
+  params: { locale = DEFAULT_LOCALE },
 }: Readonly<{
   children: React.ReactNode;
+  params: { locale: SiteLocale };
 }>) {
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className="antialiased font-sans bg-slate-50 text-slate-900 min-h-screen flex flex-col">
-        <BetaDemoBanner />
-        <div className="flex-1 flex flex-col">{children}</div>
-        <SiteFooter />
-        <CookieConsentBanner />
+        <ClientLocalizationProvider currentLocale={locale}>
+          <BetaDemoBanner />
+          <div className="flex-1 flex flex-col">{children}</div>
+          <SiteFooter />
+          <CookieConsentBanner />
+        </ClientLocalizationProvider>
       </body>
     </html>
   );
