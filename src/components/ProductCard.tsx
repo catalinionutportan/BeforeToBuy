@@ -6,7 +6,7 @@ import { COUNTRIES } from "@/lib/countries";
 import { openConsentPreferences } from "@/lib/consent";
 import { useConsent } from "@/lib/use-consent";
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
-import { getPriceTrend } from "@/lib/pricing/price-history";
+import { getPriceTrend } from "@/lib/pricing/price-trend";
 import {
   ExternalLink,
   MapPin,
