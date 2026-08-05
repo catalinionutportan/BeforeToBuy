@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: "Too many product requests. Please try again later." },
+      { error: homeUi.productApiTooManyRequests },
       { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
     );
   }
@@ -72,7 +72,7 @@ export async function GET(request: Request) {
     const trackingId = generateUuid();
     console.error(`Product fetch failed (Tracking ID: ${trackingId}):`, error);
     return NextResponse.json(
-      { error: formatUi(HOME_UI[DEFAULT_LOCALE].productFetchError, {}) , trackingId },
+      { error: formatUi(homeUi.productFetchError, {}) , trackingId },
       { status: 500 }
     );
   }

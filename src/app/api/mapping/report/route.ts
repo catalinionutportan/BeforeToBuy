@@ -4,6 +4,11 @@ import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { getFeedMappingReport } from "@/lib/merchant-feeds";
 
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
+
 const VALID_COUNTRIES = new Set<CountryCode>(["CH", "DE", "FR", "RO", "GB", "US"]);
 
 function parseCountry(value: string | null): CountryCode {
@@ -17,7 +22,7 @@ export async function GET(request: Request) {
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: "Too many mapping report requests. Please try again later." },
+      { error: homeUi.mappingReportTooManyRequests },
       { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
     );
   }
@@ -45,6 +50,6 @@ export async function GET(request: Request) {
     );
   } catch (error) {
     console.error("Mapping report failed:", error);
-    return NextResponse.json({ error: "Unable to build mapping report." }, { status: 500 });
+    return NextResponse.json({ error: homeUi.mappingReportUnableToBuild }, { status: 500 });
   }
 }

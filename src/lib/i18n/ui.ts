@@ -271,6 +271,9 @@ export const HOME_UI: Record<
     healthStatusDegraded: "degraded",
     healthCheckUnknownError: "Unknown error",
     healthCheckEnvironmentUnknown: "unknown",
+    mappingReportTooManyRequests: "Too many mapping report requests. Please try again later.",
+    mappingReportUnableToBuild: "Unable to build mapping report.",
+    productApiTooManyRequests: "Too many product requests. Please try again later.",
   },
   de: {
     tagline: "GPS-Preisvergleich lokal & online",
@@ -522,6 +525,9 @@ export const HOME_UI: Record<
     healthStatusDegraded: "verschlechtert",
     healthCheckUnknownError: "Unbekannter Fehler",
     healthCheckEnvironmentUnknown: "unbekannt",
+    mappingReportTooManyRequests: "Zu viele Mapping-Berichtsanfragen. Bitte versuchen Sie es später erneut.",
+    mappingReportUnableToBuild: "Mapping-Bericht konnte nicht erstellt werden.",
+    productApiTooManyRequests: "Zu viele Produktanfragen. Bitte versuchen Sie es später erneut.",
   },
   fr: {
     tagline: "Comparaison de prix GPS locale & en ligne",
@@ -774,6 +780,9 @@ export const HOME_UI: Record<
     healthStatusDegraded: "dégradé",
     healthCheckUnknownError: "Erreur inconnue",
     healthCheckEnvironmentUnknown: "inconnu",
+    mappingReportTooManyRequests: "Trop de demandes de rapport de mappage. Veuillez réessayer plus tard.",
+    mappingReportUnableToBuild: "Impossible de générer le rapport de mappage.",
+    productApiTooManyRequests: "Trop de requêtes de produits. Veuillez réessayer plus tard.",
   },
   it: {
     tagline: "Confronto prezzi GPS locale e online",
@@ -1025,6 +1034,9 @@ export const HOME_UI: Record<
     healthStatusDegraded: "degradato",
     healthCheckUnknownError: "Errore sconosciuto",
     healthCheckEnvironmentUnknown: "sconosciuto",
+    mappingReportTooManyRequests: "Troppe richieste di rapporto di mappatura. Riprova più tardi.",
+    mappingReportUnableToBuild: "Impossibile creare il rapporto di mappatura.",
+    productApiTooManyRequests: "Troppe richieste di prodotti. Riprova più tardi.",
   },
   ro: {
     tagline: "Comparație prețuri GPS local & online",
@@ -1276,6 +1288,9 @@ export const HOME_UI: Record<
     healthStatusDegraded: "degradat",
     healthCheckUnknownError: "Eroare necunoscută",
     healthCheckEnvironmentUnknown: "necunoscut",
+    mappingReportTooManyRequests: "Prea multe cereri de raport de mapare. Vă rugăm să încercați din nou mai târziu.",
+    mappingReportUnableToBuild: "Nu se poate construi raportul de mapare.",
+    productApiTooManyRequests: "Prea multe cereri de produse. Vă rugăm să încercați din nou mai târziu.",
   },
 };
 
