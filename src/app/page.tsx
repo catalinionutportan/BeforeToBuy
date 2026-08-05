@@ -284,10 +284,28 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Main Container — products first, filters second */}
+      {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
         
+        {/* Promos & Vouchers Section Highlighted at Top */}
         <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
+
+        {/* BeforeToBuy category modules + comparison filters */}
+        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+          <CategoryNavigation
+            selectedCategory={selectedCategory}
+            onCategoryChange={handleCategoryChange}
+            categoryCounts={catalogMeta?.categoryCounts}
+            locale={browseLocale}
+          />
+
+          <CollectionNavigation
+            selectedCategory={selectedCategory}
+            onCollectionChange={handleCollectionChange}
+            collectionCounts={catalogMeta?.collectionCounts}
+            locale={browseLocale}
+          />
+        </div>
 
         {/* Results Bar Header */}
         <div className="flex items-center justify-between">
@@ -329,14 +347,14 @@ export default function Home() {
 
           <button
             onClick={() => setIsDisclosureOpen(true)}
-            className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0"
+            className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5"
           >
             <Info className="w-3.5 h-3.5" />
             <span>How Commissions Work (100% Free)</span>
           </button>
         </div>
 
-        {/* Products Grid — primary content, above category filters */}
+        {/* Products Grid */}
         {isLoadingProducts ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((n) => (
@@ -418,26 +436,6 @@ export default function Home() {
             ))}
           </div>
         )}
-
-        {/* Category + collection filters below the product grid */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-            Refine comparison
-          </p>
-          <CategoryNavigation
-            selectedCategory={selectedCategory}
-            onCategoryChange={handleCategoryChange}
-            categoryCounts={catalogMeta?.categoryCounts}
-            locale={browseLocale}
-          />
-
-          <CollectionNavigation
-            selectedCategory={selectedCategory}
-            onCollectionChange={handleCollectionChange}
-            collectionCounts={catalogMeta?.collectionCounts}
-            locale={browseLocale}
-          />
-        </div>
 
       </main>
 
