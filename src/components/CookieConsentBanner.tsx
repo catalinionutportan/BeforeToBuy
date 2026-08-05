@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Cookie, X } from "lucide-react";
 import {
@@ -22,6 +22,7 @@ export function CookieConsentBanner() {
   const [affiliateConsent, setAffiliateConsent] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const syncVisibility = () => {
@@ -71,14 +72,35 @@ export function CookieConsentBanner() {
       })
     );
 
+  // Move focus into the dialog when it opens so keyboard/screen-reader users land on it.
+  useEffect(() => {
+    if (isVisible) dialogRef.current?.focus();
+  }, [isVisible]);
+
+  // Dismiss (essential-only, matching the close button) on Escape.
+  useEffect(() => {
+    if (!isVisible) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isSaving) {
+        handleEssentialOnly();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible, isSaving]);
+
   if (!isVisible) return null;
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="cookie-consent-title"
-      className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-50 bg-slate-900 text-white rounded-2xl p-5 shadow-2xl border border-slate-800"
+      aria-describedby="cookie-consent-description"
+      tabIndex={-1}
+      className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-50 bg-slate-900 text-white rounded-2xl p-5 shadow-2xl border border-slate-800 focus:outline-none"
     >
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center gap-2">
@@ -100,7 +122,7 @@ export function CookieConsentBanner() {
         </button>
       </div>
 
-      <p className="text-xs text-slate-300 leading-relaxed mb-3">
+      <p id="cookie-consent-description" className="text-xs text-slate-300 leading-relaxed mb-3">
         {homeUi.essentialLocalStorageDescription}
       </p>
 

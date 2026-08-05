@@ -1,28 +1,18 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
-import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n/locales";
+import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
-// Basic sanitization function to prevent injection attacks
-function sanitizeString(input: string | null | undefined): string | undefined {
+function sanitizeQueryParam(input: string | null | undefined): string | undefined {
   if (!input) return undefined;
-  return input.replace(/[<>\"'`%{};\\\/]/g, "").trim(); // Remove potentially harmful characters
-}
-
-function generateUuid(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  return stripUnsafeQueryChars(input);
 }
 
 const VALID_COUNTRIES = new Set<CountryCode>(Object.keys(COUNTRIES) as CountryCode[]);
@@ -64,8 +54,9 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const countryCode = parseCountry(searchParams.get("country"));
-  const query = sanitizeString(searchParams.get("q"));
-  const category = sanitizeString(searchParams.get("category"));
+  const query = sanitizeQueryParam(searchParams.get("q"));
+  const category = sanitizeQueryParam(searchParams.get("category"));
+  const locale = normalizeLocale(searchParams.get("locale")) ?? DEFAULT_LOCALE;
   const userLocation = buildUserLocation(
     countryCode,
     searchParams.get("lat"),
@@ -73,14 +64,14 @@ export async function GET(request: Request) {
   );
 
   try {
-    const result = await fetchMergedProductsForLocation(userLocation, query, category);
+    const result = await fetchMergedProductsForLocation(userLocation, query, category, locale);
     return NextResponse.json(result, {
       headers: {
         "Cache-Control": "private, max-age=30",
       },
     });
   } catch (error) {
-    const trackingId = generateUuid();
+    const trackingId = randomUUID();
     console.error(`Product fetch failed (Tracking ID: ${trackingId}):`, error);
     return NextResponse.json(
       { error: formatUi(homeUi.productFetchError, {}) , trackingId },

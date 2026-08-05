@@ -3,7 +3,7 @@ import { COUNTRIES } from "@/lib/countries";
 import { calculateHaversineDistance } from "@/lib/geolocation";
 import countryPriceMultipliers from "@/data/country-price-multipliers.json";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
-import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { DEFAULT_LOCALE, type SiteLocale } from "@/lib/i18n/locales";
 
 function isValidHttpUrl(string: string) {
   let url;
@@ -15,9 +15,15 @@ function isValidHttpUrl(string: string) {
   return url.protocol === "http:" || url.protocol === "https:";
 }
 
-export async function getChOffers(product: Product, userLocation: UserLocation, closestStore: any): Promise<Offer[]> {
+export async function getChOffers(
+  product: Product,
+  userLocation: UserLocation,
+  closestStore: any,
+  locale: SiteLocale = DEFAULT_LOCALE
+): Promise<Offer[]> {
   const currInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
   const currency = currInfo.currency;
+  const ui = HOME_UI[locale];
 
   const countryPriceMultiplier: Record<string, number> = countryPriceMultipliers;
   const mult = countryPriceMultiplier[userLocation.countryCode] || 1.0;
@@ -39,7 +45,7 @@ export async function getChOffers(product: Product, userLocation: UserLocation, 
       type: "local_pickup" as const,
       source: "demo" as const,
       nearbyBranch: closestStore ? { ...closestStore, storeName: "Digitec" } : undefined,
-      badge: closestStore ? formatUi(`${HOME_UI[DEFAULT_LOCALE].clickAndCollectIn} {distanceKm} ${HOME_UI[DEFAULT_LOCALE].kmAway}`, { distanceKm: closestStore.distanceKm }) : HOME_UI[DEFAULT_LOCALE].localPickCollect,
+      badge: closestStore ? formatUi(`${ui.clickAndCollectIn} {distanceKm} ${ui.kmAway}`, { distanceKm: closestStore.distanceKm }) : ui.localPickCollect,
     },
     {
       id: `${product.id}-galaxus`,
@@ -54,7 +60,7 @@ export async function getChOffers(product: Product, userLocation: UserLocation, 
       affiliateNetwork: "Galaxus Partner Program",
       type: "online" as const,
       source: "demo" as const,
-      badge: HOME_UI[DEFAULT_LOCALE].cheapestInSwitzerland,
+      badge: ui.cheapestInSwitzerland,
     },
     {
       id: `${product.id}-brack`,

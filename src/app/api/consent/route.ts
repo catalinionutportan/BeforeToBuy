@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import {
+  CONSENT_CLIENT_HINT_COOKIE_NAME,
   CONSENT_COOKIE_MAX_AGE_SECONDS,
   CONSENT_COOKIE_NAME,
+  CONSENT_VERSION,
 } from "@/lib/consent-config";
 import { createConsentToken } from "@/lib/server-consent";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -96,12 +98,32 @@ export async function POST(request: Request) {
     );
   }
 
+  const isHttps = new URL(request.url).protocol === "https:";
   const response = NextResponse.json({ saved: true });
   response.cookies.set({
     name: CONSENT_COOKIE_NAME,
     value: token,
     httpOnly: true,
-    secure: new URL(request.url).protocol === "https:",
+    secure: isHttps,
+    sameSite: "strict",
+    path: "/",
+    maxAge: CONSENT_COOKIE_MAX_AGE_SECONDS,
+  });
+  // Readable companion cookie so the client can resync localStorage with the
+  // HttpOnly cookie (the server-visible source of truth) on later page loads.
+  response.cookies.set({
+    name: CONSENT_CLIENT_HINT_COOKIE_NAME,
+    value: encodeURIComponent(
+      JSON.stringify({
+        essential: true,
+        location: preferences.location,
+        affiliate: preferences.affiliate,
+        updatedAt: new Date().toISOString(),
+        version: CONSENT_VERSION,
+      })
+    ),
+    httpOnly: false,
+    secure: isHttps,
     sameSite: "strict",
     path: "/",
     maxAge: CONSENT_COOKIE_MAX_AGE_SECONDS,
@@ -123,12 +145,22 @@ export async function DELETE(request: Request) {
     );
   }
 
+  const isHttps = new URL(request.url).protocol === "https:";
   const response = NextResponse.json({ cleared: true });
   response.cookies.set({
     name: CONSENT_COOKIE_NAME,
     value: "",
     httpOnly: true,
-    secure: new URL(request.url).protocol === "https:",
+    secure: isHttps,
+    sameSite: "strict",
+    path: "/",
+    maxAge: 0,
+  });
+  response.cookies.set({
+    name: CONSENT_CLIENT_HINT_COOKIE_NAME,
+    value: "",
+    httpOnly: false,
+    secure: isHttps,
     sameSite: "strict",
     path: "/",
     maxAge: 0,

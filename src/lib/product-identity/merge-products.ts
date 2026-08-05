@@ -67,7 +67,14 @@ function mergeOffers(existing: Product, incoming: Product): Product {
   };
 }
 
-/** Merge feed rows that share GTIN + variant across merchants. */
+/**
+ * Merge feed rows that share GTIN + variant across merchants.
+ *
+ * This is the "exact" merge path: products are grouped strictly by
+ * `canonicalKey` (derived from GTIN + variant, see `buildProductIdentity`).
+ * Rows without a resolvable GTIN never collide here — each keeps its own
+ * canonical key — so no fuzzy title/brand matching happens in this function.
+ */
 export function mergeFeedProductsByIdentity(feedProducts: Product[]): Product[] {
   const groups = new Map<string, Product>();
 
@@ -187,6 +194,20 @@ function findFeedMatchByCanonicalKey(
   return feedByCanonical.get(demoProduct.canonicalKey);
 }
 
+/**
+ * Fuzzy fallback match used only for demo <-> feed product merging (never for
+ * merging feed products with each other — see `mergeFeedProductsByIdentity`,
+ * which only merges by exact GTIN/canonical key).
+ *
+ * A demo product is fuzzy-matched to a feed product only when ALL hold:
+ *  - the feed product has no GTIN (GTIN-bearing rows always merge via the
+ *    exact `findFeedMatchByCanonicalKey` canonical-key path instead);
+ *  - brand matches exactly (case-insensitive);
+ *  - normalized title token-overlap score is >= 70 (see `titleMatchScore`);
+ *  - the best match beats the runner-up by >= 10 points, so an ambiguous tie
+ *    between two similarly-scored feed products is left unmatched rather than
+ *    guessed — avoiding merging two different products together.
+ */
 function findSafeFuzzyFeedMatch(
   demoProduct: Product,
   feedProducts: Product[],
@@ -218,6 +239,13 @@ function findSafeFuzzyFeedMatch(
   return best.product;
 }
 
+/**
+ * Merge demo (illustrative) products with live/sample feed products.
+ * Each demo product is matched to a feed product in this order:
+ *   1. Exact canonical-key match (GTIN + variant) — see `findFeedMatchByCanonicalKey`.
+ *   2. Fuzzy brand + title match, only for feed products lacking a GTIN — see `findSafeFuzzyFeedMatch`.
+ * Unmatched demo products keep their demo-only offers; unmatched feed products are appended as-is.
+ */
 export function mergeFeedAndDemoProducts(
   demoProducts: Product[],
   feedProducts: Product[]

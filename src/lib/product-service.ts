@@ -7,15 +7,12 @@ import {
   mergeFeedAndDemoProducts,
 } from "@/lib/product-identity/merge-products";
 import {
-  getOfferPriceHistory,
   getPriceHistoryBackend,
   getPriceHistoryStats,
   getPriceTrend,
-  recordProductPriceHistory,
   getOffersPriceHistoryBatch,
 } from "@/lib/pricing/price-history";
 import { buildPriceHistoryKey } from "@/lib/pricing/price-history-keys";
-import { sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import {
   COMPARISON_COLLECTION_FILTERS,
   getParentCategoryId,
@@ -24,9 +21,9 @@ import {
   UNMAPPED_CATEGORY_ID,
 } from "@/lib/categories";
 import { applyCrossBorderVisibility } from "@/lib/offers/cross-border";
+import { DEFAULT_LOCALE, type SiteLocale } from "@/lib/i18n/locales";
 
 async function attachPriceHistory(products: Product[]): Promise<Product[]> {
-  const allOffers = products.flatMap((product) => product.offers);
   const batchedPriceHistories = await getOffersPriceHistoryBatch(products);
 
   return products.map((product) => ({
@@ -51,17 +48,19 @@ export { mergeFeedAndDemoProducts } from "@/lib/product-identity/merge-products"
 export async function fetchMergedProductsForLocation(
   userLocation: UserLocation,
   query?: string,
-  category?: string
+  category?: string,
+  locale: SiteLocale = DEFAULT_LOCALE
 ) {
   const [demoProducts, feedResult] = await Promise.all([
-    fetchProductsForLocation(userLocation, query),
+    fetchProductsForLocation(userLocation, query, undefined, locale),
     getFeedProducts(userLocation.countryCode, query),
   ]);
 
   const fetchedAt = new Date().toISOString();
   const mergedProducts = mergeFeedAndDemoProducts(demoProducts, feedResult.products);
   const timestampedProducts = attachOfferTimestamps(mergedProducts, fetchedAt);
-  await recordProductPriceHistory(timestampedProducts, fetchedAt);
+  // Price history is written by the cron snapshot job — not on every browse.
+  // await recordProductPriceHistory(timestampedProducts, fetchedAt);
 
   const visibleProducts = await attachPriceHistory(
     timestampedProducts.filter(

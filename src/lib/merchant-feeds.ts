@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import { createReadStream } from "node:fs";
 import path from "node:path";
 import { CountryCode, OfferSource, Product } from "@/types";
@@ -12,6 +11,8 @@ import { productMatchesCategoryFilter, ALL_CATEGORIES_ID } from "@/lib/categorie
 import { buildMappingReport, type MappingLogEntry, type MappingReport } from "@/lib/mapping-log";
 import { mergeFeedProductsByIdentity } from "@/lib/product-identity/merge-products";
 import { productMatchesSearchQuery } from "@/lib/product-search";
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
+import { redisGetJson, redisSetJson } from "@/lib/redis-cache";
 
 type FeedCacheEntry = {
   fetchedAt: number;
@@ -21,25 +22,39 @@ type FeedCacheEntry = {
 };
 
 const CACHE_TTL_MS = 60 * 60 * 1000;
+const CACHE_TTL_SECONDS = 60 * 60;
 const feedCache = new Map<string, FeedCacheEntry>();
+
+function memoryCacheKey(feed: FeedConfig): string {
+  return `${feed.merchantId}:${feed.country}`;
+}
+
+function redisCacheKey(feed: FeedConfig): string {
+  return `feed:v1:${feed.merchantId}:${feed.country}`;
+}
 
 async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {
   const filePath = path.join(process.cwd(), "src", "data", filename);
-  // stream-json/stream-chain expect string or Uint8Array chunks (utf8), not raw Buffer objects
-  // in some Node/stream-chain combinations.
   return createReadStream(filePath, { encoding: "utf8" });
 }
 
-async function fetchRemoteFeed(url: string, provider: FeedConfig["provider"]): Promise<NodeJS.ReadableStream> {
+async function fetchRemoteFeed(
+  url: string,
+  provider: FeedConfig["provider"]
+): Promise<NodeJS.ReadableStream> {
   const accept =
     provider === "GALAXUS"
       ? "application/json, text/plain, */*"
       : "text/csv, text/plain, */*";
 
-  const response = await fetch(url, {
-    headers: { Accept: accept },
-    next: { revalidate: 3600 },
-  });
+  const response = await fetchWithTimeout(
+    url,
+    {
+      headers: { Accept: accept },
+      next: { revalidate: 3600 },
+    },
+    { timeoutMs: 15_000, retries: 2 }
+  );
 
   if (!response.ok) {
     throw new Error(`Feed fetch failed (${response.status}) for ${url}`);
@@ -73,10 +88,20 @@ function filterFeedProducts(
 async function loadFeedForMerchant(
   feed: FeedConfig
 ): Promise<{ products: Product[]; mappingLog: MappingLogEntry[]; source: "remote" | "sample" }> {
-  const cacheKey = `${feed.merchantId}:${feed.country}`;
-  const cached = feedCache.get(cacheKey);
+  const memKey = memoryCacheKey(feed);
+  const cached = feedCache.get(memKey);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
     return { products: cached.products, mappingLog: cached.mappingLog, source: cached.source };
+  }
+
+  const redisCached = await redisGetJson<FeedCacheEntry>(redisCacheKey(feed));
+  if (redisCached && Date.now() - redisCached.fetchedAt < CACHE_TTL_MS) {
+    feedCache.set(memKey, redisCached);
+    return {
+      products: redisCached.products,
+      mappingLog: redisCached.mappingLog,
+      source: redisCached.source,
+    };
   }
 
   const remoteUrl = resolveFeedRemoteUrl(feed);
@@ -84,10 +109,17 @@ async function loadFeedForMerchant(
   let source: "remote" | "sample";
 
   if (remoteUrl) {
-    content = await fetchRemoteFeed(remoteUrl, feed.provider);
-    source = "remote";
-    if (content === null) {
-      return { products: [], mappingLog: [], source: "sample" };
+    try {
+      content = await fetchRemoteFeed(remoteUrl, feed.provider);
+      source = "remote";
+    } catch (error) {
+      console.error(`[merchant-feeds] remote fetch failed for ${feed.merchantId}:`, error);
+      if (feed.sampleFile) {
+        content = await readSampleFeed(feed.sampleFile);
+        source = "sample";
+      } else {
+        return { products: [], mappingLog: [], source: "sample" };
+      }
     }
   } else if (feed.sampleFile) {
     content = await readSampleFeed(feed.sampleFile);
@@ -111,12 +143,15 @@ async function loadFeedForMerchant(
     })),
   }));
 
-  feedCache.set(cacheKey, {
+  const entry: FeedCacheEntry = {
     fetchedAt: Date.now(),
     products,
     mappingLog: parsed.mappingLog,
     source,
-  });
+  };
+
+  feedCache.set(memKey, entry);
+  void redisSetJson(redisCacheKey(feed), entry, CACHE_TTL_SECONDS);
 
   return { products, mappingLog: parsed.mappingLog, source };
 }
@@ -141,12 +176,12 @@ export async function getFeedProducts(
   const sources = new Set<"remote" | "sample">();
   const merchantProductCounts: Record<string, number> = {};
 
-  const feedPromises = feeds.map(async (feed) => {
-    const { products, mappingLog, source } = await loadFeedForMerchant(feed);
-    return { products, mappingLog, source, merchantId: feed.merchantId };
-  });
-
-  const results = await Promise.all(feedPromises);
+  const results = await Promise.all(
+    feeds.map(async (feed) => {
+      const { products, mappingLog, source } = await loadFeedForMerchant(feed);
+      return { products, mappingLog, source, merchantId: feed.merchantId };
+    })
+  );
 
   for (const { products, mappingLog, source, merchantId } of results) {
     merchantProductCounts[merchantId] = products.length;

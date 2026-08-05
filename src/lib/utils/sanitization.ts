@@ -10,3 +10,12 @@ export function sanitizeString(input: string): string {
   };
   return input.replace(/[&<>'"]/g, (char) => map[char]);
 }
+
+/**
+ * Strips characters with no place in free-text search/query input (as opposed to
+ * `sanitizeString`, which HTML-escapes rather than removes). Shared by the search
+ * box and the products API so both apply the same rule.
+ */
+export function stripUnsafeQueryChars(input: string): string {
+  return input.replace(/[<>"'`%{};\\/]/g, "").trim();
+}

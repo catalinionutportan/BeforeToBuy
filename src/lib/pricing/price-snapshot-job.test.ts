@@ -1,40 +1,57 @@
-import { describe, it, expect, vi } from 'vitest';
-import { fetchCountryPriceMultipliers } from "@/lib/api-aggregator";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { Product } from '@/types';
 
-const mockCountryPriceMultipliers = {
-  CH: 1.15,
-  DE: 1.0,
-  FR: 1.02,
-  RO: 4.98,
-  GB: 0.85,
-  US: 1.05,
+const sampleProduct: Product = {
+  id: 'test-product-1',
+  title: 'Test Headphones',
+  description: 'Test product used by the price snapshot job test.',
+  category: 'audio',
+  brand: 'TestBrand',
+  image: 'https://example.com/image.png',
+  targetCountries: ['CH'],
+  catalogSource: 'sample',
+  offers: [
+    {
+      id: 'offer-1',
+      storeName: 'Test Store',
+      price: 100,
+      currency: 'CHF',
+      inStock: true,
+      deliveryCost: 0,
+      purchaseUrl: 'https://example.com/offer',
+      affiliateNetwork: 'Test Network',
+      source: 'sample',
+      type: 'online',
+      deliveryTime: '1-2 days',
+    },
+  ],
 };
 
-vi.mock('./price-history');
-vi.mock('./price-snapshot-job', () => ({
-  runPriceSnapshotJob: vi.fn(async () => ({
-    ok: true,
-    productCount: 10,
-    offerCount: 20,
-    appendedPoints: 30,
-    stats: { trackedOffers: 40 },
+// Mock the job's actual dependencies (feed loading + demo product fetch), not
+// the job module itself, so `runPriceSnapshotJob` runs for real against a
+// deterministic feed product and its side effects (price history) can be checked.
+vi.mock('@/lib/api-aggregator', () => ({
+  fetchProductsForLocation: vi.fn(async () => [] as Product[]),
+}));
+
+vi.mock('@/lib/merchant-feeds', () => ({
+  getFeedProducts: vi.fn(async () => ({
+    products: [sampleProduct],
+    sources: ['sample'],
+    mappingLog: [],
+    merchantProductCounts: { 'test-merchant': 1 },
   })),
 }));
-vi.mock("@/lib/api-aggregator", async (importOriginal) => {
-  const mod = await importOriginal() as any;
-  return {
-    ...mod,
-    fetchCountryPriceMultipliers: vi.fn(() => Promise.resolve(mockCountryPriceMultipliers)),
-  };
-});
-
 
 import { clearPriceHistoryForTests } from './price-history';
 import { runPriceSnapshotJob } from './price-snapshot-job';
 
 describe('Price Snapshot Job', () => {
-  it("runPriceSnapshotJob records CH feed offers", async () => {
+  beforeEach(async () => {
     await clearPriceHistoryForTests();
+  });
+
+  it("runPriceSnapshotJob records CH feed offers", async () => {
     const result = await runPriceSnapshotJob(["CH"]);
 
     expect(result.ok).toBe(true);

@@ -7,7 +7,7 @@ import { categoryBrowsePath } from "@/lib/category-routes";
  * Redirect legacy `/?category=...` URLs to SEO category routes.
  * Locale is client-side (browseLocale) — do not prefix paths with /en etc.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   if (request.nextUrl.pathname !== "/") {
     return NextResponse.next();
   }
