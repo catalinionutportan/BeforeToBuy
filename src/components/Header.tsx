@@ -1,5 +1,4 @@
-"use client";
-
+import { useCallback } from "react";
 import Link from "next/link";
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";

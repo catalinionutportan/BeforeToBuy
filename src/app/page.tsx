@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { CountryCode, Product, PromoCoupon, UserLocation } from "@/types";
@@ -200,7 +200,7 @@ export default function Home() {
   }, [userLocation, debouncedSearchQuery, selectedCategory]);
 
   // Handle manual country change
-  const handleCountryChange = (countryCode: CountryCode) => {
+  const handleCountryChange = useCallback((countryCode: CountryCode) => {
     const targetCountry = COUNTRIES[countryCode] || COUNTRIES.CH;
     setUserLocation((prev) => ({
       ...prev,
@@ -212,48 +212,63 @@ export default function Home() {
       isGps: false,
     }));
     setSelectedDomain("all");
-  };
+  }, [setUserLocation, setSelectedDomain]);
 
-  const syncBrowseUrl = (
-    categoryId: string,
-    domain: string,
-    filters: OfferFilterCriteria,
-    query?: string
-  ) => {
-    if (typeof window === "undefined") return;
-    const url = new URL(window.location.href);
-    if (categoryId === ALL_CATEGORIES_ID) url.searchParams.delete("category");
-    else url.searchParams.set("category", categoryId);
+  const syncBrowseUrl = useCallback(
+    (
+      categoryId: string,
+      domain: string,
+      filters: OfferFilterCriteria,
+      query?: string
+    ) => {
+      if (typeof window === "undefined") return;
+      const url = new URL(window.location.href);
+      if (categoryId === ALL_CATEGORIES_ID) url.searchParams.delete("category");
+      else url.searchParams.set("category", categoryId);
 
-    const q = (query ?? debouncedSearchQuery).trim();
-    if (q) url.searchParams.set("q", q);
-    else url.searchParams.delete("q");
+      const q = (query ?? debouncedSearchQuery).trim();
+      if (q) url.searchParams.set("q", q);
+      else url.searchParams.delete("q");
 
-    writeOfferFiltersToSearchParams(url, { ...filters, domain });
-    window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
-  };
+      writeOfferFiltersToSearchParams(url, { ...filters, domain });
+      window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    },
+    [debouncedSearchQuery]
+  );
 
-  const handleCategoryChange = (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    syncBrowseUrl(categoryId, selectedDomain, offerFilters);
-  };
+  const handleCategoryChange = useCallback(
+    (categoryId: string) => {
+      setSelectedCategory(categoryId);
+      syncBrowseUrl(categoryId, selectedDomain, offerFilters);
+    },
+    [syncBrowseUrl, selectedDomain, offerFilters]
+  );
 
-  const handleCollectionChange = (filterId: string) => {
-    handleCategoryChange(filterId === ALL_CATEGORIES_ID ? ALL_CATEGORIES_ID : filterId);
-  };
+  const handleCollectionChange = useCallback(
+    (filterId: string) => {
+      handleCategoryChange(filterId === ALL_CATEGORIES_ID ? ALL_CATEGORIES_ID : filterId);
+    },
+    [handleCategoryChange]
+  );
 
-  const handleDomainChange = (domain: string) => {
-    setSelectedDomain(domain);
-    syncBrowseUrl(selectedCategory, domain, offerFilters);
-  };
+  const handleDomainChange = useCallback(
+    (domain: string) => {
+      setSelectedDomain(domain);
+      syncBrowseUrl(selectedCategory, domain, offerFilters);
+    },
+    [syncBrowseUrl, selectedCategory, offerFilters]
+  );
 
-  const handleOfferFiltersChange = (next: OfferFilterCriteria) => {
-    const { domain: _ignored, ...rest } = next;
-    setOfferFilters(rest);
-    syncBrowseUrl(selectedCategory, selectedDomain, rest);
-  };
+  const handleOfferFiltersChange = useCallback(
+    (next: OfferFilterCriteria) => {
+      const { domain: _ignored, ...rest } = next;
+      setOfferFilters(rest);
+      syncBrowseUrl(selectedCategory, selectedDomain, rest);
+    },
+    [syncBrowseUrl, selectedCategory, selectedDomain]
+  );
 
-  const resetAllFilters = () => {
+  const resetAllFilters = useCallback(() => {
     setSearchInput("");
     setSelectedDomain("all");
     setOfferFilters({});
@@ -265,7 +280,7 @@ export default function Home() {
       writeOfferFiltersToSearchParams(url, {});
       window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
     }
-  };
+  }, [setSearchInput, setSelectedDomain, setOfferFilters, setSelectedCategory]);
 
   // Drop cross-border domain chip selection when leaving that collection.
   useEffect(() => {
@@ -280,7 +295,7 @@ export default function Home() {
   }, [crossBorderCollectionActive, currentCountryInfo, selectedDomain]);
 
   // GPS only on explicit user action and with Location consent
-  const handleRefreshGps = async () => {
+  const handleRefreshGps = useCallback(async () => {
     const prefs = getConsentPreferences();
     if (!prefs?.location) {
       openConsentPreferences();
@@ -291,7 +306,7 @@ export default function Home() {
     const loc = await detectUserLocationGps();
     setUserLocation(loc);
     setIsLocating(false);
-  };
+  }, [setIsLocating, setUserLocation]);
 
   const brandOptions = collectBrandOptions(products);
   const displayedProducts = applyOfferFilters(products, activeOfferFilters);
