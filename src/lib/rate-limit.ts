@@ -37,6 +37,10 @@ export async function checkRateLimit(
 }
 
 export function getClientIp(request: Request): string {
+  // IMPORTANT: For production, ensure these headers are only trusted if the request
+  // comes from a known, trusted proxy (e.g., Vercel, Cloudflare, or your own Nginx/Gateway).
+  // Otherwise, a malicious user could spoof their IP by setting a fake `x-forwarded-for` header.
+
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
     return forwarded.split(",")[0]?.trim() || "unknown";
