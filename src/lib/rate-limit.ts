@@ -1,33 +1,38 @@
-type RateLimitEntry = {
-  count: number;
-  resetAt: number;
-};
+import { kv } from "@vercel/kv";
 
-const buckets = new Map<string, RateLimitEntry>();
+const RATELIMIT_PREFIX = "ratelimit:";
 
-/** Simple in-memory rate limiter for serverless API routes. */
-export function checkRateLimit(
+/**
+ * Persistent rate limiter for serverless API routes using Vercel KV (Redis).
+ * Leverages Redis INCR and EXPIRE for atomic operations.
+ */
+export async function checkRateLimit(
   key: string,
   limit = 30,
   windowMs = 60_000
-): { allowed: boolean; retryAfterSeconds: number } {
+): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
   const now = Date.now();
-  const entry = buckets.get(key);
+  const kvKey = `${RATELIMIT_PREFIX}${key}`;
+  const windowSeconds = Math.ceil(windowMs / 1000);
 
-  if (!entry || now >= entry.resetAt) {
-    buckets.set(key, { count: 1, resetAt: now + windowMs });
-    return { allowed: true, retryAfterSeconds: 0 };
+  // Increment the counter and get the new count. INCR is atomic.
+  const count = await kv.incr(kvKey);
+
+  // Set expiration only if this is the first increment in the window.
+  // This prevents resetting the TTL on subsequent requests within the window.
+  if (count === 1) {
+    await kv.expire(kvKey, windowSeconds);
   }
 
-  if (entry.count >= limit) {
+  if (count > limit) {
+    // Get the remaining TTL to calculate retryAfterSeconds
+    const ttl = await kv.ttl(kvKey);
     return {
       allowed: false,
-      retryAfterSeconds: Math.max(1, Math.ceil((entry.resetAt - now) / 1000)),
+      retryAfterSeconds: Math.max(1, ttl),
     };
   }
 
-  entry.count += 1;
-  buckets.set(key, entry);
   return { allowed: true, retryAfterSeconds: 0 };
 }
 
