@@ -20,6 +20,7 @@ export interface PriceHistoryMeta {
 export interface PriceHistoryStore {
   backend: PriceHistoryBackend;
   getPoints(key: string): Promise<PriceHistoryPoint[]>;
+  getMultiplePoints(keys: string[]): Promise<Map<string, PriceHistoryPoint[]>>;
   appendPoint(key: string, point: PriceHistoryPoint): Promise<boolean>;
   getMeta(): Promise<PriceHistoryMeta>;
   clear(): Promise<void>;
@@ -36,6 +37,14 @@ class MemoryPriceHistoryStore implements PriceHistoryStore {
 
   async getPoints(key: string): Promise<PriceHistoryPoint[]> {
     return [...(this.history.get(key) ?? [])];
+  }
+
+  async getMultiplePoints(keys: string[]): Promise<Map<string, PriceHistoryPoint[]>> {
+    const results = new Map<string, PriceHistoryPoint[]>();
+    for (const key of keys) {
+      results.set(key, [...(this.history.get(key) ?? [])]);
+    }
+    return results;
   }
 
   async appendPoint(key: string, point: PriceHistoryPoint): Promise<boolean> {
@@ -121,6 +130,15 @@ class FilePriceHistoryStore implements PriceHistoryStore {
     return [...(store.offers[key] ?? [])];
   }
 
+  async getMultiplePoints(keys: string[]): Promise<Map<string, PriceHistoryPoint[]>> {
+    const store = await this.readStore();
+    const results = new Map<string, PriceHistoryPoint[]>();
+    for (const key of keys) {
+      results.set(key, [...(store.offers[key] ?? [])]);
+    }
+    return results;
+  }
+
   async appendPoint(key: string, point: PriceHistoryPoint): Promise<boolean> {
     let appended = false;
 
@@ -187,6 +205,22 @@ class KvPriceHistoryStore implements PriceHistoryStore {
     } catch (error) {
       console.error("[price-history] KV read failed:", error);
       return [];
+    }
+  }
+
+  async getMultiplePoints(keys: string[]): Promise<Map<string, PriceHistoryPoint[]>> {
+    try {
+      const kv = await this.kvClient();
+      const kvKeys = keys.map(encodePriceHistoryKvKey);
+      const resultsArray = await Promise.all(kvKeys.map((k) => kv.get<PriceHistoryPoint[]>(k)));
+      const resultMap = new Map<string, PriceHistoryPoint[]>();
+      keys.forEach((originalKey, index) => {
+        resultMap.set(originalKey, resultsArray[index] ?? []);
+      });
+      return resultMap;
+    } catch (error) {
+      console.error("[price-history] KV batch read failed:", error);
+      return new Map();
     }
   }
 

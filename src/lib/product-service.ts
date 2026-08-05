@@ -12,7 +12,9 @@ import {
   getPriceHistoryStats,
   getPriceTrend,
   recordProductPriceHistory,
+  getOffersPriceHistoryBatch,
 } from "@/lib/pricing/price-history";
+import { buildPriceHistoryKey } from "@/lib/pricing/price-history-keys";
 import { sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import {
   COMPARISON_COLLECTION_FILTERS,
@@ -24,21 +26,20 @@ import {
 import { applyCrossBorderVisibility } from "@/lib/offers/cross-border";
 
 async function attachPriceHistory(products: Product[]): Promise<Product[]> {
-  return Promise.all(
-    products.map(async (product) => ({
-      ...product,
-      offers: await Promise.all(
-        sortOffersByTotalPrice(product.offers).map(async (offer) => {
-          if (offer.source === "demo") return offer;
-          const priceHistory = await getOfferPriceHistory(product, offer);
-          return {
-            ...offer,
-            priceHistory,
-          };
-        })
-      ),
-    }))
-  );
+  const allOffers = products.flatMap((product) => product.offers);
+  const batchedPriceHistories = await getOffersPriceHistoryBatch(products);
+
+  return products.map((product) => ({
+    ...product,
+    offers: product.offers.map((offer) => {
+      if (offer.source === "demo") return offer;
+      const priceHistory = batchedPriceHistories.get(buildPriceHistoryKey(product, offer));
+      return {
+        ...offer,
+        priceHistory: priceHistory ?? [],
+      };
+    }),
+  }));
 }
 
 function countGtinLinkedProducts(products: Product[]): number {

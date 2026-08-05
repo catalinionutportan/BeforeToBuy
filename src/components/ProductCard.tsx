@@ -2,6 +2,7 @@ import { Product, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { defaultLocaleFromCountry, type SiteLocale, DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { useMemo } from "react";
 
 import { ProductCardImage } from "./ProductCardImage";
 import { ProductCardDetails } from "./ProductCardDetails";
@@ -28,17 +29,22 @@ export function ProductCard({
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
   const ui = HOME_UI[locale ?? defaultLocaleFromCountry(userLocation.countryCode)];
 
-  const sortedOffers = sortOffersByTotalPrice(product.offers);
-  const feedOffers = sortedOffers.filter((offer) => offer.source !== "demo");
-  const lowestFeedTotal = feedOffers[0]
-    ? feedOffers[0].totalPrice ?? computeTotalPrice(feedOffers[0])
-    : undefined;
-  const verifiedBadgeOffer = feedOffers.find((offer) => offer.badge);
-
-  const pickupOffer = product.offers.find(
-    (o) => o.source === "production-live" && o.type === "local_pickup" && o.nearbyBranch
+  const sortedOffers = useMemo(() => sortOffersByTotalPrice(product.offers), [product.offers]);
+  const feedOffers = useMemo(() => sortedOffers.filter((offer) => offer.source !== "demo"), [sortedOffers]);
+  const lowestFeedTotal = useMemo(
+    () => (feedOffers[0] ? feedOffers[0].totalPrice ?? computeTotalPrice(feedOffers[0]) : undefined),
+    [feedOffers]
   );
-  const freshestLabel = formatOfferFreshness(getFreshestOfferTimestamp(product.offers));
+  const verifiedBadgeOffer = useMemo(() => feedOffers.find((offer) => offer.badge), [feedOffers]);
+
+  const pickupOffer = useMemo(
+    () =>
+      product.offers.find(
+        (o) => o.source === "production-live" && o.type === "local_pickup" && o.nearbyBranch
+      ),
+    [product.offers]
+  );
+  const freshestLabel = useMemo(() => formatOfferFreshness(getFreshestOfferTimestamp(product.offers)), [product.offers]);
 
   return (
     <article className="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group">
@@ -59,7 +65,7 @@ export function ProductCard({
             },
             "offers": {
               "@type": "AggregateOffer",
-              "url": `${process.env.NEXT_PUBLIC_SITE_URL}${locale === DEFAULT_LOCALE ? '' : `/${locale}`}/p/${product.id}`,
+              "url": `${process.env.NEXT_PUBLIC_SITE_URL}${locale === DEFAULT_LOCALE ? '' : `/${locale}`}/p/${product.id}`, // NEXT_PUBLIC_SITE_URL must be set in .env for Schema.org to generate absolute URLs
               "priceCurrency": currentCountryInfo.currency,
               "lowPrice": lowestFeedTotal,
               "highPrice": sortedOffers[sortedOffers.length - 1]?.totalPrice ?? lowestFeedTotal,

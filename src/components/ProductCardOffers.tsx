@@ -148,6 +148,11 @@ export function ProductCardOffers({
                   onClick={(event) => handleAffiliateClick(event, offer)}
                   className="bg-slate-900 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 text-[11px] shadow-xs group/btn shrink-0"
                   title={affiliate ? undefined : ui.acceptAffiliateCookiesHint}
+                  aria-label={
+                    affiliate
+                      ? `${offer.source === "production-live" ? ui.viewOfferButton : ui.searchStoreButton} for ${offer.storeName}`
+                      : ui.acceptAffiliateCookiesHint
+                  }
                 >
                   <span>{offer.source === "production-live" ? ui.viewOfferButton : ui.searchStoreButton}</span>
                   <ExternalLink className="w-3 h-3 opacity-80 group-hover/btn:translate-x-0.5 transition-transform" aria-hidden="true" />

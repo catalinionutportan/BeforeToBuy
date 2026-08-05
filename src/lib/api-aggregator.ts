@@ -29,8 +29,7 @@ const STORE_BRANCHES: Record<CountryCode, PhysicalStoreBranch[]> = {
 };
 
 // Import base products from JSON file
-import baseProductsDb from "@/data/base-products.json";
-const BASE_PRODUCTS_DB: Product[] = baseProductsDb as Product[];
+import { fetchBaseProducts } from "./product-data";
 
 const ALL_COUNTRIES: CountryCode[] = ["CH", "DE", "FR", "RO", "GB", "US"];
 const NON_CH_COUNTRIES: CountryCode[] = ALL_COUNTRIES.filter((code) => code !== "CH");
@@ -108,8 +107,10 @@ export async function fetchProductsForLocation(
   query?: string,
   category?: string
 ): Promise<Product[]> {
+  const allBaseProducts = await fetchBaseProducts();
+
   // Filter products matching search or category
-  let filtered = BASE_PRODUCTS_DB.filter((p) =>
+  let filtered = allBaseProducts.filter((p) =>
     p.targetCountries.includes(userLocation.countryCode)
   );
 
