@@ -92,22 +92,22 @@ export default function Home() {
     domain: selectedDomain,
   };
 
+    const initIpLocation = useCallback(async () => {
+    setIsLocating(true);
+    try {
+      const loc = await getLocationFromIp();
+      setUserLocation(loc);
+    } catch (error) {
+      console.error("Error fetching IP location:", error);
+      setErrorMessage(homeUi.geolocationApiError); // Set user-friendly error message
+      setUserLocation(defaultLocation()); // Fallback to default location
+    } finally {
+      setIsLocating(false);
+    }
+  }, [setErrorMessage, setUserLocation, homeUi.geolocationApiError]);
+
   // IP location only after Location consent (no auto-GPS)
   useEffect(() => {
-    async function initIpLocation() {
-      setIsLocating(true);
-      try {
-        const loc = await getLocationFromIp();
-        setUserLocation(loc);
-      } catch (error) {
-        console.error("Error fetching IP location:", error);
-        setErrorMessage(homeUi.geolocationApiError); // Set user-friendly error message
-        setUserLocation(defaultLocation()); // Fallback to default location
-      } finally {
-        setIsLocating(false);
-      }
-    }
-
     const prefs = getConsentPreferences();
     if (prefs?.location) {
       initIpLocation();
@@ -122,7 +122,7 @@ export default function Home() {
 
     window.addEventListener(CONSENT_UPDATED_EVENT, onConsentUpdated);
     return () => window.removeEventListener(CONSENT_UPDATED_EVENT, onConsentUpdated);
-  }, [setErrorMessage, setUserLocation]); // Added setErrorMessage and setUserLocation to dependencies
+  }, [initIpLocation]);
 
   // Read shareable browse state and respond to browser back/forward navigation.
   useEffect(() => {
