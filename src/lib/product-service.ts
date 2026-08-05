@@ -1,6 +1,7 @@
 import { Product, UserLocation } from "@/types";
 import { fetchProductsForLocation } from "@/lib/api-aggregator";
 import { getFeedProducts } from "@/lib/merchant-feeds";
+import { buildMappingReport } from "@/lib/mapping-log";
 import {
   COMPARISON_COLLECTION_FILTERS,
   getParentCategoryId,
@@ -184,6 +185,7 @@ export async function fetchMergedProductsForLocation(
   const productionProductCount = feedResult.products.filter((product) =>
     product.offers.some((offer) => offer.source === "production-live")
   ).length;
+  const mappingReport = buildMappingReport(feedResult.mappingLog);
 
   return {
     products,
@@ -198,6 +200,7 @@ export async function fetchMergedProductsForLocation(
       feedSources: feedResult.sources,
       hasProductionFeed: feedResult.sources.includes("remote"),
       hasSampleFeed: feedResult.sources.includes("sample"),
+      mappingSummary: mappingReport.summary,
     },
   };
 }

@@ -94,9 +94,18 @@ export interface Product {
   description: string;
   category: string; // BeforeToBuy module or subcategory id (see src/lib/categories.ts)
   categoryAssignment?: {
-    method: "merchant-rule" | "keyword" | "combined-rule" | "unmapped" | "manual";
+    method:
+      | "merchant-exact"
+      | "merchant-pattern"
+      | "merchant-rule"
+      | "keyword"
+      | "combined-rule"
+      | "below-threshold"
+      | "unmapped"
+      | "manual";
     confidence: number;
     rawCategory?: string;
+    proposedCategoryId?: string;
   };
   image: string;
   rating?: number;

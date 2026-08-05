@@ -87,6 +87,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(body.products.every((product: { rating?: number }) => product.rating === undefined)).toBeTruthy();
     expect(body.meta.categoryCounts.audio).toBeGreaterThan(0);
     expect(body.meta.collectionCounts["compare-local-pickup"]).toBeGreaterThanOrEqual(0);
+    expect(body.meta.mappingSummary?.total).toBeGreaterThan(0);
     expect(body.meta.unmappedProductCount).toBeGreaterThanOrEqual(0);
     expect(body.products.every((product: { category: string }) => product.category !== "unmapped")).toBeTruthy();
   });
@@ -103,6 +104,15 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.getByRole("heading", { name: "Audio", exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Large Appliances", exact: true })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Comparison collections", exact: true })).toBeVisible();
+  });
+
+  test("mapping report API exposes review queue for feed products", async ({ request }) => {
+    const response = await request.get("/api/mapping/report?country=CH");
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    expect(body.summary.total).toBeGreaterThan(0);
+    expect(body.summary.byMerchant["ch-brack"]).toBeTruthy();
+    expect(Array.isArray(body.reviewQueue)).toBeTruthy();
   });
 
   test("stores page lists Brack as Sample Feed", async ({ page }) => {

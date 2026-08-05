@@ -1,5 +1,6 @@
 import { CountryCode, Offer, OfferSource, Product, PromoCoupon } from "@/types";
 import { mapToBeforeToBuyCategoryWithMetadata } from "@/lib/category-mapper";
+import { createMappingLogEntry, type MappingLogEntry } from "@/lib/mapping-log";
 
 /**
  * Standard interface for raw item inside an AWIN Datafeed (CSV / XML)
@@ -77,12 +78,13 @@ export function parseAwinCsvFeed(
   targetCountry: CountryCode,
   feedMerchantId: string,
   source: Extract<OfferSource, "production-live" | "sample">
-): Product[] {
+): { products: Product[]; mappingLog: MappingLogEntry[] } {
   const lines = csvContent.split(/\r?\n/).filter((line) => line.trim());
-  if (lines.length < 2) return [];
+  if (lines.length < 2) return { products: [], mappingLog: [] };
 
   const headers = parseCsvLine(lines[0]).map((header) => header.trim());
   const productsMap = new Map<string, Product>();
+  const mappingLog: MappingLogEntry[] = [];
 
   for (let i = 1; i < lines.length; i++) {
     const values = parseCsvLine(lines[i]);
@@ -128,11 +130,22 @@ export function parseAwinCsvFeed(
 
     if (!productsMap.has(productId)) {
       const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
+        merchantId: feedMerchantId,
         merchantCategory: row.category_name,
         title: row.product_name,
         description: row.description,
         brand: row.brand_name,
       });
+
+      mappingLog.push(
+        createMappingLogEntry({
+          productId,
+          merchantId: feedMerchantId,
+          title: row.product_name,
+          rawCategory: row.category_name,
+          mapping: categoryMapping,
+        })
+      );
 
       productsMap.set(productId, {
         id: productId,
@@ -143,6 +156,7 @@ export function parseAwinCsvFeed(
           method: categoryMapping.method,
           confidence: categoryMapping.confidence,
           rawCategory: categoryMapping.rawCategory,
+          proposedCategoryId: categoryMapping.proposedCategoryId,
         },
         brand: row.brand_name || "Generic",
         image: row.merchant_image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
@@ -156,7 +170,10 @@ export function parseAwinCsvFeed(
     }
   }
 
-  return Array.from(productsMap.values());
+  return {
+    products: Array.from(productsMap.values()),
+    mappingLog,
+  };
 }
 
 /**
