@@ -259,6 +259,62 @@ export const CATEGORY_UI: Record<
   },
 };
 
+/** Labels for the homepage Offer filters row (matches category locale). */
+export const OFFER_FILTER_UI: Record<
+  CategoryLocale,
+  {
+    title: string;
+    hint: string;
+    allBrands: string;
+    maxTotal: string;
+    anyPrice: string;
+    inStock: string;
+    freeDelivery: string;
+    withEan: string;
+  }
+> = {
+  en: {
+    title: "Offer filters",
+    hint: "Refine by total price, brand, stock, delivery & product ID",
+    allBrands: "All brands",
+    maxTotal: "Max total",
+    anyPrice: "Any",
+    inStock: "In stock",
+    freeDelivery: "Free delivery",
+    withEan: "With EAN",
+  },
+  de: {
+    title: "Angebotsfilter",
+    hint: "Nach Gesamtpreis, Marke, Lager, Lieferung & EAN verfeinern",
+    allBrands: "Alle Marken",
+    maxTotal: "Max. Gesamt",
+    anyPrice: "Beliebig",
+    inStock: "Auf Lager",
+    freeDelivery: "Gratis Lieferung",
+    withEan: "Mit EAN",
+  },
+  fr: {
+    title: "Filtres d'offres",
+    hint: "Affiner par prix total, marque, stock, livraison & EAN",
+    allBrands: "Toutes les marques",
+    maxTotal: "Total max.",
+    anyPrice: "Tous",
+    inStock: "En stock",
+    freeDelivery: "Livraison gratuite",
+    withEan: "Avec EAN",
+  },
+  ro: {
+    title: "Filtre oferte",
+    hint: "Rafinează după preț total, brand, stoc, livrare & EAN",
+    allBrands: "Toate brandurile",
+    maxTotal: "Total max.",
+    anyPrice: "Oricare",
+    inStock: "În stoc",
+    freeDelivery: "Livrare gratuită",
+    withEan: "Cu EAN",
+  },
+};
+
 export function localeFromCountry(countryCode: CountryCode): CategoryLocale {
   switch (countryCode) {
     case "CH":

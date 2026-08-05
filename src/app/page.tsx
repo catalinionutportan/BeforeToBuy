@@ -27,6 +27,7 @@ import { OfferFilters } from "@/components/OfferFilters";
 import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import {
   CATEGORY_UI,
+  OFFER_FILTER_UI,
   formatCategoryUi,
   getLocalizedCategoryLabel,
   localeFromCountry,
@@ -71,6 +72,7 @@ export default function Home() {
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
   const browseLocale = localeFromCountry(userLocation.countryCode);
   const categoryUi = CATEGORY_UI[browseLocale];
+  const offerFilterUi = OFFER_FILTER_UI[browseLocale];
   const crossBorderCollectionActive = selectedCategory === "compare-cross-border";
   const domainFilterMerchants = currentCountryInfo.merchantDomains.filter(
     (merchant) => crossBorderCollectionActive || !merchant.isCrossBorder
@@ -388,6 +390,7 @@ export default function Home() {
             criteria={activeOfferFilters}
             brandOptions={brandOptions}
             currencySymbol={currentCountryInfo.currency}
+            locale={browseLocale}
             onChange={handleOfferFiltersChange}
           />
         </div>
@@ -419,17 +422,17 @@ export default function Home() {
               )}
               {offerFilters.inStockOnly && (
                 <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
-                  In stock
+                  {offerFilterUi.inStock}
                 </span>
               )}
               {offerFilters.freeDeliveryOnly && (
                 <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
-                  Free delivery
+                  {offerFilterUi.freeDelivery}
                 </span>
               )}
               {offerFilters.hasGtinOnly && (
                 <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
-                  Has GTIN
+                  {offerFilterUi.withEan}
                 </span>
               )}
               <span className="text-slate-400 font-normal text-sm">({displayedProducts.length} items found)</span>
