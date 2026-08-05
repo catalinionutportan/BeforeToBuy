@@ -413,7 +413,7 @@ export default function Home() {
           </div>
 
           <Link
-            href="/stores"
+            href={{ pathname: "/stores", locale: browseLocale }}
             className="text-slate-300 hover:text-emerald-400 font-bold shrink-0 inline-flex items-center gap-1 text-[11px] hover:underline"
           >
             <span>
