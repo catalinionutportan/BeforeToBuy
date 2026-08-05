@@ -26,7 +26,6 @@ import baseProductsDb from "@/data/base-products.json";
 const BASE_PRODUCTS_DB: Product[] = baseProductsDb as Product[];
 
 const ALL_COUNTRIES: CountryCode[] = ["CH", "DE", "FR", "RO", "GB", "US"];
-/** Fashion/shoes are out of CH launch scope (wrong wearables mapping). */
 const NON_CH_COUNTRIES: CountryCode[] = ALL_COUNTRIES.filter((code) => code !== "CH");
 
 /**

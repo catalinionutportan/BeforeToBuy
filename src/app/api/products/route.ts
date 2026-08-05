@@ -3,6 +3,8 @@ import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
+import { HOME_UI, formatUi } from "@/lib/i18n/ui";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 
 // Simple UUID v4 generator for tracking errors
 function generateUuid(): string {
@@ -69,6 +71,9 @@ export async function GET(request: Request) {
   } catch (error) {
     const trackingId = generateUuid();
     console.error(`Product fetch failed (Tracking ID: ${trackingId}):`, error);
-    return NextResponse.json({ error: "Unable to load products.", trackingId }, { status: 500 });
+    return NextResponse.json(
+      { error: formatUi(HOME_UI[DEFAULT_LOCALE].productFetchError, {}) , trackingId },
+      { status: 500 }
+    );
   }
 }
