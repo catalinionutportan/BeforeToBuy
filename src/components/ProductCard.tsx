@@ -64,6 +64,55 @@ export function ProductCard({
 
   return (
     <article className="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": product.title,
+            "image": product.image,
+            "description": product.description,
+            "sku": product.id,
+            "mpn": product.gtin, // Assuming GTIN can be used as MPN
+            "brand": {
+              "@type": "Brand",
+              "name": product.brand,
+            },
+            "offers": {
+              "@type": "AggregateOffer",
+              "url": `https://www.beforetobuy.com/p/${product.id}`, // Placeholder URL, needs to be dynamic
+              "priceCurrency": currentCountryInfo.currency,
+              "lowPrice": lowestFeedTotal,
+              "highPrice": sortedOffers[sortedOffers.length - 1]?.totalPrice ?? lowestFeedTotal,
+              "offerCount": product.offers.length,
+              "offers": sortedOffers.map((offer) => ({
+                "@type": "Offer",
+                "url": offer.purchaseUrl,
+                "priceCurrency": offer.currency,
+                "price": offer.totalPrice ?? computeTotalPrice(offer),
+                "itemCondition": "https://schema.org/NewCondition", // Assuming new condition
+                "availability": offer.inStock
+                  ? "https://schema.org/InStock"
+                  : "https://schema.org/OutOfStock",
+                "seller": {
+                  "@type": "Organization",
+                  "name": offer.storeName,
+                },
+              })),
+            },
+            ...(product.rating && product.reviewsCount
+              ? {
+                  "aggregateRating": {
+                    "@type": "AggregateRating",
+                    "ratingValue": product.rating,
+                    "reviewCount": product.reviewsCount,
+                  },
+                }
+              : {}),
+          }),
+        }}
+      />
       <div className="relative bg-slate-100/60 h-60 overflow-hidden">
         <Image
           src={product.image}
