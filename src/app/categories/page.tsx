@@ -20,17 +20,20 @@ import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
 import { createPageMetadata } from "@/lib/metadata";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { fetchDefaultCatalog } from "@/lib/category-page-data";
+import { HOME_UI } from "@/lib/i18n/ui";
+import { useBrowseLocale } from "@/lib/i18n/client";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Compare Prices | BeforeToBuy.com",
-  description:
-    "Compare product prices across Swiss retailers. Browse electronics, appliances, audio, gaming and more with side-by-side offers.",
+  title: HOME_UI.en.categoriesMetaTitle,
+  description: HOME_UI.en.categoriesMetaDescription,
   path: "/categories",
 });
 
 export default async function CategoriesPage() {
+  const { browseLocale } = useBrowseLocale();
+  const homeUi = HOME_UI[browseLocale];
   const country = COUNTRIES[DEFAULT_COUNTRY];
   const locale = localeFromCountry(country.code);
   const catalog = await fetchDefaultCatalog();
@@ -44,19 +47,18 @@ export default async function CategoriesPage() {
   return (
     <PageShell maxWidthClass="max-w-7xl">
       <div className="space-y-8">
-        <CategoryBreadcrumbs items={[{ label: "Home", href: "/" }, { label: "All Products" }]} />
+        <CategoryBreadcrumbs items={[{ label: "Home", href: "/" }, { label: homeUi.allProducts }]} />
 
         <div className="bg-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-800 space-y-3">
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full inline-flex items-center gap-1.5">
-            <Tag className="w-3.5 h-3.5" /> Price Comparison
+            <Tag className="w-3.5 h-3.5" /> {homeUi.priceComparison}
           </span>
-          <h1 className="text-3xl font-extrabold tracking-tight">Compare Product Prices</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">{homeUi.compareProductPrices}</h1>
           <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
-            Side-by-side offers from Swiss retailers. Filter by category below or browse the full
-            catalog — every card shows comparative prices, delivery and merchant links.
+            {homeUi.categoriesDescription}
           </p>
           <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-            {catalog.products.length} products compared in {country.name}
+            {formatUi(homeUi.productsComparedIn, { count: catalog.products.length, countryName: country.name })}
           </p>
         </div>
 
@@ -64,7 +66,7 @@ export default async function CategoriesPage() {
           <section className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1 text-[11px] font-extrabold uppercase tracking-wider text-orange-700">
               <Sparkles className="w-3.5 h-3.5" />
-              Collections
+              {homeUi.collections}
             </span>
             {visibleCollections.map((collection) => (
               <Link
@@ -84,7 +86,7 @@ export default async function CategoriesPage() {
         {visibleCategories.length > 0 && (
           <section className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3">
             <h2 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-              Browse by category
+              {homeUi.browseByCategory}
             </h2>
             <div className="flex flex-wrap gap-2">
               {visibleCategories.map((cat) => (
@@ -108,7 +110,7 @@ export default async function CategoriesPage() {
           <CategoryProductGrid products={catalog.products} countryCode={DEFAULT_COUNTRY} />
         ) : (
           <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
-            No offers are available yet. Try the homepage or check back after feeds sync.
+            {homeUi.noOffersAvailable}
           </div>
         )}
       </div>
