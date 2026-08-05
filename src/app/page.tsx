@@ -1,14 +1,10 @@
-import { useEffect, useState, Suspense, useCallback } from "react";
+"use client";
+
+import { useEffect, useState, Suspense, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { CountryCode, Product, PromoCoupon, UserLocation } from "@/types";
-import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
-import {
-  CONSENT_UPDATED_EVENT,
-  getConsentPreferences,
-  openConsentPreferences,
-} from "@/lib/consent";
-import { detectUserLocationGps, getLocationFromIp, defaultLocation } from "@/lib/geolocation"; // Import defaultLocation
+import { CountryCode, Product, PromoCoupon } from "@/types";
+import { COUNTRIES } from "@/lib/countries";
 import { getActiveCouponsForCountry } from "@/lib/feed-parser";
 import type { ProductFetchMeta } from "@/lib/product-service";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
@@ -16,7 +12,6 @@ import { Header } from "@/components/Header";
 import { LocationBanner } from "@/components/LocationBanner";
 import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
-// import { AffiliateDisclosureModal } from "@/components/AffiliateDisclosureModal"; // Removed direct import
 import { CategoryNavigation } from "@/components/CategoryNavigation";
 import {
   CollectionNavigation,
@@ -30,7 +25,8 @@ import {
   formatCategoryUi,
   getLocalizedCategoryLabel,
 } from "@/lib/category-i18n";
-import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
+import { useBrowseLocale } from "@/hooks/useBrowseLocale";
+import type { SiteLocale } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import {
   applyOfferFilters,
@@ -40,28 +36,26 @@ import {
   writeOfferFiltersToSearchParams,
   type OfferFilterCriteria,
 } from "@/lib/offers/offer-filters";
+import { useUserLocation } from "@/hooks/useUserLocation";
 import {
   Info,
   SearchX,
   Store,
   ArrowRight,
 } from "lucide-react";
+import { sanitizeString } from "@/lib/utils/sanitization";
 
-const AffiliateDisclosureModal = dynamic(() => import("@/components/AffiliateDisclosureModal"), {
-  ssr: false,
-});
+const AffiliateDisclosureModal = dynamic(
+  () =>
+    import("@/components/AffiliateDisclosureModal").then((mod) => ({
+      default: mod.AffiliateDisclosureModal,
+    })),
+  {
+    ssr: false,
+  }
+);
 
 export default function Home() {
-  const [userLocation, setUserLocation] = useState<UserLocation>({
-    latitude: COUNTRIES[DEFAULT_COUNTRY].defaultCoordinates.lat,
-    longitude: COUNTRIES[DEFAULT_COUNTRY].defaultCoordinates.lng,
-    countryCode: DEFAULT_COUNTRY,
-    countryName: COUNTRIES[DEFAULT_COUNTRY].name,
-    city: COUNTRIES[DEFAULT_COUNTRY].defaultCoordinates.city,
-    isGps: false,
-  });
-
-  const [isLocating, setIsLocating] = useState<boolean>(false);
   const [searchInput, setSearchInput] = useState<string>("");
   const debouncedSearchQuery = useDebouncedValue(searchInput, 350);
   const [selectedDomain, setSelectedDomain] = useState<string>("all");
@@ -72,7 +66,8 @@ export default function Home() {
   const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(true);
   const [isDisclosureOpen, setIsDisclosureOpen] = useState<boolean>(false);
   const [catalogMeta, setCatalogMeta] = useState<ProductFetchMeta | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null); // New state for error messages
+
+  const { userLocation, isLocating, errorMessage, handleCountryChange, handleRefreshGps } = useUserLocation();
 
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
   const {
@@ -84,45 +79,17 @@ export default function Home() {
   const offerFilterUi = OFFER_FILTER_UI[browseLocale];
   const homeUi = HOME_UI[browseLocale];
   const crossBorderCollectionActive = selectedCategory === "compare-cross-border";
-  const domainFilterMerchants = currentCountryInfo.merchantDomains.filter(
-    (merchant) => crossBorderCollectionActive || !merchant.isCrossBorder
+  const domainFilterMerchants = useMemo(
+    () =>
+      currentCountryInfo.merchantDomains.filter(
+        (merchant) => crossBorderCollectionActive || !merchant.isCrossBorder
+      ),
+    [currentCountryInfo.merchantDomains, crossBorderCollectionActive]
   );
   const activeOfferFilters: OfferFilterCriteria = {
     ...offerFilters,
     domain: selectedDomain,
   };
-
-    const initIpLocation = useCallback(async () => {
-    setIsLocating(true);
-    try {
-      const loc = await getLocationFromIp();
-      setUserLocation(loc);
-    } catch (error) {
-      console.error("Error fetching IP location:", error);
-      setErrorMessage(homeUi.geolocationApiError); // Set user-friendly error message
-      setUserLocation(defaultLocation()); // Fallback to default location
-    } finally {
-      setIsLocating(false);
-    }
-  }, [setErrorMessage, setUserLocation, homeUi.geolocationApiError]);
-
-  // IP location only after Location consent (no auto-GPS)
-  useEffect(() => {
-    const prefs = getConsentPreferences();
-    if (prefs?.location) {
-      initIpLocation();
-    }
-
-    const onConsentUpdated = () => {
-      const updated = getConsentPreferences();
-      if (updated?.location) {
-        initIpLocation();
-      }
-    };
-
-    window.addEventListener(CONSENT_UPDATED_EVENT, onConsentUpdated);
-    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, onConsentUpdated);
-  }, [initIpLocation]);
 
   // Read shareable browse state and respond to browser back/forward navigation.
   useEffect(() => {
@@ -164,7 +131,8 @@ export default function Home() {
   useEffect(() => {
     async function loadProductsAndCoupons() {
       setIsLoadingProducts(true);
-      setErrorMessage(null); // Clear previous errors before a new fetch
+      // errorMessage is now handled by useUserLocation, so we don't clear it here
+      // setErrorMessage(null); // Clear previous errors before a new fetch
 
       try {
         const params = new URLSearchParams({
@@ -193,12 +161,12 @@ export default function Home() {
 
         setProducts(data.products || []);
         setCatalogMeta(data.meta || null);
-        setErrorMessage(null); // Clear any previous error message on success
+        // setErrorMessage(null); // Clear any previous error message on success
       } catch (error) {
         console.error("Failed to load products:", error);
         setProducts([]);
         setCatalogMeta(null);
-        setErrorMessage(homeUi.productFetchError); // Set user-friendly error message
+        // setErrorMessage(homeUi.productFetchError); // Set user-friendly error message
       } finally {
         setIsLoadingProducts(false);
       }
@@ -207,22 +175,7 @@ export default function Home() {
       setCoupons(activeCoupons);
     }
     loadProductsAndCoupons();
-  }, [userLocation, debouncedSearchQuery, selectedCategory, homeUi.productFetchError, setErrorMessage, setProducts, setCatalogMeta, setCoupons]);
-
-  // Handle manual country change
-  const handleCountryChange = useCallback((countryCode: CountryCode) => {
-    const targetCountry = COUNTRIES[countryCode] || COUNTRIES.CH;
-    setUserLocation((prev) => ({
-      ...prev,
-      countryCode,
-      countryName: targetCountry.name,
-      city: targetCountry.defaultCoordinates.city,
-      latitude: targetCountry.defaultCoordinates.lat,
-      longitude: targetCountry.defaultCoordinates.lng,
-      isGps: false,
-    }));
-    setSelectedDomain("all");
-  }, [setUserLocation, setSelectedDomain]);
+  }, [userLocation, debouncedSearchQuery, selectedCategory, homeUi.productFetchError, setProducts, setCatalogMeta, setCoupons]);
 
   const syncBrowseUrl = useCallback(
     (
@@ -262,7 +215,7 @@ export default function Home() {
       writeOfferFiltersToSearchParams(url, { ...filters, domain });
       window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
     },
-    [debouncedSearchQuery]
+    [debouncedSearchQuery, browseLocale, availableLocales]
   );
 
   const handleCategoryChange = useCallback(
@@ -280,7 +233,7 @@ export default function Home() {
     [handleCategoryChange]
   );
 
-  const handleDomainChange = useCallback(
+  const handleInternalDomainChange = useCallback(
     (domain: string) => {
       setSelectedDomain(domain);
       syncBrowseUrl(selectedCategory, domain, offerFilters);
@@ -307,7 +260,7 @@ export default function Home() {
       url.searchParams.delete("category");
       url.searchParams.delete("q");
       writeOfferFiltersToSearchParams(url, {});
-      window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
     }
   }, [setSearchInput, setSelectedDomain, setOfferFilters, setSelectedCategory]);
 
@@ -321,45 +274,12 @@ export default function Home() {
       setSelectedDomain("all");
       syncBrowseUrl(selectedCategory, "all", offerFilters);
     }
-  }, [crossBorderCollectionActive, currentCountryInfo, selectedDomain]);
+  }, [crossBorderCollectionActive, currentCountryInfo, selectedDomain, syncBrowseUrl, selectedCategory, offerFilters]);
 
-  // GPS only on explicit user action and with Location consent
-  const handleRefreshGps = useCallback(async () => {
-    const prefs = getConsentPreferences();
-    if (!prefs?.location) {
-      openConsentPreferences();
-      return;
-    }
 
-    setIsLocating(true);
-    try {
-      const loc = await detectUserLocationGps();
-      setUserLocation(loc);
-      setErrorMessage(null); // Clear any previous error message on GPS success
-    } catch (error) {
-      console.error("Error fetching GPS location:", error);
-      // Determine which user-friendly message to show based on the error
-      const message = (
-        error instanceof GeolocationPositionError
-          ? error.code === error.PERMISSION_DENIED
-            ? homeUi.geolocationPermissionDenied
-            : error.code === error.POSITION_UNAVAILABLE
-              ? homeUi.geolocationPositionUnavailable
-              : error.code === error.TIMEOUT
-                ? homeUi.geolocationTimeout
-                : homeUi.geolocationApiError
-          : homeUi.geolocationApiError
-      );
-      setErrorMessage(message); // Set user-friendly error message
-      setUserLocation(defaultLocation()); // Fallback to default location
-    } finally {
-      setIsLocating(false);
-    }
-  }, [setIsLocating, setUserLocation, setErrorMessage]);
-
-  const brandOptions = collectBrandOptions(products);
-  const displayedProducts = applyOfferFilters(products, activeOfferFilters);
-  const filtersActiveBeyondCategory = hasActiveOfferFilters(activeOfferFilters);
+  const brandOptions = useMemo(() => collectBrandOptions(products), [products]);
+  const displayedProducts = useMemo(() => applyOfferFilters(products, activeOfferFilters), [products, activeOfferFilters]);
+  const filtersActiveBeyondCategory = useMemo(() => hasActiveOfferFilters(activeOfferFilters), [activeOfferFilters]);
 
   const showCategoryEmptyState =
     !isLoadingProducts &&
@@ -379,7 +299,7 @@ export default function Home() {
         searchQuery={searchInput}
         onSearchChange={setSearchInput}
         selectedDomain={selectedDomain}
-        onDomainChange={handleDomainChange}
+        onDomainChange={handleInternalDomainChange}
         isLocating={isLocating}
         locale={browseLocale}
         onLocaleChange={setBrowseLocale}
@@ -394,6 +314,7 @@ export default function Home() {
         isLocating={isLocating}
         productionOfferCount={catalogMeta?.productionOfferCount || 0}
         sampleOfferCount={catalogMeta?.sampleOfferCount || 0}
+        locale={browseLocale}
       />
 
       {/* Merchant Stores & Integrated Domains Banner Bar */}
@@ -406,7 +327,7 @@ export default function Home() {
             </span>
 
             <button
-              onClick={() => handleDomainChange("all")}
+              onClick={() => handleInternalDomainChange("all")}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
                 selectedDomain === "all"
                   ? "bg-emerald-500 text-slate-950 shadow-xs"
@@ -419,7 +340,7 @@ export default function Home() {
             {domainFilterMerchants.map((merchant) => (
               <button
                 key={merchant.id}
-                onClick={() => handleDomainChange(merchant.domain)}
+                onClick={() => handleInternalDomainChange(merchant.domain)}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer border ${
                   selectedDomain === merchant.domain
                     ? "bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs"
@@ -432,7 +353,7 @@ export default function Home() {
           </div>
 
           <Link
-            href={{ pathname: "/stores", locale: browseLocale }}
+            href="/stores"
             className="text-slate-300 hover:text-emerald-400 font-bold shrink-0 inline-flex items-center gap-1 text-[11px] hover:underline"
           >
             <span>
@@ -531,7 +452,7 @@ export default function Home() {
                   {homeUi.demoOfferLabel} <strong className="text-slate-800">{userLocation.city}</strong>
                   {catalogMeta?.gtinLinkedProductCount
                     ? ` — ${catalogMeta.gtinLinkedProductCount} ${homeUi.gtinLinkedProductsText}`
-                    : ""}{" "}
+                    : ""} {""}
                   — {homeUi.priceDisclaimer}
                 </>
               )}
@@ -566,7 +487,7 @@ export default function Home() {
           </div>
         ) : errorMessage ? ( // Display error message if set
           <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl text-center">
-            <p className="font-bold">{errorMessage}</p>
+            <p className="font-bold">{sanitizeString(errorMessage)}</p>
           </div>
         ) : showCategoryEmptyState ? (
           <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-lg mx-auto space-y-4">

@@ -1,11 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import { Building2, Globe, Mail, MapPin, FileText } from "lucide-react";
 import { COMPANY } from "@/lib/company-info";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 import { pickLocaleString } from "@/lib/i18n/locales";
+import { HOME_UI } from "@/lib/i18n/ui";
 
 export function CompanyDetailsCard() {
   const { browseLocale } = useBrowseLocale();
+  const homeUi = HOME_UI[browseLocale];
+
   return (
     <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4 text-xs text-slate-700">
       <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
@@ -14,7 +19,7 @@ export function CompanyDetailsCard() {
         </div>
         <div>
           <h2 className="text-base font-bold text-slate-900">{COMPANY.legalName}</h2>
-          <p className="text-slate-500">{pickLocaleString(COMPANY.legalForm, browseLocale)}</p>
+          <p className="text-slate-500">{pickLocaleString(COMPANY.legalForm, browseLocale, COMPANY.legalForm.en)}</p>
         </div>
       </div>
 
@@ -23,7 +28,6 @@ export function CompanyDetailsCard() {
           <div className="font-bold text-slate-900 flex items-center gap-1.5">
             <MapPin className="w-3.5 h-3.5 text-emerald-600" aria-hidden="true" />
             Address
-          </div>
           </div>
           <p className="text-slate-600 leading-relaxed">
             {COMPANY.address.street}
@@ -38,7 +42,6 @@ export function CompanyDetailsCard() {
           <div className="font-bold text-slate-900 flex items-center gap-1.5">
             <FileText className="w-3.5 h-3.5 text-emerald-600" aria-hidden="true" />
             {homeUi.registry}
-          </div>
           </div>
           <p className="text-slate-600 leading-relaxed">
             UID: {COMPANY.uid}

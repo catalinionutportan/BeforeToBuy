@@ -6,10 +6,14 @@ import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY, LEGAL_CONTACT } from "@/lib/company-info";
 import { DSAR_RESPONSE_DAYS } from "@/lib/legal-config";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Complaints Procedure | BeforeToBuy.com",
-  description: "How to submit complaints about BeforeToBuy.com — response times and escalation steps.",
+  title: HOME_UI.en.complaintsMetaTitle,
+  description: HOME_UI.en.complaintsMetaDescription,
   path: "/complaints",
 });
 
@@ -20,11 +24,11 @@ export default function ComplaintsPage() {
         <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-md border border-slate-800 space-y-2">
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-flex items-center gap-1.5">
             <MessageSquareWarning className="w-3.5 h-3.5" aria-hidden="true" />
-            Complaints
+            {homeUi.complaints}
           </span>
-          <h1 className="text-3xl font-extrabold">Complaints Procedure</h1>
+          <h1 className="text-3xl font-extrabold">{homeUi.complaintsProcedure}</h1>
           <p className="text-slate-300 text-sm">
-            How to raise concerns about {COMPANY.platformName} — operated by {COMPANY.legalName}.
+            {formatUi(homeUi.complaintsIntro, { platformName: COMPANY.platformName, legalName: COMPANY.legalName })}
           </p>
         </div>
 
@@ -32,46 +36,44 @@ export default function ComplaintsPage() {
 
         <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-6 text-sm text-slate-700 leading-relaxed">
           <section className="space-y-2">
-            <h2 className="text-lg font-bold text-slate-900">Scope</h2>
+            <h2 className="text-lg font-bold text-slate-900">{homeUi.complaintsScopeTitle}</h2>
             <p className="text-xs text-slate-600">
-              This procedure covers complaints about {COMPANY.platformName} itself (website functionality, misleading
-              labels, privacy, affiliate disclosure, contact handling). It does <strong>not</strong> cover product
-              quality, delivery, returns, or refunds from merchants — contact the merchant directly for order issues.
+              {formatUi(homeUi.complaintsScopeBody, { platformName: COMPANY.platformName })}
             </p>
           </section>
 
           <section className="space-y-3 border-t border-slate-100 pt-4">
-            <h2 className="text-lg font-bold text-slate-900">How to submit a complaint</h2>
+            <h2 className="text-lg font-bold text-slate-900">{homeUi.complaintsSubmitTitle}</h2>
             <ol className="list-decimal list-inside space-y-2 text-xs text-slate-600 pl-1">
               <li>
-                Email{" "}
+                {homeUi.complaintsSubmitStep1Email}{" "}
                 <a href={`mailto:${LEGAL_CONTACT.complaints}`} className="text-emerald-700 underline font-semibold">
                   {LEGAL_CONTACT.complaints}
                 </a>{" "}
-                or use the{" "}
+                {homeUi.complaintsSubmitStep1OrUse}{" "}
                 <Link href="/contact" className="text-emerald-700 underline font-semibold">
-                  contact form
+                  {homeUi.contactForm}
                 </Link>
-                .
+                {homeUi.complaintsSubmitStep1Dot}
               </li>
-              <li>Include your name, email, date of incident, and a clear description of the issue.</li>
-              <li>For privacy-related complaints, you may also exercise DSAR rights under our Privacy Policy.</li>
+              <li>{homeUi.complaintsSubmitStep2}</li>
+              <li>{homeUi.complaintsSubmitStep3}</li>
             </ol>
           </section>
 
           <section className="space-y-3 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Clock className="w-5 h-5 text-emerald-600" aria-hidden="true" />
-              Response times
+              {homeUi.complaintsResponseTimesTitle}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                <p className="font-bold text-slate-900">General complaints</p>
-                <p className="text-slate-600 mt-1">Acknowledgement within 5 business days; substantive response within 30 days.</p>
+                <p className="font-bold text-slate-900">{homeUi.generalComplaints}</p>
+                <p className="text-slate-600 mt-1">{homeUi.generalComplaintsResponseTime}</p>
               </div>
               <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-                <p className="font-bold text-slate-900">Privacy / DSAR requests</p>
-                <p className="text-slate-600 mt-1">Response within {DSAR_RESPONSE_DAYS} days per Privacy Policy (GDPR / nDSG).</p>
+                <p className="font-bold text-slate-900">{homeUi.privacyDSARRequests}</p>
+                <p className="text-slate-600 mt-1">{formatUi(homeUi.privacyDSARResponseTime, { dsarDays: DSAR_RESPONSE_DAYS })}</p>
               </div>
             </div>
           </section>
@@ -79,12 +81,10 @@ export default function ComplaintsPage() {
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" aria-hidden="true" />
-              Escalation
+              {homeUi.escalationTitle}
             </h2>
             <p className="text-xs text-slate-600">
-              If you remain unsatisfied after our response, you may contact the relevant data protection authority
-              for privacy matters, or seek advice from consumer protection bodies in your country for commercial disputes.
-              Swiss users may contact the{" "}
+              {homeUi.escalationBodyPart1}{" "}
               <a
                 href="https://www.edoeb.admin.ch/"
                 target="_blank"
@@ -93,7 +93,7 @@ export default function ComplaintsPage() {
               >
                 FDPIC (EDÖB)
               </a>{" "}
-              for data protection issues.
+              {homeUi.escalationBodyPart2}
             </p>
           </section>
 

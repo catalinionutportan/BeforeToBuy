@@ -21,7 +21,10 @@ export function buildProductIdentity(input: {
   title: string;
 }): ProductIdentity {
   const gtin = normalizeGtin(input.gtin);
-  const variantKey = input.variantKey || extractVariantKey(input.title);
+  const variantKey =
+    input.variantKey !== undefined
+      ? input.variantKey
+      : extractVariantKey(input.title);
 
   if (gtin) {
     return {

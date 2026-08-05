@@ -20,8 +20,10 @@ import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
 import { createPageMetadata } from "@/lib/metadata";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { fetchDefaultCatalog } from "@/lib/category-page-data";
-import { HOME_UI } from "@/lib/i18n/ui";
-import { useBrowseLocale } from "@/lib/i18n/client";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const dynamic = "force-dynamic";
 
@@ -32,8 +34,6 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default async function CategoriesPage() {
-  const { browseLocale } = useBrowseLocale();
-  const homeUi = HOME_UI[browseLocale];
   const country = COUNTRIES[DEFAULT_COUNTRY];
   const locale = localeFromCountry(country.code);
   const catalog = await fetchDefaultCatalog();

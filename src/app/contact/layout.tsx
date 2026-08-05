@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { createPageMetadata } from "@/lib/metadata";
+import { HOME_UI } from "@/lib/i18n/ui";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Contact & Support | BeforeToBuy.com",
-  description:
-    "Contact BeforeToBuy.com and PortanX for user feedback, affiliate partnerships, merchant feed integration, or privacy requests.",
+  title: HOME_UI.en.contactMetaTitle,
+  description: HOME_UI.en.contactMetaDescription,
   path: "/contact",
 });
 

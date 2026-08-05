@@ -1,70 +1,18 @@
-import { describe, it, expect, vi } from 'vitest';
-import { parseGalaxusJsonFeed } from './feed-parser';
-import * as feedLoader from './feed-loader'; // Import all from feed-loader
-import { MERCHANT_FEEDS } from './merchant-integrations';
-import { clearFeedCacheForTests, getFeedProducts } from './merchant-feeds';
-// import { mergeFeedProductsByIdentity } from './product-identity/merge-products'; // Not needed for spy anymore
+import { describe, it, expect } from "vitest";
+import { createReadStream } from "node:fs";
+import path from "node:path";
+import { parseGalaxusJsonFeed } from "./feed-parser";
+import { parseConfiguredFeed } from "./feed-loader";
+import { MERCHANT_FEEDS } from "./merchant-integrations";
+import { clearFeedCacheForTests, getFeedProducts } from "./merchant-feeds";
 
-vi.mock('./feed-loader', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('./feed-loader')>();
+function sampleStream(filename: string) {
+  return createReadStream(path.join(process.cwd(), "src", "data", filename), {
+    encoding: "utf8",
+  });
+}
 
-  const generateJsonFeed = (baseGtin: number, merchantId: string, title: string, merchantCategory: string, count: number) => {
-    const products = [];
-    for (let i = 0; i < count; i++) {
-      products.push({
-        "gtin": String(baseGtin + parseInt(merchantId.replace('ch-','').split('-')[0], 36) + i),
-        "title": `${merchantId} ${title} ${i + 1} - Unique`,
-        "description": "Test",
-        "brand": "Apple",
-        "price_chf": 1,
-        "stock_status": "in_stock",
-        "product_url": "https://example.com",
-        "image_url":"https://example.com/i.jpg",
-        "merchant_category": merchantCategory,
-        "branch_availability": [],
-      });
-    }
-    return JSON.stringify(products);
-  };
-
-  const generateCsvFeed = (baseId: number, merchantId: string, title: string, merchantCategory: string, count: number) => {
-    let csv = `aw_product_id,product_name,description,merchant_name,search_price,store_price,currency,aw_deep_link,merchant_image_url,category_name,brand_name,in_stock,delivery_cost\n`;
-    for (let i = 0; i < count; i++) {
-      csv += `${baseId + parseInt(merchantId.replace('ch-','').split('-')[0], 36) + i},"${merchantId} ${title} ${i + 1} - Unique","Test","TestMerchant",1,1,CHF,https://example.com,https://example.com/i.jpg,${merchantCategory},Apple,1,0\n`;
-    }
-    return csv;
-  };
-
-  return {
-    ...actual,
-    fetchFeedContent: vi.fn(async (feed) => {
-      let generatedProductCount = 0;
-      let feedContent = '';
-      if (feed.merchantId === 'ch-digitec') {
-        generatedProductCount = 2;
-        feedContent = generateJsonFeed(1000, feed.merchantId, "Sample Digitec Phone", "Mobile & Smartphones", generatedProductCount);
-      } else if (feed.merchantId === 'ch-brack') {
-        generatedProductCount = 6;
-        feedContent = generateCsvFeed(2000, feed.merchantId, "Phone", "Smartphones", generatedProductCount);
-      } else if (feed.merchantId === 'ch-galaxus') {
-        generatedProductCount = 2;
-        feedContent = generateJsonFeed(3000, feed.merchantId, "Sample Galaxus Laptop", "Laptops", generatedProductCount);
-      } else if (feed.merchantId === 'ch-fust') {
-        generatedProductCount = 2;
-        feedContent = generateCsvFeed(4000, feed.merchantId, "TV", "Televisions", generatedProductCount);
-      } else if (feed.merchantId === 'ch-interdiscount') {
-        generatedProductCount = 2;
-        feedContent = generateCsvFeed(5000, feed.merchantId, "Tablet", "Tablets", generatedProductCount);
-      } else if (feed.merchantId === 'ch-mediamarkt') {
-        generatedProductCount = 2;
-        feedContent = generateJsonFeed(6000, feed.merchantId, "Sample Mediamarkt Camera", "Cameras", generatedProductCount);
-      }
-      return feedContent;
-    }),
-  };
-});
-
-describe('Merchant Feed Processing', () => {
+describe("Merchant Feed Processing", () => {
   it("Galaxus JSON sample parses products with pickup offers", () => {
     const sample = `[{
       "gtin":"123",
@@ -86,35 +34,35 @@ describe('Merchant Feed Processing', () => {
     expect(parsed.products[0]?.offers.some((offer) => offer.type === "local_pickup")).toBe(true);
   });
 
-  it("configured feed parser dispatches by provider", () => {
+  it("configured feed parser dispatches by provider", async () => {
     const digitec = MERCHANT_FEEDS.find((feed) => feed.merchantId === "ch-digitec");
     expect(digitec).toBeDefined();
     const brack = MERCHANT_FEEDS.find((feed) => feed.merchantId === "ch-brack");
     expect(brack).toBeDefined();
 
-    const digitecParsed = feedLoader.parseConfiguredFeed(
+    const digitecParsed = await parseConfiguredFeed(
       digitec!,
-      `[{"gtin":"1","title":"Phone","description":"","brand":"Apple","price_chf":1,"stock_status":"in_stock","product_url":"https://example.com","image_url":"https://example.com/i.jpg","merchant_category":"Smartphones"}]`,
+      sampleStream(digitec!.sampleFile!),
       "CH",
       "sample"
     );
-    expect(digitecParsed.products.length).toBe(1);
+    expect(digitecParsed.products.length).toBe(2);
 
-    const brackParsed = feedLoader.parseConfiguredFeed(
+    const brackParsed = await parseConfiguredFeed(
       brack!,
-      `aw_product_id,product_name,description,merchant_name,search_price,store_price,currency,aw_deep_link,merchant_image_url,category_name,brand_name,in_stock,delivery_cost\n1,"Phone","Test","Brack",10,10,CHF,https://example.com,https://example.com/i.jpg,Smartphones,Apple,1,0`,
+      sampleStream(brack!.sampleFile!),
       "CH",
       "sample"
     );
-    expect(brackParsed.products.length).toBe(1);
+    expect(brackParsed.products.length).toBe(6);
   });
 
   it("getFeedProducts loads all CH sample merchant feeds", async () => {
     clearFeedCacheForTests();
     const result = await getFeedProducts("CH");
 
-    // The product merging logic (mergeFeedProductsByIdentity) identifies 3 products as duplicates
-    // due to canonical identity matching, resulting in 13 unique products from the 16 generated.
+    // Real sample feeds share 3 valid EANs/GTINs across merchants
+    // (MacBook, Sony WH-1000XM5, Galaxy S24 Ultra) → 16 rows merge to 13 products.
     expect(result.products.length).toBe(13);
     expect(result.sources.includes("sample")).toBe(true);
     expect(result.merchantProductCounts["ch-brack"]).toBe(6);

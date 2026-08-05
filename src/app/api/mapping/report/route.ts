@@ -3,6 +3,7 @@ import { CountryCode } from "@/types";
 import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { getFeedMappingReport } from "@/lib/merchant-feeds";
+import { isInternalApiAuthorized } from "@/lib/internal-api-auth";
 
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
@@ -17,8 +18,12 @@ function parseCountry(value: string | null): CountryCode {
 }
 
 export async function GET(request: Request) {
+  if (!isInternalApiAuthorized(request)) {
+    return NextResponse.json({ error: homeUi.unauthorized }, { status: 401 });
+  }
+
   const clientIp = getClientIp(request);
-  const rateLimit = checkRateLimit(`mapping-report:${clientIp}`, 30, 60_000);
+  const rateLimit = await checkRateLimit(`mapping-report:${clientIp}`, 30, 60_000);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(

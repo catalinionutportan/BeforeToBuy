@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   }
 
   const clientIp = getClientIp(request);
-  const rateLimit = checkRateLimit(`geocode:${clientIp}`, 20, 60_000);
+  const rateLimit = await checkRateLimit(`geocode:${clientIp}`, 20, 60_000);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(

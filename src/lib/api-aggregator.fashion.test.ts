@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { fetchProductsForLocation } from './api-aggregator';
 
 const FASHION_DEMO_IDS = [

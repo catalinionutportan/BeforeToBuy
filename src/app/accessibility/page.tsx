@@ -5,8 +5,10 @@ import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY, LEGAL_CONTACT } from "@/lib/company-info";
-import { useBrowseLocale } from "@/hooks/useBrowseLocale";
-import { HOME_UI } from "@/lib/i18n/ui";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const metadata: Metadata = createPageMetadata({
   title: "Accessibility Statement",
@@ -15,8 +17,6 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function AccessibilityPage() {
-  const { browseLocale } = useBrowseLocale();
-  const homeUi = HOME_UI[browseLocale];
   return (
     <PageShell maxWidthClass="max-w-3xl">
       <div className="space-y-8">
@@ -79,11 +79,11 @@ export default function AccessibilityPage() {
             </p>
             <p className="text-xs text-slate-600">
               {homeUi.seeAlso}{" "}
-              <Link href="/help" locale={browseLocale} className="text-emerald-700 underline font-semibold">
+              <Link href="/help" locale={DEFAULT_LOCALE} className="text-emerald-700 underline font-semibold">
                 {homeUi.helpFAQ}
               </Link>{" "}
               {homeUi.and}{" "}
-              <Link href="/complaints" locale={browseLocale} className="text-emerald-700 underline font-semibold">
+              <Link href="/complaints" locale={DEFAULT_LOCALE} className="text-emerald-700 underline font-semibold">
                 {homeUi.complaintsProcedure}
               </Link>
               .

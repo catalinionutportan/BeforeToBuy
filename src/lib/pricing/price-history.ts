@@ -47,6 +47,18 @@ export async function getOfferPriceHistory(
   return getPriceHistoryStore().getPoints(buildPriceHistoryKey(product, offer));
 }
 
+export async function getOffersPriceHistoryBatch(
+  products: Product[]
+): Promise<Map<string, PriceHistoryPoint[]>> {
+  const store = getPriceHistoryStore();
+  const keys = products.flatMap((product) =>
+    product.offers
+      .filter((offer) => offer.source !== "demo")
+      .map((offer) => buildPriceHistoryKey(product, offer))
+  );
+  return store.getMultiplePoints(keys);
+}
+
 export async function getPriceHistoryStats(): Promise<PriceHistoryMeta> {
   return getPriceHistoryStore().getMeta();
 }

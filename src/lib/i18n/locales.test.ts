@@ -6,40 +6,18 @@ import {
   pickLocaleString,
   SWISS_UI_LOCALES,
   isSiteLocale,
-  SITE_LOCALES
 } from './locales';
-
-// Mocking the preference module
-const mockLocaleStore: Record<string, string> = {};
-vi.mock('./preference', () => ({
-  saveBrowseLocalePreference: vi.fn((locale: string) => {
-    const normalized = normalizeLocale(locale); // Normalize before saving
-    if (normalized) {
-      mockLocaleStore['btb-locale'] = normalized;
-    } else {
-      delete mockLocaleStore['btb-locale'];
-    }
-  }),
-  loadBrowseLocalePreference: vi.fn(() => {
-    return mockLocaleStore['btb-locale'] || null;
-  }),
-  clearBrowseLocalePreference: vi.fn(() => {
-    delete mockLocaleStore['btb-locale'];
-  }),
-  // We need to provide a mock for resolveInitialLocale as well, or any other exports used
-  resolveInitialLocale: vi.fn((countryCode: CountryCode) => ({ 
-    locale: defaultLocaleFromCountry(countryCode), explicit: false
-  })),
-}));
-
-// Import the mocked functions after the mock is defined
-import { saveBrowseLocalePreference, loadBrowseLocalePreference, clearBrowseLocalePreference } from './preference';
-import { CountryCode } from '@/types';
+import {
+  LANG_STORAGE_KEY,
+  readStoredLocale,
+  writeStoredLocale,
+  resolveInitialLocale,
+} from './preference';
+import type { CountryCode } from '@/types';
 
 describe('Locale Utility Functions', () => {
-  // Clear the mock store before each test
   beforeEach(() => {
-    mockLocaleStore['btb-locale'] = '';
+    localStorage.clear();
     vi.clearAllMocks();
   });
 
@@ -96,15 +74,21 @@ describe('Locale Utility Functions', () => {
   });
 
   it('locale preference functions operate correctly', () => {
-    saveBrowseLocalePreference('fr');
-    expect(loadBrowseLocalePreference()).toBe('fr');
-    expect(mockLocaleStore['btb-locale']).toBe('fr');
+    writeStoredLocale('fr');
+    expect(readStoredLocale()).toBe('fr');
+    expect(localStorage.getItem(LANG_STORAGE_KEY)).toBe('fr');
 
-    clearBrowseLocalePreference();
-    expect(loadBrowseLocalePreference()).toBe(null);
-    expect(mockLocaleStore['btb-locale']).toBeUndefined();
+    localStorage.removeItem(LANG_STORAGE_KEY);
+    expect(readStoredLocale()).toBe(null);
 
-    saveBrowseLocalePreference('xx' as any); // Should not save invalid locale
-    expect(loadBrowseLocalePreference()).toBe(null); // Should still be null
+    localStorage.setItem(LANG_STORAGE_KEY, 'xx');
+    expect(readStoredLocale()).toBe(null);
+  });
+
+  it('resolveInitialLocale falls back to country default', () => {
+    expect(resolveInitialLocale('FR' as CountryCode)).toEqual({
+      locale: 'fr',
+      explicit: false,
+    });
   });
 });

@@ -9,12 +9,12 @@ import {
 import { DEFAULT_LOCALE, SITE_LOCALES, SiteLocale } from "@/lib/i18n/locales";
 
 function getAlternateLinks(url: string, currentLocale: SiteLocale, allLocales: readonly SiteLocale[]) {
-  const alternates: { hrefLang: string; href: string }[] = [];
+  const languages: Record<string, string> = {};
   for (const locale of allLocales) {
-    const localizedUrl = locale === DEFAULT_LOCALE ? url.replace(`/${currentLocale}`, '') : `/${locale}${url}`;
-    alternates.push({ hrefLang: locale, href: localizedUrl });
+    const localizedUrl = locale === DEFAULT_LOCALE ? url.replace(`/${currentLocale}`, "") : `/${locale}${url}`;
+    languages[locale] = localizedUrl;
   }
-  return { languages: alternates };
+  return { languages };
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

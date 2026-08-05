@@ -5,10 +5,13 @@ import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY } from "@/lib/company-info";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI.en;
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Terms & Conditions (AGB) | BeforeToBuy.com",
-  description: "Terms and conditions for using BeforeToBuy.com price comparison platform.",
+  title: HOME_UI.en.termsMetaTitle,
+  description: HOME_UI.en.termsMetaDescription,
   path: "/terms",
 });
 
@@ -18,11 +21,11 @@ export default function TermsPage() {
       <div className="space-y-8">
         <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-md border border-slate-800 space-y-2">
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-            Allgemeine Geschäftsbedingungen / Terms & Conditions
+            {homeUi.termsAGBDEEN}
           </span>
-          <h1 className="text-3xl font-extrabold">Nutzungsbedingungen & AGB</h1>
+          <h1 className="text-3xl font-extrabold">{homeUi.termsAGBTitle}</h1>
           <p className="text-slate-300 text-sm">
-            Nutzungsbedingungen der Preisvergleichs-Plattform {COMPANY.platformName}
+            {formatUi(homeUi.termsAGBIntro, { platformName: COMPANY.platformName })}
           </p>
         </div>
 
@@ -32,30 +35,24 @@ export default function TermsPage() {
           <section className="space-y-2">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-emerald-600" aria-hidden="true" />
-              1. Leistungsbeschreibung / Free Service
+              {homeUi.termsServiceDescriptionTitle}
             </h2>
             <p className="text-xs text-slate-600">
-              <strong>{COMPANY.platformName}</strong> (betrieben von <strong>{COMPANY.legalName}</strong>, UID{" "}
-              {COMPANY.uid}) ist ein kostenloser Online-Preisvergleichsdienst in Beta/Demo. Wir verkaufen selbst
-              keine Produkte, sondern stellen Preis- und Verfügbarkeitsangaben externer Online-Händler gegenüber.
-              Einige Angebote stammen aus Demo-Katalogdaten; Brack.ch (CH) verwendet standardmässig illustrative
-              AWIN-Testdaten. Nur ausdrücklich als &quot;Production feed&quot; gekennzeichnete Angebote stammen aus
-              einem konfigurierten Produktionsfeed.
+              {formatUi(homeUi.termsServiceDescriptionBody, { platformName: COMPANY.platformName, legalName: COMPANY.legalName, uid: COMPANY.uid })}
             </p>
           </section>
 
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-emerald-600" aria-hidden="true" />
-              2. Preise & Produkte (Keine Gewähr)
+              {homeUi.termsPricesProductsTitle}
             </h2>
             <p className="text-xs text-slate-600">
-              Alle Angaben zu Preisen, Lieferzeiten, Versandkosten und Verfügbarkeiten sind indikativ. Produktionsfeed-,
-              Test- und Demo-Daten können von den aktuellen Händlerpreisen abweichen.{" "}
-              <strong>Massgeblich ist stets der Preis auf der Zielseite des Händlers zum Zeitpunkt des Kaufabschlusses.</strong>{" "}
-              Siehe auch{" "}
+              {homeUi.termsPricesProductsBody1}{" "}
+              <strong>{homeUi.termsPricesProductsBody2}</strong>{" "}
+              {homeUi.termsPricesProductsBody3}{" "}
               <Link href="/disclaimer" className="text-emerald-700 underline font-semibold">
-                Price & Service Disclaimer
+                {homeUi.priceServiceDisclaimer}
               </Link>
               .
             </p>
@@ -64,14 +61,13 @@ export default function TermsPage() {
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <FileText className="w-5 h-5 text-emerald-600" aria-hidden="true" />
-              3. Kaufverträge mit Drittanbietern
+              {homeUi.termsThirdPartyContractsTitle}
             </h2>
             <p className="text-xs text-slate-600">
-              Kaufverträge kommen ausschliesslich zwischen dem Nutzer und dem jeweiligen Online-Händler zustande.
-              {COMPANY.platformName} ist weder Vertragspartei noch Vertreter der Händler. Versand, Zahlung,
-              Rückgabe, Garantie und Gewährleistung werden vom Händler geregelt. Siehe{" "}
+              {homeUi.termsThirdPartyContractsBody1}{" "}
+              {homeUi.termsThirdPartyContractsBody2}{" "}
               <Link href="/help" className="text-emerald-700 underline font-semibold">
-                Help & FAQ
+                {homeUi.helpAndFAQ}
               </Link>
               .
             </p>

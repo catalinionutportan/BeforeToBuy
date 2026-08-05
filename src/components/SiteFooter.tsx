@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -19,11 +21,12 @@ import {
 } from "lucide-react";
 import { ManageCookiePreferencesButton } from "@/components/ManageCookiePreferencesButton";
 import { COMPANY } from "@/lib/company-info";
-import { defaultLocaleFromCountry, type SiteLocale } from "@/lib/i18n/locales";
+import { DEFAULT_COUNTRY } from "@/lib/countries";
+import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 
 export function SiteFooter() {
-  const { browseLocale } = useBrowseLocale();
+  const { locale: browseLocale } = useBrowseLocale(DEFAULT_COUNTRY);
   const homeUi = HOME_UI[browseLocale];
   const linkClass =
     "inline-flex min-h-8 items-center gap-2 text-slate-300 transition-colors hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-md";

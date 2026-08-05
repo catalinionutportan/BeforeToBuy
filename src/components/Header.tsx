@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
@@ -13,6 +13,12 @@ import {
   ShieldCheck,
   Store,
 } from "lucide-react";
+
+// Basic sanitization function to prevent injection attacks
+function sanitizeInput(input: string): string {
+  return input.replace(/[<>\"'`%{};\\\/]/g, "").trim(); // Remove potentially harmful characters
+}
+
 
 interface HeaderProps {
   userLocation: UserLocation;
@@ -128,7 +134,7 @@ export function Header({
                 <Store className="w-3.5 h-3.5 text-slate-500" />
                 <select
                   value={selectedDomain}
-                  onChange={(e) => onDomainChange(e.target.value)}
+                  onChange={(e) => onDomainChange(sanitizeInput(e.target.value))}
                   className="bg-transparent text-xs font-bold text-slate-800 border-0 outline-none cursor-pointer max-w-[130px] truncate"
                 >
                   <option value="all">{ui.allDomains}</option>
@@ -148,7 +154,7 @@ export function Header({
               <input
                 type="search"
                 value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
+                onChange={(e) => onSearchChange(sanitizeInput(e.target.value))}
                 aria-label={searchPlaceholder}
                 placeholder={searchPlaceholder}
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-100 hover:bg-slate-100/80 focus:bg-white text-sm rounded-xl border border-transparent focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all outline-none font-medium placeholder:text-slate-400"

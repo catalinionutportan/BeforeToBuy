@@ -1,7 +1,9 @@
+"use client";
+
 import { AlertTriangle } from "lucide-react";
 import { LEGAL_DRAFT_NOTICE, LEGAL_DOCUMENT_VERSION, LEGAL_LAST_UPDATED } from "@/lib/legal-config";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
-import { HOME_UI, formatUi } from "@/lib/i18n/ui";
+import { HOME_UI } from "@/lib/i18n/ui";
 import { pickLocaleString } from "@/lib/i18n/locales";
 
 interface LegalDraftNoticeProps {
@@ -17,7 +19,7 @@ export function LegalDraftNotice({ showVersion = true }: LegalDraftNoticeProps) 
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true" />
           {homeUi.legalDraftNotice}
         </div>
-      <p>{pickLocaleString(LEGAL_DRAFT_NOTICE, browseLocale)}</p>
+      <p>{pickLocaleString(LEGAL_DRAFT_NOTICE, browseLocale, LEGAL_DRAFT_NOTICE.en)}</p>
       {showVersion && (
         <p className="text-amber-800/80">
           {homeUi.documentVersion} <strong>{LEGAL_DOCUMENT_VERSION}</strong> · {homeUi.lastUpdated}{" "}

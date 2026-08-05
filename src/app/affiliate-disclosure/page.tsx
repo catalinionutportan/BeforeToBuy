@@ -11,6 +11,10 @@ import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { AFFILIATE_NETWORKS, COMPANY } from "@/lib/company-info";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const metadata: Metadata = createPageMetadata({
   title: "Affiliate Disclosure & Transparency Statement",
@@ -19,8 +23,6 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function AffiliateDisclosurePage() {
-  const { browseLocale } = useBrowseLocale();
-  const homeUi = HOME_UI[browseLocale];
   return (
     <PageShell>
       <div className="space-y-8">

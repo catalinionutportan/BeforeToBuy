@@ -16,15 +16,15 @@ export function calculateHaversineDistance(
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
   return Math.round(distance * 10) / 10; // 1 decimal place
 }
 
-function defaultLocation(): UserLocation {
+export function defaultLocation(): UserLocation {
   const def = COUNTRIES[DEFAULT_COUNTRY];
   return {
     latitude: def.defaultCoordinates.lat,
@@ -56,72 +56,61 @@ export async function reverseGeocode(
 }
 
 /**
- * IP-based geolocation via internal API (requires Location consent)
+ * Approximate location from client IP via internal API (requires location consent cookie).
  */
 export async function getLocationFromIp(): Promise<UserLocation> {
-  try {
-    const res = await fetch("/api/location");
-    if (!res.ok) {
-      throw new Error(`IP Geolocation API failed with status: ${res.status}`);
-    }
-    return await res.json();
-  } catch (err) {
-    console.error("IP Geolocation failed:", err);
-    throw new Error("Unable to determine location from IP.");
+  const res = await fetch("/api/location");
+  if (!res.ok) {
+    throw new Error(`IP location API failed with status: ${res.status}`);
   }
+  const data = (await res.json()) as Partial<UserLocation>;
+  if (
+    typeof data.latitude !== "number" ||
+    typeof data.longitude !== "number" ||
+    !data.countryCode
+  ) {
+    throw new Error("IP location API returned incomplete data");
+  }
+  return {
+    latitude: data.latitude,
+    longitude: data.longitude,
+    countryCode: data.countryCode,
+    countryName: data.countryName || COUNTRIES[data.countryCode]?.name || "Unknown",
+    city: data.city || COUNTRIES[data.countryCode]?.defaultCoordinates.city || "Unknown",
+    isGps: false,
+  };
 }
 
 /**
- * GPS-only detection on explicit user action (requires Location consent + browser permission)
+ * Precise location from browser GPS + reverse geocode.
+ * Rejects with GeolocationPositionError when the browser geolocation API fails.
  */
-export async function detectUserLocationGps(): Promise<UserLocation> {
-  if (typeof window === "undefined" || !navigator.geolocation) {
-    throw new Error("Geolocation is not supported by your browser.");
-  }
-
+export function detectUserLocationGps(): Promise<UserLocation> {
   return new Promise((resolve, reject) => {
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 5000,
-      maximumAge: 0,
-    };
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      reject(new Error("Geolocation is not supported in this environment"));
+      return;
+    }
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         try {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          const geoInfo = await reverseGeocode(lat, lng);
-
+          const { latitude, longitude } = position.coords;
+          const geo = await reverseGeocode(latitude, longitude);
           resolve({
-            latitude: lat,
-            longitude: lng,
-            countryCode: geoInfo.countryCode,
-            countryName: geoInfo.countryName,
-            city: geoInfo.city,
+            latitude,
+            longitude,
+            countryCode: geo.countryCode,
+            countryName: geo.countryName,
+            city: geo.city,
             isGps: true,
           });
         } catch (error) {
-          console.error("Reverse geocode after GPS failed:", error);
-          reject(new Error("Unable to process GPS location."));
+          reject(error);
         }
       },
-      (error) => {
-        console.warn("GPS Permission denied or timed out:", error.message);
-        let userMessage = "Unable to get GPS location.";
-        if (error.code === error.PERMISSION_DENIED) {
-          userMessage = "GPS permission denied. Please enable location services for this site.";
-        } else if (error.code === error.TIMEOUT) {
-          userMessage = "GPS location timed out. Please try again.";
-        }
-        reject(new Error(userMessage));
-      },
-      options
+      (error) => reject(error),
+      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 }
     );
   });
-}
-
-/** @deprecated Use getLocationFromIp or detectUserLocationGps with consent checks */
-export async function detectUserLocation(): Promise<UserLocation> {
-  return getLocationFromIp();
 }

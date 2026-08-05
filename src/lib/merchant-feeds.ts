@@ -1,4 +1,5 @@
-import fs from "node:fs/promises";
+import fs from "node:fs";
+import { createReadStream } from "node:fs";
 import path from "node:path";
 import { CountryCode, OfferSource, Product } from "@/types";
 import {
@@ -22,12 +23,14 @@ type FeedCacheEntry = {
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const feedCache = new Map<string, FeedCacheEntry>();
 
-async function readSampleFeed(filename: string): Promise<string> {
+async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {
   const filePath = path.join(process.cwd(), "src", "data", filename);
-  return fs.readFile(filePath, "utf8");
+  // stream-json/stream-chain expect string or Uint8Array chunks (utf8), not raw Buffer objects
+  // in some Node/stream-chain combinations.
+  return createReadStream(filePath, { encoding: "utf8" });
 }
 
-async function fetchRemoteFeed(url: string, provider: FeedConfig["provider"]): Promise<string> {
+async function fetchRemoteFeed(url: string, provider: FeedConfig["provider"]): Promise<NodeJS.ReadableStream> {
   const accept =
     provider === "GALAXUS"
       ? "application/json, text/plain, */*"
@@ -42,7 +45,11 @@ async function fetchRemoteFeed(url: string, provider: FeedConfig["provider"]): P
     throw new Error(`Feed fetch failed (${response.status}) for ${url}`);
   }
 
-  return response.text();
+  if (!response.body) {
+    throw new Error(`Feed fetch returned empty body for ${url}`);
+  }
+
+  return response.body as unknown as NodeJS.ReadableStream;
 }
 
 function filterFeedProducts(
@@ -73,12 +80,15 @@ async function loadFeedForMerchant(
   }
 
   const remoteUrl = resolveFeedRemoteUrl(feed);
-  let content: string;
+  let content: NodeJS.ReadableStream | string;
   let source: "remote" | "sample";
 
   if (remoteUrl) {
     content = await fetchRemoteFeed(remoteUrl, feed.provider);
     source = "remote";
+    if (content === null) {
+      return { products: [], mappingLog: [], source: "sample" };
+    }
   } else if (feed.sampleFile) {
     content = await readSampleFeed(feed.sampleFile);
     source = "sample";
@@ -88,7 +98,7 @@ async function loadFeedForMerchant(
 
   const offerSource: Extract<OfferSource, "production-live" | "sample"> =
     source === "remote" ? "production-live" : "sample";
-  const parsed = parseConfiguredFeed(feed, content, feed.country, offerSource);
+  const parsed = await parseConfiguredFeed(feed, content, feed.country, offerSource);
   const fetchedAtIso = new Date().toISOString();
   const products = parsed.products.map((product) => ({
     ...product,
