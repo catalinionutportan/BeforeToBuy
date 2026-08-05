@@ -98,6 +98,34 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     badge: "French & German CH 🇨🇭",
     description: "Popular Swiss branch of Fnac providing high-end audio, books, laptops, and gaming accessories.",
   },
+  {
+    id: "ch-nettoshop",
+    name: "Nettoshop",
+    domain: "nettoshop.ch",
+    websiteUrl: "https://www.nettoshop.ch",
+    countryCode: "CH",
+    affiliateNetwork: "Planned",
+    category: "Household Appliances & Home Electronics",
+    hasClickAndCollect: false,
+    status: "Planned Integration",
+    badge: "Swiss appliance specialist 🇨🇭",
+    description:
+      "Swiss online specialist for household appliances and home electronics — planned for comparison feeds.",
+  },
+  {
+    id: "ch-conrad",
+    name: "Conrad Electronic",
+    domain: "conrad.ch",
+    websiteUrl: "https://www.conrad.ch",
+    countryCode: "CH",
+    affiliateNetwork: "Planned",
+    category: "Electronics, Components & Tech",
+    hasClickAndCollect: true,
+    status: "Planned Integration",
+    badge: "Swiss tech specialist 🇨🇭",
+    description:
+      "Conrad Electronic AG — Swiss tech and electronics retailer for consumer and specialist assortments. Planned integration.",
+  },
   // Amazon.de is Germany-only in the merchant registry.
   // CH browse must stay Swiss retailers; foreign delivery stays opt-in via Cross-border offers.
 
@@ -375,6 +403,8 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       "interdiscount.ch",
       "fust.ch",
       "fnac.ch",
+      "nettoshop.ch",
+      "conrad.ch",
     ],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "CH"),
     affiliateNetworks: ["AWIN Switzerland", "Galaxus Merchant", "Rakuten CH"],

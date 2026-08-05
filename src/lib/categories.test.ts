@@ -170,3 +170,18 @@ test("Amazon.de is not listed as a Swiss merchant domain", () => {
     )
   );
 });
+
+test("Swiss registry includes verified Nettoshop and Conrad as planned integrations", () => {
+  const swissById = new Map(
+    ALL_MERCHANT_DOMAINS.filter((merchant) => merchant.countryCode === "CH").map((merchant) => [
+      merchant.id,
+      merchant,
+    ])
+  );
+
+  assert.equal(swissById.get("ch-nettoshop")?.domain, "nettoshop.ch");
+  assert.equal(swissById.get("ch-nettoshop")?.status, "Planned Integration");
+  assert.equal(swissById.get("ch-conrad")?.domain, "conrad.ch");
+  assert.equal(swissById.get("ch-conrad")?.status, "Planned Integration");
+  assert.ok(!swissById.has("ch-melectronics"));
+});
