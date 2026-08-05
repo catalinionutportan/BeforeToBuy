@@ -8,6 +8,7 @@ import {
 } from "@/lib/product-identity/merge-products";
 import {
   getOfferPriceHistory,
+  getPriceHistoryBackend,
   getPriceHistoryStats,
   getPriceTrend,
   recordProductPriceHistory,
@@ -21,18 +22,22 @@ import {
   UNMAPPED_CATEGORY_ID,
 } from "@/lib/categories";
 
-function attachPriceHistory(products: Product[]): Product[] {
-  return products.map((product) => ({
-    ...product,
-    offers: sortOffersByTotalPrice(product.offers).map((offer) => {
-      if (offer.source === "demo") return offer;
-      const priceHistory = getOfferPriceHistory(product, offer);
-      return {
-        ...offer,
-        priceHistory,
-      };
-    }),
-  }));
+async function attachPriceHistory(products: Product[]): Promise<Product[]> {
+  return Promise.all(
+    products.map(async (product) => ({
+      ...product,
+      offers: await Promise.all(
+        sortOffersByTotalPrice(product.offers).map(async (offer) => {
+          if (offer.source === "demo") return offer;
+          const priceHistory = await getOfferPriceHistory(product, offer);
+          return {
+            ...offer,
+            priceHistory,
+          };
+        })
+      ),
+    }))
+  );
 }
 
 function countGtinLinkedProducts(products: Product[]): number {
@@ -54,9 +59,9 @@ export async function fetchMergedProductsForLocation(
   const fetchedAt = new Date().toISOString();
   const mergedProducts = mergeFeedAndDemoProducts(demoProducts, feedResult.products);
   const timestampedProducts = attachOfferTimestamps(mergedProducts, fetchedAt);
-  recordProductPriceHistory(timestampedProducts, fetchedAt);
+  await recordProductPriceHistory(timestampedProducts, fetchedAt);
 
-  const visibleProducts = attachPriceHistory(
+  const visibleProducts = await attachPriceHistory(
     timestampedProducts.filter(
       (product) => resolveCategoryAlias(product.category) !== UNMAPPED_CATEGORY_ID
     )
@@ -99,7 +104,7 @@ export async function fetchMergedProductsForLocation(
   ).length;
   const mappingReport = buildMappingReport(feedResult.mappingLog);
   const feedMerchants = feedResult.merchantProductCounts;
-  const priceHistoryStats = getPriceHistoryStats();
+  const priceHistoryStats = await getPriceHistoryStats();
   const gtinLinkedProductCount = countGtinLinkedProducts(products);
   const priceTrendSample = products
     .flatMap((product) =>
@@ -125,9 +130,11 @@ export async function fetchMergedProductsForLocation(
       gtinLinkedProductCount,
       priceHistory: {
         enabled: true,
+        backend: getPriceHistoryBackend(),
         trackedOffers: priceHistoryStats.trackedOffers,
         totalPoints: priceHistoryStats.totalPoints,
         productsWithTrend: priceTrendSample,
+        lastSnapshotAt: priceHistoryStats.lastSnapshotAt ?? fetchedAt,
         snapshotAt: fetchedAt,
       },
     },

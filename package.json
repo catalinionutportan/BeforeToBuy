@@ -13,6 +13,7 @@
     "smoke:prod": "node scripts/smoke-production.mjs"
   },
   "dependencies": {
+    "@vercel/kv": "^3.0.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.475.0",
     "next": "^15.5.22",

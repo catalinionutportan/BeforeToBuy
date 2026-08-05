@@ -5,6 +5,7 @@ import { getIntegrationSummary, MERCHANT_FEEDS } from "@/lib/merchant-integratio
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { LEGAL_DOCUMENT_VERSION, LEGAL_LAST_UPDATED } from "@/lib/legal-config";
+import { getPriceHistoryBackend, getPriceHistoryStats } from "@/lib/pricing/price-history";
 import { SITE_PHASE } from "@/lib/site-config";
 
 export const dynamic = "force-dynamic";
@@ -75,9 +76,15 @@ async function checkProductsMerge() {
 
 export async function GET() {
   const startedAt = Date.now();
-  const [sampleFeed, productsMerge] = await Promise.all([
+  const [sampleFeed, productsMerge, priceHistoryStats] = await Promise.all([
     checkSampleFeedFiles(),
     checkProductsMerge(),
+    getPriceHistoryStats().catch(() => ({
+      trackedOffers: 0,
+      totalPoints: 0,
+      lastSnapshotAt: undefined,
+      backend: getPriceHistoryBackend(),
+    })),
   ]);
 
   const integrations = getIntegrationSummary();
@@ -92,6 +99,13 @@ export async function GET() {
       hasProductionFeed: integrations.hasProductionFeed,
       sampleFeeds: integrations.sampleFeeds,
       merchants: integrations.merchants,
+    },
+    priceHistory: {
+      status: priceHistoryStats.totalPoints > 0 ? ("ok" as const) : ("warn" as const),
+      backend: priceHistoryStats.backend ?? getPriceHistoryBackend(),
+      trackedOffers: priceHistoryStats.trackedOffers,
+      totalPoints: priceHistoryStats.totalPoints,
+      lastSnapshotAt: priceHistoryStats.lastSnapshotAt ?? null,
     },
   };
 

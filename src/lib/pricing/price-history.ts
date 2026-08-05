@@ -1,60 +1,14 @@
-import type { Offer, OfferSource, Product } from "@/types";
+import type { Product } from "@/types";
 import { computeTotalPrice } from "@/lib/pricing/total-price";
-import { offerDedupeKey } from "@/lib/product-identity/canonical-key";
+import { buildPriceHistoryKey, type PriceHistoryPoint } from "@/lib/pricing/price-history-keys";
+import {
+  getPriceHistoryBackend,
+  getPriceHistoryStore,
+  resetPriceHistoryStoreForTests,
+  type PriceHistoryMeta,
+} from "@/lib/pricing/price-history-store";
 
-export interface PriceHistoryPoint {
-  price: number;
-  totalPrice: number;
-  recordedAt: string;
-  source: OfferSource;
-}
-
-const MAX_POINTS = 24;
-const history = new Map<string, PriceHistoryPoint[]>();
-
-function historyKey(product: Product, offer: Offer): string {
-  const productKey = product.canonicalKey || product.id;
-  return `${productKey}:${offerDedupeKey(offer)}`;
-}
-
-export function recordProductPriceHistory(products: Product[], recordedAt: string): void {
-  for (const product of products) {
-    for (const offer of product.offers) {
-      if (offer.source === "demo") continue;
-
-      const key = historyKey(product, offer);
-      const totalPrice = offer.totalPrice ?? computeTotalPrice(offer);
-      const points = history.get(key) ?? [];
-      const last = points[points.length - 1];
-
-      if (
-        last &&
-        last.price === offer.price &&
-        last.totalPrice === totalPrice &&
-        last.source === offer.source
-      ) {
-        continue;
-      }
-
-      points.push({
-        price: offer.price,
-        totalPrice,
-        recordedAt,
-        source: offer.source,
-      });
-
-      if (points.length > MAX_POINTS) {
-        points.splice(0, points.length - MAX_POINTS);
-      }
-
-      history.set(key, points);
-    }
-  }
-}
-
-export function getOfferPriceHistory(product: Product, offer: Offer): PriceHistoryPoint[] {
-  return [...(history.get(historyKey(product, offer)) ?? [])];
-}
+export type { PriceHistoryPoint };
 
 export function getPriceTrend(
   points: PriceHistoryPoint[]
@@ -69,14 +23,45 @@ export function getPriceTrend(
   return delta < 0 ? "down" : "up";
 }
 
-export function clearPriceHistoryForTests(): void {
-  history.clear();
+export async function recordProductPriceHistory(
+  products: Product[],
+  recordedAt: string
+): Promise<number> {
+  const store = getPriceHistoryStore();
+  let appendedCount = 0;
+
+  for (const product of products) {
+    for (const offer of product.offers) {
+      if (offer.source === "demo") continue;
+
+      const appended = await store.appendPoint(buildPriceHistoryKey(product, offer), {
+        price: offer.price,
+        totalPrice: offer.totalPrice ?? computeTotalPrice(offer),
+        recordedAt,
+        source: offer.source,
+      });
+
+      if (appended) appendedCount += 1;
+    }
+  }
+
+  return appendedCount;
 }
 
-export function getPriceHistoryStats(): { trackedOffers: number; totalPoints: number } {
-  let totalPoints = 0;
-  for (const points of history.values()) {
-    totalPoints += points.length;
-  }
-  return { trackedOffers: history.size, totalPoints };
+export async function getOfferPriceHistory(
+  product: Product,
+  offer: Product["offers"][number]
+): Promise<PriceHistoryPoint[]> {
+  return getPriceHistoryStore().getPoints(buildPriceHistoryKey(product, offer));
 }
+
+export async function getPriceHistoryStats(): Promise<PriceHistoryMeta> {
+  return getPriceHistoryStore().getMeta();
+}
+
+export async function clearPriceHistoryForTests(): Promise<void> {
+  resetPriceHistoryStoreForTests();
+  await getPriceHistoryStore().clear();
+}
+
+export { getPriceHistoryBackend };

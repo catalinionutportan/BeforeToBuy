@@ -8,8 +8,8 @@ import {
   recordProductPriceHistory,
 } from "./price-history";
 
-test("recordProductPriceHistory tracks price changes", () => {
-  clearPriceHistoryForTests();
+test("recordProductPriceHistory tracks price changes", async () => {
+  await clearPriceHistoryForTests();
 
   const product: Product = {
     id: "p1",
@@ -38,14 +38,14 @@ test("recordProductPriceHistory tracks price changes", () => {
     ],
   };
 
-  recordProductPriceHistory([product], "2026-08-05T10:00:00.000Z");
+  await recordProductPriceHistory([product], "2026-08-05T10:00:00.000Z");
   const updated: Product = {
     ...product,
     offers: [{ ...product.offers[0]!, price: 90, totalPrice: 90 }],
   };
-  recordProductPriceHistory([updated], "2026-08-05T11:00:00.000Z");
+  await recordProductPriceHistory([updated], "2026-08-05T11:00:00.000Z");
 
-  const history = getOfferPriceHistory(updated, updated.offers[0]!);
+  const history = await getOfferPriceHistory(updated, updated.offers[0]!);
   assert.equal(history.length, 2);
   assert.equal(getPriceTrend(history), "down");
 });

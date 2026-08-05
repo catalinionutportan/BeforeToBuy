@@ -29,6 +29,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local price history snapshots (C5b)
+/.price-history/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
