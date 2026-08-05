@@ -22,6 +22,7 @@ function offer(
     purchaseUrl: `https://example.com/${id}`,
     affiliateNetwork: "test",
     type,
+    source: "demo",
   };
 }
 
@@ -31,7 +32,8 @@ const mixedProduct: Product = {
   description: "Has Swiss and cross-border offers",
   brand: "Test",
   category: "audio-headphones",
-  imageUrl: "",
+  image: "",
+  targetCountries: ["CH"],
   offers: [offer("digitec", "online"), offer("amazon-de", "cross_border")],
 };
 

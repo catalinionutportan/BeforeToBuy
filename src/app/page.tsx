@@ -23,6 +23,7 @@ import {
   CollectionNavigation,
   isActiveCollectionSelection,
 } from "@/components/CollectionNavigation";
+import { OfferFilters } from "@/components/OfferFilters";
 import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import {
   CATEGORY_UI,
@@ -30,6 +31,14 @@ import {
   getLocalizedCategoryLabel,
   localeFromCountry,
 } from "@/lib/category-i18n";
+import {
+  applyOfferFilters,
+  collectBrandOptions,
+  hasActiveOfferFilters,
+  parseOfferFiltersFromSearchParams,
+  writeOfferFiltersToSearchParams,
+  type OfferFilterCriteria,
+} from "@/lib/offers/offer-filters";
 import {
   Info,
   SearchX,
@@ -52,6 +61,7 @@ export default function Home() {
   const debouncedSearchQuery = useDebouncedValue(searchInput, 350);
   const [selectedDomain, setSelectedDomain] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORIES_ID);
+  const [offerFilters, setOfferFilters] = useState<OfferFilterCriteria>({});
   const [products, setProducts] = useState<Product[]>([]);
   const [coupons, setCoupons] = useState<PromoCoupon[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(true);
@@ -65,6 +75,10 @@ export default function Home() {
   const domainFilterMerchants = currentCountryInfo.merchantDomains.filter(
     (merchant) => crossBorderCollectionActive || !merchant.isCrossBorder
   );
+  const activeOfferFilters: OfferFilterCriteria = {
+    ...offerFilters,
+    domain: selectedDomain,
+  };
 
   // IP location only after Location consent (no auto-GPS)
   useEffect(() => {
@@ -99,12 +113,33 @@ export default function Home() {
       const params = new URLSearchParams(window.location.search);
       setSelectedCategory(params.get("category") || ALL_CATEGORIES_ID);
       setSearchInput(params.get("q") || "");
+      const parsed = parseOfferFiltersFromSearchParams(params);
+      setSelectedDomain(parsed.domain || "all");
+      setOfferFilters({
+        brand: parsed.brand,
+        inStockOnly: parsed.inStockOnly,
+        freeDeliveryOnly: parsed.freeDeliveryOnly,
+        maxTotalPrice: parsed.maxTotalPrice,
+        hasGtinOnly: parsed.hasGtinOnly,
+      });
     };
 
     readBrowseState();
     window.addEventListener("popstate", readBrowseState);
     return () => window.removeEventListener("popstate", readBrowseState);
   }, []);
+
+  // Keep `q` shareable in the URL after debounce.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const nextQ = debouncedSearchQuery.trim();
+    const currentQ = url.searchParams.get("q") || "";
+    if (nextQ === currentQ) return;
+    if (nextQ) url.searchParams.set("q", nextQ);
+    else url.searchParams.delete("q");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [debouncedSearchQuery]);
 
   // Fetch products when location, debounced search, or category changes
   useEffect(() => {
@@ -166,21 +201,57 @@ export default function Home() {
     setSelectedDomain("all");
   };
 
+  const syncBrowseUrl = (
+    categoryId: string,
+    domain: string,
+    filters: OfferFilterCriteria,
+    query?: string
+  ) => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (categoryId === ALL_CATEGORIES_ID) url.searchParams.delete("category");
+    else url.searchParams.set("category", categoryId);
+
+    const q = (query ?? debouncedSearchQuery).trim();
+    if (q) url.searchParams.set("q", q);
+    else url.searchParams.delete("q");
+
+    writeOfferFiltersToSearchParams(url, { ...filters, domain });
+    window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  };
+
   const handleCategoryChange = (categoryId: string) => {
     setSelectedCategory(categoryId);
-    if (typeof window === "undefined") return;
-
-    const url = new URL(window.location.href);
-    if (categoryId === ALL_CATEGORIES_ID) {
-      url.searchParams.delete("category");
-    } else {
-      url.searchParams.set("category", categoryId);
-    }
-    window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    syncBrowseUrl(categoryId, selectedDomain, offerFilters);
   };
 
   const handleCollectionChange = (filterId: string) => {
     handleCategoryChange(filterId === ALL_CATEGORIES_ID ? ALL_CATEGORIES_ID : filterId);
+  };
+
+  const handleDomainChange = (domain: string) => {
+    setSelectedDomain(domain);
+    syncBrowseUrl(selectedCategory, domain, offerFilters);
+  };
+
+  const handleOfferFiltersChange = (next: OfferFilterCriteria) => {
+    const { domain: _ignored, ...rest } = next;
+    setOfferFilters(rest);
+    syncBrowseUrl(selectedCategory, selectedDomain, rest);
+  };
+
+  const resetAllFilters = () => {
+    setSearchInput("");
+    setSelectedDomain("all");
+    setOfferFilters({});
+    setSelectedCategory(ALL_CATEGORIES_ID);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("category");
+      url.searchParams.delete("q");
+      writeOfferFiltersToSearchParams(url, {});
+      window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
   };
 
   // Drop cross-border domain chip selection when leaving that collection.
@@ -189,7 +260,10 @@ export default function Home() {
     const selected = currentCountryInfo.merchantDomains.find(
       (merchant) => merchant.domain === selectedDomain
     );
-    if (selected?.isCrossBorder) setSelectedDomain("all");
+    if (selected?.isCrossBorder) {
+      setSelectedDomain("all");
+      syncBrowseUrl(selectedCategory, "all", offerFilters);
+    }
   }, [crossBorderCollectionActive, currentCountryInfo, selectedDomain]);
 
   // GPS only on explicit user action and with Location consent
@@ -206,25 +280,16 @@ export default function Home() {
     setIsLocating(false);
   };
 
-  const displayedProducts = products.filter((prod) => {
-    if (selectedDomain !== "all") {
-      const hasOfferInDomain = prod.offers.some(
-        (o) =>
-          o.storeName.toLowerCase().includes(selectedDomain.split(".")[0].toLowerCase()) ||
-          o.purchaseUrl.toLowerCase().includes(selectedDomain.toLowerCase())
-      );
-      if (!hasOfferInDomain) return false;
-    }
-
-    return true;
-  });
+  const brandOptions = collectBrandOptions(products);
+  const displayedProducts = applyOfferFilters(products, activeOfferFilters);
+  const filtersActiveBeyondCategory = hasActiveOfferFilters(activeOfferFilters);
 
   const showCategoryEmptyState =
     !isLoadingProducts &&
     displayedProducts.length === 0 &&
     selectedCategory !== ALL_CATEGORIES_ID &&
     debouncedSearchQuery.trim() === "" &&
-    selectedDomain === "all";
+    !filtersActiveBeyondCategory;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -237,7 +302,7 @@ export default function Home() {
         searchQuery={searchInput}
         onSearchChange={setSearchInput}
         selectedDomain={selectedDomain}
-        onDomainChange={setSelectedDomain}
+        onDomainChange={handleDomainChange}
         isLocating={isLocating}
       />
 
@@ -261,7 +326,7 @@ export default function Home() {
             </span>
 
             <button
-              onClick={() => setSelectedDomain("all")}
+              onClick={() => handleDomainChange("all")}
               className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
                 selectedDomain === "all"
                   ? "bg-emerald-500 text-slate-950 shadow-xs"
@@ -274,7 +339,7 @@ export default function Home() {
             {domainFilterMerchants.map((merchant) => (
               <button
                 key={merchant.id}
-                onClick={() => setSelectedDomain(merchant.domain)}
+                onClick={() => handleDomainChange(merchant.domain)}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer border ${
                   selectedDomain === merchant.domain
                     ? "bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs"
@@ -318,6 +383,13 @@ export default function Home() {
             collectionCounts={catalogMeta?.collectionCounts}
             locale={browseLocale}
           />
+
+          <OfferFilters
+            criteria={activeOfferFilters}
+            brandOptions={brandOptions}
+            currencySymbol={currentCountryInfo.currency}
+            onChange={handleOfferFiltersChange}
+          />
         </div>
 
         {/* Results Bar Header */}
@@ -333,6 +405,31 @@ export default function Home() {
               {selectedDomain !== "all" && (
                 <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-md border border-emerald-300">
                   Store Domain: {selectedDomain}
+                </span>
+              )}
+              {offerFilters.brand && (
+                <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
+                  Brand: {offerFilters.brand}
+                </span>
+              )}
+              {offerFilters.maxTotalPrice != null && (
+                <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
+                  ≤ {offerFilters.maxTotalPrice} {currentCountryInfo.currency}
+                </span>
+              )}
+              {offerFilters.inStockOnly && (
+                <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
+                  In stock
+                </span>
+              )}
+              {offerFilters.freeDeliveryOnly && (
+                <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
+                  Free delivery
+                </span>
+              )}
+              {offerFilters.hasGtinOnly && (
+                <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
+                  Has GTIN
                 </span>
               )}
               <span className="text-slate-400 font-normal text-sm">({displayedProducts.length} items found)</span>
@@ -402,9 +499,7 @@ export default function Home() {
                 : ""}
             </p>
             <button
-              onClick={() => {
-                handleCategoryChange(ALL_CATEGORIES_ID);
-              }}
+              onClick={resetAllFilters}
               className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
             >
               {categoryUi.resetFilters}
@@ -417,19 +512,13 @@ export default function Home() {
             </div>
             <h4 className="text-lg font-bold text-slate-900">No products found</h4>
             <p className="text-xs text-slate-500">
-              No offers matching "{debouncedSearchQuery}" {selectedDomain !== "all" ? `on ${selectedDomain}` : ""} in {userLocation.countryName}. Try resetting filters.
+              No offers matching
+              {debouncedSearchQuery.trim() ? ` "${debouncedSearchQuery}"` : " the current filters"}
+              {selectedDomain !== "all" ? ` on ${selectedDomain}` : ""} in {userLocation.countryName}.
+              Try resetting filters.
             </p>
             <button
-              onClick={() => {
-                setSearchInput("");
-                setSelectedDomain("all");
-                handleCategoryChange(ALL_CATEGORIES_ID);
-                if (typeof window !== "undefined") {
-                  const url = new URL(window.location.href);
-                  url.searchParams.delete("q");
-                  window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
-                }
-              }}
+              onClick={resetAllFilters}
               className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
             >
               {categoryUi.resetFilters}

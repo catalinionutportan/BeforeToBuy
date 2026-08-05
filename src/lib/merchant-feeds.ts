@@ -10,6 +10,7 @@ import { parseConfiguredFeed } from "@/lib/feed-loader";
 import { productMatchesCategoryFilter, ALL_CATEGORIES_ID } from "@/lib/categories";
 import { buildMappingReport, type MappingLogEntry, type MappingReport } from "@/lib/mapping-log";
 import { mergeFeedProductsByIdentity } from "@/lib/product-identity/merge-products";
+import { productMatchesSearchQuery } from "@/lib/product-search";
 
 type FeedCacheEntry = {
   fetchedAt: number;
@@ -56,13 +57,7 @@ function filterFeedProducts(
   }
 
   if (query && query.trim()) {
-    const q = query.toLowerCase();
-    filtered = filtered.filter(
-      (product) =>
-        product.title.toLowerCase().includes(q) ||
-        product.brand.toLowerCase().includes(q) ||
-        product.description.toLowerCase().includes(q)
-    );
+    filtered = filtered.filter((product) => productMatchesSearchQuery(product, query));
   }
 
   return filtered;

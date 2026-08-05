@@ -2,6 +2,7 @@ import { CountryCode, PhysicalStoreBranch, Product, UserLocation } from "@/types
 import { COUNTRIES } from "./countries";
 import { calculateHaversineDistance } from "./geolocation";
 import { productMatchesCategoryFilter, ALL_CATEGORIES_ID } from "./categories";
+import { productMatchesSearchQuery } from "./product-search";
 
 // Physical store branches database across countries for Click & Collect
 const STORE_BRANCHES: Record<CountryCode, PhysicalStoreBranch[]> = {
@@ -2021,15 +2022,7 @@ export async function fetchProductsForLocation(
   }
 
   if (query && query.trim() !== "") {
-    const q = query.toLowerCase();
-    filtered = filtered.filter(
-      (p) =>
-        p.title.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q)
-    );
-
-    // Beta/Demo: return empty results when the catalog has no match.
+    filtered = filtered.filter((p) => productMatchesSearchQuery(p, query));
   }
 
   // Hydrate each product with dynamic country-specific offers based on GPS
