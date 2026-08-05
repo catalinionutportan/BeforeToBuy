@@ -6,6 +6,8 @@ import { COUNTRIES } from "@/lib/countries";
 import { openConsentPreferences } from "@/lib/consent";
 import { useConsent } from "@/lib/use-consent";
 import { Ticket, Copy, Check, ExternalLink, Flame, Sparkles, Clock } from "lucide-react";
+import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 
 interface PromoCouponsSectionProps {
   coupons: PromoCoupon[];
@@ -19,6 +21,8 @@ export function PromoCouponsSection({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const { affiliate } = useConsent();
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
+  const { locale: browseLocale } = useBrowseLocale(userLocation.countryCode);
+  const homeUi = HOME_UI[browseLocale];
 
   const handleCopyCode = (coupon: PromoCoupon) => {
     navigator.clipboard.writeText(coupon.code);
@@ -39,18 +43,18 @@ export function PromoCouponsSection({
           </div>
           <div>
             <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-              <span>Coupons & Vouchers in {userLocation.countryName}</span>
+              <span>{formatUi(homeUi.couponsVouchersIn, { countryName: userLocation.countryName })}</span>
               <span className="text-2xl">{currentCountryInfo.flag}</span>
             </h3>
             <p className="text-xs text-slate-600 font-medium">
-              Copy promo code and apply at store checkout for instant discounts
+              {homeUi.copyApplyDiscountHint}
             </p>
           </div>
         </div>
 
         <span className="bg-orange-500/15 text-orange-700 font-extrabold text-xs px-3 py-1.5 rounded-full border border-orange-500/30 flex items-center gap-1.5 self-start sm:self-auto">
           <Sparkles className="w-3.5 h-3.5" />
-          {coupons.length} Active Codes Today
+          {formatUi(homeUi.activeCodesToday, { count: coupons.length })}
         </span>
       </div>
 
@@ -86,7 +90,7 @@ export function PromoCouponsSection({
               <div className="space-y-2 border-t border-slate-100 pt-3">
                 <div className="flex items-center justify-between text-[11px] text-slate-400">
                   <span className="flex items-center gap-1 font-medium">
-                    <Clock className="w-3 h-3" /> Valid until: {coupon.expiryDate}
+                    <Clock className="w-3 h-3" /> {formatUi(homeUi.validUntil, { expiryDate: coupon.expiryDate })}
                   </span>
                   <span className="font-semibold text-slate-600 uppercase">{coupon.category}</span>
                 </div>
@@ -98,7 +102,7 @@ export function PromoCouponsSection({
                     <button
                       onClick={() => handleCopyCode(coupon)}
                       className="text-slate-500 hover:text-slate-900 transition-colors"
-                      title="Copy code"
+                      title={homeUi.copyCodeTooltip}
                     >
                       {isCopied ? (
                         <Check className="w-4 h-4 text-emerald-600" />
@@ -121,7 +125,7 @@ export function PromoCouponsSection({
                     }}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1 shadow-xs"
                   >
-                    <span>Use Code</span>
+                    <span>{homeUi.useCodeButton}</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
