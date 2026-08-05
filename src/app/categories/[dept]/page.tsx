@@ -16,6 +16,8 @@ import { getDepartmentLabel, getSubcategoryLabel, localeFromCountry } from "@/li
 import { getCategoryById } from "@/lib/categories";
 import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { ChevronRight } from "lucide-react";
+import { HOME_UI, formatUi } from "@/lib/i18n/ui";
+import { useBrowseLocale } from "@/lib/i18n/client";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +30,8 @@ export async function generateMetadata({ params }: DepartmentPageProps): Promise
   const route = validateDepartmentRoute(dept);
   if (!route) {
     return createCategoryMetadata({
-      title: "Category Not Found | BeforeToBuy.com",
-      description: "The requested category could not be found.",
+      title: homeUi.categoryNotFoundMetaTitle,
+      description: homeUi.categoryNotFoundMetaDescription,
       path: `/categories/${dept}`,
       index: false,
     });
@@ -41,14 +43,13 @@ export async function generateMetadata({ params }: DepartmentPageProps): Promise
   const productCount = catalog.products.length;
 
   return createCategoryMetadata({
-    title: `${label} Price Comparison | BeforeToBuy.com`,
-    description: `Compare ${label.toLowerCase()} prices and offers in Switzerland on BeforeToBuy.com.`,
-    path: departmentCategoryPath(route.deptId),
-    index: productCount > 0,
-  });
+    title: formatUi(homeUi.categoryPriceComparisonMetaTitle, { label }),
+    description: formatUi(homeUi.categoryPriceComparisonMetaDescription, { label: label.toLowerCase() }),
 }
 
 export default async function DepartmentCategoryPage({ params }: DepartmentPageProps) {
+  const { browseLocale } = useBrowseLocale();
+  const homeUi = HOME_UI[browseLocale];
   const { dept } = await params;
   const route = validateDepartmentRoute(dept);
   if (!route) notFound();
@@ -81,14 +82,14 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
           <h1 className="text-3xl font-extrabold tracking-tight">{departmentLabel}</h1>
           <p className="text-slate-300 text-sm max-w-3xl leading-relaxed">{category.description}</p>
           <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-            {catalog.products.length} products compared in Switzerland
+            {formatUi(homeUi.productsComparedInSwitzerland, { count: catalog.products.length })}
           </p>
         </div>
 
         {visibleSubs.length > 0 && (
           <section className="bg-white border border-slate-200 rounded-3xl p-6 space-y-3">
             <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-500">
-              Subcategories
+              {homeUi.subcategories}
             </h2>
             <div className="flex flex-wrap gap-2">
               {visibleSubs.map((sub) => (
@@ -112,7 +113,7 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
           <CategoryProductGrid products={catalog.products} countryCode={DEFAULT_COUNTRY} />
         ) : (
           <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
-            No offers are available in this category for Switzerland yet.
+            {homeUi.noOffersAvailableInCategory}
           </div>
         )}
       </div>
