@@ -2,11 +2,16 @@ import { NextResponse } from "next/server";
 import { buildMailtoFallback, sendContactEmail } from "@/lib/contact-email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { HOME_UI } from "@/lib/i18n/ui";
+
+const homeUi = HOME_UI[DEFAULT_LOCALE];
+
 const SUBJECT_LABELS: Record<string, string> = {
-  general: "General Inquiry",
-  affiliate: "Affiliate & Partner Inquiry",
-  merchant: "Merchant Feed Integration",
-  privacy: "Data Privacy & Legal Request (DSAR)",
+  general: homeUi.contactFormSubjectGeneral,
+  affiliate: homeUi.contactFormSubjectAffiliate,
+  merchant: homeUi.contactFormSubjectMerchant,
+  privacy: homeUi.contactFormSubjectPrivacy,
 };
 
 export async function POST(request: Request) {
@@ -15,7 +20,7 @@ export async function POST(request: Request) {
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: "Too many contact requests. Please try again later." },
+      { error: homeUi.contactFormTooManyRequests },
       { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
     );
   }
@@ -24,7 +29,7 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    return NextResponse.json({ error: homeUi.invalidJsonBody }, { status: 400 });
   }
 
   const payload = body as Record<string, unknown>;
@@ -41,28 +46,28 @@ export async function POST(request: Request) {
 
   if (!privacyAccepted) {
     return NextResponse.json(
-      { error: "You must accept the privacy notice before submitting." },
+      { error: homeUi.contactFormPrivacyNotAccepted },
       { status: 400 }
     );
   }
 
   if (!name || name.length < 2 || name.length > 120) {
-    return NextResponse.json({ error: "Please enter a valid name." }, { status: 400 });
+    return NextResponse.json({ error: homeUi.contactFormInvalidName }, { status: 400 });
   }
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
-    return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
+    return NextResponse.json({ error: homeUi.contactFormInvalidEmail }, { status: 400 });
   }
 
   if (!message || message.length < 10 || message.length > 5000) {
     return NextResponse.json(
-      { error: "Message must be between 10 and 5000 characters." },
+      { error: homeUi.contactFormInvalidMessage },
       { status: 400 }
     );
   }
 
-  const subjectLabel = SUBJECT_LABELS[subjectKey] || "Contact";
-  const emailSubject = `[BeforeToBuy] ${subjectLabel} — ${name}`;
+  const subjectLabel = SUBJECT_LABELS[subjectKey] || homeUi.contactFormSubjectDefault;
+  const emailSubject = `${homeUi.contactFormEmailSubjectPrefix} ${subjectLabel} — ${name}`;
 
   try {
     const delivery = await sendContactEmail({
