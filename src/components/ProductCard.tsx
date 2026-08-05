@@ -8,6 +8,8 @@ import { useConsent } from "@/lib/use-consent";
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import { getPriceTrend } from "@/lib/pricing/price-trend";
 import { formatOfferFreshness, getFreshestOfferTimestamp } from "@/lib/offers/freshness";
+import { defaultLocaleFromCountry, type SiteLocale } from "@/lib/i18n/locales";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import {
   ExternalLink,
   MapPin,
@@ -23,15 +25,18 @@ interface ProductCardProps {
   product: Product;
   userLocation: UserLocation;
   onSelectOffer: (product: Product, offer: Offer) => void;
+  locale?: SiteLocale;
 }
 
 export function ProductCard({
   product,
   userLocation,
   onSelectOffer,
+  locale,
 }: ProductCardProps) {
   const { affiliate } = useConsent();
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
+  const ui = HOME_UI[locale ?? defaultLocaleFromCountry(userLocation.countryCode)];
 
   const handleAffiliateClick = (
     event: React.MouseEvent<HTMLAnchorElement>,
@@ -134,8 +139,12 @@ export function ProductCard({
 
         <div className="space-y-2 border-t border-slate-100 pt-3">
           <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center">
-            <span>Offers in {currentCountryInfo.name}</span>
-            <span>{product.offers.length} entries shown</span>
+            <span>
+              {formatUi(ui.offersInCountry, { country: currentCountryInfo.name })}
+            </span>
+            <span>
+              {formatUi(ui.comparePrices, { count: product.offers.length })}
+            </span>
           </div>
 
           <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">

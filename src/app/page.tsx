@@ -556,6 +556,7 @@ export default function Home() {
                 key={product.id}
                 product={product}
                 userLocation={userLocation}
+                locale={browseLocale}
                 onSelectOffer={() => {
                   // Affiliate redirect handled by the browser via purchaseUrl
                 }}
