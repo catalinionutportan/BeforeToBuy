@@ -23,10 +23,10 @@ export function register() {
     service: DATADOG_SERVICE,
     env: DATADOG_ENV,
     version: '1.0.0', // Consider dynamic versioning (e.g., from package.json)
-    sampleRate: 100, // Adjust as needed (e.g., 100 for all sessions, 10 for 10%)
+    sampleRate: DATADOG_ENV === 'production' ? 10 : 100,
     sessionReactivityFullTrackedResources: true,
-    sessionSampleRate: 100,
-    sessionReplaySampleRate: 100,
+    sessionSampleRate: DATADOG_ENV === 'production' ? 10 : 100,
+    sessionReplaySampleRate: DATADOG_ENV === 'production' ? 10 : 100,
     trackResources: true,
     trackLongTasks: true,
     trackViews: true,
