@@ -137,7 +137,7 @@ export function ProductCard({
 
         {product.rating !== undefined && product.reviewsCount !== undefined && (
           <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md border border-slate-200 px-2 py-1 rounded-lg text-xs font-bold text-slate-800 shadow-xs">
-            Verified merchant rating: {product.rating} ({product.reviewsCount})
+            {ui.verifiedMerchantRating} {product.rating} ({product.reviewsCount})
           </div>
         )}
       </div>
@@ -152,7 +152,7 @@ export function ProductCard({
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
               {product.gtin && (
                 <span className="rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-semibold">
-                  GTIN {product.gtin.replace(/^0+/, "") || product.gtin}
+                  {ui.gtinLabel} {product.gtin.replace(/^0+/, "") || product.gtin}
                 </span>
               )}
               {product.variantKey && (
@@ -174,9 +174,9 @@ export function ProductCard({
             <MapPin className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
             <div>
               <div className="font-bold text-emerald-950 flex items-center gap-1.5">
-                <span>Click & Collect in {userLocation.city}</span>
+                <span>{ui.clickAndCollectIn} {userLocation.city}</span>
                 <span className="bg-emerald-200 text-emerald-900 font-extrabold px-1.5 py-0.2 rounded text-[10px]">
-                  {pickupOffer.nearbyBranch.distanceKm} km away
+                  {pickupOffer.nearbyBranch.distanceKm} {ui.kmAway}
                 </span>
               </div>
               <p className="text-emerald-800 text-[11px] mt-0.5">
@@ -230,7 +230,7 @@ export function ProductCard({
                     <div>
                       <div className="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                         <span>{offer.storeName}</span>
-                        <span
+                      <span
                           className={`font-bold text-[9px] px-1.5 py-0.2 rounded uppercase tracking-wide ${
                             offer.source === "production-live"
                               ? "bg-blue-100 text-blue-800 border border-blue-200"
@@ -239,7 +239,11 @@ export function ProductCard({
                                 : "bg-slate-200 text-slate-600 border border-slate-300"
                           }`}
                         >
-                          {sourceLabel}
+                          {offer.source === "production-live"
+                            ? ui.liveOfferLabel
+                            : offer.source === "sample"
+                              ? ui.sampleOfferLabel
+                              : ui.demoOfferLabel}
                         </span>
                         {isLowestFeed && (
                           <span className="bg-emerald-600 text-white font-bold text-[9px] px-1.5 py-0.2 rounded">
@@ -248,7 +252,7 @@ export function ProductCard({
                         )}
                         {priceTrend === "down" && (
                           <span className="bg-green-100 text-green-800 font-bold text-[9px] px-1.5 py-0.2 rounded">
-                            PRICE DOWN
+                            {ui.priceDownLabel}
                           </span>
                         )}
                       </div>
@@ -258,8 +262,8 @@ export function ProductCard({
                           {offer.source === "production-live"
                             ? offer.deliveryTime
                             : offer.source === "sample"
-                              ? "Sample delivery data — verify with merchant"
-                              : "Illustrative entry — search merchant site"}
+                              ? ui.sampleDeliveryDisclaimer
+                              : ui.illustrativeEntryDisclaimer}
                         </span>
                       </div>
                     </div>
@@ -273,10 +277,10 @@ export function ProductCard({
                       </div>
                       <div className="text-[9px] text-slate-400 font-medium">
                         {offer.source === "demo"
-                          ? "Illustrative total — search merchant site"
+                          ? ui.illustrativeTotalDisclaimer
                           : offer.deliveryCost === 0
-                            ? `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + free delivery`
-                            : `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + ${offer.deliveryCost} delivery`}
+                            ? `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + ${ui.freeDelivery}`
+                            : `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + ${offer.deliveryCost} ${ui.delivery}`}
                       </div>
                     </div>
 
@@ -288,7 +292,7 @@ export function ProductCard({
                       className="bg-slate-900 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 text-[11px] shadow-xs group/btn shrink-0"
                       title={affiliate ? undefined : "Accept affiliate cookies to open store links"}
                     >
-                      <span>{offer.source === "production-live" ? "View Offer" : "Search Store"}</span>
+                      <span>{offer.source === "production-live" ? ui.viewOfferButton : ui.searchStoreButton}</span>
                       <ExternalLink className="w-3 h-3 opacity-80 group-hover/btn:translate-x-0.5 transition-transform" aria-hidden="true" />
                     </a>
                   </div>
@@ -299,7 +303,7 @@ export function ProductCard({
 
           <div className="text-[10px] text-slate-400 flex items-center gap-1 pt-1.5">
             <Info className="w-3 h-3 shrink-0 text-slate-400" aria-hidden="true" />
-            <span>Sample and demo prices are illustrative. Production-feed prices may be delayed. Confirm price, stock, delivery, and availability on the merchant website.</span>
+            <span>{ui.priceDisclaimer}</span>
           </div>
         </div>
       </div>

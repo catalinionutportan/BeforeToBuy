@@ -461,14 +461,14 @@ export default function Home() {
             <p className="text-xs text-slate-500 mt-0.5">
               {catalogMeta &&
               (catalogMeta.productionOfferCount > 0 || catalogMeta.sampleOfferCount > 0) ? (
-                <><strong className="text-emerald-700">{catalogMeta.productionOfferCount} production-feed offer(s)</strong>. <strong className="text-amber-700">{catalogMeta.sampleOfferCount} sample offer(s)</strong> are illustrative and not live. {catalogMeta.gtinLinkedProductCount} products linked by GTIN. Other merchants remain demo. Confirm final price on the merchant site.</>
+                <><strong className="text-emerald-700">{catalogMeta.productionOfferCount} {homeUi.liveOfferLabel}(s)</strong>. <strong className="text-amber-700">{catalogMeta.sampleOfferCount} {homeUi.sampleOfferLabel}(s)</strong> {homeUi.hybridDisclaimer}. {catalogMeta.gtinLinkedProductCount} {homeUi.gtinLinkedProductsText}. {homeUi.otherMerchantsDemoText} {homeUi.priceDisclaimer}</>
               ) : (
                 <>
-                  Demo catalog prices for <strong className="text-slate-800">{userLocation.city}</strong>
+                  {homeUi.demoOfferLabel} <strong className="text-slate-800">{userLocation.city}</strong>
                   {catalogMeta?.gtinLinkedProductCount
-                    ? ` — ${catalogMeta.gtinLinkedProductCount} GTIN-linked`
+                    ? ` — ${catalogMeta.gtinLinkedProductCount} ${homeUi.gtinLinkedProductsText}`
                     : ""}{" "}
-                  — confirm final price on the merchant site
+                  — {homeUi.priceDisclaimer}
                 </>
               )}
             </p>

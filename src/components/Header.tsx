@@ -55,7 +55,7 @@ export function Header({
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="font-medium">100% Free Price Comparison & GPS Engine</span>
+            <span className="font-medium">{ui.freePriceComparisonEngine}</span>
           </div>
           <span>•</span>
           <Link
@@ -64,19 +64,19 @@ export function Header({
           >
             <Store className="w-3.5 h-3.5" />
             <span>
-              Integrated Store Domains ({currentCountryInfo.merchantDomains.filter((m) => !m.isCrossBorder).length} in{" "}{currentCountryInfo.code})            </span>
+              {ui.integratedStoreDomains} ({currentCountryInfo.merchantDomains.filter((m) => !m.isCrossBorder).length} {ui.inCountry}{" "}{currentCountryInfo.code})            </span>
           </Link>
         </div>
 
         <div className="flex items-center gap-3">
           <span className="hidden md:inline text-slate-400">
-            Detected:{" "}
+            {ui.detected}{" "}
             <strong className="text-white">
               {userLocation.city}, {userLocation.countryName} {currentCountryInfo.flag}
             </strong>
           </span>
           <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase">
-            Beta Demo
+            {ui.betaDemo}
           </span>
         </div>
       </div>
