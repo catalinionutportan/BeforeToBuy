@@ -2632,7 +2632,7 @@ export function formatUi(
   values: Record<string, string | number>,
 ): string {
   return Object.entries(values).reduce(
-    (text, [key, value]) => text.replaceAll(`{${key}}`, String(value)),
+    (text, [key, value]) => (text || '').replaceAll(`{${key}}`, String(value)),
     template,
   );
 }

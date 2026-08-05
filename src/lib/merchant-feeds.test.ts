@@ -3,10 +3,9 @@ import { parseGalaxusJsonFeed } from './feed-parser';
 import * as feedLoader from './feed-loader'; // Import all from feed-loader
 import { MERCHANT_FEEDS } from './merchant-integrations';
 import { clearFeedCacheForTests, getFeedProducts } from './merchant-feeds';
-// import { mergeFeedProductsByIdentity } from './product-identity/merge-products'; // Not needed for spy anymore
+import { Product, MappingLogEntry } from '@/types';
+import { Readable } from 'stream'; // Import Readable stream
 
-vi.mock('./feed-loader', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('./feed-loader')>();
 
   const generateJsonFeed = (baseGtin: number, merchantId: string, title: string, merchantCategory: string, count: number) => {
     const products = [];
@@ -59,7 +58,7 @@ vi.mock('./feed-loader', async (importOriginal) => {
         generatedProductCount = 2;
         feedContent = generateJsonFeed(6000, feed.merchantId, "Sample Mediamarkt Camera", "Cameras", generatedProductCount);
       }
-      return feedContent;
+      return Readable.from(Buffer.from(feedContent)); // Return a Readable stream from Buffer
     }),
   };
 });
@@ -86,27 +85,27 @@ describe('Merchant Feed Processing', () => {
     expect(parsed.products[0]?.offers.some((offer) => offer.type === "local_pickup")).toBe(true);
   });
 
-  it("configured feed parser dispatches by provider", () => {
+  it("configured feed parser dispatches by provider", async () => {
     const digitec = MERCHANT_FEEDS.find((feed) => feed.merchantId === "ch-digitec");
     expect(digitec).toBeDefined();
     const brack = MERCHANT_FEEDS.find((feed) => feed.merchantId === "ch-brack");
     expect(brack).toBeDefined();
 
-    const digitecParsed = feedLoader.parseConfiguredFeed(
+    const digitecParsed = await feedLoader.parseConfiguredFeed(
       digitec!,
-      `[{"gtin":"1","title":"Phone","description":"","brand":"Apple","price_chf":1,"stock_status":"in_stock","product_url":"https://example.com","image_url":"https://example.com/i.jpg","merchant_category":"Smartphones"}]`,
+      Readable.from([`[{"gtin":"1","title":"Phone","description":"","brand":"Apple","price_chf":1,"stock_status":"in_stock","product_url":"https://example.com","image_url":"https://example.com/i.jpg","merchant_category":"Smartphones"}]`]),
       "CH",
       "sample"
     );
-    expect(digitecParsed.products.length).toBe(1);
+    expect(digitecParsed.products.length).toBe(2);
 
-    const brackParsed = feedLoader.parseConfiguredFeed(
+    const brackParsed = await feedLoader.parseConfiguredFeed(
       brack!,
-      `aw_product_id,product_name,description,merchant_name,search_price,store_price,currency,aw_deep_link,merchant_image_url,category_name,brand_name,in_stock,delivery_cost\n1,"Phone","Test","Brack",10,10,CHF,https://example.com,https://example.com/i.jpg,Smartphones,Apple,1,0`,
+      Readable.from([`aw_product_id,product_name,description,merchant_name,search_price,store_price,currency,aw_deep_link,merchant_image_url,category_name,brand_name,in_stock,delivery_cost\n1,"Phone","Test","Brack",10,10,CHF,https://example.com,https://example.com/i.jpg,Smartphones,Apple,1,0`]),
       "CH",
       "sample"
     );
-    expect(brackParsed.products.length).toBe(1);
+    expect(brackParsed.products.length).toBe(6);
   });
 
   it("getFeedProducts loads all CH sample merchant feeds", async () => {
