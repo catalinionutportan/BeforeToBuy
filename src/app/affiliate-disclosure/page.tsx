@@ -13,13 +13,14 @@ import { createPageMetadata } from "@/lib/metadata";
 import { AFFILIATE_NETWORKS, COMPANY } from "@/lib/company-info";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Affiliate Disclosure & Transparency Statement | BeforeToBuy.com",
-  description:
-    "Official Affiliate Disclosure statement for BeforeToBuy.com operated by PortanX - Catalin Portan.",
+  title: "Affiliate Disclosure & Transparency Statement",
+  description: "Official Affiliate Disclosure statement for BeforeToBuy.com operated by PortanX - Catalin Portan.",
   path: "/affiliate-disclosure",
 });
 
 export default function AffiliateDisclosurePage() {
+  const { browseLocale } = useBrowseLocale();
+  const homeUi = HOME_UI[browseLocale];
   return (
     <PageShell>
       <div className="space-y-8">
@@ -27,12 +28,12 @@ export default function AffiliateDisclosurePage() {
         <div className="bg-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-800 space-y-3">
           <div className="flex items-center gap-2">
             <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full">
-              Transparency & Legal Compliance
+              {homeUi.transparencyLegalCompliance}
             </span>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Affiliate Disclosure Statement</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">{homeUi.affiliateDisclosureStatement}</h1>
           <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
-            BeforeToBuy.com believes in full disclosure and transparency regarding how our price comparison platform is funded and operated.
+            {homeUi.affiliateDisclosureIntro}
           </p>
         </div>
 
@@ -45,21 +46,21 @@ export default function AffiliateDisclosurePage() {
           <div className="space-y-3">
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              1. 100% Free Service & Commission Model
+              {homeUi.freeServiceCommissionModel}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600">
-              <strong>{COMPANY.platformName}</strong> is operated by <strong>{COMPANY.legalName}</strong> (UID: {COMPANY.uid}), based in Bern, Switzerland.
+              {formatUi(homeUi.companyOperationDetails, { companyPlatformName: COMPANY.platformName, companyLegalName: COMPANY.legalName, companyUid: COMPANY.uid })}
             </p>
             <p className="text-xs sm:text-sm text-slate-600">
-              Our website is <strong>completely free for consumers</strong>. We do not sell products directly, collect payment details, or charge user subscription fees. Instead, we act as an independent price aggregator and shopping search directory.
+              {homeUi.freeForConsumersBody}
             </p>
             <p className="text-xs sm:text-sm text-slate-600">
-              When you click on an outbound product offer link or &quot;Search Store&quot; button on {COMPANY.platformName}, you are redirected to the merchant&apos;s website. Production affiliate deep links are used only where configured; sample and demo entries may use ordinary search redirects. If you complete a qualifying purchase through an active affiliate link, we may receive a referral commission from the merchant or affiliate network.
+              {formatUi(homeUi.commissionDetails, { companyPlatformName: COMPANY.platformName })}
             </p>
             <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-xs font-semibold text-slate-800 flex items-center gap-2">
               <Info className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>
-                Crucial Note: These referral commissions come at <strong>ZERO additional cost</strong> to you. The price you pay on the merchant's site is identical whether you visit directly or through BeforeToBuy.com.
+                {homeUi.crucialNote}
               </span>
             </div>
           </div>
@@ -68,36 +69,36 @@ export default function AffiliateDisclosurePage() {
           <div className="border-t border-slate-100 pt-6 space-y-6">
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <Globe className="w-5 h-5 text-emerald-600" />
-              2. Multilingual Official Disclosure Texts
+              {homeUi.multilingualDisclosureTexts}
             </h2>
 
             {/* English */}
             <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 text-xs">
               <div className="font-bold text-slate-900 flex items-center gap-2">
-                <span className="text-base">🇬🇧</span> English Disclosure Statement
+                {homeUi.englishDisclosureTitle}
               </div>
               <p className="text-slate-600 italic leading-relaxed">
-                "BeforeToBuy.com is a free price comparison and local GPS shopping service operated by PortanX - Catalin Portan (UID CHE-373.501.736), Bern, Switzerland. We participate in affiliate marketing networks including AWIN, Amazon Associates, Digitec Galaxus Partner Program, CJ Affiliate, and 2Performant. When you click links on our site to purchase products from merchant partners, we may earn a small referral commission at no additional cost to you."
+                {homeUi.englishDisclosureText}
               </p>
             </div>
 
             {/* German */}
             <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 text-xs">
               <div className="font-bold text-slate-900 flex items-center gap-2">
-                <span className="text-base">🇨🇭 / 🇩🇪</span> Deutsche Offenlegungserklärung (Elveția & Germania)
+                {homeUi.germanDisclosureTitle}
               </div>
               <p className="text-slate-600 italic leading-relaxed">
-                "BeforeToBuy.com ist ein kostenloser Preisvergleichs- und GPS-Einkaufsdienst, betrieben von PortanX - Catalin Portan (UID CHE-373.501.736), Bern, Schweiz. Wir nehmen an Partnerprogrammen (Affiliate-Netzwerken) wie AWIN, Amazon-Partnerprogramm, Digitec Galaxus Partnerprogramm, CJ Affiliate und 2Performant teil. Wenn Sie auf Links auf unserer Website klicken und beim Händler einkaufen, erhalten wir möglicherweise eine kleine Vermittlungsprovision — ohne jegliche Mehrkosten für Sie."
+                {homeUi.germanDisclosureText}
               </p>
             </div>
 
             {/* Romanian */}
             <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2 text-xs">
               <div className="font-bold text-slate-900 flex items-center gap-2">
-                <span className="text-base">🇷🇴</span> Declarație de Afiliere în Limba Română
+                {homeUi.romanianDisclosureTitle}
               </div>
               <p className="text-slate-600 italic leading-relaxed">
-                "BeforeToBuy.com este un comparator gratuit de prețuri operat de PortanX - Catalin Portan (UID CHE-373.501.736), Berna, Elveția. Participăm în rețele de afiliere precum AWIN, Amazon Associates, Digitec Galaxus Merchant, CJ Affiliate și 2Performant. În cazul în care efectuați o achiziție după ce ați apăsat pe un link de pe site-ul nostru, putem primi un comision de recomandare din partea magazinului, fără niciun cost suplimentar pentru dumneavoastră."
+                {homeUi.romanianDisclosureText}
               </p>
             </div>
           </div>
@@ -106,10 +107,10 @@ export default function AffiliateDisclosurePage() {
           <div className="border-t border-slate-100 pt-6 space-y-4">
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <ExternalLink className="w-5 h-5 text-emerald-600" />
-              3. Participating Affiliate Networks & Merchant Programs
+              {homeUi.participatingAffiliateNetworks}
             </h2>
             <p className="text-xs text-slate-600">
-              {COMPANY.platformName} participates in or is preparing integrations with affiliate networks. Brack.ch (CH) uses AWIN sample data by default and production-feed links only when the production feed is explicitly configured:
+              {formatUi(homeUi.affiliateNetworksIntro, { companyPlatformName: COMPANY.platformName })}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               {AFFILIATE_NETWORKS.map((network) => (
@@ -125,14 +126,14 @@ export default function AffiliateDisclosurePage() {
           <div className="border-t border-slate-100 pt-6 space-y-3">
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
               <Building2 className="w-5 h-5 text-emerald-600" />
-              4. Responsible Company Information
+              {homeUi.responsibleCompanyInformation}
             </h2>
             <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 text-xs text-slate-700 space-y-1">
-              <p><strong>Company:</strong> {COMPANY.legalName}</p>
-              <p><strong>Address:</strong> {COMPANY.address.formatted}</p>
-              <p><strong>UID:</strong> {COMPANY.uid} | <strong>HR-Nr:</strong> {COMPANY.hrNumber}</p>
-              <p><strong>Email:</strong> <a href={`mailto:${COMPANY.email}`} className="text-emerald-700 font-bold underline">{COMPANY.email}</a></p>
-              <p><strong>Company Website:</strong> <a href={COMPANY.website} target="_blank" rel="noopener noreferrer" className="text-emerald-700 font-bold underline">{COMPANY.website}</a></p>
+              <p><strong>{homeUi.company}</strong> {COMPANY.legalName}</p>
+              <p><strong>{homeUi.address}</strong> {COMPANY.address.formatted}</p>
+              <p><strong>{homeUi.uid}</strong> {COMPANY.uid} | <strong>{homeUi.hrNr}</strong> {COMPANY.hrNumber}</p>
+              <p><strong>{homeUi.email}</strong> <a href={`mailto:${COMPANY.email}`} className="text-emerald-700 font-bold underline">{COMPANY.email}</a></p>
+              <p><strong>{homeUi.companyWebsite}</strong> <a href={COMPANY.website} target="_blank" rel="noopener noreferrer" className="text-emerald-700 font-bold underline">{COMPANY.website}</a></p>
             </div>
           </div>
 
