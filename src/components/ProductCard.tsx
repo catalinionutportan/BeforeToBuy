@@ -8,7 +8,7 @@ import { useConsent } from "@/lib/use-consent";
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import { getPriceTrend } from "@/lib/pricing/price-trend";
 import { formatOfferFreshness, getFreshestOfferTimestamp } from "@/lib/offers/freshness";
-import { defaultLocaleFromCountry, type SiteLocale } from "@/lib/i18n/locales";
+import { defaultLocaleFromCountry, type SiteLocale, DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import {
   ExternalLink,
@@ -81,7 +81,7 @@ export function ProductCard({
             },
             "offers": {
               "@type": "AggregateOffer",
-              "url": `${process.env.NEXT_PUBLIC_SITE_URL}/p/${product.id}`, // Placeholder URL, needs to be dynamic
+              "url": `${process.env.NEXT_PUBLIC_SITE_URL}${locale === DEFAULT_LOCALE ? '' : `/${locale}`}/p/${product.id}`,
               "priceCurrency": currentCountryInfo.currency,
               "lowPrice": lowestFeedTotal,
               "highPrice": sortedOffers[sortedOffers.length - 1]?.totalPrice ?? lowestFeedTotal,
