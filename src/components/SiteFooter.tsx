@@ -15,6 +15,7 @@ import {
   Activity,
   CircleHelp,
   Compass,
+  ShoppingBag,
 } from "lucide-react";
 import { ManageCookiePreferencesButton } from "@/components/ManageCookiePreferencesButton";
 import { COMPANY } from "@/lib/company-info";
@@ -29,8 +30,8 @@ export function SiteFooter() {
         <div className="grid grid-cols-1 gap-10 border-b border-slate-800 pb-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_0.8fr_0.8fr_1fr]">
           <section aria-labelledby="footer-brand" className="max-w-md space-y-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500 text-sm font-black text-slate-950">
-                B2B
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 text-white shadow-md shadow-emerald-500/20">
+                <ShoppingBag className="h-5 w-5" aria-hidden="true" />
               </div>
               <div>
                 <p id="footer-brand" className="text-lg font-extrabold text-white">
