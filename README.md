@@ -38,6 +38,11 @@ To get the project up and running locally, follow these steps:
     NEXT_PUBLIC_DATADOG_SERVICE="beforetobuy-frontend"
     NEXT_PUBLIC_DATADOG_ENV="development" # or 'production', 'staging'
     # DATADOG_SITE (e.g., datadoghq.eu if in Europe. Default is datadoghq.com, set in instrumentation.ts)
+
+    # Consent Signing Secret
+    # IMPORTANT: Use a strong, unique, and long (e.g., >32 characters) secret for production environments.
+    # This is critical for the security of consent tokens.
+    CONSENT_SIGNING_SECRET="your_strong_production_secret"
     ```
     Consult with the project owner for specific variables like Vercel KV connection strings and Datadog credentials.
 
