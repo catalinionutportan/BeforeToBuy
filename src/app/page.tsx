@@ -320,7 +320,17 @@ export default function Home() {
     } catch (error) {
       console.error("Error fetching GPS location:", error);
       // Determine which user-friendly message to show based on the error
-      const message = error instanceof Error ? error.message : homeUi.geolocationApiError;
+      const message = (
+        error instanceof GeolocationPositionError
+          ? error.code === error.PERMISSION_DENIED
+            ? homeUi.geolocationPermissionDenied
+            : error.code === error.POSITION_UNAVAILABLE
+              ? homeUi.geolocationPositionUnavailable
+              : error.code === error.TIMEOUT
+                ? homeUi.geolocationTimeout
+                : homeUi.geolocationApiError
+          : homeUi.geolocationApiError
+      );
       setErrorMessage(message); // Set user-friendly error message
       setUserLocation(defaultLocation()); // Fallback to default location
     } finally {

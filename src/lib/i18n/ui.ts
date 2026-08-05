@@ -82,6 +82,9 @@ export const HOME_UI: Record<
     detected: "Detected:",
     betaDemo: "Beta Demo",
     productFetchError: "Could not load products. Please try again later.",
+    geolocationPermissionDenied: "Location access denied. Please enable location services in your browser settings to use GPS.",
+    geolocationPositionUnavailable: "Unable to determine your location. Please try again or check your device settings.",
+    geolocationTimeout: "Location request timed out. Please try again.",
   },
   de: {
     tagline: "GPS-Preisvergleich lokal & online",
@@ -143,6 +146,9 @@ export const HOME_UI: Record<
     detected: "Erkannt:",
     betaDemo: "Beta Demo",
     productFetchError: "Produkte konnten nicht geladen werden. Bitte versuchen Sie es später erneut.",
+    geolocationPermissionDenied: "Standortzugriff verweigert. Bitte aktivieren Sie die Standortdienste in Ihren Browsereinstellungen, um GPS zu nutzen.",
+    geolocationPositionUnavailable: "Ihr Standort konnte nicht bestimmt werden. Bitte versuchen Sie es erneut oder überprüfen Sie Ihre Geräteeinstellungen.",
+    geolocationTimeout: "Standortanfragezeitüberschreitung. Bitte versuchen Sie es erneut.",
   },
   fr: {
     tagline: "Comparaison de prix GPS locale & en ligne",
@@ -204,6 +210,9 @@ export const HOME_UI: Record<
     detected: "Détecté:",
     betaDemo: "Bêta Démo",
     productFetchError: "Impossible de charger les produits. Veuillez réessayer plus tard.",
+    geolocationPermissionDenied: "Accès à la localisation refusé. Veuillez activer les services de localisation dans les paramètres de votre navigateur pour utiliser le GPS.",
+    geolocationPositionUnavailable: "Impossible de déterminer votre position. Veuillez réessayer ou vérifier les paramètres de votre appareil.",
+    geolocationTimeout: "Délai d'attente de la demande de localisation dépassé. Veuillez réessayer.",
   },
   it: {
     tagline: "Confronto prezzi GPS locale e online",
@@ -265,6 +274,9 @@ export const HOME_UI: Record<
     detected: "Rilevato:",
     betaDemo: "Beta Demo",
     productFetchError: "Impossibile caricare i prodotti. Riprova più tardi.",
+    geolocationPermissionDenied: "Accesso alla posizione negato. Abilita i servizi di localizzazione nelle impostazioni del browser per utilizzare il GPS.",
+    geolocationPositionUnavailable: "Impossibile determinare la tua posizione. Riprova o controlla le impostazioni del tuo dispositivo.",
+    geolocationTimeout: "Richiesta di localizzazione scaduta. Riprova.",
   },
   ro: {
     tagline: "Comparație prețuri GPS local & online",
@@ -326,6 +338,9 @@ export const HOME_UI: Record<
     detected: "Detectat:",
     betaDemo: "Beta Demo",
     productFetchError: "Nu s-au putut încărca produsele. Vă rugăm să încercați din nou mai târziu.",
+    geolocationPermissionDenied: "Acces la locație refuzat. Vă rugăm să activați serviciile de localizare în setările browserului pentru a utiliza GPS-ul.",
+    geolocationPositionUnavailable: "Nu s-a putut determina locația dumneavoastră. Vă rugăm să încercați din nou sau să verificați setările dispozitivului.",
+    geolocationTimeout: "Cererea de localizare a expirat. Vă rugăm să încercați din nou.",
   },
 };
 
