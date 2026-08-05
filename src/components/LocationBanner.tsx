@@ -3,6 +3,7 @@
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { Store, Navigation, Radio, ArrowRightLeft } from "lucide-react";
+import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 
 interface LocationBannerProps {
   userLocation: UserLocation;
@@ -11,6 +12,7 @@ interface LocationBannerProps {
   isLocating: boolean;
   productionOfferCount?: number;
   sampleOfferCount?: number;
+  locale: SiteLocale;
 }
 
 export function LocationBanner({
@@ -20,8 +22,10 @@ export function LocationBanner({
   isLocating,
   productionOfferCount = 0,
   sampleOfferCount = 0,
+  locale,
 }: LocationBannerProps) {
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
+  const ui = HOME_UI[locale];
 
   return (
     <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white py-6 px-4 sm:px-6 lg:px-8 border-b border-slate-800 relative overflow-hidden">
@@ -40,33 +44,30 @@ export function LocationBanner({
               </span>
               <span className="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
                 <Radio className="w-3.5 h-3.5" />
-                {userLocation.isGps ? "GPS Location Enabled" : "Approximate Location"}
+                {userLocation.isGps ? ui.gpsLocationEnabled : ui.approximateLocation}
               </span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-2">
-              <span>Shopping in {userLocation.city}, {userLocation.countryName}</span>
+              <span>{formatUi(ui.shoppingIn, { city: userLocation.city, countryName: userLocation.countryName })}</span>
               <span className="text-3xl">{currentCountryInfo.flag}</span>
             </h2>
 
             <p className="text-sm text-slate-300 max-w-2xl">
               {productionOfferCount > 0 || sampleOfferCount > 0 ? (
                 <>
-                  Hybrid catalog for <strong className="text-white">{userLocation.countryName}</strong> in{" "}
-                  <strong className="text-emerald-400">{currentCountryInfo.currency}</strong>.{" "}
+                  {formatUi(ui.hybridCatalogFor, { countryName: userLocation.countryName, currency: currentCountryInfo.currency })}.{" "}
                   {productionOfferCount > 0 && (
-                    <><strong className="text-emerald-300">{productionOfferCount} production-feed offer(s)</strong>.{" "}</>
+                    <><strong className="text-emerald-300">{formatUi(ui.productionFeedOffers, { productionOfferCount })}</strong>.{" "}</>
                   )}
                   {sampleOfferCount > 0 && (
-                    <><strong className="text-amber-300">{sampleOfferCount} sample offer(s)</strong> are illustrative, not live merchant data.{" "}</>
+                    <><strong className="text-amber-300">{formatUi(ui.sampleOffersIllustrative, { sampleOfferCount })}</strong>.{" "}</>
                   )}
-                  Other merchants remain demo catalog.
+                  {ui.otherMerchantsRemainDemoCatalog}
                 </>
               ) : (
                 <>
-                  Showing demo catalog offers and estimated Click &amp; Collect distances for{" "}
-                  <strong className="text-white">{userLocation.countryName}</strong> in{" "}
-                  <strong className="text-emerald-400">{currentCountryInfo.currency}</strong>. Prices are illustrative until live merchant feeds are connected.
+                  {formatUi(ui.showingDemoCatalogOffers, { countryName: userLocation.countryName, currency: currentCountryInfo.currency })}. {ui.pricesIllustrativeUntilLive}
                 </>
               )}
             </p>
@@ -76,9 +77,9 @@ export function LocationBanner({
           <div className="bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:-mt-1">
             <div className="text-xs text-slate-300 font-medium">
               <div className="flex items-center gap-1.5 text-white font-semibold mb-1">
-                <ArrowRightLeft className="w-3.5 h-3.5 text-emerald-400" /> Change Country / Region
+                <ArrowRightLeft className="w-3.5 h-3.5 text-emerald-400" /> {ui.changeCountryRegion}
               </div>
-              <span>Switch to view pricing in another country</span>
+              <span>{ui.switchToViewPricingInAnotherCountry}</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -100,7 +101,7 @@ export function LocationBanner({
                 className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-3.5 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-500/20 flex items-center gap-1.5 whitespace-nowrap"
               >
                 <Navigation className={`w-3.5 h-3.5 ${isLocating ? "animate-spin" : ""}`} />
-                <span>{isLocating ? "GPS..." : "Re-Scan GPS"}</span>
+                <span>{isLocating ? ui.gpsScanning : ui.reScanGps}</span>
               </button>
             </div>
           </div>
@@ -110,7 +111,7 @@ export function LocationBanner({
         <div className="space-y-1.5 text-xs">
           <div className="text-slate-400 flex items-center gap-1 font-medium">
             <Store className="w-3.5 h-3.5 text-emerald-400" />
-            Stores indexed in {currentCountryInfo.name}:
+            {formatUi(ui.storesIndexedIn, { countryName: currentCountryInfo.name })}:
           </div>
           <div className="flex flex-nowrap items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
             {currentCountryInfo.supportedStores.map((store) => (
