@@ -98,21 +98,8 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     badge: "French & German CH 🇨🇭",
     description: "Popular Swiss branch of Fnac providing high-end audio, books, laptops, and gaming accessories.",
   },
-  {
-    id: "ch-amazon-de",
-    name: "Amazon.de (Delivery CH)",
-    domain: "amazon.de",
-    websiteUrl: "https://www.amazon.de",
-    countryCode: "CH",
-    affiliateNetwork: "Amazon Associates DE/CH",
-    category: "Global Marketplace & Tech",
-    hasClickAndCollect: false,
-    status: "Planned Integration",
-    badge: "Cross-border · opt-in",
-    description:
-      "Foreign delivery into Switzerland. Hidden by default — enable the Cross-border collection to compare with Swiss stores.",
-    isCrossBorder: true,
-  },
+  // Amazon.de is Germany-only in the merchant registry.
+  // CH browse must stay Swiss retailers; foreign delivery stays opt-in via Cross-border offers.
 
   // --- Germany (DE) ---
   {
@@ -380,9 +367,17 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: 8.5417,
       city: "Zürich",
     },
-    supportedStores: ["digitec.ch", "galaxus.ch", "brack.ch", "mediamarkt.ch", "interdiscount.ch", "fust.ch", "fnac.ch", "amazon.de"],
+    supportedStores: [
+      "digitec.ch",
+      "galaxus.ch",
+      "brack.ch",
+      "mediamarkt.ch",
+      "interdiscount.ch",
+      "fust.ch",
+      "fnac.ch",
+    ],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "CH"),
-    affiliateNetworks: ["AWIN Switzerland", "Galaxus Merchant", "Amazon Associates DE/CH", "Rakuten CH"],
+    affiliateNetworks: ["AWIN Switzerland", "Galaxus Merchant", "Rakuten CH"],
   },
   DE: {
     code: "DE",

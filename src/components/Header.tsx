@@ -62,7 +62,8 @@ export function Header({
           >
             <Store className="w-3.5 h-3.5" />
             <span>
-              Integrated Store Domains ({currentCountryInfo.merchantDomains.length} in{" "}
+              Integrated Store Domains (
+              {currentCountryInfo.merchantDomains.filter((m) => !m.isCrossBorder).length} in{" "}
               {currentCountryInfo.code})
             </span>
           </Link>
@@ -129,11 +130,13 @@ export function Header({
                   className="bg-transparent text-xs font-bold text-slate-800 border-0 outline-none cursor-pointer max-w-[130px] truncate"
                 >
                   <option value="all">{ui.allDomains}</option>
-                  {currentCountryInfo.merchantDomains.map((m) => (
-                    <option key={m.id} value={m.domain}>
-                      {m.domain}
-                    </option>
-                  ))}
+                  {currentCountryInfo.merchantDomains
+                    .filter((m) => !m.isCrossBorder)
+                    .map((m) => (
+                      <option key={m.id} value={m.domain}>
+                        {m.domain}
+                      </option>
+                    ))}
                 </select>
               </div>
             )}

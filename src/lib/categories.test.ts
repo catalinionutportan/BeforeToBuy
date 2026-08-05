@@ -160,8 +160,13 @@ test("Swiss merchant registry retires Microspot in favor of active retailers", (
   assert.equal(MERCHANT_ID_ALIASES["ch-microspot"], "ch-interdiscount");
 });
 
-test("Amazon.de is marked cross-border for CH opt-in browse", () => {
-  const amazonDeCh = ALL_MERCHANT_DOMAINS.find((merchant) => merchant.id === "ch-amazon-de");
-  assert.ok(amazonDeCh);
-  assert.equal(amazonDeCh.isCrossBorder, true);
+test("Amazon.de is not listed as a Swiss merchant domain", () => {
+  const swissDomains = ALL_MERCHANT_DOMAINS.filter((merchant) => merchant.countryCode === "CH");
+  assert.ok(!swissDomains.some((merchant) => merchant.id === "ch-amazon-de"));
+  assert.ok(!swissDomains.some((merchant) => merchant.domain === "amazon.de"));
+  assert.ok(
+    ALL_MERCHANT_DOMAINS.some(
+      (merchant) => merchant.id === "de-amazon" && merchant.countryCode === "DE"
+    )
+  );
 });
