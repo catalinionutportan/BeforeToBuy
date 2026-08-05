@@ -5,6 +5,8 @@ export type SiteLocale = "en" | "de" | "fr" | "it" | "ro";
 
 export const SITE_LOCALES: readonly SiteLocale[] = ["en", "de", "fr", "it", "ro"] as const;
 
+export const DEFAULT_LOCALE: SiteLocale = "en";
+
 /** Swiss official languages + English. Language must NOT require changing country. */
 export const SWISS_UI_LOCALES: readonly SiteLocale[] = ["de", "fr", "it", "en"] as const;
 

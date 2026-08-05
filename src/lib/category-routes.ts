@@ -9,44 +9,52 @@ import {
   isLegacyMultiParentGroup,
   resolveCategoryAlias,
 } from "@/lib/categories";
+import { DEFAULT_LOCALE, SiteLocale } from "./i18n/locales";
 
-export function departmentCategoryPath(deptId: string): string {
-  return `/categories/${encodeURIComponent(deptId)}`;
+function addLocalePrefix(path: string, locale?: SiteLocale): string {
+  if (locale && locale !== DEFAULT_LOCALE) {
+    return `/${locale}${path}`;
+  }
+  return path;
 }
 
-export function subcategoryCategoryPath(deptId: string, subId: string): string {
-  return `/categories/${encodeURIComponent(deptId)}/${encodeURIComponent(subId)}`;
+export function departmentCategoryPath(deptId: string, locale?: SiteLocale): string {
+  return addLocalePrefix(`/categories/${encodeURIComponent(deptId)}`, locale);
 }
 
-export function collectionBrowsePath(collectionId: string): string {
-  return `/compare/${encodeURIComponent(collectionId)}`;
+export function subcategoryCategoryPath(deptId: string, subId: string, locale?: SiteLocale): string {
+  return addLocalePrefix(`/categories/${encodeURIComponent(deptId)}/${encodeURIComponent(subId)}`, locale);
+}
+
+export function collectionBrowsePath(collectionId: string, locale?: SiteLocale): string {
+  return addLocalePrefix(`/compare/${encodeURIComponent(collectionId)}`, locale);
 }
 
 /** Resolve any category/collection id to its canonical browse path. */
-export function categoryBrowsePath(categoryId: string): string | null {
+export function categoryBrowsePath(categoryId: string, locale?: SiteLocale): string | null {
   if (!categoryId || categoryId === ALL_CATEGORIES_ID) return null;
 
   // Old mixed Home+Kitchen parent lands on Kitchen + Coffee (primary department).
   if (isLegacyMultiParentGroup(categoryId)) {
     const primary = getLegacyMultiParentPrimaryDepartment(categoryId);
-    if (primary) return departmentCategoryPath(primary);
+    if (primary) return departmentCategoryPath(primary, locale);
   }
 
   const resolved = resolveCategoryAlias(categoryId);
 
   if (isCollectionFilter(resolved)) {
-    return collectionBrowsePath(resolved);
+    return collectionBrowsePath(resolved, locale);
   }
 
   const sub = getSubcategoryById(resolved);
   if (sub) {
     const parentId = getParentCategoryId(resolved);
-    if (parentId) return subcategoryCategoryPath(parentId, resolved);
+    if (parentId) return subcategoryCategoryPath(parentId, resolved, locale);
     return null;
   }
 
   if (getCategoryById(resolved)) {
-    return departmentCategoryPath(resolved);
+    return departmentCategoryPath(resolved, locale);
   }
 
   return null;
@@ -87,16 +95,17 @@ export function validateCollectionRoute(collectionParam: string): string | null 
   return resolved;
 }
 
-export function canonicalDepartmentPath(deptParam: string, resolvedDeptId: string): string | null {
-  return deptParam === resolvedDeptId ? null : departmentCategoryPath(resolvedDeptId);
+export function canonicalDepartmentPath(deptParam: string, resolvedDeptId: string, locale?: SiteLocale): string | null {
+  return deptParam === resolvedDeptId ? null : departmentCategoryPath(resolvedDeptId, locale);
 }
 
 export function canonicalSubcategoryPath(
   deptParam: string,
   subParam: string,
-  resolved: ValidatedCategoryRoute
+  resolved: ValidatedCategoryRoute,
+  locale?: SiteLocale
 ): string | null {
   if (deptParam === resolved.deptId && subParam === resolved.subId) return null;
   if (!resolved.subId) return null;
-  return subcategoryCategoryPath(resolved.deptId, resolved.subId);
+  return subcategoryCategoryPath(resolved.deptId, resolved.subId, locale);
 }
