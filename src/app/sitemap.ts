@@ -45,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const url = locale === DEFAULT_LOCALE ? `${baseUrl}${routePath}` : `${baseUrl}/${locale}${routePath}`;
       staticRoutes.push({
         url: url,
-        lastModified: new Date(),
+        lastModified: '2026-08-05T00:00:00.000Z',
         changeFrequency: routePath === "" || routePath === "/stores" ? "daily" : "monthly",
         priority: routePath === "" ? 1.0 : routePath === "/stores" ? 0.9 : 0.8,
         alternates: getAlternateLinks(routePath, locale, SITE_LOCALES), // Generate alternate links for each static route
@@ -66,7 +66,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           const url = `${baseUrl}${subcategoryCategoryPath(path.module, path.sub, locale)}`;
           categoryRoutes.push({
             url: url,
-            lastModified: new Date(),
+            lastModified: '2026-08-05T00:00:00.000Z',
             changeFrequency: "daily" as const,
             priority: 0.7,
             alternates: getAlternateLinks(subcategoryCategoryPath(path.module, path.sub, locale), locale, SITE_LOCALES), // Generate alternate links
@@ -76,7 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           const url = `${baseUrl}${departmentCategoryPath(path.module, locale)}`;
           categoryRoutes.push({
             url: url,
-            lastModified: new Date(),
+            lastModified: '2026-08-05T00:00:00.000Z',
             changeFrequency: "daily" as const,
             priority: 0.75,
             alternates: getAlternateLinks(departmentCategoryPath(path.module, locale), locale, SITE_LOCALES), // Generate alternate links
@@ -93,7 +93,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           const url = `${baseUrl}${collectionBrowsePath(collection.id, locale)}`;
           compareRoutes.push({
             url: url,
-            lastModified: new Date(),
+            lastModified: '2026-08-05T00:00:00.000Z',
             changeFrequency: "daily" as const,
             priority: 0.65,
             alternates: getAlternateLinks(collectionBrowsePath(collection.id, locale), locale, SITE_LOCALES), // Generate alternate links
@@ -107,7 +107,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // If fetching catalog fails, return only static routes without locale variations for now
     return staticPaths.map((route) => ({
       url: `${baseUrl}${route}`,
-      lastModified: new Date(),
+      lastModified: '2026-08-05T00:00:00.000Z',
       changeFrequency: route === "" || route === "/stores" ? "daily" : "monthly",
       priority: route === "" ? 1.0 : route === "/stores" ? 0.9 : 0.8,
     }));
