@@ -1,15 +1,16 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-import { clearPriceHistoryForTests } from "./price-history";
-import { runPriceSnapshotJob } from "./price-snapshot-job";
+import { describe, it, expect } from 'vitest';
+import { clearPriceHistoryForTests } from './price-history';
+import { runPriceSnapshotJob } from './price-snapshot-job';
 
-test("runPriceSnapshotJob records CH feed offers", async () => {
-  await clearPriceHistoryForTests();
-  const result = await runPriceSnapshotJob(["CH"]);
+describe('Price Snapshot Job', () => {
+  it("runPriceSnapshotJob records CH feed offers", async () => {
+    await clearPriceHistoryForTests();
+    const result = await runPriceSnapshotJob(["CH"]);
 
-  assert.equal(result.ok, true);
-  assert.ok(result.productCount > 0);
-  assert.ok(result.offerCount > 0);
-  assert.ok(result.appendedPoints > 0);
-  assert.ok(result.stats.trackedOffers > 0);
+    expect(result.ok).toBe(true);
+    expect(result.productCount).toBeGreaterThan(0);
+    expect(result.offerCount).toBeGreaterThan(0);
+    expect(result.appendedPoints).toBeGreaterThan(0);
+    expect(result.stats.trackedOffers).toBeGreaterThan(0);
+  });
 });

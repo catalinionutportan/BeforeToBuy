@@ -1,11 +1,10 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-import type { Product } from "@/types";
+import { describe, it, expect } from 'vitest';
+import type { Product } from '@/types';
 import {
   applyCrossBorderVisibility,
   includesCrossBorderOffers,
   withDomesticOffersOnly,
-} from "./cross-border";
+} from './cross-border';
 
 function offer(
   id: string,
@@ -37,40 +36,41 @@ const mixedProduct: Product = {
   offers: [offer("digitec", "online"), offer("amazon-de", "cross_border")],
 };
 
-test("default browse strips cross-border offers", () => {
-  assert.equal(includesCrossBorderOffers(undefined), false);
-  assert.equal(includesCrossBorderOffers("audio-headphones"), false);
+describe('Cross-Border Offer Logic', () => {
+  it("default browse strips cross-border offers", () => {
+    expect(includesCrossBorderOffers(undefined)).toBe(false);
+    expect(includesCrossBorderOffers("audio-headphones")).toBe(false);
 
-  const domestic = withDomesticOffersOnly(mixedProduct);
-  assert.ok(domestic);
-  assert.equal(domestic.offers.length, 1);
-  assert.equal(domestic.offers[0].type, "online");
+    const domestic = withDomesticOffersOnly(mixedProduct);
+    expect(domestic).toBeDefined();
+    expect(domestic!.offers.length).toBe(1);
+    expect(domestic!.offers[0].type).toBe("online");
 
-  const visible = applyCrossBorderVisibility([mixedProduct], undefined);
-  assert.equal(visible.length, 1);
-  assert.equal(visible[0].offers.every((o) => o.type !== "cross_border"), true);
-});
+    const visible = applyCrossBorderVisibility([mixedProduct], undefined);
+    expect(visible.length).toBe(1);
+    expect(visible[0].offers.every((o) => o.type !== "cross_border")).toBe(true);
+  });
 
-test("cross-border collection keeps foreign offers for CH vs abroad compare", () => {
-  assert.equal(includesCrossBorderOffers("compare-cross-border"), true);
+  it("cross-border collection keeps foreign offers for CH vs abroad compare", () => {
+    expect(includesCrossBorderOffers("compare-cross-border")).toBe(true);
 
-  const visible = applyCrossBorderVisibility([mixedProduct], "compare-cross-border");
-  assert.equal(visible.length, 1);
-  assert.equal(visible[0].offers.length, 2);
-  assert.ok(visible[0].offers.some((o) => o.type === "cross_border"));
-});
+    const visible = applyCrossBorderVisibility([mixedProduct], "compare-cross-border");
+    expect(visible.length).toBe(1);
+    expect(visible[0].offers.length).toBe(2);
+    expect(visible[0].offers.some((o) => o.type === "cross_border")).toBe(true);
+  });
 
-test("products with only cross-border offers disappear from default browse", () => {
-  const foreignOnly: Product = {
-    ...mixedProduct,
-    id: "p2",
-    offers: [offer("amazon-de", "cross_border")],
-  };
+  it("products with only cross-border offers disappear from default browse", () => {
+    const foreignOnly: Product = {
+      ...mixedProduct,
+      id: "p2",
+      offers: [offer("amazon-de", "cross_border")],
+    };
 
-  assert.equal(withDomesticOffersOnly(foreignOnly), null);
-  assert.deepEqual(applyCrossBorderVisibility([foreignOnly], undefined), []);
-  assert.equal(
-    applyCrossBorderVisibility([foreignOnly], "compare-cross-border").length,
-    1
-  );
+    expect(withDomesticOffersOnly(foreignOnly)).toBe(null);
+    expect(applyCrossBorderVisibility([foreignOnly], undefined)).toEqual([]);
+    expect(
+      applyCrossBorderVisibility([foreignOnly], "compare-cross-border").length,
+    ).toBe(1);
+  });
 });

@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { describe, it, expect } from 'vitest';
 import {
   categoryBrowsePath,
   collectionBrowsePath,
@@ -7,38 +6,39 @@ import {
   subcategoryCategoryPath,
   validateDepartmentRoute,
   validateSubcategoryRoute,
-} from "./category-routes";
+} from './category-routes';
 
-test("category browse paths use stable taxonomy ids", () => {
-  assert.equal(departmentCategoryPath("audio"), "/categories/audio");
-  assert.equal(
-    subcategoryCategoryPath("audio", "audio-headphones"),
-    "/categories/audio/audio-headphones"
-  );
-  assert.equal(collectionBrowsePath("compare-local-pickup"), "/compare/compare-local-pickup");
-});
-
-test("categoryBrowsePath resolves departments, subcategories and collections", () => {
-  assert.equal(categoryBrowsePath("audio"), "/categories/audio");
-  assert.equal(categoryBrowsePath("audio-headphones"), "/categories/audio/audio-headphones");
-  assert.equal(categoryBrowsePath("sale"), "/compare/sale");
-  assert.equal(categoryBrowsePath("all"), null);
-});
-
-test("legacy category aliases resolve to canonical v2 browse paths", () => {
-  assert.equal(categoryBrowsePath("notebooks-pcs"), "/categories/computers-tablets");
-  assert.equal(categoryBrowsePath("photo-video"), "/categories/photo-video-drones-optics");
-});
-
-test("subcategory routes validate parent/child relationships", () => {
-  assert.deepEqual(validateDepartmentRoute("audio"), { deptId: "audio" });
-  assert.deepEqual(validateSubcategoryRoute("audio", "audio-headphones"), {
-    deptId: "audio",
-    subId: "audio-headphones",
+describe('Category Routes', () => {
+  it("category browse paths use stable taxonomy ids", () => {
+    expect(departmentCategoryPath("audio")).toBe("/categories/audio");
+    expect(
+      subcategoryCategoryPath("audio", "audio-headphones"),
+    ).toBe("/categories/audio/audio-headphones");
+    expect(collectionBrowsePath("compare-local-pickup")).toBe("/compare/compare-local-pickup");
   });
-  assert.equal(validateSubcategoryRoute("audio", "mobile-smartphones"), null);
-});
 
-test("legacy department params resolve to canonical department ids", () => {
-  assert.deepEqual(validateDepartmentRoute("notebooks-pcs"), { deptId: "computers-tablets" });
+  it("categoryBrowsePath resolves departments, subcategories and collections", () => {
+    expect(categoryBrowsePath("audio")).toBe("/categories/audio");
+    expect(categoryBrowsePath("audio-headphones")).toBe("/categories/audio/audio-headphones");
+    expect(categoryBrowsePath("sale")).toBe("/compare/sale");
+    expect(categoryBrowsePath("all")).toBe(null);
+  });
+
+  it("legacy category aliases resolve to canonical v2 browse paths", () => {
+    expect(categoryBrowsePath("notebooks-pcs")).toBe("/categories/computers-tablets");
+    expect(categoryBrowsePath("photo-video")).toBe("/categories/photo-video-drones-optics");
+  });
+
+  it("subcategory routes validate parent/child relationships", () => {
+    expect(validateDepartmentRoute("audio")).toEqual({ deptId: "audio" });
+    expect(validateSubcategoryRoute("audio", "audio-headphones")).toEqual({
+      deptId: "audio",
+      subId: "audio-headphones",
+    });
+    expect(validateSubcategoryRoute("audio", "mobile-smartphones")).toBe(null);
+  });
+
+  it("legacy department params resolve to canonical department ids", () => {
+    expect(validateDepartmentRoute("notebooks-pcs")).toEqual({ deptId: "computers-tablets" });
+  });
 });

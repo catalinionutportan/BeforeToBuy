@@ -120,7 +120,7 @@ function markDemoOffers(product: Product): Product {
     catalogSource: "demo",
     offers: product.offers.map((offer) => ({
       ...offer,
-      source: "demo",
+      source: "demo" as const,
       originalPrice: undefined,
       discountPercentage: undefined,
       promoCode: undefined,

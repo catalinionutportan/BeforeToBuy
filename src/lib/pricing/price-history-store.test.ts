@@ -1,54 +1,55 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { describe, it, expect } from 'vitest';
 import {
   getPriceHistoryStore,
   resetPriceHistoryStoreForTests,
-} from "./price-history-store";
+} from './price-history-store';
 
-test("memory store persists points across reads", async () => {
-  resetPriceHistoryStoreForTests();
-  const store = getPriceHistoryStore();
-  assert.equal(store.backend, "memory");
+describe('Price History Store', () => {
+  it("memory store persists points across reads", async () => {
+    resetPriceHistoryStoreForTests();
+    const store = getPriceHistoryStore();
+    expect(store.backend).toBe("memory");
 
-  const appended = await store.appendPoint("offer:a", {
-    price: 100,
-    totalPrice: 100,
-    recordedAt: "2026-08-05T10:00:00.000Z",
-    source: "sample",
-  });
-  assert.equal(appended, true);
+    const appended = await store.appendPoint("offer:a", {
+      price: 100,
+      totalPrice: 100,
+      recordedAt: "2026-08-05T10:00:00.000Z",
+      source: "sample",
+    });
+    expect(appended).toBe(true);
 
-  const points = await store.getPoints("offer:a");
-  assert.equal(points.length, 1);
-  assert.equal(points[0]?.price, 100);
+    const points = await store.getPoints("offer:a");
+    expect(points.length).toBe(1);
+    expect(points[0]?.price).toBe(100);
 
-  const skipped = await store.appendPoint("offer:a", {
-    price: 100,
-    totalPrice: 100,
-    recordedAt: "2026-08-05T10:05:00.000Z",
-    source: "sample",
-  });
-  assert.equal(skipped, false);
-});
-
-test("memory store meta reflects tracked offers", async () => {
-  resetPriceHistoryStoreForTests();
-  const store = getPriceHistoryStore();
-
-  await store.appendPoint("offer:a", {
-    price: 10,
-    totalPrice: 10,
-    recordedAt: "2026-08-05T10:00:00.000Z",
-    source: "sample",
-  });
-  await store.appendPoint("offer:b", {
-    price: 20,
-    totalPrice: 20,
-    recordedAt: "2026-08-05T10:00:00.000Z",
-    source: "sample",
+    const skipped = await store.appendPoint("offer:a", {
+      price: 100,
+      totalPrice: 100,
+      recordedAt: "2026-08-05T10:05:00.000Z",
+      source: "sample",
+    });
+    expect(skipped).toBe(false);
   });
 
-  const meta = await store.getMeta();
-  assert.equal(meta.trackedOffers, 2);
-  assert.equal(meta.totalPoints, 2);
+  it("memory store meta reflects tracked offers", async () => {
+    resetPriceHistoryStoreForTests();
+    const store = getPriceHistoryStore();
+
+    await store.appendPoint("offer:a", {
+      price: 10,
+      totalPrice: 10,
+      recordedAt: "2026-08-05T10:00:00.000Z",
+      source: "sample",
+    });
+    await store.appendPoint("offer:b", {
+      price: 20,
+      totalPrice: 20,
+      recordedAt: "2026-08-05T10:00:00.000Z",
+      source: "sample",
+    });
+
+    const meta = await store.getMeta();
+    expect(meta.trackedOffers).toBe(2);
+    expect(meta.totalPoints).toBe(2);
+  });
 });

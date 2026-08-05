@@ -1,6 +1,5 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-import { fetchProductsForLocation } from "./api-aggregator";
+import { describe, it, expect } from 'vitest';
+import { fetchProductsForLocation } from './api-aggregator';
 
 const FASHION_DEMO_IDS = [
   "prod-nike-air-max",
@@ -13,32 +12,34 @@ const FASHION_DEMO_IDS = [
   "prod-fjallraven-kanken",
 ];
 
-test("fashion and shoes demo products are excluded from CH catalog", async () => {
-  const chProducts = await fetchProductsForLocation({
-    latitude: 47.3769,
-    longitude: 8.5417,
-    countryCode: "CH",
-    countryName: "Switzerland",
-    city: "Zurich",
-    isGps: false,
+describe('Fashion Aggregator Logic', () => {
+  it("fashion and shoes demo products are excluded from CH catalog", async () => {
+    const chProducts = await fetchProductsForLocation({
+      latitude: 47.3769,
+      longitude: 8.5417,
+      countryCode: "CH",
+      countryName: "Switzerland",
+      city: "Zurich",
+      isGps: false,
+    });
+
+    const chIds = new Set(chProducts.map((product) => product.id));
+    for (const id of FASHION_DEMO_IDS) {
+      expect(chIds.has(id)).toBe(false);
+    }
   });
 
-  const chIds = new Set(chProducts.map((product) => product.id));
-  for (const id of FASHION_DEMO_IDS) {
-    assert.equal(chIds.has(id), false, `${id} should not appear in CH`);
-  }
-});
+  it("fashion demo products remain available outside CH", async () => {
+    const deProducts = await fetchProductsForLocation({
+      latitude: 52.52,
+      longitude: 13.405,
+      countryCode: "DE",
+      countryName: "Germany",
+      city: "Berlin",
+      isGps: false,
+    });
 
-test("fashion demo products remain available outside CH", async () => {
-  const deProducts = await fetchProductsForLocation({
-    latitude: 52.52,
-    longitude: 13.405,
-    countryCode: "DE",
-    countryName: "Germany",
-    city: "Berlin",
-    isGps: false,
+    const deIds = new Set(deProducts.map((product) => product.id));
+    expect(deIds.has("prod-nike-air-max")).toBe(true);
   });
-
-  const deIds = new Set(deProducts.map((product) => product.id));
-  assert.equal(deIds.has("prod-nike-air-max"), true);
 });

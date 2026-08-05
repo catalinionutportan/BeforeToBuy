@@ -1,16 +1,17 @@
-import assert from "node:assert/strict";
-import test from "node:test";
-import { isValidGtinChecksum, normalizeGtin, resolveGtin } from "./gtin";
+import { describe, it, expect } from 'vitest';
+import { isValidGtinChecksum, normalizeGtin, resolveGtin } from './gtin';
 
-test("normalizeGtin pads 13-digit EAN to 14 digits", () => {
-  assert.equal(normalizeGtin("7612345678901"), "07612345678901");
-});
+describe('GTIN Utilities', () => {
+  it("normalizeGtin pads 13-digit EAN to 14 digits", () => {
+    expect(normalizeGtin("7612345678901")).toBe("07612345678901");
+  });
 
-test("resolveGtin accepts values without valid checksum in sample data", () => {
-  assert.equal(resolveGtin("7612345678901"), "07612345678901");
-});
+  it("resolveGtin accepts values without valid checksum in sample data", () => {
+    expect(resolveGtin("7612345678901")).toBe("07612345678901");
+  });
 
-test("isValidGtinChecksum validates known GTIN", () => {
-  assert.equal(isValidGtinChecksum("07612345678901"), false);
-  assert.equal(isValidGtinChecksum("00000000000000"), true);
+  it("isValidGtinChecksum validates known GTIN", () => {
+    expect(isValidGtinChecksum("07612345678901")).toBe(false);
+    expect(isValidGtinChecksum("00000000000000")).toBe(true);
+  });
 });
