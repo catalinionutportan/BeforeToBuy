@@ -12,6 +12,11 @@ export interface FeedConfig {
   envVar: string;
   /** Backward-compatible env vars checked when the primary env var is unset. */
   legacyEnvVars?: string[];
+  /**
+   * Public production feed URL used when env vars are unset.
+   * Prefer env override in deploy; sampleFile remains the offline/CI fallback when fetch fails.
+   */
+  defaultRemoteUrl?: string;
   sampleFile?: string;
   sampleFormat?: FeedSampleFormat;
 }
@@ -90,6 +95,8 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     merchantId: "ro-scule365",
     merchantName: "Scule365.ro",
     envVar: "GOOGLE_MERCHANT_FEED_URL_RO_SCULE365",
+    defaultRemoteUrl:
+      "https://www.scule365.ro/feed/google_xml/ea1c1391c197733db36fe91ee7e0b901",
     sampleFile: "sample-google-merchant-scule365-ro.xml",
     sampleFormat: "xml",
   },
@@ -108,7 +115,12 @@ export function resolveFeedRemoteUrl(feed: FeedConfig): string | undefined {
     if (legacy) return legacy;
   }
 
-  return undefined;
+  // Vitest / offline CI should keep using sample files (no network).
+  if (process.env.VITEST || process.env.NODE_ENV === "test") {
+    return undefined;
+  }
+
+  return feed.defaultRemoteUrl?.trim() || undefined;
 }
 
 export function getFeedMode(feed: FeedConfig): FeedMode {
