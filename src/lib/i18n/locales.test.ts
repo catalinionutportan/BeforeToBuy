@@ -56,11 +56,12 @@ describe('Locale Utility Functions', () => {
     expect(defaultLocaleFromCountry('XX' as any)).toBe('en');
   });
 
-  it('Switzerland offers DE/FR/IT/EN without changing country', () => {
-    expect([...localesForCountry('CH')]).toEqual([...SWISS_UI_LOCALES]);
-    expect(localesForCountry('CH')).toContain('fr');
-    expect(localesForCountry('CH')).toContain('it');
-    expect(localesForCountry('CH')).not.toContain('ro');
+  it('offers all UI languages for every shopping country', () => {
+    expect(localesForCountry('CH')).toContain('ro');
+    expect(localesForCountry('CH')).toContain('de');
+    expect(localesForCountry('DE')).toContain('ro');
+    expect(localesForCountry('RO')).toEqual(expect.arrayContaining([...SWISS_UI_LOCALES, 'ro']));
+    expect([...localesForCountry('US')]).toEqual(['en', 'de', 'fr', 'it', 'ro']);
   });
 
   it('pickLocaleString falls back to English then fallback', () => {
