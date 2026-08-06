@@ -114,10 +114,16 @@ export function PromoCouponsSection({
 
                   {/* Go to store button */}
                   <a
-                    href={coupon.affiliateUrl}
-                    target="_blank"
-                    rel="noopener noreferrer sponsored nofollow"
+                    href={affiliate ? coupon.affiliateUrl : "#"}
+                    target={affiliate ? "_blank" : undefined}
+                    rel={affiliate ? "noopener noreferrer sponsored nofollow" : undefined}
                     onClick={(event) => {
+                      if (!affiliate) {
+                        event.preventDefault();
+                        openConsentPreferences();
+                      }
+                    }}
+                    onAuxClick={(event) => {
                       if (!affiliate) {
                         event.preventDefault();
                         openConsentPreferences();

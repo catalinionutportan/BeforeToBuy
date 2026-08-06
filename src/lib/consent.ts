@@ -141,13 +141,16 @@ export async function saveConsentPreferences(
     version: CONSENT_VERSION,
   };
 
-  writeLocalStorageConsent(payload);
-  window.dispatchEvent(new CustomEvent(CONSENT_UPDATED_EVENT));
-
+  // Wait for the signed HttpOnly cookie before advertising success. Firing
+  // CONSENT_UPDATED_EVENT earlier lets location fetch race and hit 403.
   const savedOnServer = await postConsentPreferences(prefs);
   if (!savedOnServer) {
-    console.warn("[consent] server save failed; keeping local preferences");
+    console.warn("[consent] server save failed; preferences not applied");
+    return false;
   }
+
+  writeLocalStorageConsent(payload);
+  window.dispatchEvent(new CustomEvent(CONSENT_UPDATED_EVENT));
   return true;
 }
 
