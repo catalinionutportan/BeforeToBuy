@@ -15,10 +15,10 @@ const location = {
 } as UserLocation;
 
 describe("getRoOffers", () => {
-  it("returns live eMAG Profitshare and evoMAG 2Performant outbound links", async () => {
+  it("returns live eMAG, evoMAG, and Rowenta outbound affiliate links", async () => {
     const offers = await getRoOffers(product, location, null, "en");
 
-    expect(offers).toHaveLength(2);
+    expect(offers).toHaveLength(3);
     expect(offers[0]?.storeName).toBe("eMAG.ro");
     expect(offers[0]?.purchaseUrl).toBe(AFFILIATE_LINKS.emagProfitshare);
     expect(offers[0]?.affiliateNetwork).toBe("Profitshare Romania");
@@ -27,5 +27,9 @@ describe("getRoOffers", () => {
     expect(offers[1]?.storeName).toBe("evoMAG.ro");
     expect(offers[1]?.purchaseUrl).toBe(AFFILIATE_LINKS.evomag2Performant);
     expect(offers[1]?.affiliateNetwork).toBe("2Performant Romania");
+
+    expect(offers[2]?.storeName).toBe("Rowenta.ro");
+    expect(offers[2]?.purchaseUrl).toBe(AFFILIATE_LINKS.rowenta2Performant);
+    expect(offers[2]?.affiliateNetwork).toBe("2Performant Romania");
   });
 });
