@@ -3,7 +3,6 @@ import {
   ShieldCheck,
   Building2,
   Globe,
-  CheckCircle2,
   ExternalLink,
   Info,
 } from "lucide-react";
@@ -117,7 +116,9 @@ export default function AffiliateDisclosurePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               {AFFILIATE_NETWORKS.map((network) => (
                 <div key={network} className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden="true" />
+                  <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-amber-400 text-[9px] font-bold text-amber-700" aria-hidden="true">
+                    P
+                  </span>
                   <span>{network}</span>
                 </div>
               ))}

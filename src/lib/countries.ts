@@ -13,7 +13,7 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     domain: "digitec.ch",
     websiteUrl: "https://www.digitec.ch",
     countryCode: "CH",
-    affiliateNetwork: "Galaxus Merchant Network",
+    affiliateNetwork: "Planned (merchant feed / affiliate TBD)",
     category: "Electronics, IT & Gaming",
     hasClickAndCollect: true,
     status: "Planned Integration",
@@ -26,7 +26,7 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     domain: "galaxus.ch",
     websiteUrl: "https://www.galaxus.ch",
     countryCode: "CH",
-    affiliateNetwork: "Galaxus Partner Program",
+    affiliateNetwork: "Planned (not Galaxus Merchant seller programme)",
     category: "General Retail, Home & Fashion",
     hasClickAndCollect: true,
     status: "Planned Integration",
@@ -407,7 +407,11 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       "conrad.ch",
     ],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "CH"),
-    affiliateNetworks: ["AWIN Switzerland", "Galaxus Merchant", "Rakuten CH"],
+    affiliateNetworks: [
+      "AWIN Switzerland (planned)",
+      "Digitec/Galaxus affiliate via networks (planned — not Merchant seller programme)",
+      "Rakuten CH (planned)",
+    ],
   },
   DE: {
     code: "DE",
@@ -423,7 +427,7 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     },
     supportedStores: ["amazon.de", "mediamarkt.de", "saturn.de", "otto.de", "cyberport.de"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "DE"),
-    affiliateNetworks: ["Amazon DE", "AWIN Germany", "CJ Affiliate"],
+    affiliateNetworks: ["Amazon DE (planned)", "AWIN Germany (planned)", "CJ Affiliate (planned)"],
   },
   FR: {
     code: "FR",
@@ -439,7 +443,7 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     },
     supportedStores: ["amazon.fr", "fnac.com", "cdiscount.com", "darty.com"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "FR"),
-    affiliateNetworks: ["Amazon FR", "AWIN France", "Effinity"],
+    affiliateNetworks: ["Amazon FR (planned)", "AWIN France (planned)", "Effinity (planned)"],
   },
   RO: {
     code: "RO",
@@ -455,7 +459,7 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     },
     supportedStores: ["emag.ro", "altex.ro", "flanco.ro", "pcgarage.ro"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "RO"),
-    affiliateNetworks: ["2Performant", "Profitshare", "eMAG Affiliate"],
+    affiliateNetworks: ["2Performant (planned)", "Profitshare (planned)", "eMAG Affiliate (planned)"],
   },
   GB: {
     code: "GB",
@@ -471,7 +475,7 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     },
     supportedStores: ["amazon.co.uk", "currys.co.uk", "argos.co.uk"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "GB"),
-    affiliateNetworks: ["Amazon UK", "AWIN UK", "CJ UK"],
+    affiliateNetworks: ["Amazon UK (planned)", "AWIN UK (planned)", "CJ UK (planned)"],
   },
   US: {
     code: "US",
@@ -487,7 +491,12 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     },
     supportedStores: ["amazon.com", "bestbuy.com", "target.com"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "US"),
-    affiliateNetworks: ["Amazon US", "CJ Affiliate", "Rakuten US", "Impact"],
+    affiliateNetworks: [
+      "Amazon US (planned)",
+      "CJ Affiliate (planned)",
+      "Rakuten US (planned)",
+      "Impact (planned)",
+    ],
   },
 };
 

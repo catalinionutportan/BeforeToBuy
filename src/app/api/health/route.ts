@@ -80,10 +80,7 @@ async function checkProductsMerge() {
 }
 
 export async function GET(request: Request) {
-  if (!isInternalApiAuthorized(request)) {
-    return NextResponse.json({ error: homeUi.unauthorized }, { status: 401 });
-  }
-
+  const authorized = isInternalApiAuthorized(request);
   const startedAt = Date.now();
   const [sampleFeed, productsMerge, priceHistoryStats] = await Promise.all([
     checkSampleFeedFiles(),
@@ -97,7 +94,33 @@ export async function GET(request: Request) {
   ]);
 
   const integrations = getIntegrationSummary();
-  const checks = {
+  const hasError = sampleFeed.status === "error" || productsMerge.status === "error";
+  const overallStatus = hasError
+    ? "unhealthy"
+    : integrations.hasProductionFeed
+      ? "healthy"
+      : "degraded";
+
+  // Public callers (status page / smoke) get a non-sensitive operational summary.
+  // Authorized internal callers get full diagnostics.
+  const publicChecks = {
+    app: { status: "ok" as const },
+    sampleFeed: { status: sampleFeed.status },
+    productsMerge: {
+      status: productsMerge.status,
+      productCount: productsMerge.productCount,
+    },
+    integrations: {
+      status: integrations.hasProductionFeed ? ("ok" as const) : ("warn" as const),
+      hasProductionFeed: integrations.hasProductionFeed,
+    },
+    priceHistory: {
+      status: priceHistoryStats.totalPoints > 0 ? ("ok" as const) : ("warn" as const),
+      backend: priceHistoryStats.backend ?? getPriceHistoryBackend(),
+    },
+  };
+
+  const fullChecks = {
     app: { status: "ok" as const },
     sampleFeed,
     productsMerge,
@@ -118,13 +141,6 @@ export async function GET(request: Request) {
     },
   };
 
-  const hasError = sampleFeed.status === "error" || productsMerge.status === "error";
-  const overallStatus = hasError
-    ? "unhealthy"
-    : integrations.hasProductionFeed
-      ? "healthy"
-      : "degraded";
-
   return NextResponse.json(
     {
       status: overallStatus,
@@ -133,9 +149,10 @@ export async function GET(request: Request) {
       legalLastUpdated: LEGAL_LAST_UPDATED,
       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || null,
       environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "unknown",
-      checks,
+      checks: authorized ? fullChecks : publicChecks,
       responseMs: Date.now() - startedAt,
       timestamp: new Date().toISOString(),
+      ...(authorized ? {} : { detailLevel: "public" as const }),
     },
     {
       status: hasError ? 503 : 200,
