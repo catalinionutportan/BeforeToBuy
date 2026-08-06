@@ -12,6 +12,7 @@ import { Header } from "@/components/Header";
 import { LocationBanner } from "@/components/LocationBanner";
 import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
+import { MarketEntryHero } from "@/components/MarketEntryHero";
 import { PlatformExplanationBanner } from "@/components/PlatformExplanationBanner";
 import { CategoryNavigation } from "@/components/CategoryNavigation";
 import {
@@ -366,7 +367,8 @@ export default function HomePageClient({
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full min-w-0 space-y-8">
-        
+        <MarketEntryHero locale={browseLocale} />
+
         {/* Explanatory Banner: How BeforeToBuy Works & price transparency notice */}
         <PlatformExplanationBanner locale={browseLocale} />
 
@@ -374,7 +376,10 @@ export default function HomePageClient({
         <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
 
         {/* BeforeToBuy category modules + comparison filters */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
+        <div
+          id="browse-offers"
+          className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3 scroll-mt-24"
+        >
           <CategoryNavigation
             selectedCategory={selectedCategory}
             onCategoryChange={handleCategoryChange}
