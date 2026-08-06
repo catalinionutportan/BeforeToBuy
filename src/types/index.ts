@@ -10,7 +10,14 @@ export interface MerchantDomainInfo {
   affiliateNetwork: string; // e.g. "Galaxus Merchant Network", "AWIN CH", "Amazon Associates DE/CH"
   category: string; // e.g. "Electronics & Tech", "General Retail & Marketplace"
   hasClickAndCollect: boolean;
-  status: "Planned Integration" | "Demo Catalog" | "Search Redirect" | "Sample Feed" | "Live Feed";
+  status:
+    | "Planned Integration"
+    | "Demo Catalog"
+    | "Search Redirect"
+    | "Sample Feed"
+    | "Live Feed"
+    | "Live Affiliate Redirect"
+    | "Directory only";
   badge?: string;
   description: string;
   /** Shown in CH browse only when the Cross-border collection is active. */

@@ -168,7 +168,7 @@ export function FooterQuickIndex() {
                     <span>Affiliate Commission & Zero-Markup</span>
                   </div>
                   <p className="text-slate-400 leading-relaxed">
-                    Free for consumers. We currently have no active approved affiliate publisher accounts. If/when approved, a merchant or network may pay us a referral commission from their marketing budget — we do not add a BeforeToBuy fee. Final checkout price is always set by the merchant.
+                    Free for consumers. Live affiliate redirects today: eMAG (Profitshare) and evoMAG (2Performant) in Romania, with Affiliate consent. Other networks remain planned. A merchant or network may pay us a referral commission from their marketing budget — we do not add a BeforeToBuy fee. Final checkout price is always set by the merchant. Listed prices stay demo until product feeds are connected.
                   </p>
                 </div>
 
@@ -291,10 +291,10 @@ export function FooterQuickIndex() {
                   "Microspot (CH)",
                   "Manor (CH)",
                   "Amazon (DE / FR / US)",
-                  "eMAG (RO)",
+                  "eMAG (RO) — Profitshare live",
+                  "evoMAG (RO) — 2Performant live",
                   "Altex (RO)",
                   "Flanco (RO)",
-                  "Fashion Days (RO)",
                 ].map((store) => (
                   <span
                     key={store}
