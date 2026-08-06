@@ -398,6 +398,16 @@ export function getLocalizedCategoryLabel(categoryId: string, locale: CategoryLo
     return CATEGORY_UI[locale].allCategories;
   }
 
+  const hubLabels: Record<string, Partial<Record<CategoryLocale, string>>> = {
+    "hub-electronics": { en: "Electronics", de: "Elektronik", fr: "Électronique", it: "Elettronica", ro: "Electronice" },
+    "hub-books": { en: "Books + Media", de: "Bücher + Medien", fr: "Livres + Médias", it: "Libri + Media", ro: "Cărți + Media" },
+    "hub-fashion": { en: "Fashion", de: "Fashion", fr: "Mode", it: "Moda", ro: "Fashion" },
+    "hub-garden": { en: "Garden", de: "Garten", fr: "Jardin", it: "Giardino", ro: "Grădinărit" },
+    "hub-diy": { en: "DIY + Tools", de: "Baumarkt", fr: "Bricolage", it: "Fai da te", ro: "Bricolaj" },
+  };
+  const hub = hubLabels[categoryId];
+  if (hub) return hub[locale] ?? hub.en ?? categoryId;
+
   const department = getCategoryById(categoryId);
   if (department) return getDepartmentLabel(department.id, locale);
 

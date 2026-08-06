@@ -9,6 +9,7 @@ export default async function Home() {
   let initialFetchFailed = false;
 
   try {
+    // Full country catalog — market hub tabs filter client-side for instant switching.
     const catalog = await fetchDefaultCatalog();
     initialProducts = catalog.products;
     initialMeta = catalog.meta;

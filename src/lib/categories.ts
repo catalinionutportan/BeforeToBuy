@@ -20,6 +20,7 @@ import {
   Globe,
   type LucideIcon,
 } from "lucide-react";
+import { MARKET_HUB_LEAF_GROUPS, getMarketHubById } from "@/lib/market-hubs";
 
 export interface ShoppingSubcategory {
   id: string;
@@ -608,6 +609,19 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
       subcategory("media-audiobooks", "Audiobooks", "Hörbücher", ["audiobook", "hörbuch"]),
     ],
   },
+  {
+    id: "fashion-lifestyle",
+    label: "Fashion + Lifestyle",
+    labelDe: "Fashion + Lifestyle",
+    icon: Tag,
+    description: "Apparel, shoes, bags and accessories for cross-merchant style comparison.",
+    subcategories: [
+      subcategory("fashion-apparel", "Apparel", "Bekleidung", ["shirt", "jacket", "dress", "hoodie", "apparel"]),
+      subcategory("fashion-shoes", "Shoes", "Schuhe", ["shoe", "sneaker", "boot", "trainer"]),
+      subcategory("fashion-bags", "Bags", "Taschen", ["bag", "backpack", "handbag", "tote"]),
+      subcategory("fashion-accessories", "Fashion Accessories", "Fashion-Accessoires", ["belt", "scarf", "cap", "wallet"]),
+    ],
+  },
 ];
 
 export interface ShoppingCollection {
@@ -870,6 +884,13 @@ export function productMatchesCategoryFilter(
   const productCategory = resolveCategoryAlias(product.category);
   const resolvedFilter = resolveCategoryAlias(categoryFilter);
 
+  // Top market hubs (Electronics / Books / Fashion / Garden / DIY).
+  // Imported lazily-safe via dynamic require pattern avoided — inline map from market-hubs.
+  const hubLeaves = MARKET_HUB_LEAF_GROUPS[categoryFilter];
+  if (hubLeaves) {
+    return hubLeaves.includes(productCategory);
+  }
+
   // Preserve the old mixed Home + Kitchen parent query across its v2 departments.
   const legacyGroup = LEGACY_MULTI_PARENT_GROUPS[categoryFilter];
   if (legacyGroup) {
@@ -923,6 +944,23 @@ export function productMatchesCategoryFilter(
 
 export function getCategoryLabel(categoryId: string): string {
   if (categoryId === ALL_CATEGORIES_ID) return "All Categories";
+  const hub = getMarketHubById(categoryId);
+  if (hub) {
+    switch (hub.id) {
+      case "hub-electronics":
+        return "Electronics";
+      case "hub-books":
+        return "Books + Media";
+      case "hub-fashion":
+        return "Fashion";
+      case "hub-garden":
+        return "Garden";
+      case "hub-diy":
+        return "DIY + Tools";
+      default:
+        return hub.id;
+    }
+  }
   const resolvedId = resolveCategoryAlias(categoryId);
   const sub = getSubcategoryById(resolvedId);
   if (sub) return sub.label;

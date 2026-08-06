@@ -1,0 +1,1782 @@
+[
+  {
+    "id": "prod-hub-001",
+    "title": "Samsung Galaxy A55 128GB",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Samsung Galaxy A55 128GB. Confirm final price on the merchant site.",
+    "category": "mobile-smartphones",
+    "brand": "Samsung",
+    "image": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 324,
+    "basePrice": 349,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-002",
+    "title": "Xiaomi Redmi Note 13 Pro",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Xiaomi Redmi Note 13 Pro. Confirm final price on the merchant site.",
+    "category": "mobile-smartphones",
+    "brand": "Xiaomi",
+    "image": "https://images.unsplash.com/photo-1592890288564-76628a30a657?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.1,
+    "reviewsCount": 973,
+    "basePrice": 279,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-003",
+    "title": "Google Pixel 8a 128GB",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Google Pixel 8a 128GB. Confirm final price on the merchant site.",
+    "category": "mobile-smartphones",
+    "brand": "Google",
+    "image": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.7,
+    "reviewsCount": 366,
+    "basePrice": 429,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-004",
+    "title": "Lenovo IdeaPad Slim 5 16\"",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Lenovo IdeaPad Slim 5 16\". Confirm final price on the merchant site.",
+    "category": "notebooks-laptops",
+    "brand": "Lenovo",
+    "image": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.8,
+    "reviewsCount": 453,
+    "basePrice": 799,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-005",
+    "title": "ASUS VivoBook 15 OLED",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 ASUS VivoBook 15 OLED. Confirm final price on the merchant site.",
+    "category": "notebooks-laptops",
+    "brand": "Asus",
+    "image": "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.4,
+    "reviewsCount": 1897,
+    "basePrice": 699,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-006",
+    "title": "Dell XPS 13 Plus",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Dell XPS 13 Plus. Confirm final price on the merchant site.",
+    "category": "notebooks-laptops",
+    "brand": "Dell",
+    "image": "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.6,
+    "reviewsCount": 1534,
+    "basePrice": 1299,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-007",
+    "title": "LG OLED55 C3 55\"",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 LG OLED55 C3 55\". Confirm final price on the merchant site.",
+    "category": "tv-televisions",
+    "brand": "LG",
+    "image": "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.2,
+    "reviewsCount": 1495,
+    "basePrice": 1099,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-008",
+    "title": "Samsung QLED 65\" Q70D",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Samsung QLED 65\" Q70D. Confirm final price on the merchant site.",
+    "category": "tv-televisions",
+    "brand": "Samsung",
+    "image": "https://images.unsplash.com/photo-1461151304267-38535e780c79?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 1133,
+    "basePrice": 1199,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-009",
+    "title": "Sony Bravia 55\" XR",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Sony Bravia 55\" XR. Confirm final price on the merchant site.",
+    "category": "tv-televisions",
+    "brand": "Sony",
+    "image": "https://images.unsplash.com/photo-1593784991095-a222b43a15c2?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.7,
+    "reviewsCount": 332,
+    "basePrice": 999,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-010",
+    "title": "Bose QuietComfort Ultra",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Bose QuietComfort Ultra. Confirm final price on the merchant site.",
+    "category": "audio-headphones",
+    "brand": "Bose",
+    "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.6,
+    "reviewsCount": 740,
+    "basePrice": 379,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-011",
+    "title": "JBL Tune 770NC",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 JBL Tune 770NC. Confirm final price on the merchant site.",
+    "category": "audio-headphones",
+    "brand": "JBL",
+    "image": "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 1042,
+    "basePrice": 129,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-012",
+    "title": "Apple AirPods Pro 2",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Apple AirPods Pro 2. Confirm final price on the merchant site.",
+    "category": "audio-headphones",
+    "brand": "Apple",
+    "image": "https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.2,
+    "reviewsCount": 1594,
+    "basePrice": 249,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-013",
+    "title": "Sonos Era 100",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Sonos Era 100. Confirm final price on the merchant site.",
+    "category": "audio-speakers",
+    "brand": "Sonos",
+    "image": "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 939,
+    "basePrice": 249,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-014",
+    "title": "JBL Flip 6",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 JBL Flip 6. Confirm final price on the merchant site.",
+    "category": "audio-speakers",
+    "brand": "JBL",
+    "image": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.6,
+    "reviewsCount": 269,
+    "basePrice": 119,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-015",
+    "title": "PlayStation 5 Slim",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 PlayStation 5 Slim. Confirm final price on the merchant site.",
+    "category": "gaming-consoles",
+    "brand": "Sony",
+    "image": "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 171,
+    "basePrice": 449,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-016",
+    "title": "Xbox Series S 1TB",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Xbox Series S 1TB. Confirm final price on the merchant site.",
+    "category": "gaming-consoles",
+    "brand": "Microsoft",
+    "image": "https://images.unsplash.com/photo-1621259182978-fbf93132d53d?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.7,
+    "reviewsCount": 1683,
+    "basePrice": 349,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-017",
+    "title": "Nintendo Switch OLED",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Nintendo Switch OLED. Confirm final price on the merchant site.",
+    "category": "gaming-consoles",
+    "brand": "Nintendo",
+    "image": "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 904,
+    "basePrice": 329,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-018",
+    "title": "Logitech MX Master 3S",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Logitech MX Master 3S. Confirm final price on the merchant site.",
+    "category": "peripherals-keyboard-mouse",
+    "brand": "Logitech",
+    "image": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.8,
+    "reviewsCount": 1328,
+    "basePrice": 99,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-019",
+    "title": "Keychron K2 Mechanical",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Keychron K2 Mechanical. Confirm final price on the merchant site.",
+    "category": "peripherals-keyboard-mouse",
+    "brand": "Keychron",
+    "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 2084,
+    "basePrice": 89,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-020",
+    "title": "GoPro HERO12 Black",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 GoPro HERO12 Black. Confirm final price on the merchant site.",
+    "category": "photo-action",
+    "brand": "GoPro",
+    "image": "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.4,
+    "reviewsCount": 1919,
+    "basePrice": 399,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-021",
+    "title": "DJI Mini 4 Pro",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 DJI Mini 4 Pro. Confirm final price on the merchant site.",
+    "category": "photo-action",
+    "brand": "DJI",
+    "image": "https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.2,
+    "reviewsCount": 611,
+    "basePrice": 759,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-022",
+    "title": "Garmin Forerunner 265",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Garmin Forerunner 265. Confirm final price on the merchant site.",
+    "category": "wearables-smartwatch",
+    "brand": "Garmin",
+    "image": "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 1116,
+    "basePrice": 399,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-023",
+    "title": "Samsung Galaxy Watch 7",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Samsung Galaxy Watch 7. Confirm final price on the merchant site.",
+    "category": "wearables-smartwatch",
+    "brand": "Samsung",
+    "image": "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.7,
+    "reviewsCount": 1794,
+    "basePrice": 279,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-024",
+    "title": "Kindle Paperwhite 16GB",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Kindle Paperwhite 16GB. Confirm final price on the merchant site.",
+    "category": "mobile-tablets",
+    "brand": "Amazon",
+    "image": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.8,
+    "reviewsCount": 1675,
+    "basePrice": 149,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-025",
+    "title": "Atomic Habits \u2014 James Clear",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Atomic Habits \u2014 James Clear. Confirm final price on the merchant site.",
+    "category": "media-books",
+    "brand": "Penguin",
+    "image": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.4,
+    "reviewsCount": 606,
+    "basePrice": 18,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-026",
+    "title": "The Psychology of Money",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 The Psychology of Money. Confirm final price on the merchant site.",
+    "category": "media-books",
+    "brand": "Harriman",
+    "image": "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 412,
+    "basePrice": 16,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-027",
+    "title": "Deep Work \u2014 Cal Newport",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Deep Work \u2014 Cal Newport. Confirm final price on the merchant site.",
+    "category": "media-books",
+    "brand": "Grand Central",
+    "image": "https://images.unsplash.com/photo-1495446815904-a76583e4c3f9?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.7,
+    "reviewsCount": 489,
+    "basePrice": 17,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-028",
+    "title": "Sapiens \u2014 Yuval Noah Harari",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Sapiens \u2014 Yuval Noah Harari. Confirm final price on the merchant site.",
+    "category": "media-books",
+    "brand": "Vintage",
+    "image": "https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.2,
+    "reviewsCount": 695,
+    "basePrice": 19,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-029",
+    "title": "Romanian Cuisine Cookbook",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Romanian Cuisine Cookbook. Confirm final price on the merchant site.",
+    "category": "media-books",
+    "brand": "Humanitas",
+    "image": "https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.7,
+    "reviewsCount": 1769,
+    "basePrice": 22,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-030",
+    "title": "Clean Code \u2014 Robert Martin",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Clean Code \u2014 Robert Martin. Confirm final price on the merchant site.",
+    "category": "media-books",
+    "brand": "Prentice Hall",
+    "image": "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.6,
+    "reviewsCount": 1616,
+    "basePrice": 38,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-031",
+    "title": "Dune \u2014 Frank Herbert",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Dune \u2014 Frank Herbert. Confirm final price on the merchant site.",
+    "category": "media-books",
+    "brand": "Ace",
+    "image": "https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.4,
+    "reviewsCount": 1957,
+    "basePrice": 14,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-032",
+    "title": "Harry Potter Box Set",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Harry Potter Box Set. Confirm final price on the merchant site.",
+    "category": "media-books",
+    "brand": "Bloomsbury",
+    "image": "https://images.unsplash.com/photo-1621351183012-e2f9972dd9bf?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 87,
+    "basePrice": 59,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-033",
+    "title": "Rich Dad Poor Dad",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Rich Dad Poor Dad. Confirm final price on the merchant site.",
+    "category": "media-books",
+    "brand": "Plata",
+    "image": "https://images.unsplash.com/photo-1456513080885-7d0d5a4c5f8f?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.6,
+    "reviewsCount": 509,
+    "basePrice": 15,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-034",
+    "title": "The Hobbit \u2014 Tolkien",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 The Hobbit \u2014 Tolkien. Confirm final price on the merchant site.",
+    "category": "media-books",
+    "brand": "HarperCollins",
+    "image": "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.6,
+    "reviewsCount": 1132,
+    "basePrice": 12,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-035",
+    "title": "Steve Jobs Biography",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Steve Jobs Biography. Confirm final price on the merchant site.",
+    "category": "media-books",
+    "brand": "Simon & Schuster",
+    "image": "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.7,
+    "reviewsCount": 1433,
+    "basePrice": 21,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-036",
+    "title": "Audiobook: Project Hail Mary",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Audiobook: Project Hail Mary. Confirm final price on the merchant site.",
+    "category": "media-audiobooks",
+    "brand": "Audible",
+    "image": "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.2,
+    "reviewsCount": 1820,
+    "basePrice": 24,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-037",
+    "title": "Nike Air Force 1 '07",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Nike Air Force 1 '07. Confirm final price on the merchant site.",
+    "category": "fashion-shoes",
+    "brand": "Nike",
+    "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.2,
+    "reviewsCount": 53,
+    "basePrice": 110,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-038",
+    "title": "Adidas Ultraboost Light",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Adidas Ultraboost Light. Confirm final price on the merchant site.",
+    "category": "fashion-shoes",
+    "brand": "adidas",
+    "image": "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.9,
+    "reviewsCount": 1118,
+    "basePrice": 160,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-039",
+    "title": "New Balance 574 Core",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 New Balance 574 Core. Confirm final price on the merchant site.",
+    "category": "fashion-shoes",
+    "brand": "New Balance",
+    "image": "https://images.unsplash.com/photo-1539185441755-7694734ea361?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.9,
+    "reviewsCount": 771,
+    "basePrice": 95,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-040",
+    "title": "Puma RS-X Sneakers",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Puma RS-X Sneakers. Confirm final price on the merchant site.",
+    "category": "fashion-shoes",
+    "brand": "Puma",
+    "image": "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 475,
+    "basePrice": 85,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-041",
+    "title": "Levi's 501 Original Jeans",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Levi's 501 Original Jeans. Confirm final price on the merchant site.",
+    "category": "fashion-apparel",
+    "brand": "Levi's",
+    "image": "https://images.unsplash.com/photo-1542272604-787c3835535d?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.8,
+    "reviewsCount": 1262,
+    "basePrice": 89,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-042",
+    "title": "The North Face Resolve Jacket",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 The North Face Resolve Jacket. Confirm final price on the merchant site.",
+    "category": "fashion-apparel",
+    "brand": "The North Face",
+    "image": "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.8,
+    "reviewsCount": 2119,
+    "basePrice": 129,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-043",
+    "title": "Uniqlo Ultra Light Down",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Uniqlo Ultra Light Down. Confirm final price on the merchant site.",
+    "category": "fashion-apparel",
+    "brand": "Uniqlo",
+    "image": "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.6,
+    "reviewsCount": 666,
+    "basePrice": 69,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-044",
+    "title": "H&M Cotton Oversized Hoodie",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 H&M Cotton Oversized Hoodie. Confirm final price on the merchant site.",
+    "category": "fashion-apparel",
+    "brand": "H&M",
+    "image": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.4,
+    "reviewsCount": 701,
+    "basePrice": 35,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-045",
+    "title": "Eastpak Padded Pak'r",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Eastpak Padded Pak'r. Confirm final price on the merchant site.",
+    "category": "fashion-bags",
+    "brand": "Eastpak",
+    "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 42,
+    "basePrice": 55,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-046",
+    "title": "Fj\u00e4llr\u00e4ven K\u00e5nken Classic",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Fj\u00e4llr\u00e4ven K\u00e5nken Classic. Confirm final price on the merchant site.",
+    "category": "fashion-bags",
+    "brand": "Fj\u00e4llr\u00e4ven",
+    "image": "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.6,
+    "reviewsCount": 2041,
+    "basePrice": 89,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-047",
+    "title": "Michael Kors Jet Set Tote",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Michael Kors Jet Set Tote. Confirm final price on the merchant site.",
+    "category": "fashion-bags",
+    "brand": "Michael Kors",
+    "image": "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.1,
+    "reviewsCount": 1526,
+    "basePrice": 199,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-048",
+    "title": "Ray-Ban Aviator Classic",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Ray-Ban Aviator Classic. Confirm final price on the merchant site.",
+    "category": "fashion-accessories",
+    "brand": "Ray-Ban",
+    "image": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.8,
+    "reviewsCount": 1299,
+    "basePrice": 159,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-049",
+    "title": "Casio G-Shock GA-2100",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Casio G-Shock GA-2100. Confirm final price on the merchant site.",
+    "category": "fashion-accessories",
+    "brand": "Casio",
+    "image": "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 1026,
+    "basePrice": 99,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-050",
+    "title": "Bosch EasyMower 18V-32-120",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Bosch EasyMower 18V-32-120. Confirm final price on the merchant site.",
+    "category": "garden-equipment",
+    "brand": "Bosch",
+    "image": "https://images.unsplash.com/photo-1558904541-efa843a96f01?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.8,
+    "reviewsCount": 362,
+    "basePrice": 179,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-051",
+    "title": "Gardena Classic Hose Set 20m",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Gardena Classic Hose Set 20m. Confirm final price on the merchant site.",
+    "category": "garden-equipment",
+    "brand": "Gardena",
+    "image": "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.2,
+    "reviewsCount": 2030,
+    "basePrice": 49,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-052",
+    "title": "Fiskars Bypass Pruner",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Fiskars Bypass Pruner. Confirm final price on the merchant site.",
+    "category": "garden-equipment",
+    "brand": "Fiskars",
+    "image": "https://images.unsplash.com/photo-1466692476866-aef36b3c5c63?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.8,
+    "reviewsCount": 555,
+    "basePrice": 29,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-053",
+    "title": "Weber Compact Kettle Grill",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Weber Compact Kettle Grill. Confirm final price on the merchant site.",
+    "category": "garden-grills",
+    "brand": "Weber",
+    "image": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.2,
+    "reviewsCount": 1986,
+    "basePrice": 149,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-054",
+    "title": "Outdoor Patio String Lights",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Outdoor Patio String Lights. Confirm final price on the merchant site.",
+    "category": "garden-equipment",
+    "brand": "Philips",
+    "image": "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.9,
+    "reviewsCount": 716,
+    "basePrice": 39,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-055",
+    "title": "Ceramic Plant Pot Set 3pcs",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Ceramic Plant Pot Set 3pcs. Confirm final price on the merchant site.",
+    "category": "garden-equipment",
+    "brand": "IKEA",
+    "image": "https://images.unsplash.com/photo-1485955900003-4f7e7c8d0c8c?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 1773,
+    "basePrice": 24,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-056",
+    "title": "Electric Hedge Trimmer 600W",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Electric Hedge Trimmer 600W. Confirm final price on the merchant site.",
+    "category": "garden-equipment",
+    "brand": "Bosch",
+    "image": "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.9,
+    "reviewsCount": 863,
+    "basePrice": 89,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-057",
+    "title": "Compost Bin 300L",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Compost Bin 300L. Confirm final price on the merchant site.",
+    "category": "garden-equipment",
+    "brand": "Garden",
+    "image": "https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.7,
+    "reviewsCount": 1674,
+    "basePrice": 59,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-058",
+    "title": "Bosch Professional GSB 18V-55",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Bosch Professional GSB 18V-55. Confirm final price on the merchant site.",
+    "category": "diy-power-tools",
+    "brand": "Bosch",
+    "image": "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.9,
+    "reviewsCount": 1569,
+    "basePrice": 189,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-059",
+    "title": "Makita DHP482 Drill Driver",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Makita DHP482 Drill Driver. Confirm final price on the merchant site.",
+    "category": "diy-power-tools",
+    "brand": "Makita",
+    "image": "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 2159,
+    "basePrice": 159,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-060",
+    "title": "DeWalt 20V Max Compact Drill",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 DeWalt 20V Max Compact Drill. Confirm final price on the merchant site.",
+    "category": "diy-power-tools",
+    "brand": "DeWalt",
+    "image": "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 1055,
+    "basePrice": 199,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-061",
+    "title": "Stanley FatMax Tool Set 108pcs",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Stanley FatMax Tool Set 108pcs. Confirm final price on the merchant site.",
+    "category": "diy-hand-tools",
+    "brand": "Stanley",
+    "image": "https://images.unsplash.com/photo-1581147036324-c17ac41dfa6c?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 1424,
+    "basePrice": 79,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-062",
+    "title": "Black+Decker Laser Measure",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Black+Decker Laser Measure. Confirm final price on the merchant site.",
+    "category": "diy-measuring",
+    "brand": "Black+Decker",
+    "image": "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.1,
+    "reviewsCount": 982,
+    "basePrice": 45,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-063",
+    "title": "Philips LED Work Light",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Philips LED Work Light. Confirm final price on the merchant site.",
+    "category": "diy-electrical",
+    "brand": "Philips",
+    "image": "https://images.unsplash.com/photo-1513828583688-c52646db42da?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.6,
+    "reviewsCount": 69,
+    "basePrice": 35,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-064",
+    "title": "Duracell Procell AA 10-pack",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Duracell Procell AA 10-pack. Confirm final price on the merchant site.",
+    "category": "diy-batteries-chargers",
+    "brand": "Duracell",
+    "image": "https://images.unsplash.com/photo-1609091839311-b3486b1892e8?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.2,
+    "reviewsCount": 281,
+    "basePrice": 12,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-065",
+    "title": "Xiaomi 70mai Dash Cam A500s",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Xiaomi 70mai Dash Cam A500s. Confirm final price on the merchant site.",
+    "category": "vehicle-accessories",
+    "brand": "Xiaomi",
+    "image": "https://images.unsplash.com/photo-1449965403121-adffc3b0c819?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 168,
+    "basePrice": 99,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-066",
+    "title": "Einhell TE-CD 18/40 Li",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Einhell TE-CD 18/40 Li. Confirm final price on the merchant site.",
+    "category": "diy-power-tools",
+    "brand": "Einhell",
+    "image": "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.8,
+    "reviewsCount": 330,
+    "basePrice": 79,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-067",
+    "title": "Knipex Cobra Water Pump Pliers",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Knipex Cobra Water Pump Pliers. Confirm final price on the merchant site.",
+    "category": "diy-hand-tools",
+    "brand": "Knipex",
+    "image": "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 1180,
+    "basePrice": 42,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-068",
+    "title": "Bosch GLM 40 Laser Measure",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Bosch GLM 40 Laser Measure. Confirm final price on the merchant site.",
+    "category": "diy-measuring",
+    "brand": "Bosch",
+    "image": "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.6,
+    "reviewsCount": 917,
+    "basePrice": 89,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-069",
+    "title": "Extension Cord 25m Heavy Duty",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Extension Cord 25m Heavy Duty. Confirm final price on the merchant site.",
+    "category": "diy-electrical",
+    "brand": "Brennenstuhl",
+    "image": "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 1976,
+    "basePrice": 28,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-070",
+    "title": "Demo Electronics Bundle #01",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #01. Confirm final price on the merchant site.",
+    "category": "mobile-smartphones",
+    "brand": "Samsung",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 1977,
+    "basePrice": 818,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-071",
+    "title": "Demo Electronics Bundle #02",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #02. Confirm final price on the merchant site.",
+    "category": "audio-headphones",
+    "brand": "Apple",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.7,
+    "reviewsCount": 819,
+    "basePrice": 287,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-072",
+    "title": "Demo Electronics Bundle #03",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #03. Confirm final price on the merchant site.",
+    "category": "notebooks-laptops",
+    "brand": "Samsung",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.2,
+    "reviewsCount": 1805,
+    "basePrice": 751,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-073",
+    "title": "Demo Electronics Bundle #04",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #04. Confirm final price on the merchant site.",
+    "category": "gaming-consoles",
+    "brand": "Samsung",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.4,
+    "reviewsCount": 1723,
+    "basePrice": 663,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-074",
+    "title": "Demo Electronics Bundle #05",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #05. Confirm final price on the merchant site.",
+    "category": "tv-televisions",
+    "brand": "Samsung",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 261,
+    "basePrice": 89,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-075",
+    "title": "Demo Electronics Bundle #06",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #06. Confirm final price on the merchant site.",
+    "category": "mobile-smartphones",
+    "brand": "Apple",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.6,
+    "reviewsCount": 443,
+    "basePrice": 297,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-076",
+    "title": "Demo Electronics Bundle #07",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #07. Confirm final price on the merchant site.",
+    "category": "gaming-consoles",
+    "brand": "Xiaomi",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.1,
+    "reviewsCount": 1429,
+    "basePrice": 86,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-077",
+    "title": "Demo Electronics Bundle #08",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #08. Confirm final price on the merchant site.",
+    "category": "gaming-consoles",
+    "brand": "Apple",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.7,
+    "reviewsCount": 487,
+    "basePrice": 792,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-078",
+    "title": "Demo Electronics Bundle #09",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #09. Confirm final price on the merchant site.",
+    "category": "gaming-consoles",
+    "brand": "LG",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 819,
+    "basePrice": 284,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-079",
+    "title": "Demo Electronics Bundle #10",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #10. Confirm final price on the merchant site.",
+    "category": "tv-televisions",
+    "brand": "Xiaomi",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 614,
+    "basePrice": 343,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-080",
+    "title": "Demo Electronics Bundle #11",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #11. Confirm final price on the merchant site.",
+    "category": "mobile-smartphones",
+    "brand": "Apple",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.4,
+    "reviewsCount": 1180,
+    "basePrice": 773,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-081",
+    "title": "Demo Electronics Bundle #12",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #12. Confirm final price on the merchant site.",
+    "category": "tv-televisions",
+    "brand": "Sony",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 348,
+    "basePrice": 343,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-082",
+    "title": "Demo Electronics Bundle #13",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #13. Confirm final price on the merchant site.",
+    "category": "notebooks-laptops",
+    "brand": "Apple",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 441,
+    "basePrice": 840,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-083",
+    "title": "Demo Electronics Bundle #14",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #14. Confirm final price on the merchant site.",
+    "category": "audio-headphones",
+    "brand": "Samsung",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.1,
+    "reviewsCount": 100,
+    "basePrice": 153,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-084",
+    "title": "Demo Electronics Bundle #15",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #15. Confirm final price on the merchant site.",
+    "category": "tv-televisions",
+    "brand": "Samsung",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.9,
+    "reviewsCount": 1008,
+    "basePrice": 426,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-085",
+    "title": "Demo Electronics Bundle #16",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #16. Confirm final price on the merchant site.",
+    "category": "audio-headphones",
+    "brand": "Xiaomi",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.2,
+    "reviewsCount": 2029,
+    "basePrice": 329,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-086",
+    "title": "Demo Electronics Bundle #17",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #17. Confirm final price on the merchant site.",
+    "category": "mobile-smartphones",
+    "brand": "LG",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.5,
+    "reviewsCount": 1682,
+    "basePrice": 608,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-087",
+    "title": "Demo Electronics Bundle #18",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #18. Confirm final price on the merchant site.",
+    "category": "mobile-smartphones",
+    "brand": "LG",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.8,
+    "reviewsCount": 714,
+    "basePrice": 139,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-088",
+    "title": "Demo Electronics Bundle #19",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #19. Confirm final price on the merchant site.",
+    "category": "gaming-consoles",
+    "brand": "Sony",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.4,
+    "reviewsCount": 1639,
+    "basePrice": 702,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  },
+  {
+    "id": "prod-hub-089",
+    "title": "Demo Electronics Bundle #20",
+    "description": "Demo catalog entry for BeforeToBuy beta \u2014 Demo Electronics Bundle #20. Confirm final price on the merchant site.",
+    "category": "gaming-consoles",
+    "brand": "Sony",
+    "image": "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=600&auto=format&fit=crop&q=80",
+    "rating": 4.3,
+    "reviewsCount": 1903,
+    "basePrice": 650,
+    "targetCountries": [
+      "CH",
+      "DE",
+      "FR",
+      "RO",
+      "GB",
+      "US"
+    ],
+    "offers": []
+  }
+]

@@ -26,8 +26,8 @@ const baseProduct = {
 
 describe('Category and Collection Logic', () => {
   it("taxonomy v2 has unique stable department and leaf ids", () => {
-    expect(SHOPPING_CATEGORIES.length).toBe(18);
-    expect(new Set(SHOPPING_CATEGORIES.map((category) => category.id)).size).toBe(18);
+    expect(SHOPPING_CATEGORIES.length).toBe(19);
+    expect(new Set(SHOPPING_CATEGORIES.map((category) => category.id)).size).toBe(19);
 
     const leafIds = SHOPPING_CATEGORIES.flatMap((category) =>
       category.subcategories.map((subcategory) => subcategory.id)

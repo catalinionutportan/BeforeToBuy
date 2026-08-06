@@ -293,8 +293,7 @@ export function FooterQuickIndex() {
                   "Amazon (DE / FR / US)",
                   "eMAG (RO) — Profitshare live",
                   "evoMAG (RO) — 2Performant live",
-                  "Altex (RO)",
-                  "Flanco (RO)",
+                  "Dedeman (RO) — DIY directory",
                 ].map((store) => (
                   <span
                     key={store}
