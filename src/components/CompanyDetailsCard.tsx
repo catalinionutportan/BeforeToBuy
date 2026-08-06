@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, Globe, Mail, MapPin, FileText } from "lucide-react";
+import { Building2, Globe, Mail, MapPin, FileText, Phone } from "lucide-react";
 import { COMPANY } from "@/lib/company-info";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 import { pickLocaleString } from "@/lib/i18n/locales";
@@ -65,6 +65,13 @@ export function CompanyDetailsCard() {
         >
           <Mail className="w-3.5 h-3.5" aria-hidden="true" />
           {COMPANY.email}
+        </a>
+        <a
+          href={COMPANY.phoneHref}
+          className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold hover:underline"
+        >
+          <Phone className="w-3.5 h-3.5" aria-hidden="true" />
+          {COMPANY.phone}
         </a>
         <a
           href={COMPANY.website}

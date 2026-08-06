@@ -45,7 +45,7 @@ export async function getRoOffers(
       affiliateNetwork: "2Performant / Profitshare Romania",
       type: "online" as const,
       source: "demo" as const,
-      badge: ui.celMaiBunPretInRomania,
+      badge: ui.demoOfferLabel,
     },
     {
       id: `${product.id}-altex`,

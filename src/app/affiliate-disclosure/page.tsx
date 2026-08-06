@@ -9,7 +9,8 @@ import {
 import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
-import { AFFILIATE_NETWORKS, COMPANY } from "@/lib/company-info";
+import { AFFILIATE_NETWORKS, COMPANY, STAGE_ZERO_MONETIZATION } from "@/lib/company-info";
+import { SITE_PHASE } from "@/lib/site-config";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 
@@ -49,6 +50,10 @@ export default function AffiliateDisclosurePage() {
               <ShieldCheck className="w-5 h-5 text-emerald-600" />
               {homeUi.freeServiceCommissionModel}
             </h2>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-950 leading-relaxed">
+              <p className="font-bold mb-1">Stage-zero notice (phase: {SITE_PHASE})</p>
+              <p>{STAGE_ZERO_MONETIZATION.en}</p>
+            </div>
             <p className="text-xs sm:text-sm text-slate-600">
               {formatUi(homeUi.companyOperationDetails, { companyPlatformName: COMPANY.platformName, companyLegalName: COMPANY.legalName, companyUid: COMPANY.uid })}
             </p>

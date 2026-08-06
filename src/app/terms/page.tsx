@@ -97,20 +97,44 @@ export default function TermsPage() {
 
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              5. Haftung & Verfügbarkeit (Free Beta Information Service)
+            </h2>
+            <p className="text-xs text-slate-600">
+              {COMPANY.platformName} is a free Beta information and redirection service. We provide no warranty
+              that catalogs, prices, distances, or availability are complete, current, or error-free. To the extent
+              permitted by Swiss law, we are not liable for indirect or consequential damages arising from use of
+              the service or reliance on displayed information, except in cases of unlawful intent or gross negligence
+              where liability cannot be excluded. Merchant content and checkout terms remain the merchant&apos;s responsibility.
+              The service may change, pause, or show incomplete data without notice.
+            </p>
+            <p className="text-xs text-slate-600">
+              Ranking: offers are sorted by indicative total by default; filters may change order. Paid placement is
+              not used in Beta; if introduced later it will be labeled. Details:{" "}
+              <Link href="/disclaimer" className="text-emerald-700 underline font-semibold">
+                Price &amp; Service Disclaimer
+              </Link>
+              .
+            </p>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Copyright className="w-5 h-5 text-emerald-600" aria-hidden="true" />
-              5. Geistiges Eigentum
+              6. Geistiges Eigentum & Drittmarken
             </h2>
             <p className="text-xs text-slate-600">
               Inhalte, Marken und Software auf {COMPANY.platformName} sind durch Urheberrecht geschützt.
-              Produktbilder und -marken gehören den jeweiligen Rechteinhabern. Affiliate-Links führen zu
-              Drittanbieter-Inhalten.
+              Produktbilder und -marken gehören den jeweiligen Rechteinhabern und werden nur zur Identifikation
+              verwendet — ohne Behauptung einer Endorsement- oder Partnerschaftsbeziehung, sofern nicht ausdrücklich
+              ausgewiesen. Outbound-Links führen zu Drittanbieter-Inhalten.
             </p>
           </section>
 
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Scale className="w-5 h-5 text-emerald-600" aria-hidden="true" />
-              6. Anwendbares Recht & Gerichtsstand
+              7. Anwendbares Recht & Gerichtsstand
             </h2>
             <p className="text-xs text-slate-600">
               Es gilt ausschliesslich <strong>Schweizerisches Recht</strong>. Ausschliesslicher Gerichtsstand
@@ -120,7 +144,7 @@ export default function TermsPage() {
           </section>
 
           <section className="space-y-2 border-t border-slate-100 pt-4">
-            <h2 className="text-lg font-bold text-slate-900">7. Änderungen & Kontakt</h2>
+            <h2 className="text-lg font-bold text-slate-900">8. Änderungen & Kontakt</h2>
             <p className="text-xs text-slate-600">
               Wir können diese Bedingungen bei Bedarf aktualisieren. Beschwerden:{" "}
               <Link href="/complaints" className="text-emerald-700 underline font-semibold">

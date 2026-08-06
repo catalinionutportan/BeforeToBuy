@@ -58,7 +58,7 @@ export default function CookiesPage() {
                   <tr>
                     <td className="p-3 font-semibold">Essential</td>
                     <td className="p-3">Consent preferences (required to remember your choices)</td>
-                    <td className="p-3">localStorage (<code className="text-[10px]">b2b_consent_v3</code>) plus signed HttpOnly cookie (<code className="text-[10px]">b2b_consent</code>), up to 180 days</td>
+                    <td className="p-3">localStorage (<code className="text-[10px]">b2b_consent_v3</code>), signed HttpOnly cookie (<code className="text-[10px]">b2b_consent</code>), and a non-authoritative client hint cookie (<code className="text-[10px]">b2b_consent_hint</code>), up to 180 days</td>
                     <td className="p-3">Yes</td>
                   </tr>
                   <tr>
