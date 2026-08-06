@@ -8,4 +8,6 @@ export const AFFILIATE_LINKS = {
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=d4f678b43&redirect_to=https%3A%2F%2Fwww.evomag.ro%2F",
   rowenta2Performant:
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=d19151f4f&redirect_to=https%3A%2F%2Fwww.rowenta.ro%2F",
+  scule3652Performant:
+    "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=8e59c17b0&redirect_to=https%3A%2F%2Fwww.scule365.ro",
 } as const;
