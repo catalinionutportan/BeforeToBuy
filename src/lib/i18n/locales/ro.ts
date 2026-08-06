@@ -25,7 +25,7 @@ export const roUi = {
     demoDisclaimer: "BeforeToBuy.com este în versiune Beta/Demo. Comparăm prețurile la electronice și vă redirecționăm către site-urile comercianților — nu vindem produse. Majoritatea listărilor rămân date eșantion/demo ilustrative până la conectarea feed-urilor de producție.",
     hybridDisclaimer: "Beta hibridă: Brack.ch utilizează în prezent date ilustrative din feed-ul AWIN eșantion până la configurarea unui feed de producție; alți comercianți rămân în catalogul demo până la conectare.",
     productionFeedDisclaimer: "Beta hibridă: Unele prețuri ale comercianților sunt preluate din feed-uri afiliate live; altele rămân în catalogul demo până la conectare.",
-    priceDisclaimer: "Prețurile demo și eșantion sunt ilustrative. Prețurile din feed-ul de producție pot fi întârziate — confirmați întotdeauna prețul final, disponibilitatea și transportul pe site-ul comerciantului înainte de a cumpăra.",
+    priceDisclaimer: "Prețurile includ TVA unde se aplică (PBV/UWG). Confirmați întotdeauna prețul final, livrarea și disponibilitatea pe site-ul magazinului înainte de cumpărare.",
     liveOfferLabel: "Preț din feed de producție",
     sampleOfferLabel: "Preț eșantion",
     demoOfferLabel: "Preț demo",

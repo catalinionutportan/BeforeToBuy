@@ -12,6 +12,7 @@ import { Header } from "@/components/Header";
 import { LocationBanner } from "@/components/LocationBanner";
 import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
+import { PlatformExplanationBanner } from "@/components/PlatformExplanationBanner";
 import { CategoryNavigation } from "@/components/CategoryNavigation";
 import {
   CollectionNavigation,
@@ -383,6 +384,9 @@ export default function HomePageClient({
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full min-w-0 space-y-8">
         
+        {/* Explanatory Banner: How BeforeToBuy Works & Legal PBV Notice */}
+        <PlatformExplanationBanner />
+
         {/* Promos & Vouchers Section Highlighted at Top */}
         <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
 

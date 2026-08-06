@@ -23,7 +23,7 @@ export const enUi = {
     demoDisclaimer: "BeforeToBuy.com is in Beta/Demo. We compare electronics prices and redirect you to merchant websites — we do not sell products. Most listings are still illustrative sample/demo data until production feeds are connected.",
     hybridDisclaimer: "Hybrid Beta: Brack.ch currently uses illustrative AWIN sample data unless a production feed is configured; other merchants remain demo catalog until connected.",
     productionFeedDisclaimer: "Hybrid Beta: Some merchant prices are loaded from live affiliate feeds; others remain demo catalog until connected.",
-    priceDisclaimer: "Demo and sample prices are illustrative. Production-feed prices may be delayed — always confirm final price, availability, and shipping on the merchant website before buying.",
+    priceDisclaimer: "Prices include VAT where applicable (PBV/UWG). Always confirm final price, shipping, and availability on the merchant website before buying.",
     liveOfferLabel: "Production-feed price",
     sampleOfferLabel: "Sample price",
     demoOfferLabel: "Demo price",

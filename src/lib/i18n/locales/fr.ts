@@ -23,7 +23,7 @@ export const frUi = {
     demoDisclaimer: "BeforeToBuy.com est en version Beta/Démo. Nous comparons les prix de l'électronique et vous redirigeons vers les sites des marchands — nous ne vendons pas de produits. La plupart des listes restent des données d'échantillon/démo illustratives jusqu'à la connexion des flux de production.",
     hybridDisclaimer: "Bêta hybride : Brack.ch utilise actuellement des données illustratives d'échantillons AWIN à moins qu'un flux de production ne soit configuré ; les autres marchands restent dans le catalogue démo jusqu'à ce qu'ils soient connectés.",
     productionFeedDisclaimer: "Bêta hybride : Certains prix des marchands sont chargés à partir de flux d'affiliation en direct ; d'autres restent dans le catalogue démo jusqu'à ce qu'ils soient connectés.",
-    priceDisclaimer: "Les prix démo et échantillon sont illustratifs. Les prix du flux de production peuvent être retardés — confirmez toujours le prix final, la disponibilité et l'expédition sur le site web du marchand avant d'acheter.",
+    priceDisclaimer: "Les prix s'entendent TVA comprise le cas échéant (OIP/LCD). Confirmez toujours le prix final, la livraison et la disponibilité sur le site du marchand avant d'acheter.",
     liveOfferLabel: "Prix du flux de production",
     sampleOfferLabel: "Prix échantillon",
     demoOfferLabel: "Prix démo",
