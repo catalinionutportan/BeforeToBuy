@@ -6,6 +6,8 @@ const endpoints = [
   { name: "Homepage", path: "/", expectText: "Beta" },
   { name: "Legal hub", path: "/legal", expectText: "Legal hub" },
   { name: "Help", path: "/help", expectText: "Help" },
+  { name: "Privacy", path: "/privacy", expectText: "Privacy" },
+  { name: "Cookies", path: "/cookies", expectText: "Cookie" },
   {
     name: "Health API",
     path: "/api/health",
@@ -63,6 +65,65 @@ async function checkEndpoint(endpoint) {
   return `${endpoint.name}: OK (${endpoint.path})`;
 }
 
+function getSetCookie(response, name) {
+  const headers = typeof response.headers.getSetCookie === "function"
+    ? response.headers.getSetCookie()
+    : [];
+  const match = headers.find((value) => value.startsWith(`${name}=`));
+  if (!match) return null;
+  return match.split(";")[0];
+}
+
+async function checkConsentAndLocation() {
+  const consentUrl = `${BASE_URL}/api/consent`;
+  const origin = new URL(BASE_URL).origin;
+
+  const blocked = await fetch(consentUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ location: true, affiliate: false, analytics: false }),
+  });
+  if (blocked.status !== 403) {
+    throw new Error(`Consent CSRF expected 403 without Origin, got ${blocked.status}`);
+  }
+
+  const locationBlocked = await fetch(`${BASE_URL}/api/location`);
+  if (locationBlocked.status !== 403) {
+    throw new Error(`Location without consent expected 403, got ${locationBlocked.status}`);
+  }
+
+  const saved = await fetch(consentUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Origin: origin,
+    },
+    body: JSON.stringify({ location: true, affiliate: false, analytics: false }),
+  });
+  if (!saved.ok) {
+    throw new Error(`Consent save failed: HTTP ${saved.status}`);
+  }
+
+  const consentCookie = getSetCookie(saved, "b2b_consent");
+  if (!consentCookie) {
+    throw new Error("Consent save missing b2b_consent Set-Cookie");
+  }
+
+  const located = await fetch(`${BASE_URL}/api/location`, {
+    headers: { Cookie: consentCookie },
+  });
+  if (!located.ok) {
+    throw new Error(`Location with consent failed: HTTP ${located.status}`);
+  }
+
+  const body = await located.json();
+  if (!body.countryCode) {
+    throw new Error("Location response missing countryCode");
+  }
+
+  return "Consent + location: OK (CSRF, gate, unlock)";
+}
+
 async function main() {
   console.log(`Smoke testing ${BASE_URL}\n`);
   const results = [];
@@ -72,6 +133,10 @@ async function main() {
     console.log(`✓ ${result}`);
     results.push(result);
   }
+
+  const consentResult = await checkConsentAndLocation();
+  console.log(`✓ ${consentResult}`);
+  results.push(consentResult);
 
   console.log(`\nAll ${results.length} smoke checks passed.`);
 }

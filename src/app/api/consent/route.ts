@@ -7,57 +7,14 @@ import {
 } from "@/lib/consent-config";
 import { createConsentToken } from "@/lib/server-consent";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { hasValidRequestOrigin } from "@/lib/request-origin";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
-function hasValidOrigin(request: Request): boolean {
-  const secFetchSite = request.headers.get("sec-fetch-site");
-  if (secFetchSite === "same-origin") return true;
-
-  const origin = request.headers.get("origin");
-  // Cookie mutations must include Origin (blocks simple CSRF without Origin).
-  if (!origin) return false;
-
-  try {
-    const originHost = new URL(origin).host.toLowerCase();
-    const allowedHosts = new Set<string>();
-
-    const addHost = (value: string | null | undefined) => {
-      if (!value) return;
-      try {
-        // Accept raw Host headers ("127.0.0.1:3000") or absolute URLs.
-        const host = value.includes("://") ? new URL(value).host : value;
-        allowedHosts.add(host.toLowerCase());
-      } catch {
-        // ignore invalid host values
-      }
-    };
-
-    addHost(request.url);
-    addHost(request.headers.get("host"));
-    addHost(request.headers.get("x-forwarded-host"));
-    addHost(process.env.NEXT_PUBLIC_SITE_URL);
-
-    if (allowedHosts.has(originHost)) return true;
-
-    // Local/CI: treat localhost and 127.0.0.1 as equivalent.
-    const normalizeLoopback = (host: string) =>
-      host.replace(/^127\.0\.0\.1(?=:\d+$|$)/, "localhost").replace(/^\[::1\](?=:\d+$|$)/, "localhost");
-    const normalizedOrigin = normalizeLoopback(originHost);
-    for (const allowed of allowedHosts) {
-      if (normalizeLoopback(allowed) === normalizedOrigin) return true;
-    }
-
-    return false;
-  } catch {
-    return false;
-  }
-}
-
 export async function POST(request: Request) {
-  if (!hasValidOrigin(request)) {
+  if (!hasValidRequestOrigin(request)) {
     return NextResponse.json({ error: homeUi.invalidRequestOrigin }, { status: 403 });
   }
 
@@ -138,7 +95,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!hasValidOrigin(request)) {
+  if (!hasValidRequestOrigin(request)) {
     return NextResponse.json({ error: homeUi.invalidRequestOrigin }, { status: 403 });
   }
 

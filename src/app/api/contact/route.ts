@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildMailtoFallback, sendContactEmail } from "@/lib/contact-email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { hasValidRequestOrigin } from "@/lib/request-origin";
 
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
@@ -15,6 +16,10 @@ const SUBJECT_LABELS: Record<string, string> = {
 };
 
 export async function POST(request: Request) {
+  if (!hasValidRequestOrigin(request)) {
+    return NextResponse.json({ error: homeUi.invalidRequestOrigin }, { status: 403 });
+  }
+
   const clientIp = getClientIp(request);
   const rateLimit = await checkRateLimit(`contact:${clientIp}`, 5, 60_000);
 

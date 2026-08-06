@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { openConsentPreferences } from "@/lib/consent";
 import { useConsent } from "@/lib/use-consent";
 
@@ -22,20 +22,22 @@ export function ConsentAwareAffiliateLink({
 }: ConsentAwareAffiliateLinkProps) {
   const { affiliate } = useConsent();
 
+  const blockWithoutConsent = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (affiliate) return;
+    event.preventDefault();
+    openConsentPreferences();
+  };
+
   return (
     <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer sponsored nofollow"
+      href={affiliate ? href : "#"}
+      target={affiliate ? "_blank" : undefined}
+      rel={affiliate ? "noopener noreferrer sponsored nofollow" : undefined}
       className={className}
       aria-label={ariaLabel}
       title={title ?? (affiliate ? undefined : "Accept affiliate cookies to open store links")}
-      onClick={(event) => {
-        if (!affiliate) {
-          event.preventDefault();
-          openConsentPreferences();
-        }
-      }}
+      onClick={blockWithoutConsent}
+      onAuxClick={blockWithoutConsent}
     >
       {children}
     </a>

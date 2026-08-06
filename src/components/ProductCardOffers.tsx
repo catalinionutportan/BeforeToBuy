@@ -48,6 +48,13 @@ export function ProductCardOffers({
     onSelectOffer(product, offer);
   };
 
+  const handleAffiliateAuxClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!affiliate) {
+      event.preventDefault();
+      openConsentPreferences();
+    }
+  };
+
   return (
     <div className="space-y-2 border-t border-slate-100 pt-3">
       <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center">
@@ -142,10 +149,11 @@ export function ProductCardOffers({
                 </div>
 
                 <a
-                  href={offer.purchaseUrl}
-                  target="_blank"
-                  rel="noopener noreferrer sponsored nofollow"
+                  href={affiliate ? offer.purchaseUrl : "#"}
+                  target={affiliate ? "_blank" : undefined}
+                  rel={affiliate ? "noopener noreferrer sponsored nofollow" : undefined}
                   onClick={(event) => handleAffiliateClick(event, offer)}
+                  onAuxClick={handleAffiliateAuxClick}
                   className="bg-slate-900 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 text-[11px] shadow-xs group/btn shrink-0"
                   title={affiliate ? undefined : ui.acceptAffiliateCookiesHint}
                   aria-label={
