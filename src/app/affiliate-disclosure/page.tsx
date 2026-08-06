@@ -9,7 +9,12 @@ import {
 import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
-import { AFFILIATE_NETWORKS, COMPANY, STAGE_ZERO_MONETIZATION } from "@/lib/company-info";
+import {
+  AFFILIATE_NETWORKS_ACTIVE,
+  AFFILIATE_NETWORKS_PLANNED,
+  COMPANY,
+  STAGE_ZERO_MONETIZATION,
+} from "@/lib/company-info";
 import { SITE_PHASE } from "@/lib/site-config";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
@@ -119,12 +124,20 @@ export default function AffiliateDisclosurePage() {
               {formatUi(homeUi.affiliateNetworksIntro, { companyPlatformName: COMPANY.platformName })}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              {AFFILIATE_NETWORKS.map((network) => (
+              {AFFILIATE_NETWORKS_ACTIVE.map((network) => (
+                <div key={network} className="flex items-center gap-2 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                  <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-emerald-500 bg-emerald-500 text-[9px] font-bold text-white" aria-hidden="true">
+                    ✓
+                  </span>
+                  <span className="font-semibold text-emerald-950">{network} <span className="font-normal text-emerald-700">(live)</span></span>
+                </div>
+              ))}
+              {AFFILIATE_NETWORKS_PLANNED.map((network) => (
                 <div key={network} className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-amber-400 text-[9px] font-bold text-amber-700" aria-hidden="true">
                     P
                   </span>
-                  <span>{network}</span>
+                  <span>{network} <span className="text-slate-500">(planned)</span></span>
                 </div>
               ))}
             </div>

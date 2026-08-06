@@ -78,24 +78,27 @@ export const TARGET_MARKETS = [
 ] as const;
 
 /**
- * Stage-zero monetization notice — reuse on legal/commercial pages.
- * Keep in sync with AFFILIATE_NETWORKS_ACTIVE until first approval.
+ * Monetization notice — reuse on legal/commercial pages.
+ * Keep in sync with AFFILIATE_NETWORKS_ACTIVE.
  */
 export const STAGE_ZERO_MONETIZATION = {
-  en: "BeforeToBuy.com currently has no active approved affiliate publisher accounts. We only compare and redirect; checkout is always on the merchant site. If/when publisher programmes are approved, we may earn a referral commission from the merchant or network — we do not add a BeforeToBuy fee to your price.",
-  de: "BeforeToBuy.com hat derzeit keine aktiven, genehmigten Affiliate-Publisher-Konten. Wir vergleichen und leiten nur weiter; der Kaufabschluss erfolgt stets beim Händler. Nach allfälliger Freigabe können wir eine Vermittlungsprovision vom Händler/Netzwerk erhalten — ohne BeforeToBuy-Aufschlag auf Ihren Preis.",
-  fr: "BeforeToBuy.com n'a actuellement aucun compte publisher affilié approuvé. Nous comparons et redirigeons seulement ; le paiement a toujours lieu chez le marchand. Après éventuelle approbation, nous pourrons recevoir une commission de parrainage du marchand/réseau — sans frais BeforeToBuy ajoutés à votre prix.",
-  it: "BeforeToBuy.com non ha attualmente account publisher affiliati approvati. Confrontiamo e reindirizziamo soltanto; il checkout avviene sempre sul sito del rivenditore. Dopo eventuale approvazione, potremo ricevere una commissione di referral — senza ricarico BeforeToBuy sul tuo prezzo.",
-  ro: "BeforeToBuy.com nu are momentan conturi de publisher afiliat aprobate. Doar comparăm și redirecționăm; plata se face mereu pe site-ul magazinului. După o eventuală aprobare, putem primi comision de recomandare de la comerciant/rețea — fără adaos BeforeToBuy la prețul dvs.",
+  en: "BeforeToBuy.com has limited live affiliate redirects in Romania: eMAG via Profitshare and evoMAG via 2Performant (with Affiliate cookie consent). Other markets remain planned. We only compare and redirect; checkout is always on the merchant site. We may earn a referral commission from the merchant or network — we do not add a BeforeToBuy fee to your price. Listed prices for these merchants are still demo until product feeds are connected.",
+  de: "BeforeToBuy.com hat begrenzte Live-Affiliate-Weiterleitungen in Rumänien: eMAG über Profitshare und evoMAG über 2Performant (mit Affiliate-Cookie-Zustimmung). Andere Märkte sind geplant. Wir vergleichen und leiten nur weiter; der Kaufabschluss erfolgt stets beim Händler. Wir können eine Vermittlungsprovision erhalten — ohne BeforeToBuy-Aufschlag. Angezeigte Preise bleiben Demo, bis Produktfeeds verbunden sind.",
+  fr: "BeforeToBuy.com a des redirections d'affiliation limitées en Roumanie : eMAG via Profitshare et evoMAG via 2Performant (avec consentement cookies Affilié). Les autres marchés restent prévus. Nous comparons et redirigeons seulement ; le paiement a toujours lieu chez le marchand. Nous pouvons recevoir une commission — sans frais BeforeToBuy. Les prix affichés restent démo jusqu'aux flux produits.",
+  it: "BeforeToBuy.com ha redirect affiliati limitati in Romania: eMAG via Profitshare e evoMAG via 2Performant (con consenso cookie Affiliato). Altri mercati restano pianificati. Confrontiamo e reindirizziamo soltanto; il checkout è sempre sul sito del rivenditore. Possiamo ricevere una commissione — senza ricarico BeforeToBuy. I prezzi mostrati restano demo finché non ci sono feed prodotti.",
+  ro: "BeforeToBuy.com are redirecționări afiliate live limitate în România: eMAG via Profitshare și evoMAG via 2Performant (cu consimțământ cookie Afiliat). Alte piețe rămân planificate. Doar comparăm și redirecționăm; plata se face mereu pe site-ul magazinului. Putem primi comision de recomandare — fără adaos BeforeToBuy. Prețurile afișate rămân demo până conectăm feed-uri de produse.",
 } as const;
 
-/** Networks we may apply to via official publisher portals (not all live yet). */
-export const AFFILIATE_NETWORKS_ACTIVE = [] as const;
+/** Networks with at least one live consented outbound program. */
+export const AFFILIATE_NETWORKS_ACTIVE = [
+  "Profitshare Romania (eMAG)",
+  "2Performant Romania (evoMAG)",
+] as const;
 
 export const AFFILIATE_NETWORKS_PLANNED = [
   "AWIN Comparison Engine / Publisher (CH / DE / FR / UK)",
   "Amazon Associates (via official portal)",
-  "2Performant / Profitshare (RO)",
+  "Additional Profitshare / 2Performant RO merchants",
   "Tradedoubler (where Galaxus AT/DE affiliate is offered)",
   "CJ Affiliate (if approved)",
   "Effinity (FR, if approved)",
@@ -114,5 +117,7 @@ export const DATA_PROCESSORS = [
   { name: "OpenStreetMap Nominatim", purpose: "Reverse geocoding (with Location consent)", region: "EU" },
   { name: "Datadog", purpose: "Optional browser RUM / performance monitoring (with Analytics consent)", region: "USA/EU" },
   { name: "Resend", purpose: "Contact form email delivery (when configured)", region: "USA" },
-  { name: "AWIN / merchant partners", purpose: "Affiliate tracking on merchant domains (with Affiliate consent)", region: "Various" },
+  { name: "AWIN / merchant partners", purpose: "Affiliate tracking on merchant domains when production feeds are configured (with Affiliate consent)", region: "Various" },
+  { name: "Profitshare", purpose: "Affiliate tracking for eMAG.ro outbound links (with Affiliate consent)", region: "RO/EU" },
+  { name: "2Performant", purpose: "Affiliate tracking for evoMAG.ro outbound links (with Affiliate consent)", region: "RO/EU" },
 ] as const;

@@ -66,7 +66,7 @@ export default function DisclaimerPage() {
           </section>
 
           <section className="space-y-2 border-t border-slate-100 pt-4">
-            <h2 className="text-lg font-bold text-slate-900">4. Affiliate referral model (planned / not live yet)</h2>
+            <h2 className="text-lg font-bold text-slate-900">4. Affiliate referral model (limited live RO + planned)</h2>
             <p className="text-xs text-slate-600">{STAGE_ZERO_MONETIZATION.en}</p>
             <p className="text-xs text-slate-600">
               See{" "}
