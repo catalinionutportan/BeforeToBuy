@@ -64,5 +64,19 @@ export async function getRoOffers(
       source: "demo" as const,
       badge: ui.affiliateDemoOfferLabel,
     },
+    {
+      id: `${product.id}-scule365`,
+      storeName: "Scule365.ro",
+      price: Math.round(targetPrice * 1.04),
+      currency,
+      inStock: true,
+      deliveryTime: "2-5 zile lucrătoare",
+      deliveryCost: 15.99,
+      purchaseUrl: AFFILIATE_LINKS.scule3652Performant,
+      affiliateNetwork: "2Performant Romania",
+      type: "online" as const,
+      source: "demo" as const,
+      badge: ui.affiliateDemoOfferLabel,
+    },
   ];
 }
