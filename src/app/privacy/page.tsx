@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShieldCheck, Lock, MapPin, Database, Eye, Cookie, Mail, Clock } from "lucide-react";
+import { ShieldCheck, Lock, MapPin, Database, Eye, Cookie, Mail, Clock, Globe } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY, DATA_PROCESSORS, LEGAL_CONTACT } from "@/lib/company-info";
-import { DSAR_RESPONSE_DAYS, RETENTION_SCHEDULE } from "@/lib/legal-config";
+import {
+  DSAR_RESPONSE_DAYS,
+  PROCESSING_PURPOSES,
+  RETENTION_SCHEDULE,
+} from "@/lib/legal-config";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 
@@ -103,13 +107,45 @@ export default function PrivacyPage() {
 
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Database className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              Processing purposes &amp; legal bases
+            </h2>
+            <p className="text-xs text-slate-600">
+              Swiss nDSG applies to our processing as a Swiss controller. Where the EU GDPR applies to visitors in the EU/EEA,
+              you may also exercise GDPR rights. This notice is a draft transparency summary, not a certification.
+            </p>
+            <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
+              {PROCESSING_PURPOSES.map((item) => (
+                <li key={item.purpose}>
+                  <strong>{item.purpose}</strong> — {item.basis}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Globe className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              International transfers
+            </h2>
+            <p className="text-xs text-slate-600">
+              Some processors (notably Vercel, Datadog, and Resend when configured) may process data in the United States
+              or other countries. We use them for hosting, optional performance monitoring, and contact-form delivery.
+              Optional features that involve these processors require your consent where indicated. Standard contractual
+              / transfer mechanisms used by those providers may apply; details are available from each provider.
+            </p>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Clock className="w-5 h-5 text-emerald-600" aria-hidden="true" />
               {homeUi.retentionTitle}
             </h2>
             <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
               {RETENTION_SCHEDULE.map((item) => (
                 <li key={item.data}>
-                  <strong>{item.data}:</strong> {item.retention}
+                  <strong>{item.data}:</strong> {item.retention}{" "}
+                  <span className="text-slate-500">({item.legalBasis})</span>
                 </li>
               ))}
             </ul>
@@ -154,6 +190,23 @@ export default function PrivacyPage() {
                 <li>{homeUi.howToSubmitDSARStep3}</li>
                 <li>{formatUi(homeUi.howToSubmitDSARStep4, { dsarDays: DSAR_RESPONSE_DAYS })}</li>
               </ol>
+              <p className="text-slate-600 pt-2">
+                You may also lodge a complaint with the Swiss Federal Data Protection and Information Commissioner
+                (FDPIC / EDÖB):{" "}
+                <a
+                  href="https://www.edoeb.admin.ch"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-700 underline font-semibold"
+                >
+                  edoeb.admin.ch
+                </a>
+                . See also our{" "}
+                <Link href="/complaints" className="text-emerald-700 underline font-semibold">
+                  Complaints Procedure
+                </Link>
+                .
+              </p>
             </div>
           </section>
         </div>

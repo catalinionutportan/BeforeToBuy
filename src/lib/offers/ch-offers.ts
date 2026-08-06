@@ -60,7 +60,7 @@ export async function getChOffers(
       affiliateNetwork: "Demo / sample (not live affiliate)",
       type: "online" as const,
       source: "demo" as const,
-      badge: ui.cheapestInSwitzerland,
+      badge: ui.demoOfferLabel,
     },
     {
       id: `${product.id}-brack`,

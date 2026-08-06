@@ -77,6 +77,18 @@ export const TARGET_MARKETS = [
   { code: "US", name: "United States", flag: "🇺🇸" },
 ] as const;
 
+/**
+ * Stage-zero monetization notice — reuse on legal/commercial pages.
+ * Keep in sync with AFFILIATE_NETWORKS_ACTIVE until first approval.
+ */
+export const STAGE_ZERO_MONETIZATION = {
+  en: "BeforeToBuy.com currently has no active approved affiliate publisher accounts. We only compare and redirect; checkout is always on the merchant site. If/when publisher programmes are approved, we may earn a referral commission from the merchant or network — we do not add a BeforeToBuy fee to your price.",
+  de: "BeforeToBuy.com hat derzeit keine aktiven, genehmigten Affiliate-Publisher-Konten. Wir vergleichen und leiten nur weiter; der Kaufabschluss erfolgt stets beim Händler. Nach allfälliger Freigabe können wir eine Vermittlungsprovision vom Händler/Netzwerk erhalten — ohne BeforeToBuy-Aufschlag auf Ihren Preis.",
+  fr: "BeforeToBuy.com n'a actuellement aucun compte publisher affilié approuvé. Nous comparons et redirigeons seulement ; le paiement a toujours lieu chez le marchand. Après éventuelle approbation, nous pourrons recevoir une commission de parrainage du marchand/réseau — sans frais BeforeToBuy ajoutés à votre prix.",
+  it: "BeforeToBuy.com non ha attualmente account publisher affiliati approvati. Confrontiamo e reindirizziamo soltanto; il checkout avviene sempre sul sito del rivenditore. Dopo eventuale approvazione, potremo ricevere una commissione di referral — senza ricarico BeforeToBuy sul tuo prezzo.",
+  ro: "BeforeToBuy.com nu are momentan conturi de publisher afiliat aprobate. Doar comparăm și redirecționăm; plata se face mereu pe site-ul magazinului. După o eventuală aprobare, putem primi comision de recomandare de la comerciant/rețea — fără adaos BeforeToBuy la prețul dvs.",
+} as const;
+
 /** Networks we may apply to via official publisher portals (not all live yet). */
 export const AFFILIATE_NETWORKS_ACTIVE = [] as const;
 

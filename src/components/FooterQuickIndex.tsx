@@ -49,7 +49,7 @@ export function FooterQuickIndex() {
               </span>
             </h3>
             <p className="text-xs text-slate-400">
-              Instant access to platform notices, company registration, and legal compliance documents
+              Instant access to platform notices, company registration, and draft legal &amp; transparency documents
             </p>
           </div>
         </div>
@@ -168,7 +168,7 @@ export function FooterQuickIndex() {
                     <span>Affiliate Commission & Zero-Markup</span>
                   </div>
                   <p className="text-slate-400 leading-relaxed">
-                    Free for all consumers. When you click &quot;View Offer&quot; and buy on partner merchant websites, we may receive a small referral commission. This <strong>never</strong> increases the purchase price for you.
+                    Free for consumers. We currently have no active approved affiliate publisher accounts. If/when approved, a merchant or network may pay us a referral commission from their marketing budget — we do not add a BeforeToBuy fee. Final checkout price is always set by the merchant.
                   </p>
                 </div>
 

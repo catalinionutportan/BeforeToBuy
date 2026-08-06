@@ -14,9 +14,11 @@ import {
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CompanyDetailsCard } from "@/components/CompanyDetailsCard";
+import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
-import { COMPANY } from "@/lib/company-info";
+import { COMPANY, STAGE_ZERO_MONETIZATION } from "@/lib/company-info";
 import { HOME_UI } from "@/lib/i18n/ui";
+import { SITE_PHASE } from "@/lib/site-config";
 
 const homeUi = HOME_UI.en;
 
@@ -145,6 +147,8 @@ export default function AboutPage() {
           </div>
         </div>
 
+        <LegalDraftNotice />
+
         {/* Business Model & Monetization Section */}
         <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-6">
           <div className="border-b border-slate-100 pb-4">
@@ -153,11 +157,14 @@ export default function AboutPage() {
               {homeUi.howWeMakeMoneyTitle}
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              {homeUi.howWeMakeMoneySubtitle}
+              {homeUi.howWeMakeMoneySubtitle} · Phase: {SITE_PHASE}
             </p>
           </div>
 
           <div className="space-y-4 text-sm text-slate-700 leading-relaxed">
+            <p className="text-xs sm:text-sm rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950">
+              {STAGE_ZERO_MONETIZATION.en}
+            </p>
             <p className="text-xs sm:text-sm">
               {homeUi.freeForConsumers}
             </p>
