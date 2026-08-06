@@ -2,9 +2,10 @@
 
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
-import { Store, Navigation, Radio, ArrowRightLeft } from "lucide-react";
+import { Store, Navigation, Radio, ArrowRightLeft, ExternalLink } from "lucide-react";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 import type { SiteLocale } from "@/lib/i18n/locales";
+import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
 
 interface LocationBannerProps {
   userLocation: UserLocation;
@@ -111,23 +112,48 @@ export function LocationBanner({
           </div>
         </div>
 
-        {/* Full-width store row */}
+        {/* Full-width store row — live affiliate merchants open the store; others are labels */}
         <div className="space-y-1.5 text-xs min-w-0 max-w-full">
           <div className="text-slate-400 flex items-center gap-1 font-medium">
             <Store className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span className="break-words min-w-0">
               {formatUi(ui.storesIndexedIn, { countryName: currentCountryInfo.name })}:
             </span>
+            <span className="text-slate-500 font-normal hidden sm:inline">
+              {ui.liveStoreChipsHint}
+            </span>
           </div>
           <div className="flex flex-nowrap items-center gap-2 overflow-x-auto custom-scrollbar pb-1 min-w-0 max-w-full touch-pan-x">
-            {currentCountryInfo.supportedStores.map((store) => (
-              <span
-                key={store}
-                className="shrink-0 bg-white/10 hover:bg-white/15 text-slate-200 border border-white/10 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors"
-              >
-                {store}
-              </span>
-            ))}
+            {currentCountryInfo.merchantDomains
+              .filter((merchant) => !merchant.isCrossBorder)
+              .map((merchant) => {
+                const isLiveAffiliate = merchant.status === "Live Affiliate Redirect";
+                const chipClass =
+                  "shrink-0 inline-flex items-center gap-1 border px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors";
+                if (isLiveAffiliate) {
+                  return (
+                    <ConsentAwareAffiliateLink
+                      key={merchant.id}
+                      href={merchant.websiteUrl}
+                      className={`${chipClass} bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-100 border-emerald-400/40`}
+                      ariaLabel={`${ui.openStoreAffiliate}: ${merchant.name}`}
+                      title={ui.openStoreAffiliate}
+                    >
+                      {merchant.domain}
+                      <ExternalLink className="w-3 h-3 opacity-80" aria-hidden="true" />
+                    </ConsentAwareAffiliateLink>
+                  );
+                }
+                return (
+                  <span
+                    key={merchant.id}
+                    className={`${chipClass} bg-white/10 text-slate-200 border-white/10`}
+                    title={ui.directoryOnlyStoreHint}
+                  >
+                    {merchant.domain}
+                  </span>
+                );
+              })}
           </div>
         </div>
       </div>

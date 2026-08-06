@@ -339,7 +339,9 @@ export default function HomePageClient({
             {domainFilterMerchants.map((merchant) => (
               <button
                 key={merchant.id}
+                type="button"
                 onClick={() => handleInternalDomainChange(merchant.domain)}
+                title={homeUi.filterByStoreDomain}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer border ${
                   selectedDomain === merchant.domain
                     ? "bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs"

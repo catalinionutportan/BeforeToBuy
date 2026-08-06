@@ -24,6 +24,7 @@ export function CookieConsentBanner() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [promptMode, setPromptMode] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export function CookieConsentBanner() {
       setAffiliateConsent(preferences?.affiliate ?? false);
       setAnalyticsConsent(preferences?.analytics ?? false);
       setIsVisible(!preferences);
+      setPromptMode(false);
     };
 
     syncVisibility();
@@ -45,6 +47,7 @@ export function CookieConsentBanner() {
       setAnalyticsConsent(preferences?.analytics ?? false);
       setSaveError(null);
       setShowDetails(true);
+      setPromptMode(true);
       setIsVisible(true);
     };
     window.addEventListener("b2b-consent-open", openHandler);
@@ -63,6 +66,7 @@ export function CookieConsentBanner() {
       const saved = await save();
       if (saved) {
         setIsVisible(false);
+        setPromptMode(false);
       } else {
         setSaveError(homeUi.unableToSavePreferences);
       }
@@ -91,40 +95,58 @@ export function CookieConsentBanner() {
   useEffect(() => {
     if (!isVisible) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !isSaving) {
-        handleEssentialOnly();
+      if (event.key !== "Escape" || isSaving) return;
+      // Re-opened from a store click: dismiss without wiping affiliate prefs.
+      if (promptMode || getConsentPreferences()) {
+        setIsVisible(false);
+        setPromptMode(false);
+        return;
       }
+      void handleEssentialOnly();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isVisible, isSaving]);
+  }, [isVisible, isSaving, promptMode]);
 
   if (!isVisible) return null;
 
   return (
     <div
-      ref={dialogRef}
-      role="dialog"
-      aria-modal="false"
-      aria-labelledby="cookie-consent-title"
-      aria-describedby="cookie-consent-description"
-      tabIndex={-1}
-      className="fixed inset-x-0 bottom-0 z-50 p-3 sm:p-4 pointer-events-none"
+      className={
+        promptMode
+          ? "fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/55 p-3 sm:p-4"
+          : "fixed inset-x-0 bottom-0 z-50 p-3 sm:p-4 pointer-events-none"
+      }
     >
-      <div className="pointer-events-auto mx-auto w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 text-white shadow-2xl focus:outline-none">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal={promptMode ? "true" : "false"}
+        aria-labelledby="cookie-consent-title"
+        aria-describedby="cookie-consent-description"
+        tabIndex={-1}
+        className="pointer-events-auto mx-auto w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 text-white shadow-2xl focus:outline-none"
+      >
         <div className="flex items-start justify-between gap-3 p-4 pb-2 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
               <Cookie className="w-4 h-4" aria-hidden="true" />
             </div>
             <h4 id="cookie-consent-title" className="font-bold text-sm text-white break-words min-w-0">
-              {homeUi.cookiePrivacyPreferences}
+              {promptMode ? homeUi.enableAffiliateToOpen : homeUi.cookiePrivacyPreferences}
             </h4>
           </div>
           <button
             type="button"
-            onClick={handleEssentialOnly}
+            onClick={() => {
+              if (promptMode || getConsentPreferences()) {
+                setIsVisible(false);
+                setPromptMode(false);
+                return;
+              }
+              void handleEssentialOnly();
+            }}
             disabled={isSaving}
             aria-label={homeUi.closeAndAcceptEssential}
             className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors shrink-0"
