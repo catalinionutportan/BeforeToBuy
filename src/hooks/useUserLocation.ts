@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import {
@@ -7,6 +7,10 @@ import {
   openConsentPreferences,
 } from "@/lib/consent";
 import { detectUserLocationGps, getLocationFromIp, formatLocationError } from "@/lib/geolocation";
+import {
+  readStoredMarketCountry,
+  writeStoredMarketCountry,
+} from "@/lib/market-preference";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 
@@ -18,49 +22,72 @@ interface UseUserLocationResult {
   handleRefreshGps: () => Promise<void>;
 }
 
-export function useUserLocation(): UseUserLocationResult {
-  const [userLocation, setUserLocation] = useState<UserLocation>({
-    latitude: COUNTRIES[DEFAULT_COUNTRY].defaultCoordinates.lat,
-    longitude: COUNTRIES[DEFAULT_COUNTRY].defaultCoordinates.lng,
-    countryCode: DEFAULT_COUNTRY,
-    countryName: COUNTRIES[DEFAULT_COUNTRY].name,
-    city: COUNTRIES[DEFAULT_COUNTRY].defaultCoordinates.city,
+function locationFromCountry(
+  countryCode: CountryCode,
+  locationKind: UserLocation["locationKind"]
+): UserLocation {
+  const targetCountry = COUNTRIES[countryCode] || COUNTRIES[DEFAULT_COUNTRY];
+  return {
+    latitude: targetCountry.defaultCoordinates.lat,
+    longitude: targetCountry.defaultCoordinates.lng,
+    countryCode,
+    countryName: targetCountry.name,
+    city: targetCountry.defaultCoordinates.city,
     isGps: false,
-    locationKind: "default",
-  });
+    locationKind,
+  };
+}
+
+export function useUserLocation(): UseUserLocationResult {
+  const [userLocation, setUserLocation] = useState<UserLocation>(() =>
+    locationFromCountry(DEFAULT_COUNTRY, "default")
+  );
 
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const marketLockedRef = useRef(false);
 
   const { locale: browseLocale } = useBrowseLocale(userLocation.countryCode);
   const homeUi = HOME_UI[browseLocale];
 
   const initIpLocation = useCallback(async () => {
+    if (marketLockedRef.current || readStoredMarketCountry()) {
+      return;
+    }
+
     setIsLocating(true);
     try {
       const loc = await getLocationFromIp();
+      if (marketLockedRef.current || readStoredMarketCountry()) {
+        return;
+      }
       setUserLocation(loc);
       setErrorMessage(null);
     } catch (error) {
       console.warn("Error fetching IP location:", formatLocationError(error));
-      // Keep the current country selection; only show a non-blocking warning.
       setErrorMessage(homeUi.geolocationPositionUnavailable);
     } finally {
       setIsLocating(false);
     }
   }, [homeUi.geolocationPositionUnavailable]);
 
-  // IP location only after Location consent (no auto-GPS)
+  // Restore saved market first; IP only when the user has not chosen a market.
   useEffect(() => {
+    const stored = readStoredMarketCountry();
+    if (stored) {
+      marketLockedRef.current = true;
+      setUserLocation(locationFromCountry(stored, "manual"));
+    }
+
     const prefs = getConsentPreferences();
-    if (prefs?.location) {
-      initIpLocation();
+    if (!stored && prefs?.location) {
+      void initIpLocation();
     }
 
     const onConsentUpdated = () => {
       const updated = getConsentPreferences();
       if (updated?.location) {
-        initIpLocation();
+        void initIpLocation();
       }
     };
 
@@ -68,24 +95,15 @@ export function useUserLocation(): UseUserLocationResult {
     return () => window.removeEventListener(CONSENT_UPDATED_EVENT, onConsentUpdated);
   }, [initIpLocation]);
 
-  // Handle manual country change
   const handleCountryChange = useCallback((countryCode: CountryCode) => {
-    const targetCountry = COUNTRIES[countryCode] || COUNTRIES.CH;
+    marketLockedRef.current = true;
+    writeStoredMarketCountry(countryCode);
     setErrorMessage(null);
-    setUserLocation((prev) => ({
-      ...prev,
-      countryCode,
-      countryName: targetCountry.name,
-      city: targetCountry.defaultCoordinates.city,
-      latitude: targetCountry.defaultCoordinates.lat,
-      longitude: targetCountry.defaultCoordinates.lng,
-      isGps: false,
-      locationKind: "manual",
-    }));
-  }, [setUserLocation]);
+    setUserLocation(locationFromCountry(countryCode, "manual"));
+  }, []);
 
   // GPS only on explicit user action and with Location consent.
-  // On timeout/unavailable, fall back to IP location instead of failing hard.
+  // Explicit GPS may update market; still persists the detected country.
   const handleRefreshGps = useCallback(async () => {
     const prefs = getConsentPreferences();
     if (!prefs?.location) {
@@ -97,6 +115,8 @@ export function useUserLocation(): UseUserLocationResult {
     setErrorMessage(null);
     try {
       const loc = await detectUserLocationGps();
+      marketLockedRef.current = true;
+      writeStoredMarketCountry(loc.countryCode);
       setUserLocation(loc);
       setErrorMessage(null);
     } catch (error) {
@@ -106,11 +126,12 @@ export function useUserLocation(): UseUserLocationResult {
       const isTimeout = isGeoError && error.code === error.TIMEOUT;
       const isUnavailable = isGeoError && error.code === error.POSITION_UNAVAILABLE;
 
-      // Expected on localhost / indoors — warn, then try IP approximate location.
       if (isTimeout || isUnavailable) {
         console.warn("GPS unavailable, falling back to IP:", formatLocationError(error));
         try {
           const ipLoc = await getLocationFromIp();
+          marketLockedRef.current = true;
+          writeStoredMarketCountry(ipLoc.countryCode);
           setUserLocation(ipLoc);
           setErrorMessage(null);
           return;

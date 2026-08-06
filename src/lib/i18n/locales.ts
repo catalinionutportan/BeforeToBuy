@@ -29,22 +29,12 @@ export function normalizeLocale(value: string | null | undefined): SiteLocale | 
 }
 
 /**
- * Languages offered in the switcher for the current shopping country.
- * CH keeps DE/FR/IT/EN without forcing France/Italy/etc. as the market.
+ * Languages offered in the switcher.
+ * UI language is independent from shopping country/market — e.g. Romanian UI while
+ * browsing Switzerland, or German UI while browsing Romania.
  */
-export function localesForCountry(countryCode: CountryCode): readonly SiteLocale[] {
-  switch (countryCode) {
-    case "CH":
-      return SWISS_UI_LOCALES;
-    case "DE":
-      return ["de", "en"] as const;
-    case "FR":
-      return ["fr", "en"] as const;
-    case "RO":
-      return ["ro", "en"] as const;
-    default:
-      return SITE_LOCALES;
-  }
+export function localesForCountry(_countryCode: CountryCode): readonly SiteLocale[] {
+  return SITE_LOCALES;
 }
 
 /** Default UI language from country when the user has not chosen a language. */
