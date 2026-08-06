@@ -294,7 +294,7 @@ export function FooterQuickIndex() {
                   "eMAG (RO) — Profitshare live",
                   "evoMAG (RO) — 2Performant live",
                   "Rowenta (RO) — 2Performant live",
-                  "Scule365 (RO) — 2Performant live",
+                  "Scule365 (RO) — 2Performant + product feed",
                   "Dedeman (RO) — DIY directory",
                 ].map((store) => (
                   <span

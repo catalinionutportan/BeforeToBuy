@@ -127,10 +127,12 @@ export function LocationBanner({
             {currentCountryInfo.merchantDomains
               .filter((merchant) => !merchant.isCrossBorder)
               .map((merchant) => {
-                const isLiveAffiliate = merchant.status === "Live Affiliate Redirect";
+                const isLiveOutbound =
+                  merchant.status === "Live Affiliate Redirect" ||
+                  merchant.status === "Live Feed";
                 const chipClass =
                   "shrink-0 inline-flex items-center gap-1 border px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors";
-                if (isLiveAffiliate) {
+                if (isLiveOutbound) {
                   return (
                     <ConsentAwareAffiliateLink
                       key={merchant.id}

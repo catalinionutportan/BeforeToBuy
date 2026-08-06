@@ -35,7 +35,7 @@ export const roUi = {
     offersInCountry: "Prețuri în {country}",
     demoDisclaimer: "BeforeToBuy.com este în versiune Beta/Demo. Comparăm prețurile la electronice și vă redirecționăm către site-urile comercianților — nu vindem produse. Majoritatea listărilor rămân date eșantion/demo ilustrative până la conectarea feed-urilor de producție.",
     hybridDisclaimer: "Beta hibridă: Brack.ch utilizează în prezent date ilustrative din feed-ul AWIN eșantion până la configurarea unui feed de producție; alți comercianți rămân în catalogul demo până la conectare.",
-    productionFeedDisclaimer: "Beta hibrid: România are redirecționări afiliate live pentru eMAG (Profitshare) și evoMAG, Rowenta & Scule365 (2Performant) cu consimțământ Afiliat — prețurile rămân demo până conectăm feed-uri. Alte piețe rămân sample/demo sau planificate.",
+    productionFeedDisclaimer: "Beta hibrid: România are redirecționări afiliate live pentru eMAG (Profitshare) și evoMAG, Rowenta & Scule365 (2Performant) cu consimțământ Afiliat — Scule365 are feed Google Merchant (prețuri live când e configurat); eMAG/evoMAG/Rowenta rămân demo la preț până la feed. Alte piețe rămân sample/demo sau planificate.",
     priceDisclaimer: "Totalurile de comparare sunt indicative (preț + livrare afișată; TVA/vamă pot lipsi). Confirmați prețul final, TVA, livrarea și disponibilitatea pe site-ul magazinului.",
     rankingDisclosure: "Sortare implicită: ofertele după total indicativ (preț + livrare afișată). Filtrele pot schimba ordinea. Fără plasare comercială în Beta.",
     liveOfferLabel: "Preț din feed de producție",

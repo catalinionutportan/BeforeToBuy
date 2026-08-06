@@ -298,9 +298,10 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     affiliateNetwork: "2Performant Romania",
     category: "DIY + Tools",
     hasClickAndCollect: false,
-    status: "Live Affiliate Redirect",
-    badge: "2Performant live · demo prices 🇷🇴",
-    description: "Romanian tools and DIY retailer. Outbound clicks use a live 2Performant affiliate link; listed prices remain demo until product feeds are connected.",
+    status: "Live Feed",
+    badge: "2Performant + Google Merchant feed 🇷🇴",
+    description:
+      "Romanian tools and DIY retailer. Product prices come from the Scule365 Google Merchant feed; outbound clicks use 2Performant affiliate deep links (7% commission, 30-day cookie per merchant program).",
   },
   {
     id: "ro-dedeman",
@@ -477,6 +478,7 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     affiliateNetworks: [
       "Profitshare Romania (eMAG) — live",
       "2Performant Romania (evoMAG, Rowenta, Scule365) — live",
+      "Scule365 Google Merchant product feed — live",
       "Dedeman / additional RO merchants (pending)",
     ],
   },
