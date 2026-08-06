@@ -6,6 +6,10 @@ import {
   parseAwinCsvFeedStream,
   parseGalaxusJsonFeedStream,
 } from "@/lib/feed-parser";
+import {
+  parseGoogleMerchantXmlFeed,
+  parseGoogleMerchantXmlFeedStream,
+} from "@/lib/google-merchant-feed-parser";
 import type { MappingLogEntry } from "@/lib/mapping-log";
 import { Readable } from "node:stream";
 
@@ -40,6 +44,10 @@ const FEED_PARSERS: Record<
     stream: parseGalaxusJsonFeedStream,
     string: parseGalaxusJsonFeed,
   },
+  GOOGLE_MERCHANT: {
+    stream: parseGoogleMerchantXmlFeedStream,
+    string: parseGoogleMerchantXmlFeed,
+  },
 };
 
 export async function parseConfiguredFeed(
@@ -55,7 +63,11 @@ export async function parseConfiguredFeed(
 
   if (typeof content === "string") {
     // Prefer stream path when possible so CSV/JSON parsing stays unified.
-    if (feed.provider === "AWIN" || feed.provider === "GALAXUS") {
+    if (
+      feed.provider === "AWIN" ||
+      feed.provider === "GALAXUS" ||
+      feed.provider === "GOOGLE_MERCHANT"
+    ) {
       return parsers.stream(Readable.from([content]), country, feed.merchantId, offerSource);
     }
     return parsers.string(content, country, feed.merchantId, offerSource);

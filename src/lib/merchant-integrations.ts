@@ -1,8 +1,8 @@
 import { CountryCode } from "@/types";
 
-export type FeedProvider = "AWIN" | "GALAXUS";
+export type FeedProvider = "AWIN" | "GALAXUS" | "GOOGLE_MERCHANT";
 export type FeedMode = "production" | "sample" | "unconfigured";
-export type FeedSampleFormat = "csv" | "json";
+export type FeedSampleFormat = "csv" | "json" | "xml";
 
 export interface FeedConfig {
   provider: FeedProvider;
@@ -83,6 +83,15 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     envVar: "AWIN_FEED_URL_CH_FUST",
     sampleFile: "sample-awin-fust-ch.csv",
     sampleFormat: "csv",
+  },
+  {
+    provider: "GOOGLE_MERCHANT",
+    country: "RO",
+    merchantId: "ro-scule365",
+    merchantName: "Scule365.ro",
+    envVar: "GOOGLE_MERCHANT_FEED_URL_RO_SCULE365",
+    sampleFile: "sample-google-merchant-scule365-ro.xml",
+    sampleFormat: "xml",
   },
 ];
 

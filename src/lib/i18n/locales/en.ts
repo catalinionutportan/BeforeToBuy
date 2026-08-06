@@ -33,7 +33,7 @@ export const enUi = {
     offersInCountry: "Prices in {country}",
     demoDisclaimer: "BeforeToBuy.com is in Beta/Demo. We compare electronics prices and redirect you to merchant websites — we do not sell products. Most listings are still illustrative sample/demo data until production feeds are connected.",
     hybridDisclaimer: "Hybrid Beta: Brack.ch currently uses illustrative AWIN sample data unless a production feed is configured; other merchants remain demo catalog until connected.",
-    productionFeedDisclaimer: "Hybrid Beta: Romania has live affiliate redirects for eMAG (Profitshare) and evoMAG, Rowenta & Scule365 (2Performant) with Affiliate consent — prices stay demo until feeds are connected. Other markets remain sample/demo or planned.",
+    productionFeedDisclaimer: "Hybrid Beta: Romania has live affiliate redirects for eMAG (Profitshare) and evoMAG, Rowenta & Scule365 (2Performant) with Affiliate consent — Scule365 has a Google Merchant feed (live prices when configured); eMAG/evoMAG/Rowenta stay demo-priced until feeds. Other markets remain sample/demo or planned.",
     priceDisclaimer: "Comparison totals are indicative (list price + shown delivery where available; VAT/customs may be excluded). Confirm final price, VAT, shipping, and availability on the merchant website before buying.",
     rankingDisclosure: "Default ranking: offers are sorted by indicative total (list price + shown delivery). Filters may change the order. Commercial placement is not used in Beta.",
     liveOfferLabel: "Production-feed price",

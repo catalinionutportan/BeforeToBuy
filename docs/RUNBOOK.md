@@ -13,7 +13,7 @@
 |-------|-------|
 | Frontend | Next.js 15 App Router, React 19, Tailwind |
 | Hosting | Vercel (auto-deploy on push to `main`) |
-| Product data | Demo catalog + multi-merchant sample/production feeds (CH) |
+| Product data | Demo catalog + multi-merchant sample/production feeds (CH) + Scule365 Google Merchant (RO) |
 | APIs | `/api/products`, `/api/health`, `/api/contact`, `/api/geocode`, `/api/location` |
 
 ---
@@ -58,6 +58,7 @@ git push origin main
 | `AWIN_FEED_URL_CH_FUST` | Optional | Production AWIN CSV for Fust |
 | `GALAXUS_FEED_URL_CH_DIGITEC` | Optional | Production Galaxus merchant JSON for Digitec |
 | `GALAXUS_FEED_URL_CH_GALAXUS` | Optional | Production Galaxus merchant JSON for Galaxus |
+| `GOOGLE_MERCHANT_FEED_URL_RO_SCULE365` | Optional | Production Google Merchant XML for Scule365.ro |
 | `RESEND_API_KEY` | Optional | Contact form email delivery |
 | `CONTACT_TO_EMAIL` | Optional | Contact form recipient |
 | `CONTACT_FROM_EMAIL` | Optional | Contact form sender |

@@ -24,7 +24,9 @@ async function checkSampleFeedFiles() {
         const rows =
           feed.sampleFormat === "json"
             ? (JSON.parse(content) as unknown[]).length
-            : Math.max(0, content.trim().split("\n").filter(Boolean).length - 1);
+            : feed.sampleFormat === "xml"
+              ? (content.match(/<entry\b/gi) || []).length
+              : Math.max(0, content.trim().split("\n").filter(Boolean).length - 1);
 
         return {
           merchantId: feed.merchantId,

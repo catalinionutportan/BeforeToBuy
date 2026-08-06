@@ -8,6 +8,7 @@ export const MAPPING_MERCHANT_IDS = [
   "ch-mediamarkt",
   "ch-interdiscount",
   "ch-fust",
+  "ro-scule365",
 ] as const;
 
 export type MappingMerchantId = (typeof MAPPING_MERCHANT_IDS)[number];
@@ -206,6 +207,42 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "small appliances": "kitchen-coffee-machines",
     }),
     patterns: SHARED_SWISS_PATTERNS,
+  },
+  "ro-scule365": {
+    exact: exactRules({
+      slefuitoare: "diy-power-tools",
+      "scule electrice": "diy-power-tools",
+      "scule de mana": "diy-hand-tools",
+      "scule de mână": "diy-hand-tools",
+      "echipamente de lucru": "diy-hand-tools",
+      "pompe de apa": "garden-equipment",
+      "pompe de apă": "garden-equipment",
+      "pompe de stropit": "garden-equipment",
+      drujbe: "diy-power-tools",
+      generatoare: "diy-electrical",
+      acumulatoare: "diy-batteries-chargers",
+      incarcatoare: "diy-batteries-chargers",
+      încărcătoare: "diy-batteries-chargers",
+    }),
+    patterns: [
+      {
+        patterns:
+          /\b(slefuit|bormasin|bormașin|rotopercutor|drujb|polizor|flex|circular|electrice|power tool)\b/i,
+        subcategoryId: "diy-power-tools",
+      },
+      {
+        patterns: /\b(cheie|surubelnit|șurubelniț|ciocan|clește|cleste|set scule|hand tool)\b/i,
+        subcategoryId: "diy-hand-tools",
+      },
+      {
+        patterns: /\b(pompa|pompă|stropit|gradina|grădin|motocoas|cositoare)\b/i,
+        subcategoryId: "garden-equipment",
+      },
+      {
+        patterns: /\b(acumulator|baterie|incarcator|încărcător|akku)\b/i,
+        subcategoryId: "diy-batteries-chargers",
+      },
+    ],
   },
 };
 

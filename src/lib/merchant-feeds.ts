@@ -45,7 +45,9 @@ async function fetchRemoteFeed(
   const accept =
     provider === "GALAXUS"
       ? "application/json, text/plain, */*"
-      : "text/csv, text/plain, */*";
+      : provider === "GOOGLE_MERCHANT"
+        ? "application/xml, text/xml, */*"
+        : "text/csv, text/plain, */*";
 
   const response = await fetchWithTimeout(
     url,
