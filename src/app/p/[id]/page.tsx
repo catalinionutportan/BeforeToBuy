@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { JsonLd } from "@/components/JsonLd";
+import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
@@ -132,11 +133,14 @@ export default async function ProductPage({ params }: PageProps) {
                       {country.currencySymbol}
                       {total.toLocaleString()}
                     </p>
-                    <a
+                    <ConsentAwareAffiliateLink
                       href={offer.purchaseUrl}
-                      target="_blank"
-                      rel="noopener noreferrer sponsored nofollow"
                       className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition-colors"
+                      ariaLabel={
+                        offer.source === "production-live"
+                          ? `${ui.viewOfferButton} ${offer.storeName}`
+                          : `${ui.searchStoreButton} ${offer.storeName}`
+                      }
                     >
                       <span>
                         {offer.source === "production-live"
@@ -144,7 +148,7 @@ export default async function ProductPage({ params }: PageProps) {
                           : ui.searchStoreButton}
                       </span>
                       <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-                    </a>
+                    </ConsentAwareAffiliateLink>
                   </div>
                 </li>
               );

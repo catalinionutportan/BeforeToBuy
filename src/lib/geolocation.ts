@@ -33,6 +33,7 @@ export function defaultLocation(): UserLocation {
     countryName: def.name,
     city: def.defaultCoordinates.city,
     isGps: false,
+    locationKind: "default",
   };
 }
 
@@ -107,6 +108,7 @@ export async function getLocationFromIp(): Promise<UserLocation> {
       countryName: data.countryName || COUNTRIES[data.countryCode]?.name || "Unknown",
       city: data.city || COUNTRIES[data.countryCode]?.defaultCoordinates.city || "Unknown",
       isGps: false,
+      locationKind: "ip",
     };
   } finally {
     clearTimeout(timeout);
@@ -140,6 +142,7 @@ export function detectUserLocationGps(): Promise<UserLocation> {
             countryName: geo.countryName,
             city: geo.city,
             isGps: true,
+            locationKind: "gps",
           });
         } catch {
           const fallback = COUNTRIES[DEFAULT_COUNTRY];
@@ -150,6 +153,7 @@ export function detectUserLocationGps(): Promise<UserLocation> {
             countryName: fallback.name,
             city: fallback.defaultCoordinates.city,
             isGps: true,
+            locationKind: "gps",
           });
         }
       },

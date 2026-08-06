@@ -81,7 +81,7 @@ export function OfferFilters({
 
         <label className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">
           <MapPin className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-          <span className="text-slate-500">GPS Radius:</span>
+          <span className="text-slate-500">{ui.gpsRadiusLabel}</span>
           <select
             value={criteria.maxPickupDistance ?? ""}
             onChange={(event) => {
@@ -92,7 +92,7 @@ export function OfferFilters({
             }}
             className="bg-transparent text-[11px] font-bold text-slate-800 outline-none cursor-pointer"
           >
-            <option value="">Any distance</option>
+            <option value="">{ui.anyDistance}</option>
             {MAX_PICKUP_DISTANCE_OPTIONS.map((dist) => (
               <option key={dist} value={dist}>
                 ≤ {dist} km

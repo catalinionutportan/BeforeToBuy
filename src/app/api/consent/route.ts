@@ -89,8 +89,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const preferences = body as { location: boolean; affiliate: boolean };
-  const token = createConsentToken(preferences);
+  const preferences = body as {
+    location: boolean;
+    affiliate: boolean;
+    analytics?: unknown;
+  };
+  const analytics = preferences.analytics === true;
+  const token = createConsentToken({
+    location: preferences.location,
+    affiliate: preferences.affiliate,
+  });
   if (!token) {
     return NextResponse.json(
       { error: homeUi.consentServiceNotConfigured },
@@ -116,6 +124,7 @@ export async function POST(request: Request) {
       essential: true,
       location: preferences.location,
       affiliate: preferences.affiliate,
+      analytics,
       updatedAt: new Date().toISOString(),
       version: CONSENT_VERSION,
     }),

@@ -296,6 +296,8 @@ export const OFFER_FILTER_UI: Record<
     inStock: string;
     freeDelivery: string;
     withEan: string;
+    gpsRadiusLabel: string;
+    anyDistance: string;
   }
 > = {
   en: {
@@ -307,6 +309,8 @@ export const OFFER_FILTER_UI: Record<
     inStock: "In stock",
     freeDelivery: "Free delivery",
     withEan: "With EAN",
+    gpsRadiusLabel: "Pickup radius:",
+    anyDistance: "Any distance",
   },
   de: {
     title: "Angebotsfilter",
@@ -317,6 +321,8 @@ export const OFFER_FILTER_UI: Record<
     inStock: "Auf Lager",
     freeDelivery: "Gratis Lieferung",
     withEan: "Mit EAN",
+    gpsRadiusLabel: "Abholradius:",
+    anyDistance: "Beliebige Distanz",
   },
   fr: {
     title: "Filtres d'offres",
@@ -327,6 +333,8 @@ export const OFFER_FILTER_UI: Record<
     inStock: "En stock",
     freeDelivery: "Livraison gratuite",
     withEan: "Avec EAN",
+    gpsRadiusLabel: "Rayon de retrait :",
+    anyDistance: "Toute distance",
   },
   ro: {
     title: "Filtre oferte",
@@ -337,6 +345,8 @@ export const OFFER_FILTER_UI: Record<
     inStock: "În stoc",
     freeDelivery: "Livrare gratuită",
     withEan: "Cu EAN",
+    gpsRadiusLabel: "Rază ridicare:",
+    anyDistance: "Orice distanță",
   },
   it: {
     title: "Filtri offerte",
@@ -347,6 +357,8 @@ export const OFFER_FILTER_UI: Record<
     inStock: "Disponibile",
     freeDelivery: "Spedizione gratuita",
     withEan: "Con EAN",
+    gpsRadiusLabel: "Raggio ritiro:",
+    anyDistance: "Qualsiasi distanza",
   },
 };
 

@@ -1,11 +1,13 @@
 import { CONSENT_CLIENT_HINT_COOKIE_NAME, CONSENT_VERSION } from "@/lib/consent-config";
 
-export type ConsentCategory = "location" | "affiliate";
+export type ConsentCategory = "location" | "affiliate" | "analytics";
 
 export interface ConsentPreferences {
   essential: true;
   location: boolean;
   affiliate: boolean;
+  /** Optional performance/analytics (e.g. Datadog RUM). Defaults false when absent. */
+  analytics: boolean;
   updatedAt: string;
   version: number;
 }
@@ -20,9 +22,17 @@ function isBrowser() {
 function parseConsentPreferences(raw: string | null | undefined): ConsentPreferences | null {
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw) as ConsentPreferences;
+    const parsed = JSON.parse(raw) as Partial<ConsentPreferences>;
     if (parsed.essential !== true || parsed.version !== CONSENT_VERSION) return null;
-    return parsed;
+    if (typeof parsed.location !== "boolean" || typeof parsed.affiliate !== "boolean") return null;
+    return {
+      essential: true,
+      location: parsed.location,
+      affiliate: parsed.affiliate,
+      analytics: parsed.analytics === true,
+      updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : new Date().toISOString(),
+      version: CONSENT_VERSION,
+    };
   } catch {
     return null;
   }
@@ -64,7 +74,12 @@ function readCookieConsentHint(): ConsentPreferences | null {
 function consentValuesEqual(a: ConsentPreferences | null, b: ConsentPreferences | null): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
-  return a.location === b.location && a.affiliate === b.affiliate && a.version === b.version;
+  return (
+    a.location === b.location &&
+    a.affiliate === b.affiliate &&
+    a.analytics === b.analytics &&
+    a.version === b.version
+  );
 }
 
 export function getConsentPreferences(): ConsentPreferences | null {
@@ -73,8 +88,6 @@ export function getConsentPreferences(): ConsentPreferences | null {
   const cookieHint = readCookieConsentHint();
   const stored = readLocalStorageConsent();
 
-  // Only sync FROM a valid cookie hint. Never wipe localStorage just because
-  // the hint cookie is missing/unreadable (that caused Accept to "freeze"/loop).
   if (cookieHint && !consentValuesEqual(cookieHint, stored)) {
     writeLocalStorageConsent(cookieHint);
     return cookieHint;
@@ -86,11 +99,11 @@ export function getConsentPreferences(): ConsentPreferences | null {
 export function hasConsent(category: ConsentCategory): boolean {
   const prefs = getConsentPreferences();
   if (!prefs) return false;
-  return prefs[category];
+  return prefs[category] === true;
 }
 
 async function postConsentPreferences(
-  prefs: Pick<ConsentPreferences, "location" | "affiliate">
+  prefs: Pick<ConsentPreferences, "location" | "affiliate" | "analytics">
 ): Promise<boolean> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8_000);
@@ -99,7 +112,11 @@ async function postConsentPreferences(
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(prefs),
+      body: JSON.stringify({
+        location: prefs.location,
+        affiliate: prefs.affiliate,
+        analytics: prefs.analytics,
+      }),
       signal: controller.signal,
     });
     return response.ok;
@@ -111,7 +128,7 @@ async function postConsentPreferences(
 }
 
 export async function saveConsentPreferences(
-  prefs: Pick<ConsentPreferences, "location" | "affiliate">
+  prefs: Pick<ConsentPreferences, "location" | "affiliate" | "analytics">
 ): Promise<boolean> {
   if (!isBrowser()) return false;
 
@@ -119,28 +136,27 @@ export async function saveConsentPreferences(
     essential: true,
     location: prefs.location,
     affiliate: prefs.affiliate,
+    analytics: prefs.analytics,
     updatedAt: new Date().toISOString(),
     version: CONSENT_VERSION,
   };
 
-  // Persist locally first so the banner can close even if the API is slow.
   writeLocalStorageConsent(payload);
   window.dispatchEvent(new CustomEvent(CONSENT_UPDATED_EVENT));
 
   const savedOnServer = await postConsentPreferences(prefs);
   if (!savedOnServer) {
-    // Keep local prefs so the UI stays usable offline / when the API fails.
     console.warn("[consent] server save failed; keeping local preferences");
   }
   return true;
 }
 
 export async function acceptAllConsent() {
-  return saveConsentPreferences({ location: true, affiliate: true });
+  return saveConsentPreferences({ location: true, affiliate: true, analytics: true });
 }
 
 export async function acceptEssentialConsent() {
-  return saveConsentPreferences({ location: false, affiliate: false });
+  return saveConsentPreferences({ location: false, affiliate: false, analytics: false });
 }
 
 export function openConsentPreferences() {

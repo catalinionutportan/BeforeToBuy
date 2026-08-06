@@ -11,9 +11,9 @@ export function toJsonLdScript(data: unknown): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
 
-export function productPagePath(productId: string, locale?: string): string {
-  if (!locale || locale === "en") return `/p/${encodeURIComponent(productId)}`;
-  return `/${locale}/p/${encodeURIComponent(productId)}`;
+/** Canonical product path — locale is not encoded in the URL path. */
+export function productPagePath(productId: string, _locale?: string): string {
+  return `/p/${encodeURIComponent(productId)}`;
 }
 
 export function productPageUrl(productId: string, locale?: string): string {

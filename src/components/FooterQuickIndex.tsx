@@ -127,11 +127,11 @@ export function FooterQuickIndex() {
                   </div>
                   <div className="space-y-1">
                     <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <span>Proprietary Innovation & Platform Ownership Notice</span>
+                      <span>Operator & platform notice</span>
                       <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                     </h4>
                     <p className="text-xs text-slate-300 leading-relaxed">
-                      <strong>BeforeToBuy.com</strong> is an original, proprietary location-driven shopping aggregator and Click & Collect price comparison platform. Conceived, designed, and operated exclusively by <strong>PortanX - Catalin Portan</strong> (Commercial Register Canton of Bern, UID: <code className="text-emerald-300 font-mono">CHE-373.501.736</code>). All rights reserved.
+                      <strong>BeforeToBuy.com</strong> is a Swiss-based location-aware price comparison and Click &amp; Collect aggregator (no checkout on this site). Operated by <strong>PortanX - Catalin Portan</strong> (Commercial Register Canton of Bern, UID: <code className="text-emerald-300 font-mono">CHE-373.501.736</code>). Catalog may include beta/demo sample offers — confirm final terms on the merchant site.
                     </p>
                   </div>
                 </div>
@@ -157,7 +157,7 @@ export function FooterQuickIndex() {
                     <span>GPS Privacy & Data Protection</span>
                   </div>
                   <p className="text-slate-400 leading-relaxed">
-                    Location data is processed in real time solely on your device or during active browsing sessions to calculate Click & Collect store distances. 100% compliant with Swiss nDSG and EU GDPR — zero persistent tracking.
+                    Precise GPS and approximate IP location run only with your Location consent. GPS coordinates stay in the browser session for distance estimates; IP/reverse-geocode requests may reach processors listed in our Privacy Policy. We do not claim full nDSG/GDPR certification — see our draft policies and Cookie Settings.
                   </p>
                 </div>
 
@@ -179,7 +179,7 @@ export function FooterQuickIndex() {
                     <span>Price & Availability Verification</span>
                   </div>
                   <p className="text-slate-400 leading-relaxed">
-                    Prices, shipping fees, and inventory are refreshed periodically via merchant data feeds. Final price, availability, and delivery terms are verified directly on the official merchant checkout page.
+                    During beta, many prices are sample/demo and may not reflect live merchant feeds. Always confirm final price, VAT, shipping, availability, and delivery terms on the official merchant checkout page.
                   </p>
                 </div>
               </div>
@@ -280,7 +280,7 @@ export function FooterQuickIndex() {
           {activeTab === "stores" && (
             <div className="space-y-3">
               <p className="text-xs text-slate-400 font-medium">
-                Indexed merchant partners and local Click & Collect store networks:
+                Example merchants we aim to cover (beta may use sample/search links, not live affiliate feeds):
               </p>
               <div className="flex flex-wrap gap-2 text-xs">
                 {[
@@ -353,7 +353,7 @@ export function FooterQuickIndex() {
                   <span className="font-bold text-white text-sm">{COMPANY.legalName}</span>
                 </div>
                 <div>
-                  <span className="text-slate-500 uppercase font-bold text-[10px] block">Swiss UID (MwSt)</span>
+                  <span className="text-slate-500 uppercase font-bold text-[10px] block">Swiss UID (Unternehmens-Identifikationsnummer)</span>
                   <span className="font-mono text-emerald-400 font-bold">{COMPANY.uid}</span>
                 </div>
                 <div>

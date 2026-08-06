@@ -69,19 +69,29 @@ export const TARGET_MARKETS = [
   { code: "US", name: "United States", flag: "🇺🇸" },
 ] as const;
 
-export const AFFILIATE_NETWORKS = [
-  "AWIN (CH / DE / FR / UK)",
-  "Amazon Associates",
-  "Digitec Galaxus Partner Program (planned)",
+/** Networks we may apply to via official publisher portals (not all live yet). */
+export const AFFILIATE_NETWORKS_ACTIVE = [] as const;
+
+export const AFFILIATE_NETWORKS_PLANNED = [
+  "AWIN Comparison Engine / Publisher (CH / DE / FR / UK)",
+  "Amazon Associates (via official portal)",
   "2Performant / Profitshare (RO)",
-  "CJ Affiliate",
-  "Effinity (FR)",
+  "Tradedoubler (where Galaxus AT/DE affiliate is offered)",
+  "CJ Affiliate (if approved)",
+  "Effinity (FR, if approved)",
+] as const;
+
+/** @deprecated Prefer ACTIVE + PLANNED split; kept for existing pages. */
+export const AFFILIATE_NETWORKS = [
+  ...AFFILIATE_NETWORKS_ACTIVE,
+  ...AFFILIATE_NETWORKS_PLANNED.map((name) => `${name} (planned)`),
 ] as const;
 
 export const DATA_PROCESSORS = [
   { name: "Vercel Inc.", purpose: "Hosting, CDN, server logs", region: "USA/EU" },
   { name: "ipapi.co", purpose: "IP geolocation (with Location consent)", region: "EU" },
   { name: "OpenStreetMap Nominatim", purpose: "Reverse geocoding (with Location consent)", region: "EU" },
+  { name: "Datadog", purpose: "Optional browser RUM / performance monitoring (with Analytics consent)", region: "USA/EU" },
   { name: "Resend", purpose: "Contact form email delivery (when configured)", region: "USA" },
   { name: "AWIN / merchant partners", purpose: "Affiliate tracking on merchant domains (with Affiliate consent)", region: "Various" },
 ] as const;

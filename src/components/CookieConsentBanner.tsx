@@ -20,6 +20,7 @@ export function CookieConsentBanner() {
   const [isVisible, setIsVisible] = useState(false);
   const [locationConsent, setLocationConsent] = useState(false);
   const [affiliateConsent, setAffiliateConsent] = useState(false);
+  const [analyticsConsent, setAnalyticsConsent] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -30,6 +31,7 @@ export function CookieConsentBanner() {
       const preferences = getConsentPreferences();
       setLocationConsent(preferences?.location ?? false);
       setAffiliateConsent(preferences?.affiliate ?? false);
+      setAnalyticsConsent(preferences?.analytics ?? false);
       setIsVisible(!preferences);
     };
 
@@ -40,6 +42,7 @@ export function CookieConsentBanner() {
       const preferences = getConsentPreferences();
       setLocationConsent(preferences?.location ?? false);
       setAffiliateConsent(preferences?.affiliate ?? false);
+      setAnalyticsConsent(preferences?.analytics ?? false);
       setSaveError(null);
       setShowDetails(true);
       setIsVisible(true);
@@ -77,6 +80,7 @@ export function CookieConsentBanner() {
       saveConsentPreferences({
         location: locationConsent,
         affiliate: affiliateConsent,
+        analytics: analyticsConsent,
       })
     );
 
@@ -164,6 +168,18 @@ export function CookieConsentBanner() {
               <span>
                 <strong className="text-slate-200">{homeUi.affiliate}</strong>
                 <span className="text-slate-400">{homeUi.affiliateDescription}</span>
+              </span>
+            </label>
+            <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={analyticsConsent}
+                onChange={(event) => setAnalyticsConsent(event.target.checked)}
+                className="mt-0.5 accent-emerald-500"
+              />
+              <span>
+                <strong className="text-slate-200">{homeUi.analytics}</strong>
+                <span className="text-slate-400">{homeUi.analyticsDescription}</span>
               </span>
             </label>
           </div>

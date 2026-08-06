@@ -26,6 +26,7 @@ export function useUserLocation(): UseUserLocationResult {
     countryName: COUNTRIES[DEFAULT_COUNTRY].name,
     city: COUNTRIES[DEFAULT_COUNTRY].defaultCoordinates.city,
     isGps: false,
+    locationKind: "default",
   });
 
   const [isLocating, setIsLocating] = useState<boolean>(false);
@@ -79,6 +80,7 @@ export function useUserLocation(): UseUserLocationResult {
       latitude: targetCountry.defaultCoordinates.lat,
       longitude: targetCountry.defaultCoordinates.lng,
       isGps: false,
+      locationKind: "manual",
     }));
   }, [setUserLocation]);
 

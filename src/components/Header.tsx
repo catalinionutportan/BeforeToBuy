@@ -77,7 +77,9 @@ export function Header({
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <span className="hidden md:inline text-slate-400">
-            {ui.detected}{" "}
+            {userLocation.isGps || userLocation.locationKind === "ip"
+              ? ui.detected
+              : ui.defaultMarket}{" "}
             <strong className="text-white">
               {userLocation.city}, {userLocation.countryName} {currentCountryInfo.flag}
             </strong>

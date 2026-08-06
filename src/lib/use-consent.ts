@@ -26,5 +26,6 @@ export function useConsent() {
     hasBanner: isLoaded && !preferences,
     location: preferences?.location ?? false,
     affiliate: preferences?.affiliate ?? false,
+    analytics: preferences?.analytics ?? false,
   };
 }

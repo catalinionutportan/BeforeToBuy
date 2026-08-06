@@ -202,24 +202,7 @@ export default function HomePageClient({
       if (typeof window === "undefined") return;
       const url = new URL(window.location.href);
 
-      // Construct the new pathname with the current locale
-      const currentPathname = url.pathname;
-      const pathSegments = currentPathname.split('/').filter(Boolean);
-      let newPathname = '';
-
-      // Check if the first segment is a valid locale. If not, prepend the current browseLocale.
-      if (pathSegments.length > 0 && availableLocales.includes(pathSegments[0] as SiteLocale)) {
-        // If the current URL already has a locale, ensure it's the correct one
-        if (pathSegments[0] !== browseLocale) {
-          pathSegments[0] = browseLocale;
-        }
-        newPathname = '/' + pathSegments.join('/');
-      } else {
-        // No locale in path, prepend the current browseLocale
-        newPathname = '/' + browseLocale + (currentPathname.startsWith('/') ? currentPathname : '/' + currentPathname);
-      }
-      
-      url.pathname = newPathname; // Update the URL pathname
+      // Keep real app paths only — locale is a client preference, not a URL prefix.
       if (categoryId === ALL_CATEGORIES_ID) url.searchParams.delete("category");
       else url.searchParams.set("category", categoryId);
 
@@ -230,7 +213,7 @@ export default function HomePageClient({
       writeOfferFiltersToSearchParams(url, { ...filters, domain });
       window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
     },
-    [debouncedSearchQuery, browseLocale, availableLocales]
+    [debouncedSearchQuery]
   );
 
   const handleCategoryChange = useCallback(
@@ -384,8 +367,8 @@ export default function HomePageClient({
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full min-w-0 space-y-8">
         
-        {/* Explanatory Banner: How BeforeToBuy Works & Legal PBV Notice */}
-        <PlatformExplanationBanner />
+        {/* Explanatory Banner: How BeforeToBuy Works & price transparency notice */}
+        <PlatformExplanationBanner locale={browseLocale} />
 
         {/* Promos & Vouchers Section Highlighted at Top */}
         <PromoCouponsSection coupons={coupons} userLocation={userLocation} />

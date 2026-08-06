@@ -57,7 +57,7 @@ export default function CookiesPage() {
                 <tbody className="divide-y divide-slate-100">
                   <tr>
                     <td className="p-3 font-semibold">Essential</td>
-                    <td className="p-3">Consent preferences, beta banner dismissal</td>
+                    <td className="p-3">Consent preferences (required to remember your choices)</td>
                     <td className="p-3">localStorage (<code className="text-[10px]">b2b_consent_v3</code>) plus signed HttpOnly cookie (<code className="text-[10px]">b2b_consent</code>), up to 180 days</td>
                     <td className="p-3">Yes</td>
                   </tr>
@@ -73,6 +73,12 @@ export default function CookiesPage() {
                     <td className="p-3">Third-party on merchant domains after you leave our site</td>
                     <td className="p-3">No — only with consent</td>
                   </tr>
+                  <tr>
+                    <td className="p-3 font-semibold">Analytics (optional)</td>
+                    <td className="p-3">Datadog RUM performance monitoring to improve stability (session replay off)</td>
+                    <td className="p-3">Datadog browser SDK when opted in; preference stored in consent localStorage</td>
+                    <td className="p-3">No — only with consent (off by default)</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -87,6 +93,7 @@ export default function CookiesPage() {
               <li><strong>Vercel</strong> — hosting, CDN, server logs</li>
               <li><strong>ipapi.co</strong> — approximate IP geolocation (Location consent)</li>
               <li><strong>OpenStreetMap Nominatim</strong> — reverse geocoding (Location consent)</li>
+              <li><strong>Datadog</strong> — optional RUM / performance monitoring (Analytics consent)</li>
               <li><strong>Merchant partners</strong> — Amazon, Digitec Galaxus, MediaMarkt, eMAG, etc. (Affiliate consent, on their domains)</li>
               <li><strong>Resend</strong> — contact form email delivery (when configured)</li>
             </ul>
@@ -95,7 +102,7 @@ export default function CookiesPage() {
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900">4. Manage your choices</h2>
             <p className="text-xs text-slate-600">
-              You can change or withdraw consent at any time using the cookie banner or the &quot;Cookie Settings&quot; link in the site footer. Withdrawing consent stops optional location lookups and blocks affiliate outbound links until you accept again.
+              You can change or withdraw consent at any time using the cookie banner or the &quot;Cookie Settings&quot; link in the site footer. Withdrawing consent stops optional location lookups, analytics monitoring, and blocks affiliate outbound links until you accept again.
             </p>
             <p className="text-xs text-slate-600">
               See also our{" "}
