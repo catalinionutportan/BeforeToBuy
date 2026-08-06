@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HelpCircle, ChevronDown } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { JsonLd } from "@/components/JsonLd";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY } from "@/lib/company-info";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { buildFaqPageJsonLd } from "@/lib/seo/json-ld";
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
@@ -16,6 +18,7 @@ const faqSections = [
       { q: homeUi.faqSectionAboutQ1, a: homeUi.faqSectionAboutA1 },
       { q: homeUi.faqSectionAboutQ2, a: homeUi.faqSectionAboutA2 },
       { q: homeUi.faqSectionAboutQ3, a: homeUi.faqSectionAboutA3 },
+      { q: homeUi.faqSectionAboutQ4, a: homeUi.faqSectionAboutA4 },
     ],
   },
   {
@@ -61,8 +64,15 @@ export const metadata: Metadata = createPageMetadata({
 });
 
 export default function HelpPage() {
+  const faqJsonLd = buildFaqPageJsonLd(
+    faqSections.flatMap((section) =>
+      section.items.map((item) => ({ q: item.q as string, a: item.a as string }))
+    )
+  );
+
   return (
     <PageShell maxWidthClass="max-w-3xl">
+      <JsonLd data={faqJsonLd} />
       <div className="space-y-8">
         <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-md border border-slate-800 space-y-2">
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full inline-flex items-center gap-1.5">

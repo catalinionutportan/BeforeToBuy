@@ -38,20 +38,27 @@ function writeLocalStorageConsent(prefs: ConsentPreferences | null): void {
 }
 
 /**
- * Reads the non-HttpOnly hint cookie set alongside the server-verified consent
- * cookie. It is never used for authorization — only to detect drift between
- * the server-visible cookie (source of truth) and localStorage.
+ * Reads the non-HttpOnly hint cookie. Supports values that were accidentally
+ * double-encoded by older builds.
  */
 function readCookieConsentHint(): ConsentPreferences | null {
   const prefix = `${CONSENT_CLIENT_HINT_COOKIE_NAME}=`;
   const entry = document.cookie.split("; ").find((part) => part.startsWith(prefix));
   if (!entry) return null;
 
-  try {
-    return parseConsentPreferences(decodeURIComponent(entry.slice(prefix.length)));
-  } catch {
-    return null;
+  let raw = entry.slice(prefix.length);
+  for (let i = 0; i < 3; i++) {
+    const parsed = parseConsentPreferences(raw);
+    if (parsed) return parsed;
+    try {
+      const decoded = decodeURIComponent(raw);
+      if (decoded === raw) break;
+      raw = decoded;
+    } catch {
+      break;
+    }
   }
+  return null;
 }
 
 function consentValuesEqual(a: ConsentPreferences | null, b: ConsentPreferences | null): boolean {
@@ -66,15 +73,14 @@ export function getConsentPreferences(): ConsentPreferences | null {
   const cookieHint = readCookieConsentHint();
   const stored = readLocalStorageConsent();
 
-  // Cookie is the server-visible source of truth: if it disagrees with
-  // localStorage (missing on either side, or different values), resync
-  // localStorage to match it.
-  if (!consentValuesEqual(cookieHint, stored)) {
+  // Only sync FROM a valid cookie hint. Never wipe localStorage just because
+  // the hint cookie is missing/unreadable (that caused Accept to "freeze"/loop).
+  if (cookieHint && !consentValuesEqual(cookieHint, stored)) {
     writeLocalStorageConsent(cookieHint);
     return cookieHint;
   }
 
-  return stored;
+  return cookieHint ?? stored;
 }
 
 export function hasConsent(category: ConsentCategory): boolean {
@@ -83,22 +89,31 @@ export function hasConsent(category: ConsentCategory): boolean {
   return prefs[category];
 }
 
-export async function saveConsentPreferences(
+async function postConsentPreferences(
   prefs: Pick<ConsentPreferences, "location" | "affiliate">
 ): Promise<boolean> {
-  if (!isBrowser()) return false;
-
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8_000);
   try {
     const response = await fetch("/api/consent", {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(prefs),
+      signal: controller.signal,
     });
-    if (!response.ok) return false;
+    return response.ok;
   } catch {
     return false;
+  } finally {
+    clearTimeout(timeout);
   }
+}
+
+export async function saveConsentPreferences(
+  prefs: Pick<ConsentPreferences, "location" | "affiliate">
+): Promise<boolean> {
+  if (!isBrowser()) return false;
 
   const payload: ConsentPreferences = {
     essential: true,
@@ -108,8 +123,15 @@ export async function saveConsentPreferences(
     version: CONSENT_VERSION,
   };
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  // Persist locally first so the banner can close even if the API is slow.
+  writeLocalStorageConsent(payload);
   window.dispatchEvent(new CustomEvent(CONSENT_UPDATED_EVENT));
+
+  const savedOnServer = await postConsentPreferences(prefs);
+  if (!savedOnServer) {
+    // Keep local prefs so the UI stays usable offline / when the API fails.
+    console.warn("[consent] server save failed; keeping local preferences");
+  }
   return true;
 }
 

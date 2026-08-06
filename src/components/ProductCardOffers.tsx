@@ -2,7 +2,7 @@ import { Offer, Product, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { openConsentPreferences } from "@/lib/consent";
 import { useConsent } from "@/lib/use-consent";
-import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
+import { computeTotalPrice } from "@/lib/pricing/total-price";
 import { getPriceTrend } from "@/lib/pricing/price-trend";
 import { defaultLocaleFromCountry, type SiteLocale } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
@@ -69,24 +69,24 @@ export function ProductCardOffers({
           return (
             <div
               key={offer.id}
-              className={`p-2.5 rounded-xl border text-xs flex items-center justify-between transition-all ${
+              className={`p-2.5 rounded-xl border text-xs flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between transition-all min-w-0 ${
                 isLowestFeed
                   ? "bg-emerald-50/50 border-emerald-300/80 hover:bg-emerald-100/50"
                   : "bg-slate-50 border-slate-200/60 hover:bg-slate-100/80"
               }`}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-start gap-2 min-w-0 flex-1">
                 {offer.type === "local_pickup" ? (
-                  <Store className="w-3.5 h-3.5 text-emerald-600 shrink-0" aria-hidden="true" />
+                  <Store className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
                 ) : offer.type === "cross_border" ? (
-                  <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0" aria-hidden="true" />
+                  <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
                 ) : (
-                  <ShoppingBag className="w-3.5 h-3.5 text-slate-500 shrink-0" aria-hidden="true" />
+                  <ShoppingBag className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" aria-hidden="true" />
                 )}
 
-                <div>
+                <div className="min-w-0">
                   <div className="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
-                    <span>{offer.storeName}</span>
+                    <span className="break-words">{offer.storeName}</span>
                     <span
                       className={`font-bold text-[9px] px-1.5 py-0.2 rounded uppercase tracking-wide ${
                         offer.source === "production-live"
@@ -126,13 +126,13 @@ export function ProductCardOffers({
                 </div>
               </div>
 
-              <div className="text-right flex items-center gap-3">
-                <div>
+              <div className="text-left sm:text-right flex items-center justify-between sm:justify-end gap-3 shrink-0 w-full sm:w-auto pl-6 sm:pl-0">
+                <div className="min-w-0">
                   <div className="font-black text-sm text-slate-900">
                     {currentCountryInfo.currencySymbol}
                     {totalPrice.toLocaleString()}
                   </div>
-                  <div className="text-[9px] text-slate-400 font-medium">
+                  <div className="text-[9px] text-slate-400 font-medium break-words">
                     {offer.source === "demo"
                       ? ui.illustrativeTotalDisclaimer
                       : offer.deliveryCost === 0

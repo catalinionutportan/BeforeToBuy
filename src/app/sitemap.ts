@@ -7,6 +7,7 @@ import {
   subcategoryCategoryPath,
 } from "@/lib/category-routes";
 import { DEFAULT_LOCALE, SITE_LOCALES, SiteLocale } from "@/lib/i18n/locales";
+import { productPagePath } from "@/lib/seo/site-url";
 
 function getAlternateLinks(url: string, currentLocale: SiteLocale, allLocales: readonly SiteLocale[]) {
   const languages: Record<string, string> = {};
@@ -102,7 +103,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       );
     }
 
-    return [...staticRoutes, ...categoryRoutes, ...compareRoutes];
+    const productRoutes: MetadataRoute.Sitemap = [];
+    for (const product of catalog.products.slice(0, 200)) {
+      for (const locale of SITE_LOCALES) {
+        const path = productPagePath(product.id, locale);
+        productRoutes.push({
+          url: `${baseUrl}${path}`,
+          lastModified: new Date().toISOString(),
+          changeFrequency: "daily" as const,
+          priority: 0.8,
+        });
+      }
+    }
+
+    return [...staticRoutes, ...categoryRoutes, ...compareRoutes, ...productRoutes];
   } catch {
     // If fetching catalog fails, return only static routes without locale variations for now
     return staticPaths.map((route) => ({

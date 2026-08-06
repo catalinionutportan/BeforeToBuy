@@ -10,6 +10,7 @@ import {
   HeartHandshake,
   CheckCircle2,
   ArrowRight,
+  Info,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CompanyDetailsCard } from "@/components/CompanyDetailsCard";
@@ -21,7 +22,7 @@ const homeUi = HOME_UI.en;
 
 export const metadata: Metadata = createPageMetadata({
   title: "About Us & How It Works",
-  description: "Learn how BeforeToBuy.com helps you compare demo prices, explore categories, and save money before you buy.",
+  description: homeUi.metaDescription,
   path: "/about",
 });
 
@@ -40,6 +41,35 @@ export default function AboutPage() {
           <p className="text-slate-300 text-base max-w-2xl leading-relaxed">
             {homeUi.aboutDescription}
           </p>
+        </div>
+
+        {/* What to expect — clear product promise */}
+        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-5">
+          <div className="border-b border-slate-100 pb-4">
+            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <Info className="w-6 h-6 text-emerald-600" aria-hidden="true" />
+              {homeUi.whatToExpectTitle}
+            </h2>
+            <p className="text-xs text-slate-500 mt-1">{homeUi.whatToExpectIntro}</p>
+          </div>
+          <ul className="space-y-3 text-sm text-slate-700 leading-relaxed">
+            <li className="flex gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
+              <span>{homeUi.whatToExpectPoint1}</span>
+            </li>
+            <li className="flex gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
+              <span>{homeUi.whatToExpectPoint2}</span>
+            </li>
+            <li className="flex gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
+              <span>{homeUi.whatToExpectPoint3}</span>
+            </li>
+            <li className="flex gap-3">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
+              <span>{homeUi.whatToExpectPoint4}</span>
+            </li>
+          </ul>
         </div>
 
         {/* 4-Step Process Section */}

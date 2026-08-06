@@ -1,4 +1,3 @@
-import { useState, useCallback } from "react";
 import Link from "next/link";
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
@@ -52,56 +51,61 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
-      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-4 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="font-medium">{ui.freePriceComparisonEngine}</span>
+      <div className="bg-slate-900 text-slate-300 text-xs py-1.5 px-3 sm:px-4 flex justify-between items-center gap-2 min-w-0">
+        <div className="hidden sm:flex items-center gap-3 min-w-0 overflow-hidden">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="font-medium truncate">{ui.freePriceComparisonEngine}</span>
           </div>
-          <span>•</span>
+          <span className="shrink-0">•</span>
           <Link
             href="/stores"
             locale={locale}
-            className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 underline underline-offset-2"
+            className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 underline underline-offset-2 min-w-0"
           >
-            <Store className="w-3.5 h-3.5" />
-            <span>
+            <Store className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">
               {ui.integratedStoreDomains} {formatUi(ui.integratedStoreDomainsCount, { count: currentCountryInfo.merchantDomains.filter((m) => !m.isCrossBorder).length, countryCode: currentCountryInfo.code })}
             </span>
           </Link>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="sm:hidden flex items-center gap-1.5 min-w-0 overflow-hidden">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span className="font-medium truncate">{ui.freePriceComparisonEngine}</span>
+        </div>
+
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <span className="hidden md:inline text-slate-400">
             {ui.detected}{" "}
             <strong className="text-white">
               {userLocation.city}, {userLocation.countryName} {currentCountryInfo.flag}
             </strong>
           </span>
-          <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase">
+          <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase whitespace-nowrap">
             {ui.betaDemo}
           </span>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center justify-between gap-2">
-            <Link href="/" locale={locale} className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 min-w-0">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
+          <div className="flex items-center justify-between gap-2 min-w-0 w-full md:w-auto">
+            <Link href="/" locale={locale} className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
                 <ShoppingBag className="w-5 h-5" />
               </div>
-              <div>
-                <h1 className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900 bg-clip-text text-transparent">
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900 bg-clip-text text-transparent truncate">
                   BeforeToBuy.com
                 </h1>
-                <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                <p className="text-xs text-slate-500 font-medium truncate">
                   {ui.tagline}
                 </p>
               </div>
             </Link>
 
-            <div className="md:hidden flex items-center gap-2">
+            <div className="md:hidden flex items-center gap-1.5 shrink-0 max-w-[48%]">
               <LanguageSwitcher
                 locale={locale}
                 onLocaleChange={onLocaleChange}
@@ -113,18 +117,18 @@ export function Header({
                 value={userLocation.countryCode}
                 onChange={(e) => onCountryChange(e.target.value as CountryCode)}
                 aria-label={ui.countryMarket}
-                className="bg-slate-100 text-xs border-0 rounded-lg py-1.5 px-2.5 font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500"
+                className="bg-slate-100 text-xs border-0 rounded-lg py-1.5 px-2 font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500 max-w-[5.75rem]"
               >
                 {Object.values(COUNTRIES).map((c) => (
                   <option key={c.code} value={c.code}>
-                    {c.flag} {c.code} ({c.currency})
+                    {c.flag} {c.code}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div className="flex-1 max-w-2xl flex items-center gap-2">
+          <div className="flex-1 max-w-2xl flex items-center gap-2 min-w-0 w-full">
             {onDomainChange && (
               <div className="hidden sm:flex items-center gap-1 bg-slate-100 px-2 py-2 rounded-xl border border-slate-200 shrink-0">
                 <Store className="w-3.5 h-3.5 text-slate-500" />

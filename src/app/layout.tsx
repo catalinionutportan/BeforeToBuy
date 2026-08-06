@@ -4,6 +4,7 @@ import { BetaDemoBanner } from "@/components/BetaDemoBanner";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { DatadogRum } from "@/components/DatadogRum";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SiteJsonLd } from "@/components/SiteJsonLd";
 import { defaultOpenGraph } from "@/lib/metadata";
 import { DEFAULT_LOCALE, type SiteLocale } from "@/lib/i18n/locales";
 import { ClientLocalizationProvider } from "@/components/ClientLocalizationProvider";
@@ -42,11 +43,12 @@ export default function RootLayout({
 
   return (
     <html lang={locale}>
-      <body className="antialiased font-sans bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+      <body className="antialiased font-sans bg-slate-50 text-slate-900">
         <ClientLocalizationProvider currentLocale={locale}>
+          <SiteJsonLd />
           <DatadogRum />
           <BetaDemoBanner />
-          <div className="flex-1 flex flex-col">{children}</div>
+          {children}
           <SiteFooter />
           <CookieConsentBanner />
         </ClientLocalizationProvider>

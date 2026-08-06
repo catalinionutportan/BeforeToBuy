@@ -6,7 +6,7 @@ import {
   getConsentPreferences,
   openConsentPreferences,
 } from "@/lib/consent";
-import { detectUserLocationGps, getLocationFromIp, defaultLocation } from "@/lib/geolocation";
+import { detectUserLocationGps, getLocationFromIp, formatLocationError } from "@/lib/geolocation";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 
@@ -39,10 +39,11 @@ export function useUserLocation(): UseUserLocationResult {
     try {
       const loc = await getLocationFromIp();
       setUserLocation(loc);
+      setErrorMessage(null);
     } catch (error) {
-      console.error("Error fetching IP location:", error);
+      console.warn("Error fetching IP location:", formatLocationError(error));
+      // Keep the current country selection; only show a non-blocking warning.
       setErrorMessage(homeUi.geolocationPositionUnavailable);
-      setUserLocation(defaultLocation());
     } finally {
       setIsLocating(false);
     }
@@ -69,6 +70,7 @@ export function useUserLocation(): UseUserLocationResult {
   // Handle manual country change
   const handleCountryChange = useCallback((countryCode: CountryCode) => {
     const targetCountry = COUNTRIES[countryCode] || COUNTRIES.CH;
+    setErrorMessage(null);
     setUserLocation((prev) => ({
       ...prev,
       countryCode,
@@ -80,7 +82,8 @@ export function useUserLocation(): UseUserLocationResult {
     }));
   }, [setUserLocation]);
 
-  // GPS only on explicit user action and with Location consent
+  // GPS only on explicit user action and with Location consent.
+  // On timeout/unavailable, fall back to IP location instead of failing hard.
   const handleRefreshGps = useCallback(async () => {
     const prefs = getConsentPreferences();
     if (!prefs?.location) {
@@ -89,26 +92,42 @@ export function useUserLocation(): UseUserLocationResult {
     }
 
     setIsLocating(true);
+    setErrorMessage(null);
     try {
       const loc = await detectUserLocationGps();
       setUserLocation(loc);
       setErrorMessage(null);
     } catch (error) {
-      console.error("Error fetching GPS location:", error);
       const isGeoError =
         typeof GeolocationPositionError !== "undefined" &&
         error instanceof GeolocationPositionError;
+      const isTimeout = isGeoError && error.code === error.TIMEOUT;
+      const isUnavailable = isGeoError && error.code === error.POSITION_UNAVAILABLE;
+
+      // Expected on localhost / indoors — warn, then try IP approximate location.
+      if (isTimeout || isUnavailable) {
+        console.warn("GPS unavailable, falling back to IP:", formatLocationError(error));
+        try {
+          const ipLoc = await getLocationFromIp();
+          setUserLocation(ipLoc);
+          setErrorMessage(null);
+          return;
+        } catch (ipError) {
+          console.warn("IP location fallback failed:", formatLocationError(ipError));
+          setErrorMessage(
+            isTimeout ? homeUi.geolocationTimeout : homeUi.geolocationPositionUnavailable
+          );
+          return;
+        }
+      }
+
+      console.warn("Error fetching GPS location:", formatLocationError(error));
       const message = isGeoError
         ? error.code === error.PERMISSION_DENIED
           ? homeUi.geolocationPermissionDenied
-          : error.code === error.POSITION_UNAVAILABLE
-            ? homeUi.geolocationPositionUnavailable
-            : error.code === error.TIMEOUT
-              ? homeUi.geolocationTimeout
-              : homeUi.geolocationPositionUnavailable
+          : homeUi.geolocationPositionUnavailable
         : homeUi.geolocationPositionUnavailable;
       setErrorMessage(message);
-      setUserLocation(defaultLocation());
     } finally {
       setIsLocating(false);
     }

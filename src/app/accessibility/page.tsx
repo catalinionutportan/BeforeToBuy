@@ -4,7 +4,7 @@ import { Accessibility, Eye, Keyboard, Monitor } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
-import { COMPANY, LEGAL_CONTACT } from "@/lib/company-info";
+import { LEGAL_CONTACT } from "@/lib/company-info";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 

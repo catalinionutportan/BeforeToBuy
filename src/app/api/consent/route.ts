@@ -109,22 +109,19 @@ export async function POST(request: Request) {
     path: "/",
     maxAge: CONSENT_COOKIE_MAX_AGE_SECONDS,
   });
-  // Readable companion cookie so the client can resync localStorage with the
-  // HttpOnly cookie (the server-visible source of truth) on later page loads.
+  // Do not pre-encode: Next.js cookie serializer encodes once.
   response.cookies.set({
     name: CONSENT_CLIENT_HINT_COOKIE_NAME,
-    value: encodeURIComponent(
-      JSON.stringify({
-        essential: true,
-        location: preferences.location,
-        affiliate: preferences.affiliate,
-        updatedAt: new Date().toISOString(),
-        version: CONSENT_VERSION,
-      })
-    ),
+    value: JSON.stringify({
+      essential: true,
+      location: preferences.location,
+      affiliate: preferences.affiliate,
+      updatedAt: new Date().toISOString(),
+      version: CONSENT_VERSION,
+    }),
     httpOnly: false,
     secure: isHttps,
-    sameSite: "strict",
+    sameSite: "lax",
     path: "/",
     maxAge: CONSENT_COOKIE_MAX_AGE_SECONDS,
   });
@@ -161,7 +158,7 @@ export async function DELETE(request: Request) {
     value: "",
     httpOnly: false,
     secure: isHttps,
-    sameSite: "strict",
+    sameSite: "lax",
     path: "/",
     maxAge: 0,
   });

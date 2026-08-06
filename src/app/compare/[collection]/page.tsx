@@ -16,8 +16,6 @@ import { HOME_UI } from "@/lib/i18n/ui";
 
 export const dynamic = "force-dynamic";
 
-const homeUi = HOME_UI.en;
-
 interface CollectionPageProps {
   params: Promise<{ collection: string }>;
 }

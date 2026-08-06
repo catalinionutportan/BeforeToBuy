@@ -303,7 +303,7 @@ export default function HomePageClient({
     !filtersActiveBeyondCategory;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div className="w-full bg-slate-50 font-sans">
       
       {/* Header */}
       <Header
@@ -333,9 +333,9 @@ export default function HomePageClient({
 
       {/* Merchant Stores & Integrated Domains Banner Bar */}
       <div className="bg-slate-900 text-white border-b border-slate-800 py-3 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs min-w-0">
           
-          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full sm:w-auto pb-1 sm:pb-0">
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full min-w-0 max-w-full pb-1 sm:pb-0 touch-pan-x">
             <span className="font-extrabold text-emerald-400 shrink-0 uppercase tracking-wider text-[11px] flex items-center gap-1">
               <Store className="w-3.5 h-3.5" /> {homeUi.filterDomain}:
             </span>
@@ -368,20 +368,20 @@ export default function HomePageClient({
 
           <Link
             href="/stores"
-            className="text-slate-300 hover:text-emerald-400 font-bold shrink-0 inline-flex items-center gap-1 text-[11px] hover:underline"
+            className="text-slate-300 hover:text-emerald-400 font-bold shrink-0 inline-flex items-center gap-1 text-[11px] hover:underline max-w-full break-words"
           >
-            <span>
+            <span className="break-words">
               {homeUi.fullStoresDirectory} (
               {COUNTRIES.CH.merchantDomains.length + COUNTRIES.DE.merchantDomains.length}+)
             </span>
-            <ArrowRight className="w-3 h-3 text-emerald-400" />
+            <ArrowRight className="w-3 h-3 text-emerald-400 shrink-0" />
           </Link>
 
         </div>
       </div>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full min-w-0 space-y-8">
         
         {/* Promos & Vouchers Section Highlighted at Top */}
         <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
@@ -412,10 +412,10 @@ export default function HomePageClient({
         </div>
 
         {/* Results Bar Header */}
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between min-w-0">
+          <div className="min-w-0">
             <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2 flex-wrap">
-              <span>
+              <span className="break-words">
                 {formatUi(homeUi.comparingDeals, { country: userLocation.countryName })}
               </span>
               {selectedCategory !== ALL_CATEGORIES_ID && (
@@ -475,12 +475,22 @@ export default function HomePageClient({
 
           <button
             onClick={() => setIsDisclosureOpen(true)}
-            className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5"
+            className="self-start shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 max-w-full"
           >
-            <Info className="w-3.5 h-3.5" />
-            <span>{homeUi.howCommissions}</span>
+            <Info className="w-3.5 h-3.5 shrink-0" />
+            <span className="text-left break-words">{homeUi.howCommissions}</span>
           </button>
         </div>
+
+        {/* Location errors must not hide the catalog — show a banner, keep products. */}
+        {errorMessage && !isLoadingProducts && (
+          <div
+            role="alert"
+            className="bg-amber-50 border border-amber-200 text-amber-950 p-3 sm:p-4 rounded-xl text-sm"
+          >
+            <p className="font-semibold break-words">{sanitizeString(errorMessage)}</p>
+          </div>
+        )}
 
         {/* Products Grid */}
         {isLoadingProducts ? (
@@ -499,13 +509,9 @@ export default function HomePageClient({
               </div>
             ))}
           </div>
-        ) : productFetchFailed ? ( // Surface product fetch failures instead of a silent empty grid
+        ) : productFetchFailed ? (
           <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl text-center">
             <p className="font-bold">{sanitizeString(homeUi.productFetchError)}</p>
-          </div>
-        ) : errorMessage ? ( // Display location error message if set
-          <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl text-center">
-            <p className="font-bold">{sanitizeString(errorMessage)}</p>
           </div>
         ) : showCategoryEmptyState ? (
           <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-lg mx-auto space-y-4">

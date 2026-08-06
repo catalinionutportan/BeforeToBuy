@@ -8,9 +8,11 @@ export interface OfferFilterCriteria {
   freeDeliveryOnly?: boolean;
   maxTotalPrice?: number;
   hasGtinOnly?: boolean;
+  maxPickupDistance?: number;
 }
 
 export const MAX_TOTAL_PRICE_OPTIONS = [100, 200, 500, 1000, 2000] as const;
+export const MAX_PICKUP_DISTANCE_OPTIONS = [5, 10, 25, 50, 100] as const;
 
 export function offerMatchesDomain(offer: Offer, domain: string): boolean {
   if (!domain || domain === "all") return true;
@@ -31,6 +33,15 @@ function offerMatchesCriteria(offer: Offer, criteria: OfferFilterCriteria): bool
     const total = offer.totalPrice ?? computeTotalPrice(offer);
     if (total > criteria.maxTotalPrice) return false;
   }
+  if (criteria.maxPickupDistance != null) {
+    if (
+      !offer.nearbyBranch ||
+      offer.nearbyBranch.distanceKm == null ||
+      offer.nearbyBranch.distanceKm > criteria.maxPickupDistance
+    ) {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -41,7 +52,8 @@ export function hasActiveOfferFilters(criteria: OfferFilterCriteria): boolean {
       criteria.inStockOnly ||
       criteria.freeDeliveryOnly ||
       criteria.maxTotalPrice != null ||
-      criteria.hasGtinOnly
+      criteria.hasGtinOnly ||
+      criteria.maxPickupDistance != null
   );
 }
 
@@ -81,6 +93,8 @@ export function parseOfferFiltersFromSearchParams(
   const brand = params.get("brand") || undefined;
   const maxTotalRaw = params.get("maxTotal");
   const maxTotalPrice = maxTotalRaw ? Number(maxTotalRaw) : undefined;
+  const maxDistanceRaw = params.get("maxDistance");
+  const maxPickupDistance = maxDistanceRaw ? Number(maxDistanceRaw) : undefined;
 
   return {
     domain: domain && domain !== "all" ? domain : undefined,
@@ -90,6 +104,10 @@ export function parseOfferFiltersFromSearchParams(
     maxTotalPrice:
       maxTotalPrice != null && Number.isFinite(maxTotalPrice) && maxTotalPrice > 0
         ? maxTotalPrice
+        : undefined,
+    maxPickupDistance:
+      maxPickupDistance != null && Number.isFinite(maxPickupDistance) && maxPickupDistance > 0
+        ? maxPickupDistance
         : undefined,
     hasGtinOnly: params.get("hasGtin") === "1",
   };
@@ -120,6 +138,12 @@ export function writeOfferFiltersToSearchParams(
     searchParams.set("maxTotal", String(criteria.maxTotalPrice));
   } else {
     searchParams.delete("maxTotal");
+  }
+
+  if (criteria.maxPickupDistance != null) {
+    searchParams.set("maxDistance", String(criteria.maxPickupDistance));
+  } else {
+    searchParams.delete("maxDistance");
   }
 
   if (criteria.hasGtinOnly) searchParams.set("hasGtin", "1");
