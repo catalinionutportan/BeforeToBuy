@@ -275,7 +275,10 @@ function galaxusStoreName(feedMerchantId: string): string {
 }
 
 function galaxusAffiliateNetwork(feedMerchantId: string): string {
-  return feedMerchantId === "ch-galaxus" ? "Galaxus Partner Program" : "Galaxus Merchant Network";
+  // Merchant product-data feed label — not an active affiliate/publisher relationship.
+  return feedMerchantId === "ch-galaxus"
+    ? "Galaxus merchant product feed (not affiliate)"
+    : "Digitec merchant product feed (not affiliate)";
 }
 
 function buildGalaxusOffersFromRow(

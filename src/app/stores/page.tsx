@@ -16,6 +16,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 
@@ -250,15 +251,14 @@ export default function StoresDirectoryPage() {
 
                 {/* Bottom Action Buttons */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                  <a
+                  <ConsentAwareAffiliateLink
                     href={merchant.websiteUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="text-xs font-bold text-slate-500 hover:text-slate-900 flex items-center gap-1"
+                    ariaLabel={homeUi.visitSite}
                   >
                     <span>{homeUi.visitSite}</span>
                     <ExternalLink className="w-3 h-3 opacity-70" />
-                  </a>
+                  </ConsentAwareAffiliateLink>
 
                   <Link
                     href={`/?q=${encodeURIComponent(merchant.domain.split(".")[0])}`}

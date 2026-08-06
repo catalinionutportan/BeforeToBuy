@@ -28,7 +28,7 @@
 npm run smoke:prod
 ```
 
-4. Verify `/status` and `/api/health` return `healthy`
+4. Verify `/status` and `/api/health` return `healthy` (public callers get a summary; Bearer auth unlocks full diagnostics)
 
 ---
 

@@ -163,9 +163,12 @@ export function ProductCardOffers({
         })}
       </div>
 
-      <div className="text-[10px] text-slate-400 flex items-center gap-1 pt-1.5">
-        <Info className="w-3 h-3 shrink-0 text-slate-400" aria-hidden="true" />
-        <span>{ui.priceDisclaimer}</span>
+      <div className="text-[10px] text-slate-400 space-y-1 pt-1.5">
+        <div className="flex items-start gap-1">
+          <Info className="w-3 h-3 shrink-0 text-slate-400 mt-0.5" aria-hidden="true" />
+          <span>{ui.priceDisclaimer}</span>
+        </div>
+        <p className="pl-4">{ui.rankingDisclosure}</p>
       </div>
     </div>
   );

@@ -46,6 +46,8 @@ export function CompanyDetailsCard() {
           <p className="text-slate-600 leading-relaxed">
             UID: {COMPANY.uid}
             <br />
+            {pickLocaleString(COMPANY.vatStatus, browseLocale, COMPANY.vatStatus.en)}
+            <br />
             HR-Nr: {COMPANY.hrNumber}
             <br />
             Registered: {COMPANY.registrationDate}
