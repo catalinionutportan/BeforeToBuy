@@ -43,13 +43,13 @@ export function FooterQuickIndex() {
           </div>
           <div>
             <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-              <span>Quick Index & Legal Transparency Hub</span>
+              <span>Company &amp; legal index</span>
               <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full">
-                Index Rapid
+                Transparency
               </span>
             </h3>
             <p className="text-xs text-slate-400">
-              Instant access to platform notices, company registration, and draft legal &amp; transparency documents
+              Operator details, platform notices, and draft legal documents for users and partner diligence
             </p>
           </div>
         </div>
@@ -76,7 +76,7 @@ export function FooterQuickIndex() {
               }`}
             >
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Warning & Notice Cards</span>
+              <span>Platform notices</span>
             </button>
 
             <button
@@ -88,7 +88,7 @@ export function FooterQuickIndex() {
               }`}
             >
               <Scale className="h-3.5 w-3.5" />
-              <span>Legal Index (10 Links)</span>
+              <span>Legal documents</span>
             </button>
 
             <button
@@ -100,7 +100,7 @@ export function FooterQuickIndex() {
               }`}
             >
               <Store className="h-3.5 w-3.5" />
-              <span>Supported Stores & Hubs</span>
+              <span>Merchant directory</span>
             </button>
 
             <button
@@ -112,7 +112,7 @@ export function FooterQuickIndex() {
               }`}
             >
               <Building className="h-3.5 w-3.5" />
-              <span>Company Registry Sheet</span>
+              <span>Company registry</span>
             </button>
           </div>
 
