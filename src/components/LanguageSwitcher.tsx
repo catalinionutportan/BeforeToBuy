@@ -28,7 +28,7 @@ export function LanguageSwitcher({
 
   return (
     <label
-      className={`inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-[11px] font-semibold text-emerald-900 ${
+      className={`inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-1.5 text-[11px] font-semibold text-emerald-900 min-w-0 max-w-full ${
         compact ? "" : "sm:px-2.5"
       }`}
       title={label}
@@ -41,7 +41,9 @@ export function LanguageSwitcher({
         value={locale}
         onChange={(event) => onLocaleChange(event.target.value as SiteLocale)}
         aria-label={label}
-        className="bg-transparent text-[11px] font-bold text-emerald-950 outline-none cursor-pointer max-w-[8rem]"
+        className={`bg-transparent text-[11px] font-bold text-emerald-950 outline-none cursor-pointer min-w-0 ${
+          compact ? "max-w-[4.75rem]" : "max-w-[8rem]"
+        }`}
       >
         {options.map((code) => (
           <option key={code} value={code}>

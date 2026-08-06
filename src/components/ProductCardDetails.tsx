@@ -1,6 +1,6 @@
 import { Product } from "@/types";
 import { HOME_UI } from "@/lib/i18n/ui";
-import { defaultLocaleFromCountry, type SiteLocale } from "@/lib/i18n/locales";
+import { type SiteLocale } from "@/lib/i18n/locales";
 
 interface ProductCardDetailsProps {
   product: Product;

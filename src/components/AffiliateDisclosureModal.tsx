@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { ShieldCheck, X, Sparkles } from "lucide-react";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
-import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { HOME_UI } from "@/lib/i18n/ui";
 
 interface AffiliateDisclosureModalProps {
   isOpen: boolean;

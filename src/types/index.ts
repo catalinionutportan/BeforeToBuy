@@ -34,6 +34,8 @@ export interface CountryInfo {
   affiliateNetworks: string[];
 }
 
+export type LocationKind = "default" | "ip" | "gps" | "manual";
+
 export interface UserLocation {
   latitude: number;
   longitude: number;
@@ -42,6 +44,8 @@ export interface UserLocation {
   city: string;
   postalCode?: string;
   isGps: boolean; // true if from GPS, false if IP fallback or manual
+  /** How the current coordinates/city were obtained (avoids claiming "Detected" for defaults). */
+  locationKind?: LocationKind;
 }
 
 export interface PhysicalStoreBranch {

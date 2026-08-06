@@ -1,14 +1,13 @@
+const VALID_GTIN_LENGTHS = [8, 12, 13, 14] as const;
+
 /** Normalize GTIN/EAN/UPC strings to a stable 14-digit key when possible. */
 export function normalizeGtin(raw?: string | null): string | undefined {
   if (!raw) return undefined;
 
-  const digits = raw.replace(/\D/g, "");
-  if (digits.length < 8 || digits.length > 14) return undefined;
-
-  if (digits.length === 14) return digits;
-  if (digits.length === 13) return `0${digits}`;
-  if (digits.length === 12) return `00${digits}`;
-  if (digits.length === 8) return `000000${digits}`;
+  const digits = raw.trim().replace(/\D/g, "");
+  if (!VALID_GTIN_LENGTHS.includes(digits.length as (typeof VALID_GTIN_LENGTHS)[number])) {
+    return undefined;
+  }
 
   return digits.padStart(14, "0");
 }

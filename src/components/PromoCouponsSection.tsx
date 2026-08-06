@@ -5,7 +5,7 @@ import { PromoCoupon, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { openConsentPreferences } from "@/lib/consent";
 import { useConsent } from "@/lib/use-consent";
-import { Ticket, Copy, Check, ExternalLink, Flame, Sparkles, Clock } from "lucide-react";
+import { Copy, Check, ExternalLink, Flame, Sparkles, Clock } from "lucide-react";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 

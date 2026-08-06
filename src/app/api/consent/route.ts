@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import {
+  CONSENT_CLIENT_HINT_COOKIE_NAME,
   CONSENT_COOKIE_MAX_AGE_SECONDS,
   CONSENT_COOKIE_NAME,
+  CONSENT_VERSION,
 } from "@/lib/consent-config";
 import { createConsentToken } from "@/lib/server-consent";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -87,8 +89,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const preferences = body as { location: boolean; affiliate: boolean };
-  const token = createConsentToken(preferences);
+  const preferences = body as {
+    location: boolean;
+    affiliate: boolean;
+    analytics?: unknown;
+  };
+  const analytics = preferences.analytics === true;
+  const token = createConsentToken({
+    location: preferences.location,
+    affiliate: preferences.affiliate,
+  });
   if (!token) {
     return NextResponse.json(
       { error: homeUi.consentServiceNotConfigured },
@@ -96,13 +106,31 @@ export async function POST(request: Request) {
     );
   }
 
+  const isHttps = new URL(request.url).protocol === "https:";
   const response = NextResponse.json({ saved: true });
   response.cookies.set({
     name: CONSENT_COOKIE_NAME,
     value: token,
     httpOnly: true,
-    secure: new URL(request.url).protocol === "https:",
+    secure: isHttps,
     sameSite: "strict",
+    path: "/",
+    maxAge: CONSENT_COOKIE_MAX_AGE_SECONDS,
+  });
+  // Do not pre-encode: Next.js cookie serializer encodes once.
+  response.cookies.set({
+    name: CONSENT_CLIENT_HINT_COOKIE_NAME,
+    value: JSON.stringify({
+      essential: true,
+      location: preferences.location,
+      affiliate: preferences.affiliate,
+      analytics,
+      updatedAt: new Date().toISOString(),
+      version: CONSENT_VERSION,
+    }),
+    httpOnly: false,
+    secure: isHttps,
+    sameSite: "lax",
     path: "/",
     maxAge: CONSENT_COOKIE_MAX_AGE_SECONDS,
   });
@@ -123,13 +151,23 @@ export async function DELETE(request: Request) {
     );
   }
 
+  const isHttps = new URL(request.url).protocol === "https:";
   const response = NextResponse.json({ cleared: true });
   response.cookies.set({
     name: CONSENT_COOKIE_NAME,
     value: "",
     httpOnly: true,
-    secure: new URL(request.url).protocol === "https:",
+    secure: isHttps,
     sameSite: "strict",
+    path: "/",
+    maxAge: 0,
+  });
+  response.cookies.set({
+    name: CONSENT_CLIENT_HINT_COOKIE_NAME,
+    value: "",
+    httpOnly: false,
+    secure: isHttps,
+    sameSite: "lax",
     path: "/",
     maxAge: 0,
   });

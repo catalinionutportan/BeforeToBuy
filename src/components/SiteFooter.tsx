@@ -20,6 +20,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { ManageCookiePreferencesButton } from "@/components/ManageCookiePreferencesButton";
+import { FooterQuickIndex } from "@/components/FooterQuickIndex";
 import { COMPANY } from "@/lib/company-info";
 import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
@@ -127,6 +128,9 @@ export function SiteFooter() {
             </div>
           </nav>
         </div>
+
+        {/* Quick Index & Notice Cards Hub */}
+        <FooterQuickIndex />
 
         <div className="flex flex-col gap-5 pt-7 text-xs text-slate-500 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1">

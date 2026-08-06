@@ -112,8 +112,8 @@ export function CategoryNavigation({
   const groups = moduleForPanel ? CATEGORY_SUBCATEGORY_GROUPS[moduleForPanel.id] : undefined;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
+    <div className="space-y-3 min-w-0 max-w-full">
+      <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1 min-w-0 max-w-full touch-pan-x">
         <button
           type="button"
           onClick={() => {

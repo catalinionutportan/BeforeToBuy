@@ -33,7 +33,28 @@ export function defaultLocation(): UserLocation {
     countryName: def.name,
     city: def.defaultCoordinates.city,
     isGps: false,
+    locationKind: "default",
   };
+}
+
+/** GeolocationPositionError properties are non-enumerable, so console shows `{}`. */
+export function formatLocationError(error: unknown): string {
+  if (
+    typeof GeolocationPositionError !== "undefined" &&
+    error instanceof GeolocationPositionError
+  ) {
+    const label =
+      error.code === error.PERMISSION_DENIED
+        ? "PERMISSION_DENIED"
+        : error.code === error.POSITION_UNAVAILABLE
+          ? "POSITION_UNAVAILABLE"
+          : error.code === error.TIMEOUT
+            ? "TIMEOUT"
+            : `CODE_${error.code}`;
+    return `GeolocationPositionError ${label}: ${error.message || "no message"}`;
+  }
+  if (error instanceof Error) return error.message;
+  return String(error);
 }
 
 /**
@@ -43,15 +64,21 @@ export async function reverseGeocode(
   lat: number,
   lng: number
 ): Promise<{ countryCode: CountryCode; countryName: string; city: string }> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
   try {
-    const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`);
+    const res = await fetch(`/api/geocode?lat=${lat}&lng=${lng}`, {
+      signal: controller.signal,
+    });
     if (!res.ok) {
       throw new Error(`Reverse geocode API failed with status: ${res.status}`);
     }
     return await res.json();
   } catch (err) {
-    console.error("Reverse geocode failed", err);
+    console.error("Reverse geocode failed:", formatLocationError(err));
     throw new Error("Unable to determine location from coordinates.");
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
@@ -59,31 +86,42 @@ export async function reverseGeocode(
  * Approximate location from client IP via internal API (requires location consent cookie).
  */
 export async function getLocationFromIp(): Promise<UserLocation> {
-  const res = await fetch("/api/location");
-  if (!res.ok) {
-    throw new Error(`IP location API failed with status: ${res.status}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  try {
+    const res = await fetch("/api/location", { signal: controller.signal });
+    if (!res.ok) {
+      throw new Error(`IP location API failed with status: ${res.status}`);
+    }
+    const data = (await res.json()) as Partial<UserLocation>;
+    if (
+      typeof data.latitude !== "number" ||
+      typeof data.longitude !== "number" ||
+      !data.countryCode
+    ) {
+      throw new Error("IP location API returned incomplete data");
+    }
+    return {
+      latitude: data.latitude,
+      longitude: data.longitude,
+      countryCode: data.countryCode,
+      countryName: data.countryName || COUNTRIES[data.countryCode]?.name || "Unknown",
+      city: data.city || COUNTRIES[data.countryCode]?.defaultCoordinates.city || "Unknown",
+      isGps: false,
+      locationKind: "ip",
+    };
+  } finally {
+    clearTimeout(timeout);
   }
-  const data = (await res.json()) as Partial<UserLocation>;
-  if (
-    typeof data.latitude !== "number" ||
-    typeof data.longitude !== "number" ||
-    !data.countryCode
-  ) {
-    throw new Error("IP location API returned incomplete data");
-  }
-  return {
-    latitude: data.latitude,
-    longitude: data.longitude,
-    countryCode: data.countryCode,
-    countryName: data.countryName || COUNTRIES[data.countryCode]?.name || "Unknown",
-    city: data.city || COUNTRIES[data.countryCode]?.defaultCoordinates.city || "Unknown",
-    isGps: false,
-  };
 }
 
 /**
  * Precise location from browser GPS + reverse geocode.
- * Rejects with GeolocationPositionError when the browser geolocation API fails.
+ * Rejects when the browser cannot obtain coordinates.
+ * If coords are available but reverse-geocode fails, still resolves with GPS coords.
+ *
+ * Uses network/wifi-friendly options first: high-accuracy GPS often times out indoors
+ * or on localhost within a few seconds.
  */
 export function detectUserLocationGps(): Promise<UserLocation> {
   return new Promise((resolve, reject) => {
@@ -94,8 +132,8 @@ export function detectUserLocationGps(): Promise<UserLocation> {
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
+        const { latitude, longitude } = position.coords;
         try {
-          const { latitude, longitude } = position.coords;
           const geo = await reverseGeocode(latitude, longitude);
           resolve({
             latitude,
@@ -104,13 +142,28 @@ export function detectUserLocationGps(): Promise<UserLocation> {
             countryName: geo.countryName,
             city: geo.city,
             isGps: true,
+            locationKind: "gps",
           });
-        } catch (error) {
-          reject(error);
+        } catch {
+          const fallback = COUNTRIES[DEFAULT_COUNTRY];
+          resolve({
+            latitude,
+            longitude,
+            countryCode: DEFAULT_COUNTRY,
+            countryName: fallback.name,
+            city: fallback.defaultCoordinates.city,
+            isGps: true,
+            locationKind: "gps",
+          });
         }
       },
       (error) => reject(error),
-      { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 }
+      {
+        // Faster / more reliable on phones indoors and on local HTTP.
+        enableHighAccuracy: false,
+        timeout: 20_000,
+        maximumAge: 5 * 60_000,
+      }
     );
   });
 }

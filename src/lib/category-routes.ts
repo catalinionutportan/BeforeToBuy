@@ -9,12 +9,10 @@ import {
   isLegacyMultiParentGroup,
   resolveCategoryAlias,
 } from "@/lib/categories";
-import { DEFAULT_LOCALE, SiteLocale } from "./i18n/locales";
+import type { SiteLocale } from "./i18n/locales";
 
-function addLocalePrefix(path: string, locale?: SiteLocale): string {
-  if (locale && locale !== DEFAULT_LOCALE) {
-    return `/${locale}${path}`;
-  }
+/** Locale is a client preference — do not invent /de /fr path prefixes without [locale] routes. */
+function addLocalePrefix(path: string, _locale?: SiteLocale): string {
   return path;
 }
 

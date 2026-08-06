@@ -3,7 +3,7 @@ import { COUNTRIES } from "@/lib/countries";
 import { fetchAmazonOffers } from "@/lib/affiliate-apis/amazon";
 import countryPriceMultipliers from "@/data/country-price-multipliers.json";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
-import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { DEFAULT_LOCALE, type SiteLocale } from "@/lib/i18n/locales";
 
 function isValidHttpUrl(string: string) {
   let url;
@@ -15,9 +15,15 @@ function isValidHttpUrl(string: string) {
   return url.protocol === "http:" || url.protocol === "https:";
 }
 
-export async function getFrOffers(product: Product, userLocation: UserLocation, closestStore: any): Promise<Offer[]> {
+export async function getFrOffers(
+  product: Product,
+  userLocation: UserLocation,
+  closestStore: any,
+  locale: SiteLocale = DEFAULT_LOCALE
+): Promise<Offer[]> {
   const currInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.FR;
   const currency = currInfo.currency;
+  const ui = HOME_UI[locale];
 
   const countryPriceMultiplier: Record<string, number> = countryPriceMultipliers;
   const mult = countryPriceMultiplier[userLocation.countryCode] || 1.0;
@@ -41,7 +47,7 @@ export async function getFrOffers(product: Product, userLocation: UserLocation, 
       type: "local_pickup" as const,
       source: "demo" as const,
       nearbyBranch: closestStore,
-      badge: closestStore ? formatUi(`${HOME_UI[DEFAULT_LOCALE].retrait} {branchName} — {distanceKm} ${HOME_UI[DEFAULT_LOCALE].kmAway}`, { branchName: closestStore.branchName, distanceKm: closestStore.distanceKm }) : undefined,
+      badge: closestStore ? formatUi(`${ui.retrait} {branchName} — {distanceKm} ${ui.kmAway}`, { branchName: closestStore.branchName, distanceKm: closestStore.distanceKm }) : undefined,
     },
     {
       id: `${product.id}-cdiscount`,

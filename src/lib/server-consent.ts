@@ -99,6 +99,12 @@ function getCookie(request: Request, name: string): string | undefined {
 }
 
 export function hasServerConsent(request: Request, category: ConsentCategory): boolean {
+  // Analytics (e.g. Datadog RUM) is enforced client-side only — not in the signed cookie.
+  if (category === "analytics") return false;
+
   const payload = verifyConsentToken(getCookie(request, CONSENT_COOKIE_NAME));
-  return payload?.[category] === true;
+  if (!payload) return false;
+  if (category === "location") return payload.location === true;
+  if (category === "affiliate") return payload.affiliate === true;
+  return false;
 }

@@ -6,6 +6,7 @@ import { hasServerConsent } from "@/lib/server-consent";
 
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
@@ -36,10 +37,14 @@ export async function GET(request: Request) {
         ? `https://ipapi.co/${encodeURIComponent(clientIp)}/json/`
         : "https://ipapi.co/json/";
 
-    const res = await fetch(ipLookupUrl, {
-      headers: { "User-Agent": homeUi.userAgent },
-      next: { revalidate: 3600 },
-    });
+    const res = await fetchWithTimeout(
+      ipLookupUrl,
+      {
+        headers: { "User-Agent": homeUi.userAgent },
+        next: { revalidate: 3600 },
+      },
+      { timeoutMs: 8_000, retries: 1 }
+    );
 
     if (res.ok) {
       const data = await res.json();

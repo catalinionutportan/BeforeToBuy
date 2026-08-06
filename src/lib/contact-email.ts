@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
+
 const CONTACT_FROM = process.env.CONTACT_FROM_EMAIL || "BeforeToBuy <onboarding@resend.dev>";
 const CONTACT_TO = process.env.CONTACT_TO_EMAIL || "admin@portanx.com";
 
@@ -12,25 +14,29 @@ export async function sendContactEmail(input: {
     return { sent: false as const, reason: "missing_api_key" as const };
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
+  const response = await fetchWithTimeout(
+    "https://api.resend.com/emails",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: CONTACT_FROM,
+        to: [CONTACT_TO],
+        reply_to: input.email,
+        subject: input.subject,
+        text: [
+          `Name: ${input.name}`,
+          `Email: ${input.email}`,
+          "",
+          input.message,
+        ].join("\n"),
+      }),
     },
-    body: JSON.stringify({
-      from: CONTACT_FROM,
-      to: [CONTACT_TO],
-      reply_to: input.email,
-      subject: input.subject,
-      text: [
-        `Name: ${input.name}`,
-        `Email: ${input.email}`,
-        "",
-        input.message,
-      ].join("\n"),
-    }),
-  });
+    { timeoutMs: 10_000, retries: 1 }
+  );
 
   if (!response.ok) {
     const errorText = await response.text();

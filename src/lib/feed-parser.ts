@@ -100,6 +100,106 @@ function finalizeFeedProducts(products: Product[]): Product[] {
   return products.map(enrichProductIdentity);
 }
 
+function buildAwinOfferFromRow(
+  row: RawAwinFeedItem,
+  targetCountry: CountryCode,
+  feedMerchantId: string,
+  source: Extract<OfferSource, "production-live" | "sample">
+): Offer {
+  const isProduction = source === "production-live";
+  const price = parseFloat(row.search_price || row.store_price || "0");
+  const originalPrice = isProduction && row.rrp_price ? parseFloat(row.rrp_price) : undefined;
+  const discountPercentage =
+    originalPrice && originalPrice > price
+      ? Math.round(((originalPrice - price) / originalPrice) * 100)
+      : undefined;
+
+  return enrichOfferPricing({
+    id: `awin-${row.aw_product_id}`,
+    storeName: row.merchant_name || "AWIN Merchant",
+    price,
+    originalPrice,
+    discountPercentage,
+    currency: row.currency || "CHF",
+    inStock: row.in_stock === "1" || row.in_stock === "true",
+    deliveryTime: "1-2 Work Days",
+    deliveryCost: parseFloat(row.delivery_cost || "0"),
+    purchaseUrl: row.aw_deep_link || "#",
+    affiliateNetwork: `AWIN ${targetCountry}`,
+    type: "online",
+    promoCode: isProduction ? row.promo_code : undefined,
+    source,
+    feedMerchantId,
+    merchantProductId: row.aw_product_id,
+    badge: isProduction
+      ? discountPercentage && discountPercentage >= 20
+        ? `-${discountPercentage}% feed discount`
+        : "Production feed"
+      : "Sample feed",
+  });
+}
+
+/** Ingest one AWIN row into `productsMap`/`mappingLog`, shared by the string and stream parsers. */
+function ingestAwinRow(
+  row: RawAwinFeedItem,
+  targetCountry: CountryCode,
+  feedMerchantId: string,
+  source: Extract<OfferSource, "production-live" | "sample">,
+  productsMap: Map<string, Product>,
+  mappingLog: MappingLogEntry[]
+): void {
+  if (!row.aw_product_id || !row.product_name) return;
+
+  const isProduction = source === "production-live";
+  const offer = buildAwinOfferFromRow(row, targetCountry, feedMerchantId, source);
+  const gtin = readAwinGtin(row as unknown as Record<string, string>);
+  const productId = gtin ? `feed-gtin-${gtin}` : `feed-${row.aw_product_id}`;
+
+  const existing = productsMap.get(productId);
+  if (existing) {
+    existing.offers.push(offer);
+    return;
+  }
+
+  const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
+    merchantId: feedMerchantId,
+    merchantCategory: row.category_name,
+    title: row.product_name,
+    description: row.description,
+    brand: row.brand_name,
+  });
+
+  mappingLog.push(
+    createMappingLogEntry({
+      productId,
+      merchantId: feedMerchantId,
+      title: row.product_name,
+      rawCategory: row.category_name,
+      mapping: categoryMapping,
+    })
+  );
+
+  productsMap.set(productId, {
+    id: productId,
+    title: row.product_name,
+    description: row.description || row.product_name,
+    gtin,
+    category: categoryMapping.categoryId,
+    categoryAssignment: {
+      method: categoryMapping.method,
+      confidence: categoryMapping.confidence,
+      rawCategory: categoryMapping.rawCategory,
+      proposedCategoryId: categoryMapping.proposedCategoryId,
+    },
+    brand: row.brand_name || "Generic",
+    image: row.merchant_image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
+    targetCountries: [targetCountry],
+    isFlashDeal: isProduction && offer.discountPercentage ? offer.discountPercentage >= 15 : false,
+    catalogSource: source,
+    offers: [offer],
+  });
+}
+
 /**
  * Parser for AWIN CSV / Datafeed lines
  */
@@ -123,85 +223,14 @@ export function parseAwinCsvFeed(
       row[header] = values[index] || "";
     });
 
-    if (!row.aw_product_id || !row.product_name) continue;
-
-    const price = parseFloat(row.search_price || row.store_price || "0");
-    const isProduction = source === "production-live";
-    const originalPrice = isProduction && row.rrp_price ? parseFloat(row.rrp_price) : undefined;
-    const discountPercentage =
-      originalPrice && originalPrice > price
-        ? Math.round(((originalPrice - price) / originalPrice) * 100)
-        : undefined;
-
-    const gtin = readAwinGtin(row);
-
-    const offer: Offer = enrichOfferPricing({
-      id: `awin-${row.aw_product_id}`,
-      storeName: row.merchant_name || "AWIN Merchant",
-      price,
-      originalPrice,
-      discountPercentage,
-      currency: row.currency || "CHF",
-      inStock: row.in_stock === "1" || row.in_stock === "true",
-      deliveryTime: "1-2 Work Days",
-      deliveryCost: parseFloat(row.delivery_cost || "0"),
-      purchaseUrl: row.aw_deep_link || "#",
-      affiliateNetwork: `AWIN ${targetCountry}`,
-      type: "online",
-      promoCode: isProduction ? row.promo_code : undefined,
-      source,
+    ingestAwinRow(
+      row as unknown as RawAwinFeedItem,
+      targetCountry,
       feedMerchantId,
-      merchantProductId: row.aw_product_id,
-      badge: isProduction
-        ? discountPercentage && discountPercentage >= 20
-          ? `-${discountPercentage}% feed discount`
-          : "Production feed"
-        : "Sample feed",
-    });
-
-    const productId = gtin ? `feed-gtin-${gtin}` : `feed-${row.aw_product_id}`;
-
-    if (!productsMap.has(productId)) {
-      const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
-        merchantId: feedMerchantId,
-        merchantCategory: row.category_name,
-        title: row.product_name,
-        description: row.description,
-        brand: row.brand_name,
-      });
-
-      mappingLog.push(
-        createMappingLogEntry({
-          productId,
-          merchantId: feedMerchantId,
-          title: row.product_name,
-          rawCategory: row.category_name,
-          mapping: categoryMapping,
-        })
-      );
-
-      productsMap.set(productId, {
-        id: productId,
-        title: row.product_name,
-        description: row.description || row.product_name,
-        gtin,
-        category: categoryMapping.categoryId,
-        categoryAssignment: {
-          method: categoryMapping.method,
-          confidence: categoryMapping.confidence,
-          rawCategory: categoryMapping.rawCategory,
-          proposedCategoryId: categoryMapping.proposedCategoryId,
-        },
-        brand: row.brand_name || "Generic",
-        image: row.merchant_image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
-        targetCountries: [targetCountry],
-        isFlashDeal: isProduction && discountPercentage ? discountPercentage >= 15 : false,
-        catalogSource: source,
-        offers: [offer],
-      });
-    } else {
-      productsMap.get(productId)!.offers.push(offer);
-    }
+      source,
+      productsMap,
+      mappingLog
+    );
   }
 
   return {
@@ -221,90 +250,12 @@ export async function parseAwinCsvFeedStream(
 ): Promise<{ products: Product[]; mappingLog: MappingLogEntry[] }> {
   const productsMap = new Map<string, Product>();
   const mappingLog: MappingLogEntry[] = [];
-  const isProduction = source === "production-live";
 
   return new Promise((resolve, reject) => {
     csvStream
       .pipe(csv())
       .on('data', (row: RawAwinFeedItem) => {
-        if (!row.aw_product_id || !row.product_name) return;
-
-        const price = parseFloat(row.search_price || row.store_price || "0");
-        const originalPrice = isProduction && row.rrp_price ? parseFloat(row.rrp_price) : undefined;
-        const discountPercentage =
-          originalPrice && originalPrice > price
-            ? Math.round(((originalPrice - price) / originalPrice) * 100)
-            : undefined;
-
-        const gtin = readAwinGtin(row as unknown as Record<string, string>);
-
-        const offer: Offer = enrichOfferPricing({
-          id: `awin-${row.aw_product_id}`,
-          storeName: row.merchant_name || "AWIN Merchant",
-          price,
-          originalPrice,
-          discountPercentage,
-          currency: row.currency || "CHF",
-          inStock: row.in_stock === "1" || row.in_stock === "true",
-          deliveryTime: "1-2 Work Days",
-          deliveryCost: parseFloat(row.delivery_cost || "0"),
-          purchaseUrl: row.aw_deep_link || "#",
-          affiliateNetwork: `AWIN ${targetCountry}`,
-          type: "online",
-          promoCode: isProduction ? row.promo_code : undefined,
-          source,
-          feedMerchantId,
-          merchantProductId: row.aw_product_id,
-          badge: isProduction
-            ? discountPercentage && discountPercentage >= 20
-              ? `-${discountPercentage}% feed discount`
-              : "Production feed"
-            : "Sample feed",
-        });
-
-        const productId = gtin ? `feed-gtin-${gtin}` : `feed-${row.aw_product_id}`;
-
-        if (!productsMap.has(productId)) {
-          const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
-            merchantId: feedMerchantId,
-            merchantCategory: row.category_name,
-            title: row.product_name,
-            description: row.description,
-            brand: row.brand_name,
-          });
-
-          mappingLog.push(
-            createMappingLogEntry({
-              productId,
-              merchantId: feedMerchantId,
-              title: row.product_name,
-              rawCategory: row.category_name,
-              mapping: categoryMapping,
-            })
-          );
-
-          productsMap.set(productId, {
-            id: productId,
-            title: row.product_name,
-            description: row.description || row.product_name,
-            gtin,
-            category: categoryMapping.categoryId,
-            categoryAssignment: {
-              method: categoryMapping.method,
-              confidence: categoryMapping.confidence,
-              rawCategory: categoryMapping.rawCategory,
-              proposedCategoryId: categoryMapping.proposedCategoryId,
-            },
-            brand: row.brand_name || "Generic",
-            image: row.merchant_image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
-            targetCountries: [targetCountry],
-            isFlashDeal: isProduction && discountPercentage ? discountPercentage >= 15 : false,
-            catalogSource: source,
-            offers: [offer],
-          });
-        } else {
-          productsMap.get(productId)!.offers.push(offer);
-        }
+        ingestAwinRow(row, targetCountry, feedMerchantId, source, productsMap, mappingLog);
       })
       .on('end', () => {
         resolve({
@@ -327,6 +278,115 @@ function galaxusAffiliateNetwork(feedMerchantId: string): string {
   return feedMerchantId === "ch-galaxus" ? "Galaxus Partner Program" : "Galaxus Merchant Network";
 }
 
+function buildGalaxusOffersFromRow(
+  row: RawGalaxusFeedItem,
+  feedMerchantId: string,
+  source: Extract<OfferSource, "production-live" | "sample">,
+  storeName: string
+): Offer[] {
+  const isProduction = source === "production-live";
+  const price = Number(row.price_chf) || 0;
+  const originalPrice =
+    isProduction && row.original_price_chf && row.original_price_chf > price
+      ? row.original_price_chf
+      : undefined;
+  const discountPercentage =
+    originalPrice && originalPrice > price
+      ? Math.round(((originalPrice - price) / originalPrice) * 100)
+      : undefined;
+
+  const onlineOffer: Offer = enrichOfferPricing({
+    id: `galaxus-${row.gtin}-online`,
+    storeName,
+    price,
+    originalPrice,
+    discountPercentage,
+    currency: "CHF",
+    inStock: row.stock_status !== "out_of_stock" && row.stock_status !== "0",
+    deliveryTime: "1-3 Work Days",
+    deliveryCost: 0,
+    purchaseUrl: row.product_url || "#",
+    affiliateNetwork: galaxusAffiliateNetwork(feedMerchantId),
+    type: "online",
+    source,
+    feedMerchantId,
+    merchantProductId: row.gtin,
+    badge: isProduction ? "Production feed" : "Sample feed",
+  });
+
+  const offers: Offer[] = [onlineOffer];
+
+  // Only take the first branch for simplicity, as per original logic
+  if (row.branch_availability?.length) {
+    offers.push({
+      ...onlineOffer,
+      id: `galaxus-${row.gtin}-pickup`,
+      type: "local_pickup",
+      deliveryTime: "Pick up today",
+      deliveryCost: 0,
+      badge: isProduction ? "Click & Collect" : "Sample pickup",
+    });
+  }
+
+  return offers;
+}
+
+/** Ingest one Galaxus row into `productsMap`/`mappingLog`, shared by the string and stream parsers. */
+function ingestGalaxusRow(
+  row: RawGalaxusFeedItem,
+  targetCountry: CountryCode,
+  feedMerchantId: string,
+  source: Extract<OfferSource, "production-live" | "sample">,
+  storeName: string,
+  productsMap: Map<string, Product>,
+  mappingLog: MappingLogEntry[]
+): void {
+  if (!row.gtin || !row.title) return;
+
+  const offers = buildGalaxusOffersFromRow(row, feedMerchantId, source, storeName);
+  const isProduction = source === "production-live";
+  const discountPercentage = offers[0]?.discountPercentage;
+
+  const productId = `feed-gtin-${row.gtin}`;
+  const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
+    merchantId: feedMerchantId,
+    merchantCategory: row.merchant_category,
+    title: row.title,
+    description: row.description,
+    brand: row.brand,
+  });
+
+  mappingLog.push(
+    createMappingLogEntry({
+      productId,
+      merchantId: feedMerchantId,
+      title: row.title,
+      rawCategory: row.merchant_category,
+      mapping: categoryMapping,
+    })
+  );
+
+  productsMap.set(productId, {
+    id: productId,
+    title: row.title,
+    description: row.description || row.title,
+    gtin: resolveGtin(row.gtin),
+    category: categoryMapping.categoryId,
+    categoryAssignment: {
+      method: categoryMapping.method,
+      confidence: categoryMapping.confidence,
+      rawCategory: categoryMapping.rawCategory,
+      proposedCategoryId: categoryMapping.proposedCategoryId,
+    },
+    brand: row.brand || "Generic",
+    image: row.image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
+    targetCountries: [targetCountry],
+    isFlashDeal: isProduction && discountPercentage ? discountPercentage >= 15 : false,
+    catalogSource: source,
+    offers,
+  });
+}
+
 /**
  * Parser for Galaxus Merchant JSON feeds (Digitec / Galaxus).
  */
@@ -346,94 +406,10 @@ export function parseGalaxusJsonFeed(
 
   const productsMap = new Map<string, Product>();
   const mappingLog: MappingLogEntry[] = [];
-  const isProduction = source === "production-live";
   const storeName = galaxusStoreName(feedMerchantId);
 
   for (const row of rows) {
-    if (!row.gtin || !row.title) continue;
-
-    const price = Number(row.price_chf) || 0;
-    const originalPrice =
-      isProduction && row.original_price_chf && row.original_price_chf > price
-        ? row.original_price_chf
-        : undefined;
-    const discountPercentage =
-      originalPrice && originalPrice > price
-        ? Math.round(((originalPrice - price) / originalPrice) * 100)
-        : undefined;
-
-    const onlineOffer: Offer = enrichOfferPricing({
-      id: `galaxus-${row.gtin}-online`,
-      storeName,
-      price,
-      originalPrice,
-      discountPercentage,
-      currency: "CHF",
-      inStock: row.stock_status !== "out_of_stock" && row.stock_status !== "0",
-      deliveryTime: "1-3 Work Days",
-      deliveryCost: 0,
-      purchaseUrl: row.product_url || "#",
-      affiliateNetwork: galaxusAffiliateNetwork(feedMerchantId),
-      type: "online",
-      source,
-      feedMerchantId,
-      merchantProductId: row.gtin,
-      badge: isProduction ? "Production feed" : "Sample feed",
-    });
-
-    const offers: Offer[] = [onlineOffer];
-
-    if (row.branch_availability?.length) {
-      const branch = row.branch_availability[0];
-      offers.push({
-        ...onlineOffer,
-        id: `galaxus-${row.gtin}-pickup`,
-        type: "local_pickup",
-        deliveryTime: "Pick up today",
-        deliveryCost: 0,
-        badge: isProduction ? "Click & Collect" : "Sample pickup",
-      });
-      void branch;
-    }
-
-    const productId = `feed-gtin-${row.gtin}`;
-    const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
-      merchantId: feedMerchantId,
-      merchantCategory: row.merchant_category,
-      title: row.title,
-      description: row.description,
-      brand: row.brand,
-    });
-
-    mappingLog.push(
-      createMappingLogEntry({
-        productId,
-        merchantId: feedMerchantId,
-        title: row.title,
-        rawCategory: row.merchant_category,
-        mapping: categoryMapping,
-      })
-    );
-
-    productsMap.set(productId, {
-      id: productId,
-      title: row.title,
-      description: row.description || row.title,
-      gtin: resolveGtin(row.gtin),
-      category: categoryMapping.categoryId,
-      categoryAssignment: {
-        method: categoryMapping.method,
-        confidence: categoryMapping.confidence,
-        rawCategory: categoryMapping.rawCategory,
-        proposedCategoryId: categoryMapping.proposedCategoryId,
-      },
-      brand: row.brand || "Generic",
-      image: row.image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
-      targetCountries: [targetCountry],
-      isFlashDeal: isProduction && discountPercentage ? discountPercentage >= 15 : false,
-      catalogSource: source,
-      offers,
-    });
+    ingestGalaxusRow(row, targetCountry, feedMerchantId, source, storeName, productsMap, mappingLog);
   }
 
   return {
@@ -453,7 +429,6 @@ export async function parseGalaxusJsonFeedStream(
 ): Promise<{ products: Product[]; mappingLog: MappingLogEntry[] }> {
   const productsMap = new Map<string, Product>();
   const mappingLog: MappingLogEntry[] = [];
-  const isProduction = source === "production-live";
   const storeName = galaxusStoreName(feedMerchantId);
 
   const pipeline = chain([
@@ -463,89 +438,7 @@ export async function parseGalaxusJsonFeedStream(
 
   return new Promise((resolve, reject) => {
     pipeline.on('data', ({ value: row }: { value: RawGalaxusFeedItem }) => {
-      if (!row.gtin || !row.title) return;
-
-      const price = Number(row.price_chf) || 0;
-      const originalPrice =
-        isProduction && row.original_price_chf && row.original_price_chf > price
-          ? row.original_price_chf
-          : undefined;
-      const discountPercentage =
-        originalPrice && originalPrice > price
-          ? Math.round(((originalPrice - price) / originalPrice) * 100)
-          : undefined;
-
-      const onlineOffer: Offer = enrichOfferPricing({
-        id: `galaxus-${row.gtin}-online`,
-        storeName,
-        price,
-        originalPrice,
-        discountPercentage,
-        currency: "CHF",
-        inStock: row.stock_status !== "out_of_stock" && row.stock_status !== "0",
-        deliveryTime: "1-3 Work Days",
-        deliveryCost: 0,
-        purchaseUrl: row.product_url || "#",
-        affiliateNetwork: galaxusAffiliateNetwork(feedMerchantId),
-        type: "online",
-        source,
-        feedMerchantId,
-        merchantProductId: row.gtin,
-        badge: isProduction ? "Production feed" : "Sample feed",
-      });
-
-      const offers: Offer[] = [onlineOffer];
-
-      if (row.branch_availability?.length) {
-        // Only take the first branch for simplicity, as per original logic
-        offers.push({
-          ...onlineOffer,
-          id: `galaxus-${row.gtin}-pickup`,
-          type: "local_pickup",
-          deliveryTime: "Pick up today",
-          deliveryCost: 0,
-          badge: isProduction ? "Click & Collect" : "Sample pickup",
-        });
-      }
-
-      const productId = `feed-gtin-${row.gtin}`;
-      const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
-        merchantId: feedMerchantId,
-        merchantCategory: row.merchant_category,
-        title: row.title,
-        description: row.description,
-        brand: row.brand,
-      });
-
-      mappingLog.push(
-        createMappingLogEntry({
-          productId,
-          merchantId: feedMerchantId,
-          title: row.title,
-          rawCategory: row.merchant_category,
-          mapping: categoryMapping,
-        })
-      );
-
-      productsMap.set(productId, {
-        id: productId,
-        title: row.title,
-        description: row.description || row.title,
-        gtin: resolveGtin(row.gtin),
-        category: categoryMapping.categoryId,
-        categoryAssignment: {
-          method: categoryMapping.method,
-          confidence: categoryMapping.confidence,
-          rawCategory: categoryMapping.rawCategory,
-          proposedCategoryId: categoryMapping.proposedCategoryId,
-        },
-        brand: row.brand || "Generic",
-        image: row.image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
-        targetCountries: [targetCountry],
-        isFlashDeal: isProduction && discountPercentage ? discountPercentage >= 15 : false,
-        catalogSource: source,
-        offers,
-      });
+      ingestGalaxusRow(row, targetCountry, feedMerchantId, source, storeName, productsMap, mappingLog);
     });
 
     pipeline.on('end', () => {
@@ -563,9 +456,13 @@ export async function parseGalaxusJsonFeedStream(
 
 /**
  * Sample Coupons Feed fetcher for AWIN & CJ Coupon API Stream
+ *
+ * TODO(coupons): wire this up to `fetchAwinPromotions` in `@/lib/api-connectors`
+ * once an authenticated AWIN publisher ID/token pair is available. That
+ * connector is a deliberate stub (returns `[]`) until then — do not hardcode
+ * coupon codes here in the meantime, as they cannot be kept accurate/live.
  */
 export function getActiveCouponsForCountry(_country: CountryCode): PromoCoupon[] {
-  // Beta/Demo: no hardcoded coupon codes until verified via affiliate APIs.
   void _country;
   return [];
 }

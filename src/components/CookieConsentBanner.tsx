@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Cookie, X } from "lucide-react";
 import {
@@ -20,14 +20,18 @@ export function CookieConsentBanner() {
   const [isVisible, setIsVisible] = useState(false);
   const [locationConsent, setLocationConsent] = useState(false);
   const [affiliateConsent, setAffiliateConsent] = useState(false);
+  const [analyticsConsent, setAnalyticsConsent] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const syncVisibility = () => {
       const preferences = getConsentPreferences();
       setLocationConsent(preferences?.location ?? false);
       setAffiliateConsent(preferences?.affiliate ?? false);
+      setAnalyticsConsent(preferences?.analytics ?? false);
       setIsVisible(!preferences);
     };
 
@@ -38,7 +42,9 @@ export function CookieConsentBanner() {
       const preferences = getConsentPreferences();
       setLocationConsent(preferences?.location ?? false);
       setAffiliateConsent(preferences?.affiliate ?? false);
+      setAnalyticsConsent(preferences?.analytics ?? false);
       setSaveError(null);
+      setShowDetails(true);
       setIsVisible(true);
     };
     window.addEventListener("b2b-consent-open", openHandler);
@@ -50,14 +56,20 @@ export function CookieConsentBanner() {
   }, []);
 
   const saveAndClose = async (save: () => Promise<boolean>) => {
+    if (isSaving) return;
     setIsSaving(true);
     setSaveError(null);
-    const saved = await save();
-    setIsSaving(false);
-    if (saved) {
-      setIsVisible(false);
-    } else {
+    try {
+      const saved = await save();
+      if (saved) {
+        setIsVisible(false);
+      } else {
+        setSaveError(homeUi.unableToSavePreferences);
+      }
+    } catch {
       setSaveError(homeUi.unableToSavePreferences);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -68,114 +80,167 @@ export function CookieConsentBanner() {
       saveConsentPreferences({
         location: locationConsent,
         affiliate: affiliateConsent,
+        analytics: analyticsConsent,
       })
     );
+
+  useEffect(() => {
+    if (isVisible) dialogRef.current?.focus();
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isSaving) {
+        handleEssentialOnly();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisible, isSaving]);
 
   if (!isVisible) return null;
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
-      aria-modal="true"
+      aria-modal="false"
       aria-labelledby="cookie-consent-title"
-      className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-50 bg-slate-900 text-white rounded-2xl p-5 shadow-2xl border border-slate-800"
+      aria-describedby="cookie-consent-description"
+      tabIndex={-1}
+      className="fixed inset-x-0 bottom-0 z-50 p-3 sm:p-4 pointer-events-none"
     >
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-            <Cookie className="w-4 h-4" aria-hidden="true" />
+      <div className="pointer-events-auto mx-auto w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 text-white shadow-2xl focus:outline-none">
+        <div className="flex items-start justify-between gap-3 p-4 pb-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+              <Cookie className="w-4 h-4" aria-hidden="true" />
+            </div>
+            <h4 id="cookie-consent-title" className="font-bold text-sm text-white break-words min-w-0">
+              {homeUi.cookiePrivacyPreferences}
+            </h4>
           </div>
-          <h4 id="cookie-consent-title" className="font-bold text-sm text-white">
-            {homeUi.cookiePrivacyPreferences}
-          </h4>
+          <button
+            type="button"
+            onClick={handleEssentialOnly}
+            disabled={isSaving}
+            aria-label={homeUi.closeAndAcceptEssential}
+            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={handleEssentialOnly}
-          disabled={isSaving}
-          aria-label={homeUi.closeAndAcceptEssential}
-          className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+
+        <p
+          id="cookie-consent-description"
+          className={`px-4 text-xs text-slate-300 leading-relaxed ${showDetails ? "mb-3" : "mb-2 line-clamp-2"}`}
         >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-
-      <p className="text-xs text-slate-300 leading-relaxed mb-3">
-        {homeUi.essentialLocalStorageDescription}
-      </p>
-
-      <div className="text-[11px] space-y-2 mb-4">
-        <div className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5">
-          <strong className="text-slate-200">{homeUi.essential}</strong>
-          <span className="text-slate-400">{homeUi.requiredPreferences}</span>
-        </div>
-        <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={locationConsent}
-            onChange={(event) => setLocationConsent(event.target.checked)}
-            className="mt-0.5 accent-emerald-500"
-          />
-          <span>
-            <strong className="text-slate-200">{homeUi.location}</strong>
-            <span className="text-slate-400">{homeUi.locationDescription}</span>
-          </span>
-        </label>
-        <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={affiliateConsent}
-            onChange={(event) => setAffiliateConsent(event.target.checked)}
-            className="mt-0.5 accent-emerald-500"
-          />
-          <span>
-            <strong className="text-slate-200">{homeUi.affiliate}</strong>
-            <span className="text-slate-400">{homeUi.affiliateDescription}</span>
-          </span>
-        </label>
-      </div>
-
-      {saveError && (
-        <p role="alert" className="text-[11px] text-red-300 mb-3">
-          {saveError}
+          {homeUi.essentialLocalStorageDescription}
         </p>
-      )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-        <button
-          type="button"
-          onClick={handleAcceptAll}
-          disabled={isSaving}
-          className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white font-bold py-2.5 px-3 rounded-xl transition-colors cursor-pointer text-center"
-        >
-          {homeUi.acceptAll}
-        </button>
-        <button
-          type="button"
-          onClick={handleSavePreferences}
-          disabled={isSaving}
-          className="w-full bg-blue-700 hover:bg-blue-600 disabled:opacity-60 text-white font-bold py-2.5 px-3 rounded-xl transition-colors cursor-pointer text-center"
-        >
-          {homeUi.saveSelection}
-        </button>
-        <button
-          type="button"
-          onClick={handleEssentialOnly}
-          disabled={isSaving}
-          className="w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-60 text-slate-300 font-semibold py-2.5 px-3 rounded-xl transition-colors cursor-pointer text-center border border-slate-700"
-        >
-          {homeUi.essentialOnly}
-        </button>
-      </div>
+        {showDetails && (
+          <div className="px-4 text-[11px] space-y-2 mb-3 max-h-[28vh] overflow-y-auto">
+            <div className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5">
+              <strong className="text-slate-200">{homeUi.essential}</strong>
+              <span className="text-slate-400">{homeUi.requiredPreferences}</span>
+            </div>
+            <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={locationConsent}
+                onChange={(event) => setLocationConsent(event.target.checked)}
+                className="mt-0.5 accent-emerald-500"
+              />
+              <span>
+                <strong className="text-slate-200">{homeUi.location}</strong>
+                <span className="text-slate-400">{homeUi.locationDescription}</span>
+              </span>
+            </label>
+            <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={affiliateConsent}
+                onChange={(event) => setAffiliateConsent(event.target.checked)}
+                className="mt-0.5 accent-emerald-500"
+              />
+              <span>
+                <strong className="text-slate-200">{homeUi.affiliate}</strong>
+                <span className="text-slate-400">{homeUi.affiliateDescription}</span>
+              </span>
+            </label>
+            <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={analyticsConsent}
+                onChange={(event) => setAnalyticsConsent(event.target.checked)}
+                className="mt-0.5 accent-emerald-500"
+              />
+              <span>
+                <strong className="text-slate-200">{homeUi.analytics}</strong>
+                <span className="text-slate-400">{homeUi.analyticsDescription}</span>
+              </span>
+            </label>
+          </div>
+        )}
 
-      <div className="mt-3 text-[11px] text-slate-400 flex items-center justify-between border-t border-slate-800/80 pt-2 gap-3">
-        <Link href="/cookies" className="hover:text-emerald-400 underline">
-          {homeUi.cookiePolicy}
-        </Link>
-        <Link href="/privacy" className="hover:text-emerald-400 underline">
-          {homeUi.privacyPolicy}
-        </Link>
-        <span>{homeUi.consentVersion} 3</span>
+        {!showDetails && (
+          <div className="px-4 mb-2">
+            <button
+              type="button"
+              onClick={() => setShowDetails(true)}
+              className="text-[11px] text-emerald-400 underline underline-offset-2"
+            >
+              {homeUi.cookiePrivacyPreferences}
+            </button>
+          </div>
+        )}
+
+        {saveError && (
+          <p role="alert" className="px-4 text-[11px] text-red-300 mb-2">
+            {saveError}
+          </p>
+        )}
+
+        <div className="grid grid-cols-1 gap-2 p-4 pt-1 text-xs sm:grid-cols-3">
+          <button
+            type="button"
+            onClick={handleAcceptAll}
+            disabled={isSaving}
+            className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white font-bold py-3 px-3 rounded-xl transition-colors cursor-pointer text-center"
+          >
+            {homeUi.acceptAll}
+          </button>
+          {showDetails && (
+            <button
+              type="button"
+              onClick={handleSavePreferences}
+              disabled={isSaving}
+              className="w-full bg-blue-700 hover:bg-blue-600 disabled:opacity-60 text-white font-bold py-3 px-3 rounded-xl transition-colors cursor-pointer text-center"
+            >
+              {homeUi.saveSelection}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleEssentialOnly}
+            disabled={isSaving}
+            className="w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-60 text-slate-300 font-semibold py-3 px-3 rounded-xl transition-colors cursor-pointer text-center border border-slate-700"
+          >
+            {homeUi.essentialOnly}
+          </button>
+        </div>
+
+        <div className="px-4 pb-3 text-[11px] text-slate-400 flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+          <Link href="/cookies" className="hover:text-emerald-400 underline break-words">
+            {homeUi.cookiePolicy}
+          </Link>
+          <Link href="/privacy" className="hover:text-emerald-400 underline break-words">
+            {homeUi.privacyPolicy}
+          </Link>
+          <span className="shrink-0">{homeUi.consentVersion} 3</span>
+        </div>
       </div>
     </div>
   );
