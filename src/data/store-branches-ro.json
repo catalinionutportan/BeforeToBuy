@@ -1,15 +1,5 @@
 [
   {
-    "id": "ro-altex-buc",
-    "storeName": "Altex.ro",
-    "branchName": "București Unirea Shopping Center",
-    "address": "Piața Unirii 1, București",
-    "city": "București",
-    "latitude": 44.4275,
-    "longitude": 26.1033,
-    "stockStatus": "In Stock"
-  },
-  {
     "id": "ro-emag-cluj",
     "storeName": "eMAG.ro",
     "branchName": "Showroom eMAG Cluj-Napoca",
@@ -17,6 +7,16 @@
     "city": "Cluj-Napoca",
     "latitude": 46.7588,
     "longitude": 23.5511,
+    "stockStatus": "In Stock"
+  },
+  {
+    "id": "ro-dedeman-buc",
+    "storeName": "Dedeman",
+    "branchName": "Dedeman București Berceni",
+    "address": "Șoseaua de Centură, București",
+    "city": "București",
+    "latitude": 44.375,
+    "longitude": 26.135,
     "stockStatus": "In Stock"
   }
 ]

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense, useCallback, useMemo } from "react";
+import { useEffect, useState, Suspense, useCallback, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { CountryCode, Product, PromoCoupon } from "@/types";
@@ -10,6 +10,7 @@ import type { ProductFetchMeta } from "@/lib/product-service";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { Header } from "@/components/Header";
 import { LocationBanner } from "@/components/LocationBanner";
+import { MarketHubTabs } from "@/components/MarketHubTabs";
 import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
 import { MarketEntryHero } from "@/components/MarketEntryHero";
@@ -20,7 +21,8 @@ import {
   isActiveCollectionSelection,
 } from "@/components/CollectionNavigation";
 import { OfferFilters } from "@/components/OfferFilters";
-import { ALL_CATEGORIES_ID } from "@/lib/categories";
+import { ALL_CATEGORIES_ID, productMatchesCategoryFilter } from "@/lib/categories";
+import { DEFAULT_MARKET_HUB_ID, MARKET_HUB_TABS, isMarketHubId } from "@/lib/market-hubs";
 import {
   CATEGORY_UI,
   OFFER_FILTER_UI,
@@ -73,7 +75,9 @@ export default function HomePageClient({
   const [searchInput, setSearchInput] = useState<string>("");
   const debouncedSearchQuery = useDebouncedValue(searchInput, 350);
   const [selectedDomain, setSelectedDomain] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORIES_ID);
+  const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_MARKET_HUB_ID);
+  const [visibleCount, setVisibleCount] = useState(12);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [offerFilters, setOfferFilters] = useState<OfferFilterCriteria>({});
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [coupons, setCoupons] = useState<PromoCoupon[]>([]);
@@ -114,7 +118,7 @@ export default function HomePageClient({
 
     const readBrowseState = () => {
       const params = new URLSearchParams(window.location.search);
-      setSelectedCategory(params.get("category") || ALL_CATEGORIES_ID);
+      setSelectedCategory(params.get("category") || DEFAULT_MARKET_HUB_ID);
       setSearchInput(params.get("q") || "");
       const parsed = parseOfferFiltersFromSearchParams(params);
       setSelectedDomain(parsed.domain || "all");
@@ -161,10 +165,7 @@ export default function HomePageClient({
           params.set("q", debouncedSearchQuery.trim());
         }
 
-        if (selectedCategory !== ALL_CATEGORIES_ID) {
-          params.set("category", selectedCategory);
-        }
-
+        // Fetch full market catalog; hub/department tabs filter client-side.
         const response = await fetch(`/api/products?${params.toString()}`);
         if (!response.ok) {
           throw new Error("Product API request failed");
@@ -191,7 +192,7 @@ export default function HomePageClient({
       setCoupons(activeCoupons);
     }
     loadProductsAndCoupons();
-  }, [userLocation, debouncedSearchQuery, selectedCategory, browseLocale, setProducts, setCatalogMeta, setCoupons]);
+  }, [userLocation, debouncedSearchQuery, browseLocale, setProducts, setCatalogMeta, setCoupons]);
 
   const syncBrowseUrl = useCallback(
     (
@@ -253,10 +254,10 @@ export default function HomePageClient({
     setSearchInput("");
     setSelectedDomain("all");
     setOfferFilters({});
-    setSelectedCategory(ALL_CATEGORIES_ID);
+    setSelectedCategory(DEFAULT_MARKET_HUB_ID);
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
-      url.searchParams.delete("category");
+      url.searchParams.set("category", DEFAULT_MARKET_HUB_ID);
       url.searchParams.delete("q");
       writeOfferFiltersToSearchParams(url, {});
       window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
@@ -277,8 +278,58 @@ export default function HomePageClient({
 
 
   const brandOptions = useMemo(() => collectBrandOptions(products), [products]);
-  const displayedProducts = useMemo(() => applyOfferFilters(products, activeOfferFilters), [products, activeOfferFilters]);
+  const categoryFilteredProducts = useMemo(
+    () =>
+      products.filter((product) => productMatchesCategoryFilter(product, selectedCategory)),
+    [products, selectedCategory]
+  );
+  const displayedProducts = useMemo(
+    () => applyOfferFilters(categoryFilteredProducts, activeOfferFilters),
+    [categoryFilteredProducts, activeOfferFilters]
+  );
   const filtersActiveBeyondCategory = useMemo(() => hasActiveOfferFilters(activeOfferFilters), [activeOfferFilters]);
+  const hubCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const hub of MARKET_HUB_TABS) {
+      counts[hub.id] = products.filter((product) =>
+        productMatchesCategoryFilter(product, hub.id)
+      ).length;
+    }
+    return counts;
+  }, [products]);
+  const visibleProducts = useMemo(
+    () => displayedProducts.slice(0, visibleCount),
+    [displayedProducts, visibleCount]
+  );
+
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [selectedCategory, selectedDomain, offerFilters, debouncedSearchQuery, userLocation.countryCode]);
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisibleCount((count) =>
+            count >= displayedProducts.length ? count : Math.min(count + 12, displayedProducts.length)
+          );
+        }
+      },
+      { rootMargin: "240px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [displayedProducts.length]);
+
+  const handleHubChange = useCallback(
+    (hubId: string) => {
+      setSelectedCategory(hubId);
+      syncBrowseUrl(hubId, selectedDomain, offerFilters);
+    },
+    [syncBrowseUrl, selectedDomain, offerFilters]
+  );
 
   const showCategoryEmptyState =
     !isLoadingProducts &&
@@ -314,6 +365,13 @@ export default function HomePageClient({
         productionOfferCount={catalogMeta?.productionOfferCount || 0}
         sampleOfferCount={catalogMeta?.sampleOfferCount || 0}
         locale={browseLocale}
+      />
+
+      <MarketHubTabs
+        selectedHub={isMarketHubId(selectedCategory) ? selectedCategory : ""}
+        onHubChange={handleHubChange}
+        locale={browseLocale}
+        hubCounts={hubCounts}
       />
 
       {/* Merchant Stores & Integrated Domains Banner Bar */}
@@ -550,18 +608,25 @@ export default function HomePageClient({
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayedProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                userLocation={userLocation}
-                locale={browseLocale}
-                onSelectOffer={() => {
-                  // Affiliate redirect handled by the browser via purchaseUrl
-                }}
-              />
-            ))}
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {visibleProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  userLocation={userLocation}
+                  locale={browseLocale}
+                  onSelectOffer={() => {
+                    // Affiliate redirect handled by the browser via purchaseUrl
+                  }}
+                />
+              ))}
+            </div>
+            <div ref={loadMoreRef} className="py-4 text-center text-xs text-slate-500">
+              {visibleCount < displayedProducts.length
+                ? homeUi.scrollForMoreProducts
+                : homeUi.endOfCatalog}
+            </div>
           </div>
         )}
 
