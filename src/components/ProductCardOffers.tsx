@@ -45,6 +45,11 @@ export function ProductCardOffers({
       openConsentPreferences();
       return;
     }
+    // Explicit open helps when the browser treats the click as a soft navigation.
+    if (offer.purchaseUrl && offer.purchaseUrl !== "#") {
+      event.preventDefault();
+      window.open(offer.purchaseUrl, "_blank", "noopener,noreferrer");
+    }
     onSelectOffer(product, offer);
   };
 
@@ -98,6 +103,8 @@ export function ProductCardOffers({
                       className={`font-bold text-[9px] px-1.5 py-0.2 rounded uppercase tracking-wide ${
                         offer.source === "production-live"
                           ? "bg-blue-100 text-blue-800 border border-blue-200"
+                          : offer.badge
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                           : offer.source === "sample"
                             ? "bg-amber-100 text-amber-800 border border-amber-200"
                             : "bg-slate-200 text-slate-600 border border-slate-300"
@@ -105,6 +112,8 @@ export function ProductCardOffers({
                     >
                       {offer.source === "production-live"
                         ? ui.liveOfferLabel
+                        : offer.badge
+                          ? offer.badge
                         : offer.source === "sample"
                           ? ui.sampleOfferLabel
                           : ui.demoOfferLabel}
@@ -162,7 +171,13 @@ export function ProductCardOffers({
                       : ui.acceptAffiliateCookiesHint
                   }
                 >
-                  <span>{offer.source === "production-live" ? ui.viewOfferButton : ui.searchStoreButton}</span>
+                  <span>
+                    {affiliate
+                      ? offer.source === "production-live"
+                        ? ui.viewOfferButton
+                        : ui.searchStoreButton
+                      : ui.enableAffiliateToOpen}
+                  </span>
                   <ExternalLink className="w-3 h-3 opacity-80 group-hover/btn:translate-x-0.5 transition-transform" aria-hidden="true" />
                 </a>
               </div>

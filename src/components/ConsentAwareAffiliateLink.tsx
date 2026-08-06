@@ -23,9 +23,15 @@ export function ConsentAwareAffiliateLink({
   const { affiliate } = useConsent();
 
   const blockWithoutConsent = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (affiliate) return;
-    event.preventDefault();
-    openConsentPreferences();
+    if (!affiliate) {
+      event.preventDefault();
+      openConsentPreferences();
+      return;
+    }
+    if (href && href !== "#") {
+      event.preventDefault();
+      window.open(href, "_blank", "noopener,noreferrer");
+    }
   };
 
   return (
