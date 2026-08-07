@@ -1,16 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { createReadStream } from "node:fs";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { parseGoogleMerchantXmlFeed } from "@/lib/google-merchant-feed-parser";
 import { wrapScule365AffiliateUrl } from "@/lib/affiliate-links";
 import { parseConfiguredFeed } from "@/lib/feed-loader";
-import { MERCHANT_FEEDS } from "@/lib/merchant-integrations";
-import { clearFeedCacheForTests, getFeedProducts } from "@/lib/merchant-feeds";
+import type { FeedConfig } from "@/lib/merchant-integrations";
 
 const samplePath = path.join(process.cwd(), "src/data/sample-google-merchant-scule365-ro.xml");
 
-describe("Google Merchant Scule365 feed", () => {
+/** Dormant Scule365 feed config — not in MERCHANT_FEEDS until re-wired publicly. */
+const scule365Feed: FeedConfig = {
+  provider: "GOOGLE_MERCHANT",
+  country: "RO",
+  merchantId: "ro-scule365",
+  merchantName: "Scule365.ro",
+  envVar: "GOOGLE_MERCHANT_FEED_URL_RO_SCULE365",
+  sampleFile: "sample-google-merchant-scule365-ro.xml",
+  sampleFormat: "xml",
+};
+
+describe("Google Merchant Scule365 feed (parser kept for re-enable)", () => {
   it("string parser maps sample products into DIY categories", () => {
     const xml = readFileSync(samplePath, "utf8");
     const parsed = parseGoogleMerchantXmlFeed(xml, "RO", "ro-scule365", "sample");
@@ -40,24 +49,9 @@ describe("Google Merchant Scule365 feed", () => {
     );
   });
 
-  it("configured feed loader dispatches GOOGLE_MERCHANT", async () => {
-    const feed = MERCHANT_FEEDS.find((item) => item.merchantId === "ro-scule365");
-    expect(feed).toBeDefined();
-    const parsed = await parseConfiguredFeed(
-      feed!,
-      createReadStream(path.join(process.cwd(), "src/data", feed!.sampleFile!), {
-        encoding: "utf8",
-      }),
-      "RO",
-      "sample"
-    );
+  it("configured feed loader still dispatches GOOGLE_MERCHANT", async () => {
+    const xml = readFileSync(samplePath, "utf8");
+    const parsed = await parseConfiguredFeed(scule365Feed, xml, "RO", "sample");
     expect(parsed.products.length).toBe(3);
-  });
-
-  it("getFeedProducts loads RO Scule365 sample feed", async () => {
-    clearFeedCacheForTests();
-    const result = await getFeedProducts("RO");
-    expect(result.merchantProductCounts["ro-scule365"]).toBe(3);
-    expect(result.sources.includes("sample")).toBe(true);
   });
 });

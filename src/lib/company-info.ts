@@ -82,23 +82,22 @@ export const TARGET_MARKETS = [
  * Keep in sync with AFFILIATE_NETWORKS_ACTIVE.
  */
 export const STAGE_ZERO_MONETIZATION = {
-  en: "BeforeToBuy.com has limited live affiliate redirects in Romania: eMAG via Profitshare and evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home & MxEnduro via 2Performant (with Affiliate cookie consent). Other markets remain planned. We only compare and redirect; checkout is always on the merchant site. We may earn a referral commission from the merchant or network — we do not add a BeforeToBuy fee to your price. Rowenta uses a live 2Performant product feed; Scule365 uses a live Google Merchant product feed when configured; other RO merchants still show demo prices until their feeds are connected.",
-  de: "BeforeToBuy.com hat begrenzte Live-Affiliate-Weiterleitungen in Rumänien: eMAG über Profitshare und evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home & MxEnduro über 2Performant (mit Affiliate-Cookie-Zustimmung). Andere Märkte sind geplant. Wir vergleichen und leiten nur weiter; der Kaufabschluss erfolgt stets beim Händler. Wir können eine Vermittlungsprovision erhalten — ohne BeforeToBuy-Aufschlag. Rowenta nutzt einen Live-2Performant-Produktfeed; Scule365 nutzt bei Konfiguration einen Live-Google-Merchant-Feed; andere RO-Händler bleiben Demo, bis Feeds verbunden sind.",
-  fr: "BeforeToBuy.com a des redirections d'affiliation limitées en Roumanie : eMAG via Profitshare et evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home & MxEnduro via 2Performant (avec consentement cookies Affilié). Les autres marchés restent prévus. Nous comparons et redirigeons seulement ; le paiement a toujours lieu chez le marchand. Nous pouvons recevoir une commission — sans frais BeforeToBuy. Rowenta utilise un flux produit 2Performant live ; Scule365 utilise un flux Google Merchant live lorsqu'il est configuré ; les autres marchands RO restent en démo jusqu'à leurs flux.",
-  it: "BeforeToBuy.com ha redirect affiliati limitati in Romania: eMAG via Profitshare e evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home & MxEnduro via 2Performant (con consenso cookie Affiliato). Altri mercati restano pianificati. Confrontiamo e reindirizziamo soltanto; il checkout è sempre sul sito del rivenditore. Possiamo ricevere una commissione — senza ricarico BeforeToBuy. Rowenta usa un feed prodotti 2Performant live; Scule365 usa un feed Google Merchant live quando configurato; gli altri merchant RO restano demo fino ai loro feed.",
-  ro: "BeforeToBuy.com are redirecționări afiliate live limitate în România: eMAG via Profitshare și evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home & MxEnduro via 2Performant (cu consimțământ cookie Afiliat). Alte piețe rămân planificate. Doar comparăm și redirecționăm; plata se face mereu pe site-ul magazinului. Putem primi comision de recomandare — fără adaos BeforeToBuy. Rowenta folosește feed 2Performant live; Scule365 folosește feed Google Merchant live când e configurat; celelalte magazine RO rămân demo până la feed-urile lor.",
+  en: "BeforeToBuy.com currently has one live Romania merchant programme: Rowenta via 2Performant (Affiliate cookie consent), with a live product feed and affiliate deep links. Other RO merchants are added only after acceptance and feed wiring. Other markets remain planned. We only compare and redirect; checkout is always on the merchant site. We may earn a referral commission from the merchant or network — we do not add a BeforeToBuy fee to your price.",
+  de: "BeforeToBuy.com hat derzeit ein Live-Händlerprogramm in Rumänien: Rowenta über 2Performant (Affiliate-Cookie-Zustimmung), mit Live-Produktfeed und Affiliate-Deep-Links. Weitere RO-Händler werden erst nach Freigabe und Feed-Anbindung ergänzt. Andere Märkte sind geplant. Wir vergleichen und leiten nur weiter; der Kaufabschluss erfolgt stets beim Händler. Wir können eine Vermittlungsprovision erhalten — ohne BeforeToBuy-Aufschlag.",
+  fr: "BeforeToBuy.com a actuellement un programme marchand live en Roumanie : Rowenta via 2Performant (consentement cookies Affilié), avec flux produit live et liens affiliés. Les autres marchands RO sont ajoutés uniquement après acceptation et branchement du flux. Les autres marchés restent prévus. Nous comparons et redirigeons seulement ; le paiement a toujours lieu chez le marchand. Nous pouvons recevoir une commission — sans frais BeforeToBuy.",
+  it: "BeforeToBuy.com ha attualmente un programma merchant live in Romania: Rowenta via 2Performant (consenso cookie Affiliato), con feed prodotti live e deep link affiliati. Altri merchant RO vengono aggiunti solo dopo accettazione e collegamento del feed. Altri mercati restano pianificati. Confrontiamo e reindirizziamo soltanto; il checkout è sempre sul sito del rivenditore. Possiamo ricevere una commissione — senza ricarico BeforeToBuy.",
+  ro: "BeforeToBuy.com are momentan un singur program merchant live în România: Rowenta via 2Performant (consimțământ cookie Afiliat), cu feed de produse live și deep link-uri afiliate. Alte magazine RO se adaugă doar după acceptare și conectarea feed-ului. Alte piețe rămân planificate. Doar comparăm și redirecționăm; plata se face mereu pe site-ul magazinului. Putem primi comision de recomandare — fără adaos BeforeToBuy.",
 } as const;
 
 /** Networks with at least one live consented outbound program. */
 export const AFFILIATE_NETWORKS_ACTIVE = [
-  "Profitshare Romania (eMAG)",
-  "2Performant Romania (evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home, MxEnduro)",
+  "2Performant Romania (Rowenta)",
 ] as const;
 
 export const AFFILIATE_NETWORKS_PLANNED = [
   "AWIN Comparison Engine / Publisher (CH / DE / FR / UK)",
   "Amazon Associates (via official portal)",
-  "Additional Profitshare / 2Performant RO merchants",
+  "Additional 2Performant RO merchants (when accepted + feed ready)",
   "Tradedoubler (where Galaxus AT/DE affiliate is offered)",
   "CJ Affiliate (if approved)",
   "Effinity (FR, if approved)",
@@ -118,8 +117,6 @@ export const DATA_PROCESSORS = [
   { name: "Datadog", purpose: "Optional browser RUM / performance monitoring (with Analytics consent)", region: "USA/EU" },
   { name: "Resend", purpose: "Contact form email delivery (when configured)", region: "USA" },
   { name: "AWIN / merchant partners", purpose: "Affiliate tracking on merchant domains when production feeds are configured (with Affiliate consent)", region: "Various" },
-  { name: "Profitshare", purpose: "Affiliate tracking for eMAG.ro outbound links (with Affiliate consent)", region: "RO/EU" },
-  { name: "2Performant", purpose: "Affiliate tracking for evoMAG.ro, Rowenta.ro, Scule365.ro, AutoEco.ro, Soundhouse.ro, Autobob.ro, Automobilus.ro, PAA-Home.ro and MxEnduro.ro outbound links (with Affiliate consent)", region: "RO/EU" },
+  { name: "2Performant", purpose: "Affiliate tracking for Rowenta.ro outbound links (with Affiliate consent)", region: "RO/EU" },
   { name: "Rowenta 2Performant product feed", purpose: "Product catalog and prices for Rowenta.ro (affiliate deep links from 2Performant My Feeds)", region: "RO/EU" },
-  { name: "Scule365 Google Merchant feed", purpose: "Product catalog and prices for Scule365.ro (outbound clicks still via 2Performant)", region: "RO/EU" },
 ] as const;

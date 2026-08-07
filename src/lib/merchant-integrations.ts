@@ -90,17 +90,6 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     sampleFormat: "csv",
   },
   {
-    provider: "GOOGLE_MERCHANT",
-    country: "RO",
-    merchantId: "ro-scule365",
-    merchantName: "Scule365.ro",
-    envVar: "GOOGLE_MERCHANT_FEED_URL_RO_SCULE365",
-    defaultRemoteUrl:
-      "https://www.scule365.ro/feed/google_xml/ea1c1391c197733db36fe91ee7e0b901",
-    sampleFile: "sample-google-merchant-scule365-ro.xml",
-    sampleFormat: "xml",
-  },
-  {
     provider: "TWO_PERFORMANT",
     country: "RO",
     merchantId: "ro-rowenta",
