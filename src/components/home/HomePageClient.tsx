@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense, useCallback, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { Product, PromoCoupon } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { getActiveCouponsForCountry } from "@/lib/feed-parser";
@@ -341,10 +342,11 @@ export default function HomePageClient({
         <div className="space-y-3">
           <div
             id="browse-offers"
-            className="bg-white p-2 rounded-xl border border-slate-200/80 shadow-xs scroll-mt-24"
+            className="scroll-mt-24 space-y-0.5 px-0.5"
           >
-            <p className="text-[11px] font-semibold text-slate-600 px-0.5">
-              {homeUi.appDoesOneLiner}
+            <p className="text-[12px] font-semibold text-slate-800">{homeUi.shortPitch1}</p>
+            <p className="text-[11px] text-slate-500">
+              {homeUi.shortPitch2} {homeUi.shortPitch3}
             </p>
           </div>
 
@@ -443,24 +445,26 @@ export default function HomePageClient({
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <MarketEntryHero locale={browseLocale} />
           <PlatformExplanationBanner locale={browseLocale} />
           <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
-          <p className="text-[11px] text-slate-500 px-1 leading-relaxed">
-            {homeUi.priceDisclaimer}
-          </p>
-          <p className="text-[11px] text-slate-500 px-1 leading-relaxed">
-            {homeUi.marketHeroPartnerNote}
-          </p>
-          <button
-            type="button"
-            onClick={() => setIsDisclosureOpen(true)}
-            className="w-full text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-2.5 rounded-xl inline-flex items-center justify-center gap-1.5"
-          >
-            <Info className="w-3.5 h-3.5 shrink-0" />
-            {homeUi.howCommissions}
-          </button>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-0.5 text-[10px] text-slate-400">
+            <Link href="/legal" className="hover:text-slate-700 hover:underline">
+              Legal
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsDisclosureOpen(true)}
+              className="inline-flex items-center gap-1 hover:text-slate-700"
+            >
+              <Info className="h-3 w-3 shrink-0" aria-hidden="true" />
+              {homeUi.howCommissions}
+            </button>
+            <Link href="/disclaimer" className="hover:text-slate-700 hover:underline">
+              Beta / Demo
+            </Link>
+          </div>
         </div>
       </main>
 

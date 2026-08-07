@@ -46,9 +46,12 @@ export function Header({
       <div className="w-full px-3 sm:px-4 pt-1.5 pb-2 min-w-0">
         <div className="flex items-start justify-between gap-2 min-w-0">
           <Link href="/" locale={locale} className="min-w-0 pt-0.5">
-            <h1 className="text-[16px] font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900 bg-clip-text text-transparent truncate leading-none">
+            <h1 className="truncate text-[16px] font-extrabold leading-none tracking-tight text-slate-900">
               BeforeToBuy
             </h1>
+            <p className="mt-0.5 truncate text-[10px] font-medium text-slate-500">
+              {ui.compareBeforeYouBuy}
+            </p>
           </Link>
 
           <div className="flex items-center gap-1 shrink-0">
