@@ -15,10 +15,10 @@ const location = {
 } as UserLocation;
 
 describe("getRoOffers", () => {
-  it("returns live RO affiliate outbound links including PAA-Home", async () => {
+  it("returns live RO affiliate outbound links including MxEnduro", async () => {
     const offers = await getRoOffers(product, location, null, "en");
 
-    expect(offers).toHaveLength(9);
+    expect(offers).toHaveLength(10);
     expect(offers.map((o) => o.storeName)).toEqual([
       "eMAG.ro",
       "evoMAG.ro",
@@ -29,8 +29,9 @@ describe("getRoOffers", () => {
       "Autobob.ro",
       "Automobilus.ro",
       "PAA-Home.ro",
+      "MxEnduro.ro",
     ]);
-    expect(offers[8]?.purchaseUrl).toBe(AFFILIATE_LINKS.paahome2Performant);
-    expect(AFFILIATE_LINKS.paahome2Performant).toContain("unique=2c9f51768");
+    expect(offers[9]?.purchaseUrl).toBe(AFFILIATE_LINKS.mxenduro2Performant);
+    expect(AFFILIATE_LINKS.mxenduro2Performant).toContain("unique=90cc26df2");
   });
 });
