@@ -10,6 +10,9 @@ export const AFFILIATE_LINKS = {
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=d19151f4f&redirect_to=https%3A%2F%2Fwww.rowenta.ro%2F",
   scule3652Performant:
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=8e59c17b0&redirect_to=https%3A%2F%2Fwww.scule365.ro",
+  /** aff_code filled from publisher account — quicklink export sometimes omits it */
+  autoeco2Performant:
+    "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=7cf7c22ce&redirect_to=https%3A%2F%2Fwww.autoeco.ro",
 } as const;
 
 const SCULE365_2P_BASE =

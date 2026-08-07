@@ -78,5 +78,19 @@ export async function getRoOffers(
       source: "demo" as const,
       badge: ui.affiliateDemoOfferLabel,
     },
+    {
+      id: `${product.id}-autoeco`,
+      storeName: "AutoEco.ro",
+      price: Math.round(targetPrice * 1.05),
+      currency,
+      inStock: true,
+      deliveryTime: "2-5 zile lucrătoare",
+      deliveryCost: 16.99,
+      purchaseUrl: AFFILIATE_LINKS.autoeco2Performant,
+      affiliateNetwork: "2Performant Romania",
+      type: "online" as const,
+      source: "demo" as const,
+      badge: ui.affiliateDemoOfferLabel,
+    },
   ];
 }
