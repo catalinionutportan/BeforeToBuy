@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { ChevronRight, Layers, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Layers, X } from "lucide-react";
 import {
   ALL_CATEGORIES_ID,
   SHOPPING_CATEGORIES,
@@ -25,16 +25,22 @@ interface CategoryFlyoutMenuProps {
   locale: CategoryLocale;
 }
 
+type MenuLevel = "root" | "department" | "group";
+
 type PreviewColumn =
   | { kind: "department"; category: ShoppingCategory }
   | { kind: "group"; node: ShoppingSubcategory };
 
-function rowClass(selected: boolean): string {
-  return [
-    "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[13px] font-normal text-neutral-900 transition-colors",
-    "hover:bg-neutral-100/80 active:bg-neutral-100",
-    selected ? "bg-neutral-100 font-medium" : "",
-  ].join(" ");
+function useIsCoarsePointer(): boolean {
+  const [coarse, setCoarse] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: none), (pointer: coarse)");
+    const sync = () => setCoarse(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return coarse;
 }
 
 function nodeContainsSelected(node: ShoppingSubcategory, selectedId: string): boolean {
@@ -42,9 +48,28 @@ function nodeContainsSelected(node: ShoppingSubcategory, selectedId: string): bo
   return Boolean(node.children?.some((child) => nodeContainsSelected(child, selectedId)));
 }
 
+function desktopRowClass(selected: boolean): string {
+  return [
+    "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[13px] font-normal text-neutral-900 transition-colors",
+    "hover:bg-neutral-100/80 active:bg-neutral-100",
+    selected ? "bg-neutral-100 font-medium" : "",
+  ].join(" ");
+}
+
+/** Larger iOS-app-like rows for the temporary smartphone web app. */
+function mobileRowClass(selected: boolean): string {
+  return [
+    "flex w-full items-center gap-3 rounded-xl px-3 py-3.5 text-left transition-colors",
+    "text-[17px] font-normal leading-snug text-neutral-900",
+    "active:bg-neutral-100",
+    selected ? "bg-neutral-100 font-medium" : "",
+  ].join(" ");
+}
+
 /**
- * Full-screen solid white menu — same on phone and desktop.
- * Fixed columns: hover (desktop) or tap opens subcategory text without resizing the page.
+ * Full-screen solid white menu.
+ * Desktop: fixed columns + hover preview.
+ * Smartphone: large type + iOS-style replace drill-down (tap replaces the list).
  */
 export function CategoryFlyoutMenu({
   open,
@@ -56,13 +81,24 @@ export function CategoryFlyoutMenu({
 }: CategoryFlyoutMenuProps) {
   const ui = HOME_UI[locale];
   const titleId = useId();
+  const isTouch = useIsCoarsePointer();
+
+  // Desktop columns
   const [col2, setCol2] = useState<PreviewColumn | null>(null);
   const [col3, setCol3] = useState<PreviewColumn | null>(null);
+
+  // Mobile replace stack
+  const [level, setLevel] = useState<MenuLevel>("root");
+  const [activeDept, setActiveDept] = useState<ShoppingCategory | null>(null);
+  const [groupStack, setGroupStack] = useState<ShoppingSubcategory[]>([]);
 
   useEffect(() => {
     if (!open) return;
     setCol2(null);
     setCol3(null);
+    setLevel("root");
+    setActiveDept(null);
+    setGroupStack([]);
   }, [open]);
 
   useEffect(() => {
@@ -71,6 +107,23 @@ export function CategoryFlyoutMenu({
     document.body.style.overflow = "hidden";
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      if (isTouch) {
+        if (groupStack.length > 0) {
+          setGroupStack((stack) => {
+            const next = stack.slice(0, -1);
+            if (next.length === 0) setLevel("department");
+            return next;
+          });
+          return;
+        }
+        if (level === "department") {
+          setLevel("root");
+          setActiveDept(null);
+          return;
+        }
+        onClose();
+        return;
+      }
       if (col2 || col3) {
         setCol3(null);
         setCol2(null);
@@ -83,13 +136,47 @@ export function CategoryFlyoutMenu({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKey);
     };
-  }, [open, onClose, col2, col3]);
+  }, [open, onClose, isTouch, level, groupStack.length, col2, col3]);
 
   if (!open) return null;
 
   const selectAndClose = (categoryId: string) => {
     onCategoryChange(categoryId);
     onClose();
+  };
+
+  const goBackMobile = () => {
+    if (groupStack.length > 0) {
+      const next = groupStack.slice(0, -1);
+      setGroupStack(next);
+      if (next.length === 0) setLevel("department");
+      return;
+    }
+    if (level === "department") {
+      setLevel("root");
+      setActiveDept(null);
+      return;
+    }
+    onClose();
+  };
+
+  const openDepartmentMobile = (category: ShoppingCategory) => {
+    if (category.subcategories.length === 0) {
+      selectAndClose(category.id);
+      return;
+    }
+    setActiveDept(category);
+    setGroupStack([]);
+    setLevel("department");
+  };
+
+  const openGroupMobile = (sub: ShoppingSubcategory) => {
+    if (sub.children?.length) {
+      setGroupStack((stack) => [...stack, sub]);
+      setLevel("group");
+      return;
+    }
+    selectAndClose(sub.id);
   };
 
   const showDepartment = (category: ShoppingCategory) => {
@@ -110,7 +197,7 @@ export function CategoryFlyoutMenu({
     setCol3({ kind: "group", node });
   };
 
-  const onDepartmentActivate = (category: ShoppingCategory) => {
+  const onDepartmentActivateDesktop = (category: ShoppingCategory) => {
     if (category.subcategories.length > 0) {
       showDepartment(category);
       return;
@@ -134,7 +221,17 @@ export function CategoryFlyoutMenu({
     selectAndClose(item.id);
   };
 
-  const renderColumnItems = (
+  const activeGroup = groupStack[groupStack.length - 1] ?? null;
+  const mobileTitle = activeGroup
+    ? getSubcategoryLabel(activeGroup.id, locale)
+    : level === "department" && activeDept
+      ? getDepartmentLabel(activeDept.id, locale)
+      : ui.menuTitle;
+  const mobileSubtitle =
+    level === "root" ? ui.menuSubtitle : ui.menuSubcategories;
+  const canGoBackMobile = level === "department" || level === "group";
+
+  const renderDesktopColumnItems = (
     col: PreviewColumn,
     onRevealItem: (item: ShoppingSubcategory) => void,
     onActivateItem: (item: ShoppingSubcategory) => void,
@@ -156,7 +253,7 @@ export function CategoryFlyoutMenu({
         <button
           type="button"
           onClick={() => selectAndClose(parentId)}
-          className={rowClass(selectedCategory === parentId)}
+          className={desktopRowClass(selectedCategory === parentId)}
         >
           <span className="flex-1">{ui.menuSeeAllInDepartment}</span>
         </button>
@@ -172,7 +269,7 @@ export function CategoryFlyoutMenu({
                   type="button"
                   onMouseEnter={() => onRevealItem(item)}
                   onClick={() => onActivateItem(item)}
-                  className={rowClass(selected || previewed)}
+                  className={desktopRowClass(selected || previewed)}
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block leading-snug">
@@ -205,116 +302,286 @@ export function CategoryFlyoutMenu({
       aria-labelledby={titleId}
     >
       <div className="flex h-full w-full flex-col bg-white">
-        <div className="flex shrink-0 items-center justify-between gap-3 px-3 sm:px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <div className="flex shrink-0 items-center justify-between gap-3 px-4 pb-2.5 pt-[max(0.85rem,env(safe-area-inset-top))]">
           <div className="min-w-0">
             <p
               id={titleId}
-              className="truncate text-[15px] font-semibold tracking-tight text-neutral-950"
+              className={`truncate font-semibold tracking-tight text-neutral-950 ${
+                isTouch ? "text-[20px]" : "text-[15px]"
+              }`}
             >
-              {ui.menuTitle}
+              {isTouch ? mobileTitle : ui.menuTitle}
             </p>
-            <p className="truncate text-[11px] text-neutral-500">{ui.menuSubtitle}</p>
+            <p
+              className={`truncate text-neutral-500 ${
+                isTouch ? "text-[14px]" : "text-[11px]"
+              }`}
+            >
+              {isTouch ? mobileSubtitle : ui.menuSubtitle}
+            </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-600 hover:bg-neutral-100"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-600 hover:bg-neutral-100"
           >
-            <X className="h-4 w-4" aria-hidden="true" />
+            <X className="h-5 w-5" aria-hidden="true" />
             <span className="sr-only">{ui.menuClose}</span>
           </button>
         </div>
 
-        {/*
-          Same fixed columns on phone + desktop.
-          Page never resizes — only text appears in reserved columns.
-          Narrow phones can scroll horizontally inside the white page.
-        */}
-        <div
-          className="grid min-h-0 flex-1 overflow-x-auto overflow-y-hidden bg-white"
-          style={{
-            gridTemplateColumns:
-              "minmax(9.5rem, 11.5rem) minmax(9rem, 11rem) minmax(9rem, 11rem) minmax(0, 1fr)",
-          }}
-        >
-          <div className="min-h-0 overflow-y-auto px-1.5 py-1 custom-scrollbar sm:px-2">
-            <button
-              type="button"
-              onClick={() => selectAndClose(ALL_CATEGORIES_ID)}
-              onMouseEnter={() => {
-                setCol2(null);
-                setCol3(null);
-              }}
-              className={rowClass(selectedCategory === ALL_CATEGORIES_ID)}
-            >
-              <Layers className="h-3.5 w-3.5 shrink-0 text-neutral-500" aria-hidden="true" />
-              <span className="flex-1">{ui.hubAll}</span>
-            </button>
+        {isTouch ? (
+          <>
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-1 custom-scrollbar">
+              {level === "root" ? (
+                <div className="space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => selectAndClose(ALL_CATEGORIES_ID)}
+                    className={mobileRowClass(selectedCategory === ALL_CATEGORIES_ID)}
+                  >
+                    <Layers className="h-5 w-5 shrink-0 text-neutral-500" aria-hidden="true" />
+                    <span className="flex-1">{ui.hubAll}</span>
+                  </button>
 
-            <nav aria-label={ui.menuCategories} className="mt-0.5">
-              <ul>
-                {SHOPPING_CATEGORIES.map((category) => {
-                  const Icon = category.icon;
-                  const count = categoryCounts?.[category.id] ?? 0;
-                  const hasSubs = category.subcategories.length > 0;
-                  const selected =
-                    selectedCategory === category.id ||
-                    selectedCategory.startsWith(`${category.id}-`) ||
-                    getParentCategoryId(selectedCategory) === category.id;
-                  const previewed =
-                    col2?.kind === "department" && col2.category.id === category.id;
+                  <nav aria-label={ui.menuCategories}>
+                    <ul className="space-y-0.5">
+                      {SHOPPING_CATEGORIES.map((category) => {
+                        const Icon = category.icon;
+                        const count = categoryCounts?.[category.id] ?? 0;
+                        const hasSubs = category.subcategories.length > 0;
+                        const selected =
+                          selectedCategory === category.id ||
+                          selectedCategory.startsWith(`${category.id}-`) ||
+                          getParentCategoryId(selectedCategory) === category.id;
 
-                  return (
-                    <li key={category.id}>
-                      <button
-                        type="button"
-                        onMouseEnter={() => showDepartment(category)}
-                        onClick={() => onDepartmentActivate(category)}
-                        className={rowClass(selected || previewed)}
-                      >
-                        <Icon
-                          className="h-3.5 w-3.5 shrink-0 text-neutral-500"
-                          aria-hidden="true"
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span className="block leading-snug">
-                            {getDepartmentLabel(category.id, locale)}
-                          </span>
-                          {count > 0 && (
-                            <span className="block text-[10px] text-neutral-400">{count}</span>
-                          )}
-                        </span>
-                        {hasSubs && (
-                          <ChevronRight
-                            className="h-3.5 w-3.5 shrink-0 text-neutral-300"
+                        return (
+                          <li key={category.id}>
+                            <button
+                              type="button"
+                              onClick={() => openDepartmentMobile(category)}
+                              className={mobileRowClass(selected)}
+                            >
+                              <Icon
+                                className="h-5 w-5 shrink-0 text-neutral-500"
+                                aria-hidden="true"
+                              />
+                              <span className="min-w-0 flex-1">
+                                <span className="block">
+                                  {getDepartmentLabel(category.id, locale)}
+                                </span>
+                                {count > 0 && (
+                                  <span className="mt-0.5 block text-[13px] text-neutral-400">
+                                    {count}
+                                  </span>
+                                )}
+                              </span>
+                              {hasSubs && (
+                                <ChevronRight
+                                  className="h-5 w-5 shrink-0 text-neutral-300"
+                                  aria-hidden="true"
+                                />
+                              )}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </nav>
+                </div>
+              ) : level === "department" && activeDept ? (
+                <div className="space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => selectAndClose(activeDept.id)}
+                    className={mobileRowClass(selectedCategory === activeDept.id)}
+                  >
+                    <span className="flex-1">{ui.menuSeeAllInDepartment}</span>
+                  </button>
+                  <ul className="space-y-0.5">
+                    {activeDept.subcategories.map((sub) => {
+                      const count = categoryCounts?.[sub.id] ?? 0;
+                      const hasChildren = Boolean(sub.children?.length);
+                      const selected = nodeContainsSelected(sub, selectedCategory);
+                      return (
+                        <li key={sub.id}>
+                          <button
+                            type="button"
+                            onClick={() => openGroupMobile(sub)}
+                            className={mobileRowClass(selected)}
+                          >
+                            <span className="min-w-0 flex-1">
+                              <span className="block">
+                                {getSubcategoryLabel(sub.id, locale)}
+                              </span>
+                              {count > 0 && (
+                                <span className="mt-0.5 block text-[13px] text-neutral-400">
+                                  {count}
+                                </span>
+                              )}
+                            </span>
+                            {hasChildren && (
+                              <ChevronRight
+                                className="h-5 w-5 shrink-0 text-neutral-300"
+                                aria-hidden="true"
+                              />
+                            )}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ) : level === "group" && activeGroup?.children ? (
+                <div className="space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => selectAndClose(activeGroup.id)}
+                    className={mobileRowClass(selectedCategory === activeGroup.id)}
+                  >
+                    <span className="flex-1">{ui.menuSeeAllInDepartment}</span>
+                  </button>
+                  <ul className="space-y-0.5">
+                    {activeGroup.children.map((child) => {
+                      const count = categoryCounts?.[child.id] ?? 0;
+                      const hasChildren = Boolean(child.children?.length);
+                      const selected = nodeContainsSelected(child, selectedCategory);
+                      return (
+                        <li key={child.id}>
+                          <button
+                            type="button"
+                            onClick={() => openGroupMobile(child)}
+                            className={mobileRowClass(selected)}
+                          >
+                            <span className="min-w-0 flex-1">
+                              <span className="block">
+                                {getSubcategoryLabel(child.id, locale)}
+                              </span>
+                              {count > 0 && (
+                                <span className="mt-0.5 block text-[13px] text-neutral-400">
+                                  {count}
+                                </span>
+                              )}
+                            </span>
+                            {hasChildren && (
+                              <ChevronRight
+                                className="h-5 w-5 shrink-0 text-neutral-300"
+                                aria-hidden="true"
+                              />
+                            )}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+
+            {canGoBackMobile && (
+              <div className="flex shrink-0 items-center justify-between gap-3 border-t border-neutral-100 px-4 py-3 pb-[max(0.85rem,env(safe-area-inset-bottom))]">
+                <button
+                  type="button"
+                  onClick={goBackMobile}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-4 py-2.5 text-[16px] font-medium text-neutral-900 active:bg-neutral-200"
+                >
+                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                  {ui.menuBack}
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div
+            className="grid min-h-0 flex-1 overflow-x-auto overflow-y-hidden bg-white"
+            style={{
+              gridTemplateColumns:
+                "minmax(9.5rem, 11.5rem) minmax(9rem, 11rem) minmax(9rem, 11rem) minmax(0, 1fr)",
+            }}
+          >
+            <div className="min-h-0 overflow-y-auto px-2 py-1 custom-scrollbar">
+              <button
+                type="button"
+                onClick={() => selectAndClose(ALL_CATEGORIES_ID)}
+                onMouseEnter={() => {
+                  setCol2(null);
+                  setCol3(null);
+                }}
+                className={desktopRowClass(selectedCategory === ALL_CATEGORIES_ID)}
+              >
+                <Layers className="h-3.5 w-3.5 shrink-0 text-neutral-500" aria-hidden="true" />
+                <span className="flex-1">{ui.hubAll}</span>
+              </button>
+
+              <nav aria-label={ui.menuCategories} className="mt-0.5">
+                <ul>
+                  {SHOPPING_CATEGORIES.map((category) => {
+                    const Icon = category.icon;
+                    const count = categoryCounts?.[category.id] ?? 0;
+                    const hasSubs = category.subcategories.length > 0;
+                    const selected =
+                      selectedCategory === category.id ||
+                      selectedCategory.startsWith(`${category.id}-`) ||
+                      getParentCategoryId(selectedCategory) === category.id;
+                    const previewed =
+                      col2?.kind === "department" && col2.category.id === category.id;
+
+                    return (
+                      <li key={category.id}>
+                        <button
+                          type="button"
+                          onMouseEnter={() => showDepartment(category)}
+                          onClick={() => onDepartmentActivateDesktop(category)}
+                          className={desktopRowClass(selected || previewed)}
+                        >
+                          <Icon
+                            className="h-3.5 w-3.5 shrink-0 text-neutral-500"
                             aria-hidden="true"
                           />
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
-          </div>
+                          <span className="min-w-0 flex-1">
+                            <span className="block leading-snug">
+                              {getDepartmentLabel(category.id, locale)}
+                            </span>
+                            {count > 0 && (
+                              <span className="block text-[10px] text-neutral-400">
+                                {count}
+                              </span>
+                            )}
+                          </span>
+                          {hasSubs && (
+                            <ChevronRight
+                              className="h-3.5 w-3.5 shrink-0 text-neutral-300"
+                              aria-hidden="true"
+                            />
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+            </div>
 
-          <div className="min-h-0 overflow-y-auto px-1.5 py-1 custom-scrollbar sm:px-2">
-            {col2
-              ? renderColumnItems(
-                  col2,
-                  showGroupInCol3,
-                  onCol2Activate,
-                  col3?.kind === "group" ? col3.node.id : null
-                )
-              : null}
-          </div>
+            <div className="min-h-0 overflow-y-auto px-2 py-1 custom-scrollbar">
+              {col2
+                ? renderDesktopColumnItems(
+                    col2,
+                    showGroupInCol3,
+                    onCol2Activate,
+                    col3?.kind === "group" ? col3.node.id : null
+                  )
+                : null}
+            </div>
 
-          <div className="min-h-0 overflow-y-auto px-1.5 py-1 custom-scrollbar sm:px-2">
-            {col3 ? renderColumnItems(col3, () => {}, onCol3Activate, null) : null}
-          </div>
+            <div className="min-h-0 overflow-y-auto px-2 py-1 custom-scrollbar">
+              {col3
+                ? renderDesktopColumnItems(col3, () => {}, onCol3Activate, null)
+                : null}
+            </div>
 
-          <div className="bg-white" aria-hidden="true" />
-        </div>
+            <div className="bg-white" aria-hidden="true" />
+          </div>
+        )}
       </div>
     </div>
   );
