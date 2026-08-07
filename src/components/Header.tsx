@@ -6,6 +6,7 @@ import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import type { SiteLocale } from "@/lib/i18n/locales";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 import {
+  Menu,
   Navigation,
   ShoppingBag,
   Globe,
@@ -27,6 +28,7 @@ interface HeaderProps {
   locale: SiteLocale;
   onLocaleChange: (locale: SiteLocale) => void;
   availableLocales: readonly SiteLocale[];
+  onOpenCategoryMenu?: () => void;
 }
 
 export function Header({
@@ -41,6 +43,7 @@ export function Header({
   locale,
   onLocaleChange,
   availableLocales,
+  onOpenCategoryMenu,
 }: HeaderProps) {
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
   const ui = HOME_UI[locale];
@@ -93,19 +96,37 @@ export function Header({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 min-w-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
           <div className="flex items-center justify-between gap-2 min-w-0 w-full md:w-auto">
-            <Link href="/" locale={locale} className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
-                <ShoppingBag className="w-5 h-5" />
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <div className="flex flex-col items-center gap-1 shrink-0">
+                <Link
+                  href="/"
+                  locale={locale}
+                  className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20"
+                  aria-label="BeforeToBuy.com"
+                >
+                  <ShoppingBag className="w-5 h-5" />
+                </Link>
+                {onOpenCategoryMenu && (
+                  <button
+                    type="button"
+                    onClick={onOpenCategoryMenu}
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+                    aria-haspopup="dialog"
+                  >
+                    <Menu className="h-3 w-3" aria-hidden="true" />
+                    {ui.menuOpen}
+                  </button>
+                )}
               </div>
-              <div className="min-w-0">
+              <Link href="/" locale={locale} className="min-w-0">
                 <h1 className="text-lg sm:text-xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900 bg-clip-text text-transparent truncate">
                   BeforeToBuy.com
                 </h1>
                 <p className="text-xs text-slate-500 font-medium truncate">
                   {ui.tagline}
                 </p>
-              </div>
-            </Link>
+              </Link>
+            </div>
 
             <div className="md:hidden flex items-center gap-1.5 shrink-0 max-w-[48%]">
               <LanguageSwitcher

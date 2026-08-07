@@ -9,6 +9,7 @@ import { getActiveCouponsForCountry } from "@/lib/feed-parser";
 import type { ProductFetchMeta } from "@/lib/product-service";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { Header } from "@/components/Header";
+import { CategoryFlyoutMenu } from "@/components/CategoryFlyoutMenu";
 import { LocationBanner } from "@/components/LocationBanner";
 import { MarketHubTabs } from "@/components/MarketHubTabs";
 import { ProductCard } from "@/components/ProductCard";
@@ -89,6 +90,7 @@ export default function HomePageClient({
     initialProducts.length === 0 && !initialFetchFailed
   );
   const [isDisclosureOpen, setIsDisclosureOpen] = useState<boolean>(false);
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [catalogMeta, setCatalogMeta] = useState<ProductFetchMeta | null>(initialMeta);
   const [productFetchFailed, setProductFetchFailed] = useState<boolean>(initialFetchFailed);
 
@@ -391,6 +393,16 @@ export default function HomePageClient({
         locale={browseLocale}
         onLocaleChange={setBrowseLocale}
         availableLocales={availableLocales}
+        onOpenCategoryMenu={() => setIsCategoryMenuOpen(true)}
+      />
+
+      <CategoryFlyoutMenu
+        open={isCategoryMenuOpen}
+        onClose={() => setIsCategoryMenuOpen(false)}
+        selectedCategory={selectedCategory}
+        onCategoryChange={handleCategoryChange}
+        categoryCounts={catalogMeta?.categoryCounts}
+        locale={browseLocale}
       />
 
       {/* GPS & Country Location Banner */}
@@ -404,20 +416,23 @@ export default function HomePageClient({
         locale={browseLocale}
       />
 
-      <MarketHubTabs
-        selectedHub={
-          isMarketHubId(selectedCategory)
-            ? selectedCategory
-            : selectedCategory === ALL_CATEGORIES_ID
-              ? ALL_CATEGORIES_ID
-              : ""
-        }
-        onHubChange={handleHubChange}
-        locale={browseLocale}
-        hubCounts={hubCounts}
-        allCount={products.length}
-        countryCode={userLocation.countryCode}
-      />
+      {/* Desktop hubs only — phones use the full-screen Meniu under the bag */}
+      <div className="hidden md:block">
+        <MarketHubTabs
+          selectedHub={
+            isMarketHubId(selectedCategory)
+              ? selectedCategory
+              : selectedCategory === ALL_CATEGORIES_ID
+                ? ALL_CATEGORIES_ID
+                : ""
+          }
+          onHubChange={handleHubChange}
+          locale={browseLocale}
+          hubCounts={hubCounts}
+          allCount={products.length}
+          countryCode={userLocation.countryCode}
+        />
+      </div>
 
       {/* Store chips — always visible so RO users can open Rowenta vs Scule365 */}
       <div className="bg-slate-900 text-white border-b border-slate-800 py-2.5 sm:py-3 px-3 sm:px-6 lg:px-8">
@@ -493,12 +508,28 @@ export default function HomePageClient({
           <p className="md:hidden text-[11px] font-semibold text-slate-600 px-0.5">
             {homeUi.appDoesOneLiner}
           </p>
-          <CategoryNavigation
-            selectedCategory={selectedCategory}
-            onCategoryChange={handleCategoryChange}
-            categoryCounts={catalogMeta?.categoryCounts}
-            locale={browseLocale}
-          />
+          <div className="hidden md:block">
+            <CategoryNavigation
+              selectedCategory={selectedCategory}
+              onCategoryChange={handleCategoryChange}
+              categoryCounts={catalogMeta?.categoryCounts}
+              locale={browseLocale}
+            />
+          </div>
+          <div className="md:hidden flex items-center justify-between gap-2 px-0.5">
+            <button
+              type="button"
+              onClick={() => setIsCategoryMenuOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-800 shadow-xs"
+            >
+              {homeUi.menuOpen}
+              {selectedCategory !== ALL_CATEGORIES_ID && (
+                <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                  {getLocalizedCategoryLabel(selectedCategory, browseLocale)}
+                </span>
+              )}
+            </button>
+          </div>
 
           <div className="hidden md:block space-y-3">
             <CollectionNavigation
