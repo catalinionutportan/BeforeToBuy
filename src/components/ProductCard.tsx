@@ -8,8 +8,6 @@ import Link from "next/link";
 
 import { ProductCardImage } from "./ProductCardImage";
 import { ProductCardDetails } from "./ProductCardDetails";
-import { ProductCardPickupOffer } from "./ProductCardPickupOffer";
-import { ProductCardOffers } from "./ProductCardOffers";
 
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import { formatOfferFreshness, getFreshestOfferTimestamp } from "@/lib/offers/freshness";
@@ -28,7 +26,6 @@ interface ProductCardProps {
 export function ProductCard({
   product,
   userLocation,
-  onSelectOffer,
   locale,
   returnTo,
 }: ProductCardProps) {
@@ -46,22 +43,11 @@ export function ProductCard({
   const lowestTotal = lowestOffer
     ? lowestOffer.totalPrice ?? computeTotalPrice(lowestOffer)
     : undefined;
-  const lowestFeedTotal = useMemo(
-    () => (feedOffers[0] ? feedOffers[0].totalPrice ?? computeTotalPrice(feedOffers[0]) : undefined),
-    [feedOffers]
-  );
   const verifiedBadgeOffer = useMemo(() => {
     const offer = feedOffers.find((item) => item.badge);
     return offer?.badge ? { badge: offer.badge } : undefined;
   }, [feedOffers]);
 
-  const pickupOffer = useMemo(
-    () =>
-      product.offers.find(
-        (o) => o.source === "production-live" && o.type === "local_pickup" && o.nearbyBranch
-      ),
-    [product.offers]
-  );
   const freshestLabel = useMemo(
     () => formatOfferFreshness(getFreshestOfferTimestamp(product.offers)) ?? "",
     [product.offers]
@@ -70,21 +56,20 @@ export function ProductCard({
   const href = productPagePathWithReturn(product.id, returnTo, resolvedLocale);
 
   return (
-    <article className="bg-white rounded-xl md:rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group h-full">
+    <article className="bg-white rounded-xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group h-full min-w-0">
       <Link href={href} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
         <ProductCardImage product={product} locale={resolvedLocale} verifiedBadgeOffer={verifiedBadgeOffer} />
       </Link>
 
-      <div className="p-2.5 sm:p-4 md:p-5 flex-1 flex flex-col justify-between gap-2 sm:gap-3 md:gap-4">
-        <Link href={href} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg">
+      <div className="p-2.5 flex-1 flex flex-col justify-between gap-2 min-w-0">
+        <Link href={href} className="block min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg">
           <ProductCardDetails product={product} locale={resolvedLocale} freshestLabel={freshestLabel} />
         </Link>
 
-        {/* Mobile: price-first summary — full offer list stays on md+ / product page */}
         {lowestTotal != null && (
           <Link
             href={href}
-            className="md:hidden mt-auto rounded-lg bg-emerald-50 border border-emerald-200/80 px-2 py-1.5"
+            className="mt-auto rounded-lg bg-emerald-50 border border-emerald-200/80 px-2 py-1.5 min-w-0"
           >
             <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-800/80">
               {formatUi(ui.comparePrices, { count: product.offers.length })}
@@ -98,23 +83,6 @@ export function ProductCard({
             )}
           </Link>
         )}
-
-        <div className="hidden md:block space-y-4">
-          <ProductCardPickupOffer
-            pickupOffer={pickupOffer}
-            userLocation={userLocation}
-            locale={resolvedLocale}
-          />
-
-          <ProductCardOffers
-            product={product}
-            userLocation={userLocation}
-            onSelectOffer={onSelectOffer}
-            locale={resolvedLocale}
-            sortedOffers={sortedOffers}
-            lowestFeedTotal={lowestFeedTotal}
-          />
-        </div>
       </div>
     </article>
   );

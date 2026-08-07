@@ -358,11 +358,11 @@ export default function HomePageClient({
           )}
 
           {isLoadingProducts ? (
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
               {[1, 2, 3, 4, 5, 6].map((n) => (
                 <div
                   key={n}
-                  className="bg-white rounded-xl border border-slate-200 p-2.5 h-56 animate-pulse flex flex-col justify-between space-y-2"
+                  className="bg-white rounded-xl border border-slate-200 p-2.5 h-56 animate-pulse flex flex-col justify-between space-y-2 min-w-0"
                 >
                   <div className="bg-slate-200 rounded-lg h-28 w-full" />
                   <div className="space-y-2">
@@ -420,7 +420,7 @@ export default function HomePageClient({
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
                 {visibleProducts.map((product) => (
                   <ProductCard
                     key={product.id}

@@ -17,12 +17,11 @@ export function ProductCardDetails({
 
   return (
     <div>
-      <h3 className="font-bold text-slate-900 text-xs sm:text-sm md:text-base line-clamp-2 hover:text-emerald-700 transition-colors leading-snug">
+      <h3 className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-2 hover:text-emerald-700 transition-colors leading-snug">
         {product.title}
       </h3>
-      <p className="hidden md:block text-xs text-slate-500 mt-1 line-clamp-2">{product.description}</p>
       {(product.gtin || product.variantKey || freshestLabel) && (
-        <div className="mt-1 hidden sm:flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
+        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500">
           {product.gtin && (
             <span className="rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-semibold">
               {ui.gtinLabel} {product.gtin.replace(/^0+/, "") || product.gtin}
