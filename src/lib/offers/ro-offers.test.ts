@@ -15,10 +15,10 @@ const location = {
 } as UserLocation;
 
 describe("getRoOffers", () => {
-  it("returns live RO affiliate outbound links including Soundhouse", async () => {
+  it("returns live RO affiliate outbound links including Autobob", async () => {
     const offers = await getRoOffers(product, location, null, "en");
 
-    expect(offers).toHaveLength(6);
+    expect(offers).toHaveLength(7);
     expect(offers.map((o) => o.storeName)).toEqual([
       "eMAG.ro",
       "evoMAG.ro",
@@ -26,11 +26,12 @@ describe("getRoOffers", () => {
       "Scule365.ro",
       "AutoEco.ro",
       "Soundhouse.ro",
+      "Autobob.ro",
     ]);
-    expect(offers[5]?.purchaseUrl).toBe(AFFILIATE_LINKS.soundhouse2Performant);
-    expect(AFFILIATE_LINKS.soundhouse2Performant).toContain("unique=3efdbc6c8");
-    expect(AFFILIATE_LINKS.soundhouse2Performant).toContain(
-      "redirect_to=https%3A%2F%2Fsoundhouse.ro%2F"
+    expect(offers[6]?.purchaseUrl).toBe(AFFILIATE_LINKS.autobob2Performant);
+    expect(AFFILIATE_LINKS.autobob2Performant).toContain("unique=103440734");
+    expect(AFFILIATE_LINKS.autobob2Performant).toContain(
+      "redirect_to=https%3A%2F%2Fautobob.ro"
     );
   });
 });
