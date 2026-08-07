@@ -7,16 +7,21 @@ import { PageShell } from "@/components/PageShell";
 import { JsonLd } from "@/components/JsonLd";
 import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
-import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { defaultLocaleFromCountry } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { createPageMetadata } from "@/lib/metadata";
-import { getProductById, listProductIdsForSitemap } from "@/lib/product-lookup";
+import { getProductById, inferCountryFromProductId, listProductIdsForSitemap } from "@/lib/product-lookup";
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import { buildProductJsonLd } from "@/lib/seo/json-ld";
-import { productPagePath } from "@/lib/seo/site-url";
+import { productPagePath, safeReturnPath } from "@/lib/seo/site-url";
+import { getMarketHubIdForLeaf } from "@/lib/market-hubs";
+import { ALL_CATEGORIES_ID, getParentCategoryId } from "@/lib/categories";
+
+export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 };
 
 export async function generateStaticParams() {
@@ -47,17 +52,35 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   });
 }
 
-export default async function ProductPage({ params }: PageProps) {
+function browseBackHref(productCategory: string, from?: string): string {
+  const hub = getMarketHubIdForLeaf(productCategory);
+  const parent = getParentCategoryId(productCategory);
+  const fallbackCategory = hub || parent || productCategory || ALL_CATEGORIES_ID;
+  const fallback =
+    fallbackCategory && fallbackCategory !== ALL_CATEGORIES_ID
+      ? `/?category=${encodeURIComponent(fallbackCategory)}`
+      : "/";
+  return safeReturnPath(from, fallback);
+}
+
+export default async function ProductPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const { from } = await searchParams;
   const product = await getProductById(id);
   if (!product) notFound();
 
-  const ui = HOME_UI.en;
-  const country = COUNTRIES[DEFAULT_COUNTRY];
+  const countryCode =
+    product.targetCountries[0] ||
+    inferCountryFromProductId(product.id) ||
+    DEFAULT_COUNTRY;
+  const country = COUNTRIES[countryCode] || COUNTRIES[DEFAULT_COUNTRY];
+  const locale = defaultLocaleFromCountry(countryCode);
+  const ui = HOME_UI[locale];
   const sortedOffers = sortOffersByTotalPrice(product.offers);
+  const backHref = browseBackHref(product.category, from);
   const jsonLd = buildProductJsonLd(product, {
-    countryCode: DEFAULT_COUNTRY,
-    locale: DEFAULT_LOCALE,
+    countryCode,
+    locale,
     offers: sortedOffers,
   });
 
@@ -65,11 +88,11 @@ export default async function ProductPage({ params }: PageProps) {
     <PageShell maxWidthClass="max-w-5xl">
       <JsonLd data={jsonLd} />
       <div className="space-y-8">
-        <nav className="text-xs text-slate-500">
-          <Link href="/" className="hover:text-emerald-700 font-semibold">
-            BeforeToBuy.com
+        <nav className="text-xs text-slate-500 flex flex-wrap items-center gap-1.5">
+          <Link href={backHref} className="hover:text-emerald-700 font-semibold">
+            ← {ui.compareBeforeYouBuy}
           </Link>
-          <span className="mx-1.5">/</span>
+          <span className="mx-0.5 text-slate-300">/</span>
           <span className="text-slate-700">{product.brand}</span>
         </nav>
 

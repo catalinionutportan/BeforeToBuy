@@ -13,7 +13,7 @@ import { ProductCardOffers } from "./ProductCardOffers";
 
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import { formatOfferFreshness, getFreshestOfferTimestamp } from "@/lib/offers/freshness";
-import { productPagePath } from "@/lib/seo/site-url";
+import { productPagePathWithReturn } from "@/lib/seo/site-url";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 
 interface ProductCardProps {
@@ -21,6 +21,8 @@ interface ProductCardProps {
   userLocation: UserLocation;
   onSelectOffer: (product: Product, offer: Offer) => void;
   locale?: SiteLocale;
+  /** Browse URL to restore after leaving the product page (e.g. `/?category=hub-diy`). */
+  returnTo?: string;
 }
 
 export function ProductCard({
@@ -28,6 +30,7 @@ export function ProductCard({
   userLocation,
   onSelectOffer,
   locale,
+  returnTo,
 }: ProductCardProps) {
   const resolvedLocale = locale ?? defaultLocaleFromCountry(userLocation.countryCode);
   const ui = HOME_UI[resolvedLocale];
@@ -64,7 +67,7 @@ export function ProductCard({
     [product.offers]
   );
 
-  const href = productPagePath(product.id, resolvedLocale);
+  const href = productPagePathWithReturn(product.id, returnTo, resolvedLocale);
 
   return (
     <article className="bg-white rounded-xl md:rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group h-full">

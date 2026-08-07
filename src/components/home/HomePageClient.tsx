@@ -301,6 +301,20 @@ export default function HomePageClient({
 
 
   const brandOptions = useMemo(() => collectBrandOptions(products), [products]);
+  const browseReturnTo = useMemo(() => {
+    const params = new URLSearchParams();
+    if (selectedCategory && selectedCategory !== ALL_CATEGORIES_ID) {
+      params.set("category", selectedCategory);
+    }
+    if (debouncedSearchQuery.trim()) {
+      params.set("q", debouncedSearchQuery.trim());
+    }
+    if (selectedDomain !== "all") {
+      params.set("domain", selectedDomain);
+    }
+    const qs = params.toString();
+    return qs ? `/?${qs}` : "/";
+  }, [selectedCategory, debouncedSearchQuery, selectedDomain]);
   const categoryFilteredProducts = useMemo(
     () =>
       products.filter((product) => productMatchesCategoryFilter(product, selectedCategory)),
@@ -657,6 +671,7 @@ export default function HomePageClient({
                   product={product}
                   userLocation={userLocation}
                   locale={browseLocale}
+                  returnTo={browseReturnTo}
                   onSelectOffer={() => {
                     // Affiliate redirect handled by the browser via purchaseUrl
                   }}
