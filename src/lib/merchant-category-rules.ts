@@ -1,4 +1,4 @@
-import { SHOPPING_CATEGORIES, UNMAPPED_CATEGORY_ID } from "@/lib/categories";
+import { SHOPPING_CATEGORIES, UNMAPPED_CATEGORY_ID, walkSubcategories } from "@/lib/categories";
 
 /** Merchants with dedicated category mapping rule sets (C2). */
 export const MAPPING_MERCHANT_IDS = [
@@ -38,7 +38,9 @@ export const MAPPING_CONFIDENCE = {
 } as const;
 
 const VALID_LEAF_CATEGORY_IDS = new Set(
-  SHOPPING_CATEGORIES.flatMap((category) => category.subcategories.map((sub) => sub.id))
+  SHOPPING_CATEGORIES.flatMap((category) =>
+    walkSubcategories(category.subcategories).map((sub) => sub.id)
+  )
 );
 
 /** Shared exact maps for Swiss retailer feed labels (DE/EN/FR variants). */

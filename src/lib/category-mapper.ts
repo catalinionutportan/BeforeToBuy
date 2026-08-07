@@ -1,4 +1,4 @@
-import { SHOPPING_CATEGORIES, UNMAPPED_CATEGORY_ID } from "@/lib/categories";
+import { SHOPPING_CATEGORIES, UNMAPPED_CATEGORY_ID, walkSubcategories } from "@/lib/categories";
 import {
   getGlobalPatternMatch,
   getMerchantDefaultCategory,
@@ -32,12 +32,13 @@ function inferFromKeywords(text: string): { subcategoryId: string; score: number
   let bestScore = 0;
 
   for (const categoryModule of SHOPPING_CATEGORIES) {
-    for (const sub of categoryModule.subcategories) {
+    for (const sub of walkSubcategories(categoryModule.subcategories)) {
       let score = 0;
       for (const kw of sub.searchKeywords) {
         if (text.includes(kw.toLowerCase())) score += kw.length > 6 ? 2 : 1;
       }
-      if (score > bestScore) {
+      // Prefer leaf types over mid-level parents when scores tie.
+      if (score > bestScore || (score === bestScore && score > 0 && !sub.children?.length)) {
         bestScore = score;
         bestId = sub.id;
       }
@@ -210,7 +211,7 @@ export function mapToBeforeToBuyCategory(input: CategoryMappingInput): string {
 export function getMappedCategoryLabel(subcategoryId: string): string {
   if (subcategoryId === UNMAPPED_CATEGORY_ID) return "Unmapped";
   for (const categoryModule of SHOPPING_CATEGORIES) {
-    const sub = categoryModule.subcategories.find((s) => s.id === subcategoryId);
+    const sub = walkSubcategories(categoryModule.subcategories).find((s) => s.id === subcategoryId);
     if (sub) return sub.label;
     if (categoryModule.id === subcategoryId) return categoryModule.label;
   }

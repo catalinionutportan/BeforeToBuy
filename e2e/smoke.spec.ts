@@ -12,7 +12,10 @@ test.describe("BeforeToBuy smoke E2E", () => {
   test("homepage loads with beta banner and product grid", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByText(/Beta\s*\/?\s*Demo/i).first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Shopping in/i })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "BeforeToBuy", exact: true })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole("button", { name: /^Menu$/i })).toBeVisible();
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('a[href="https://portanx.com"]').first()).toBeVisible();
     await expect(page.getByRole("link", { name: "admin@portanx.com" })).toHaveAttribute(
@@ -96,8 +99,10 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(sampleOffers.length).toBeGreaterThan(0);
     expect(sampleOffers.every((offer: { originalPrice?: number }) => offer.originalPrice === undefined)).toBeTruthy();
     expect(body.products.every((product: { rating?: number }) => product.rating === undefined)).toBeTruthy();
-    expect(body.meta.categoryCounts.audio).toBeGreaterThan(0);
-    expect(body.meta.collectionCounts["compare-local-pickup"]).toBeGreaterThanOrEqual(0);
+    const audioSignal =
+      (body.meta.categoryCounts.audio ?? 0) + (body.meta.categoryCounts["audio-headphones"] ?? 0);
+    expect(audioSignal).toBeGreaterThan(0);
+    expect(body.meta.collectionCounts["compare-local-pickup"] ?? 0).toBeGreaterThanOrEqual(0);
     expect(body.meta.mappingSummary?.total).toBeGreaterThan(0);
     expect(body.meta.unmappedProductCount).toBeGreaterThanOrEqual(0);
     expect(body.products.every((product: { category: string }) => product.category !== "unmapped")).toBeTruthy();
@@ -105,23 +110,37 @@ test.describe("BeforeToBuy smoke E2E", () => {
 
   test("legacy category query redirects to SEO category route", async ({ page }) => {
     await page.goto("/?category=audio");
-    await expect(page).toHaveURL(/\/categories\/audio$/);
-    await expect(page.getByRole("heading", { name: "Audio", exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\/categories\/electronics$/);
+    // SEO pages use market default locale (CH → DE): Elektronik
+    await expect(page.getByRole("heading", { name: /^(Electronics|Elektronik)$/ })).toBeVisible();
   });
 
   test("department SEO route renders products and breadcrumbs", async ({ page }) => {
-    await page.goto("/categories/audio");
+    await page.goto("/categories/electronics");
     await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Audio", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /^(Electronics|Elektronik)$/ })).toBeVisible();
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
   });
 
-  test("category selection is shareable and empty departments stay hidden", async ({ page }) => {
+  test("category menu drill-down is shareable and empty departments stay hidden", async ({ page }) => {
     await page.goto("/");
+    const essentialButton = page.getByRole("button", { name: "Essential Only", exact: true });
+    await expect(essentialButton).toBeVisible({ timeout: 10_000 });
+    await essentialButton.click();
+    await expect(page.getByRole("dialog", { name: /Cookie & Privacy Preferences/i })).toHaveCount(0, {
+      timeout: 5_000,
+    });
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
 
-    await page.getByRole("button", { name: /^Audio\b/ }).click();
-    await expect(page).toHaveURL(/category=audio/);
+    await page.getByRole("button", { name: /^Menu$/i }).click();
+    const rootMenu = page.getByRole("dialog", { name: /^Menu$/i });
+    await expect(rootMenu).toBeVisible();
+    await rootMenu.getByRole("navigation", { name: /Categories/i }).getByRole("button", { name: /^Electronics\b/ }).click();
+
+    const electronicsMenu = page.getByRole("dialog", { name: /^Electronics\b/ });
+    await expect(electronicsMenu).toBeVisible();
+    await electronicsMenu.getByRole("button", { name: /^Headphones\b/ }).click();
+    await expect(page).toHaveURL(/category=audio-headphones/);
     await expect(page.getByText(/Anzeige|Browsing|Navigation/i).first()).toBeVisible();
 
     await page.goto("/categories");
@@ -130,7 +149,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.getByRole("heading", { name: "Large Appliances", exact: true })).toHaveCount(0);
   });
 
-  test("integrations status reports all CH merchant feed modes", async ({ request }) => {
+  test("integrations status reports all configured merchant feed modes", async ({ request }) => {
     const response = await request.get("/api/integrations/status", {
       headers: {
         Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || process.env.CRON_SECRET || "playwright-internal-api-secret-32chars!"}`,
@@ -138,11 +157,14 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    expect(body.merchants.length).toBe(6);
-    expect(body.sampleFeeds.length).toBe(6);
+    expect(body.merchants.length).toBe(8);
+    // CH sample feeds stay sample; RO defaultRemoteUrl resolves to production outside vitest.
+    expect(body.sampleFeeds.length).toBeGreaterThanOrEqual(6);
     expect(body.feedMerchantIds).toContain("ch-brack");
     expect(body.feedMerchantIds).toContain("ch-digitec");
     expect(body.feedMerchantIds).toContain("ch-galaxus");
+    expect(body.feedMerchantIds).toContain("ro-rowenta");
+    expect(body.feedMerchantIds).toContain("ro-scule365");
   });
 
   test("products API exposes per-merchant feed counts", async ({ request }) => {

@@ -10,7 +10,6 @@ import type { ProductFetchMeta } from "@/lib/product-service";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { Header } from "@/components/Header";
 import { CategoryFlyoutMenu } from "@/components/CategoryFlyoutMenu";
-import { LocationBanner } from "@/components/LocationBanner";
 import { MarketHubTabs } from "@/components/MarketHubTabs";
 import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
@@ -49,8 +48,6 @@ import { useUserLocation } from "@/hooks/useUserLocation";
 import {
   Info,
   SearchX,
-  Store,
-  ArrowRight,
 } from "lucide-react";
 import { sanitizeString } from "@/lib/utils/sanitization";
 
@@ -106,13 +103,6 @@ export default function HomePageClient({
   const offerFilterUi = OFFER_FILTER_UI[browseLocale];
   const homeUi = HOME_UI[browseLocale];
   const crossBorderCollectionActive = selectedCategory === "compare-cross-border";
-  const domainFilterMerchants = useMemo(
-    () =>
-      currentCountryInfo.merchantDomains.filter(
-        (merchant) => crossBorderCollectionActive || !merchant.isCrossBorder
-      ),
-    [currentCountryInfo.merchantDomains, crossBorderCollectionActive]
-  );
   const activeOfferFilters: OfferFilterCriteria = {
     ...offerFilters,
     domain: selectedDomain,
@@ -387,8 +377,6 @@ export default function HomePageClient({
         onRefreshGps={handleRefreshGps}
         searchQuery={searchInput}
         onSearchChange={setSearchInput}
-        selectedDomain={selectedDomain}
-        onDomainChange={handleInternalDomainChange}
         isLocating={isLocating}
         locale={browseLocale}
         onLocaleChange={setBrowseLocale}
@@ -402,17 +390,6 @@ export default function HomePageClient({
         selectedCategory={selectedCategory}
         onCategoryChange={handleCategoryChange}
         categoryCounts={catalogMeta?.categoryCounts}
-        locale={browseLocale}
-      />
-
-      {/* GPS & Country Location Banner */}
-      <LocationBanner
-        userLocation={userLocation}
-        onCountryChange={handleCountryChange}
-        onRefreshGps={handleRefreshGps}
-        isLocating={isLocating}
-        productionOfferCount={catalogMeta?.productionOfferCount || 0}
-        sampleOfferCount={catalogMeta?.sampleOfferCount || 0}
         locale={browseLocale}
       />
 
@@ -432,55 +409,6 @@ export default function HomePageClient({
           allCount={products.length}
           countryCode={userLocation.countryCode}
         />
-      </div>
-
-      {/* Store chips — always visible so RO users can open Rowenta vs Scule365 */}
-      <div className="bg-slate-900 text-white border-b border-slate-800 py-2.5 sm:py-3 px-3 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 text-xs min-w-0">
-          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full min-w-0 max-w-full pb-0.5 sm:pb-0 touch-pan-x">
-            <span className="font-extrabold text-emerald-400 shrink-0 uppercase tracking-wider text-[11px] flex items-center gap-1">
-              <Store className="w-3.5 h-3.5" /> {homeUi.filterDomain}:
-            </span>
-
-            <button
-              onClick={() => handleInternalDomainChange("all")}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
-                selectedDomain === "all"
-                  ? "bg-emerald-500 text-slate-950 shadow-xs"
-                  : "bg-slate-800 hover:bg-slate-700 text-slate-300"
-              }`}
-            >
-              {homeUi.allStores} ({domainFilterMerchants.length})
-            </button>
-
-            {domainFilterMerchants.map((merchant) => (
-              <button
-                key={merchant.id}
-                type="button"
-                onClick={() => handleInternalDomainChange(merchant.domain)}
-                title={homeUi.filterByStoreDomain}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 cursor-pointer border ${
-                  selectedDomain === merchant.domain
-                    ? "bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs"
-                    : "bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300"
-                }`}
-              >
-                {merchant.domain}
-              </button>
-            ))}
-          </div>
-
-          <Link
-            href="/stores"
-            className="hidden sm:inline-flex text-slate-300 hover:text-emerald-400 font-bold shrink-0 items-center gap-1 text-[11px] hover:underline max-w-full break-words"
-          >
-            <span className="break-words">
-              {homeUi.fullStoresDirectory} (
-              {COUNTRIES.CH.merchantDomains.length + COUNTRIES.DE.merchantDomains.length}+)
-            </span>
-            <ArrowRight className="w-3 h-3 text-emerald-400 shrink-0" />
-          </Link>
-        </div>
       </div>
 
       {/* Main Container — mobile: catalog first; policy/hero below */}
