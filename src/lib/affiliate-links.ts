@@ -5,18 +5,17 @@
 export const AFFILIATE_LINKS = {
   rowenta2Performant:
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=d19151f4f&redirect_to=https%3A%2F%2Fwww.rowenta.ro%2F",
+  scule3652Performant:
+    "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=8e59c17b0&redirect_to=https%3A%2F%2Fwww.scule365.ro",
 } as const;
 
-/** Kept for Scule365 feed parser re-enable; not listed in the public RO directory until re-wired. */
-const SCULE365_2P_QUICKLINK =
-  "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=8e59c17b0&redirect_to=https%3A%2F%2Fwww.scule365.ro";
 const SCULE365_2P_BASE =
   "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=8e59c17b0&redirect_to=";
 
 /** Wrap a Scule365 product URL with the 2Performant tracking quicklink. */
 export function wrapScule365AffiliateUrl(productUrl: string): string {
   const trimmed = productUrl.trim();
-  if (!trimmed) return SCULE365_2P_QUICKLINK;
+  if (!trimmed) return AFFILIATE_LINKS.scule3652Performant;
   if (trimmed.includes("event.2performant.com")) return trimmed;
   return `${SCULE365_2P_BASE}${encodeURIComponent(trimmed)}`;
 }

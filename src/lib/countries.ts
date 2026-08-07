@@ -265,6 +265,20 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Rowenta home appliances for Romania. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
   },
+  {
+    id: "ro-scule365",
+    name: "Scule365.ro",
+    domain: "scule365.ro",
+    websiteUrl: AFFILIATE_LINKS.scule3652Performant,
+    countryCode: "RO",
+    affiliateNetwork: "2Performant Romania",
+    category: "DIY + Tools",
+    hasClickAndCollect: false,
+    status: "Live Feed",
+    badge: "2Performant + product feed 🇷🇴",
+    description:
+      "Romanian tools and DIY retailer. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
+  },
 
   // --- United Kingdom (GB) ---
   {
@@ -422,11 +436,11 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: 26.1063,
       city: "București",
     },
-    supportedStores: ["rowenta.ro"],
+    supportedStores: ["rowenta.ro", "scule365.ro"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "RO"),
     affiliateNetworks: [
-      "2Performant Romania (Rowenta) — live",
-      "Rowenta 2Performant product feed — live",
+      "2Performant Romania (Rowenta + Scule365) — live",
+      "Rowenta + Scule365 2Performant product feeds — live",
       "Additional RO merchants — added when affiliate + feed are ready",
     ],
   },

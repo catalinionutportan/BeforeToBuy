@@ -168,7 +168,7 @@ export function FooterQuickIndex() {
                     <span>Affiliate Commission & Zero-Markup</span>
                   </div>
                   <p className="text-slate-400 leading-relaxed">
-                    Free for consumers. Live Romania affiliate today: Rowenta (2Performant product feed), with Affiliate consent. Other RO merchants are added only after acceptance and feed wiring. Other networks remain planned. A merchant or network may pay us a referral commission from their marketing budget — we do not add a BeforeToBuy fee. Final checkout price is always set by the merchant.
+                    Free for consumers. Live Romania affiliate today: Rowenta and Scule365 (2Performant product feeds), with Affiliate consent. Other RO merchants are added only after acceptance and feed wiring. Other networks remain planned. A merchant or network may pay us a referral commission from their marketing budget — we do not add a BeforeToBuy fee. Final checkout price is always set by the merchant.
                   </p>
                 </div>
 
@@ -292,6 +292,7 @@ export function FooterQuickIndex() {
                   "Manor (CH)",
                   "Amazon (DE / FR / US)",
                   "Rowenta (RO) — 2Performant + product feed",
+                  "Scule365 (RO) — 2Performant + product feed",
                 ].map((store) => (
                   <span
                     key={store}

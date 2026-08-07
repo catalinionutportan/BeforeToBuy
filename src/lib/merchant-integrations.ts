@@ -99,6 +99,16 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     sampleFile: "sample-2performant-rowenta-ro.csv",
     sampleFormat: "csv",
   },
+  {
+    provider: "TWO_PERFORMANT",
+    country: "RO",
+    merchantId: "ro-scule365",
+    merchantName: "Scule365.ro",
+    envVar: "TWO_PERFORMANT_FEED_URL_RO_SCULE365",
+    defaultRemoteUrl: "https://api.2performant.com/feed/fcdbb3e99.csv",
+    sampleFile: "sample-2performant-scule365-ro.csv",
+    sampleFormat: "csv",
+  },
 ];
 
 export function getFeedConfig(merchantId: string): FeedConfig | undefined {

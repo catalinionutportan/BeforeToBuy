@@ -6,9 +6,9 @@ import { resolveGtin } from "@/lib/product-identity/gtin";
 import { enrichProductIdentity } from "@/lib/product-identity/merge-products";
 import { enrichOfferPricing } from "@/lib/pricing/total-price";
 
-/** 2Performant “My Feeds” CSV columns (Rowenta BeforeToBuy export). */
+/** 2Performant “My Feeds” CSV columns (export field set may vary per feed). */
 export interface RawTwoPerformantFeedItem {
-  product_id: string;
+  product_id?: string;
   gtin?: string;
   title: string;
   brand?: string;
@@ -21,6 +21,22 @@ export interface RawTwoPerformantFeedItem {
   image_urls?: string;
   description?: string;
   campaign_name?: string;
+}
+
+function resolveProductId(row: RawTwoPerformantFeedItem): string | undefined {
+  const explicit = row.product_id?.trim();
+  if (explicit) return explicit;
+
+  const fromLink = row.aff_code?.match(/[?&]unique=([a-zA-Z0-9]+)/)?.[1];
+  if (fromLink) return fromLink;
+
+  const title = row.title?.trim();
+  if (!title) return undefined;
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
 }
 
 function stripHtml(value: string): string {
@@ -51,16 +67,18 @@ function firstImage(imageUrls?: string): string {
 
 function storeNameForMerchant(feedMerchantId: string): string {
   if (feedMerchantId === "ro-rowenta") return "Rowenta.ro";
+  if (feedMerchantId === "ro-scule365") return "Scule365.ro";
   return "2Performant Merchant";
 }
 
 function buildOffer(
   row: RawTwoPerformantFeedItem,
   feedMerchantId: string,
-  source: Extract<OfferSource, "production-live" | "sample">
+  source: Extract<OfferSource, "production-live" | "sample">,
+  productId: string
 ): Offer | null {
   const price = parsePrice(row.price);
-  if (!price || !row.product_id || !row.title) return null;
+  if (!price || !row.title?.trim()) return null;
 
   const purchaseUrl = (row.aff_code || row.url || "").trim();
   if (!purchaseUrl.startsWith("http")) return null;
@@ -73,7 +91,7 @@ function buildOffer(
   const isProduction = source === "production-live";
 
   return enrichOfferPricing({
-    id: `2p-${feedMerchantId}-${row.product_id}`,
+    id: `2p-${feedMerchantId}-${productId}`,
     storeName: storeNameForMerchant(feedMerchantId),
     price,
     originalPrice:
@@ -88,7 +106,7 @@ function buildOffer(
     type: "online",
     source,
     feedMerchantId,
-    merchantProductId: row.product_id,
+    merchantProductId: productId,
     badge: isProduction
       ? discountPercentage && discountPercentage >= 20
         ? `-${discountPercentage}% feed discount`
@@ -105,11 +123,14 @@ function ingestRow(
   productsMap: Map<string, Product>,
   mappingLog: MappingLogEntry[]
 ): void {
-  const offer = buildOffer(row, feedMerchantId, source);
+  const merchantProductId = resolveProductId(row);
+  if (!merchantProductId) return;
+
+  const offer = buildOffer(row, feedMerchantId, source, merchantProductId);
   if (!offer) return;
 
   const gtin = resolveGtin(row.gtin);
-  const productId = gtin ? `feed-gtin-${gtin}` : `feed-${feedMerchantId}-${row.product_id}`;
+  const productId = gtin ? `feed-gtin-${gtin}` : `feed-${feedMerchantId}-${merchantProductId}`;
   const existing = productsMap.get(productId);
   if (existing) {
     existing.offers.push(offer);

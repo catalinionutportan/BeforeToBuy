@@ -94,7 +94,7 @@ export default function CookiesPage() {
               <li><strong>ipapi.co</strong> — approximate IP geolocation (Location consent)</li>
               <li><strong>OpenStreetMap Nominatim</strong> — reverse geocoding (Location consent)</li>
               <li><strong>Datadog</strong> — optional RUM / performance monitoring (Analytics consent)</li>
-              <li><strong>Merchant partners</strong> — Amazon, Digitec Galaxus, MediaMarkt, Rowenta, etc. (Affiliate consent, on their domains)</li>
+              <li><strong>Merchant partners</strong> — Amazon, Digitec Galaxus, MediaMarkt, Rowenta, Scule365, etc. (Affiliate consent, on their domains)</li>
               <li><strong>Resend</strong> — contact form email delivery (when configured)</li>
             </ul>
           </section>
