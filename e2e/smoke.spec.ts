@@ -142,7 +142,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await electronicsBtn.hover();
     await rootMenu.getByRole("button", { name: /^Headphones\b/ }).click();
     await expect(page).toHaveURL(/category=audio-headphones/);
-    await expect(page.getByText(/Anzeige|Browsing|Navigation/i).first()).toBeVisible();
+    await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
 
     await page.goto("/categories");
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
