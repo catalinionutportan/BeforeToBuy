@@ -31,14 +31,11 @@ type PreviewColumn =
   | { kind: "department"; category: ShoppingCategory }
   | { kind: "group"; node: ShoppingSubcategory };
 
-/** Flat Apple-simple row — no chunky cards. */
-function rowClass(selected: boolean, compact = false): string {
+function rowClass(selected: boolean): string {
   return [
-    "flex w-full items-center gap-2.5 text-left transition-colors",
-    compact ? "rounded-lg px-2.5 py-1.5" : "rounded-lg px-2.5 py-2",
-    "text-[13px] font-normal text-neutral-900",
-    "hover:bg-black/[0.04] active:bg-black/[0.06]",
-    selected ? "bg-black/[0.06] font-medium" : "",
+    "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-[13px] font-normal text-neutral-900 transition-colors",
+    "hover:bg-neutral-100/80 active:bg-neutral-100",
+    selected ? "bg-neutral-100 font-medium" : "",
   ].join(" ");
 }
 
@@ -59,6 +56,11 @@ function useIsCoarsePointer(): boolean {
   return coarse;
 }
 
+/**
+ * Full-screen solid white menu.
+ * Desktop: fixed columns (never grow/shrink the page). Hover/click only swaps text in columns 2–3.
+ * Touch: single-column drill-down on the same white page.
+ */
 export function CategoryFlyoutMenu({
   open,
   onClose,
@@ -74,20 +76,16 @@ export function CategoryFlyoutMenu({
   const [level, setLevel] = useState<MenuLevel>("root");
   const [activeDept, setActiveDept] = useState<ShoppingCategory | null>(null);
   const [groupStack, setGroupStack] = useState<ShoppingSubcategory[]>([]);
-  const [previewCols, setPreviewCols] = useState<PreviewColumn[]>([]);
-  const [entered, setEntered] = useState(false);
+  const [col2, setCol2] = useState<PreviewColumn | null>(null);
+  const [col3, setCol3] = useState<PreviewColumn | null>(null);
 
   useEffect(() => {
-    if (!open) {
-      setEntered(false);
-      return;
-    }
+    if (!open) return;
     setLevel("root");
     setActiveDept(null);
     setGroupStack([]);
-    setPreviewCols([]);
-    const frame = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(frame);
+    setCol2(null);
+    setCol3(null);
   }, [open]);
 
   useEffect(() => {
@@ -96,8 +94,9 @@ export function CategoryFlyoutMenu({
     document.body.style.overflow = "hidden";
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
-      if (!isTouch && previewCols.length > 0) {
-        setPreviewCols([]);
+      if (!isTouch && (col2 || col3)) {
+        setCol3(null);
+        setCol2(null);
         return;
       }
       if (groupStack.length > 0) {
@@ -118,7 +117,7 @@ export function CategoryFlyoutMenu({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKey);
     };
-  }, [open, onClose, level, groupStack.length, previewCols.length, isTouch]);
+  }, [open, onClose, level, groupStack.length, col2, col3, isTouch]);
 
   if (!open) return null;
 
@@ -161,31 +160,44 @@ export function CategoryFlyoutMenu({
     selectAndClose(sub.id);
   };
 
-  /** Hover or click opens the next column to the right (desktop). */
-  const showDepartmentColumn = (category: ShoppingCategory) => {
-    if (category.subcategories.length === 0) return;
-    setPreviewCols([{ kind: "department", category }]);
+  const showDepartment = (category: ShoppingCategory) => {
+    if (category.subcategories.length === 0) {
+      setCol2(null);
+      setCol3(null);
+      return;
+    }
+    setCol2({ kind: "department", category });
+    setCol3(null);
   };
 
-  const showGroupColumn = (node: ShoppingSubcategory, columnIndex: number) => {
-    setPreviewCols((cols) => {
-      const kept = cols.slice(0, columnIndex + 1);
-      if (!node.children?.length) return kept;
-      return [...kept, { kind: "group", node }];
-    });
+  const showGroupInCol3 = (node: ShoppingSubcategory) => {
+    if (!node.children?.length) {
+      setCol3(null);
+      return;
+    }
+    setCol3({ kind: "group", node });
   };
 
   const onDepartmentActivate = (category: ShoppingCategory) => {
     if (category.subcategories.length > 0) {
-      showDepartmentColumn(category);
+      showDepartment(category);
       return;
     }
     selectAndClose(category.id);
   };
 
-  const onItemActivate = (item: ShoppingSubcategory, columnIndex: number) => {
+  const onCol2Activate = (item: ShoppingSubcategory) => {
     if (item.children?.length) {
-      showGroupColumn(item, columnIndex);
+      showGroupInCol3(item);
+      return;
+    }
+    selectAndClose(item.id);
+  };
+
+  const onCol3Activate = (item: ShoppingSubcategory) => {
+    if (item.children?.length) {
+      // Keep depth at 3 columns: replace col3 content with this nest.
+      setCol3({ kind: "group", node: item });
       return;
     }
     selectAndClose(item.id);
@@ -203,19 +215,78 @@ export function CategoryFlyoutMenu({
     !isTouch || level === "root" ? ui.menuSubtitle : ui.menuSubcategories;
   const canGoBackTouch = isTouch && (level === "department" || level === "group");
 
+  const renderColumnItems = (
+    col: PreviewColumn,
+    onHoverItem: (item: ShoppingSubcategory) => void,
+    onActivateItem: (item: ShoppingSubcategory) => void,
+    highlightId?: string | null
+  ) => {
+    const items =
+      col.kind === "department" ? col.category.subcategories : col.node.children ?? [];
+    const parentId = col.kind === "department" ? col.category.id : col.node.id;
+    const columnTitle =
+      col.kind === "department"
+        ? getDepartmentLabel(col.category.id, locale)
+        : getSubcategoryLabel(col.node.id, locale);
+
+    return (
+      <>
+        <p className="mb-1 truncate px-2.5 text-[11px] font-medium text-neutral-400">
+          {columnTitle}
+        </p>
+        <button
+          type="button"
+          onClick={() => selectAndClose(parentId)}
+          className={rowClass(selectedCategory === parentId)}
+        >
+          <span className="flex-1">{ui.menuSeeAllInDepartment}</span>
+        </button>
+        <ul className="mt-0.5">
+          {items.map((item) => {
+            const count = categoryCounts?.[item.id] ?? 0;
+            const hasChildren = Boolean(item.children?.length);
+            const selected = nodeContainsSelected(item, selectedCategory);
+            const previewed = highlightId === item.id;
+            return (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  onMouseEnter={() => onHoverItem(item)}
+                  onClick={() => onActivateItem(item)}
+                  className={rowClass(selected || previewed)}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block leading-snug">
+                      {getSubcategoryLabel(item.id, locale)}
+                    </span>
+                    {count > 0 && (
+                      <span className="block text-[10px] text-neutral-400">{count}</span>
+                    )}
+                  </span>
+                  {hasChildren && (
+                    <ChevronRight
+                      className="h-3.5 w-3.5 shrink-0 text-neutral-300"
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </>
+    );
+  };
+
   return (
     <div
-      className={[
-        "fixed inset-0 z-50 bg-white transition-opacity duration-300 ease-out",
-        entered ? "opacity-100" : "opacity-0",
-      ].join(" ")}
+      className="fixed inset-0 z-50 bg-white"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
     >
-      {/* Full-screen solid white page — never resizes when columns expand */}
       <div className="flex h-full w-full flex-col bg-white">
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/[0.06] px-4 pb-2.5 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <div className="flex shrink-0 items-center justify-between gap-3 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <div className="min-w-0">
             <p
               id={titleId}
@@ -228,7 +299,7 @@ export function CategoryFlyoutMenu({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-600 hover:bg-black/[0.05]"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-neutral-600 hover:bg-neutral-100"
           >
             <X className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">{ui.menuClose}</span>
@@ -236,144 +307,95 @@ export function CategoryFlyoutMenu({
         </div>
 
         {!isTouch ? (
-          <div className="flex min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
-            {/* Column 1 — root categories (fixed width; page stays full white) */}
-            <div className="flex h-full w-[min(100%,18rem)] shrink-0 flex-col border-r border-black/[0.06]">
-              <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2 custom-scrollbar">
-                <button
-                  type="button"
-                  onClick={() => selectAndClose(ALL_CATEGORIES_ID)}
-                  onMouseEnter={() => setPreviewCols([])}
-                  className={rowClass(selectedCategory === ALL_CATEGORIES_ID)}
-                >
-                  <Layers className="h-3.5 w-3.5 shrink-0 text-neutral-500" aria-hidden="true" />
-                  <span className="flex-1">{ui.hubAll}</span>
-                </button>
+          /*
+            Fixed 4-track grid — page size never changes.
+            Col1 categories | Col2 hover text | Col3 nested text | rest white
+          */
+          <div
+            className="grid min-h-0 flex-1 bg-white"
+            style={{
+              gridTemplateColumns: "min(18rem, 34vw) min(16rem, 28vw) min(16rem, 28vw) 1fr",
+            }}
+          >
+            <div className="min-h-0 overflow-y-auto px-2 py-1 custom-scrollbar">
+              <button
+                type="button"
+                onClick={() => selectAndClose(ALL_CATEGORIES_ID)}
+                onMouseEnter={() => {
+                  setCol2(null);
+                  setCol3(null);
+                }}
+                className={rowClass(selectedCategory === ALL_CATEGORIES_ID)}
+              >
+                <Layers className="h-3.5 w-3.5 shrink-0 text-neutral-500" aria-hidden="true" />
+                <span className="flex-1">{ui.hubAll}</span>
+              </button>
 
-                <nav aria-label={ui.menuCategories} className="mt-0.5">
-                  <ul>
-                    {SHOPPING_CATEGORIES.map((category) => {
-                      const Icon = category.icon;
-                      const count = categoryCounts?.[category.id] ?? 0;
-                      const hasSubs = category.subcategories.length > 0;
-                      const selected =
-                        selectedCategory === category.id ||
-                        selectedCategory.startsWith(`${category.id}-`) ||
-                        getParentCategoryId(selectedCategory) === category.id;
-                      const previewed =
-                        previewCols[0]?.kind === "department" &&
-                        previewCols[0].category.id === category.id;
+              <nav aria-label={ui.menuCategories} className="mt-0.5">
+                <ul>
+                  {SHOPPING_CATEGORIES.map((category) => {
+                    const Icon = category.icon;
+                    const count = categoryCounts?.[category.id] ?? 0;
+                    const hasSubs = category.subcategories.length > 0;
+                    const selected =
+                      selectedCategory === category.id ||
+                      selectedCategory.startsWith(`${category.id}-`) ||
+                      getParentCategoryId(selectedCategory) === category.id;
+                    const previewed =
+                      col2?.kind === "department" && col2.category.id === category.id;
 
-                      return (
-                        <li key={category.id}>
-                          <button
-                            type="button"
-                            onMouseEnter={() => showDepartmentColumn(category)}
-                            onClick={() => onDepartmentActivate(category)}
-                            className={rowClass(selected || previewed)}
-                          >
-                            <Icon
-                              className="h-3.5 w-3.5 shrink-0 text-neutral-500"
+                    return (
+                      <li key={category.id}>
+                        <button
+                          type="button"
+                          onMouseEnter={() => showDepartment(category)}
+                          onClick={() => onDepartmentActivate(category)}
+                          className={rowClass(selected || previewed)}
+                        >
+                          <Icon
+                            className="h-3.5 w-3.5 shrink-0 text-neutral-500"
+                            aria-hidden="true"
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="block leading-snug">
+                              {getDepartmentLabel(category.id, locale)}
+                            </span>
+                            {count > 0 && (
+                              <span className="block text-[10px] text-neutral-400">
+                                {count}
+                              </span>
+                            )}
+                          </span>
+                          {hasSubs && (
+                            <ChevronRight
+                              className="h-3.5 w-3.5 shrink-0 text-neutral-300"
                               aria-hidden="true"
                             />
-                            <span className="min-w-0 flex-1">
-                              <span className="block leading-snug">
-                                {getDepartmentLabel(category.id, locale)}
-                              </span>
-                              {count > 0 && (
-                                <span className="block text-[10px] text-neutral-400">
-                                  {count}
-                                </span>
-                              )}
-                            </span>
-                            {hasSubs && (
-                              <ChevronRight
-                                className="h-3.5 w-3.5 shrink-0 text-neutral-300"
-                                aria-hidden="true"
-                              />
-                            )}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </nav>
-              </div>
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
             </div>
 
-            {/* Columns 2+ — grow only to the right; white page behind stays full-bleed */}
-            {previewCols.map((col, colIndex) => {
-              const items =
-                col.kind === "department" ? col.category.subcategories : col.node.children ?? [];
-              const columnTitle =
-                col.kind === "department"
-                  ? getDepartmentLabel(col.category.id, locale)
-                  : getSubcategoryLabel(col.node.id, locale);
-              const parentId = col.kind === "department" ? col.category.id : col.node.id;
+            <div className="min-h-0 overflow-y-auto px-2 py-1 custom-scrollbar">
+              {col2
+                ? renderColumnItems(
+                    col2,
+                    showGroupInCol3,
+                    onCol2Activate,
+                    col3?.kind === "group" ? col3.node.id : null
+                  )
+                : null}
+            </div>
 
-              return (
-                <div
-                  key={`${col.kind}-${parentId}-${colIndex}`}
-                  className="flex h-full w-[min(100%,17rem)] shrink-0 flex-col border-r border-black/[0.06] bg-white"
-                >
-                  <div className="border-b border-black/[0.04] px-3 py-2">
-                    <p className="truncate text-[11px] font-medium text-neutral-500">
-                      {columnTitle}
-                    </p>
-                  </div>
-                  <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2 custom-scrollbar">
-                    <button
-                      type="button"
-                      onClick={() => selectAndClose(parentId)}
-                      className={rowClass(selectedCategory === parentId, true)}
-                    >
-                      <span className="flex-1">{ui.menuSeeAllInDepartment}</span>
-                    </button>
-                    <ul className="mt-0.5">
-                      {items.map((item) => {
-                        const count = categoryCounts?.[item.id] ?? 0;
-                        const hasChildren = Boolean(item.children?.length);
-                        const selected = nodeContainsSelected(item, selectedCategory);
-                        const nextCol = previewCols[colIndex + 1];
-                        const previewed =
-                          nextCol?.kind === "group" && nextCol.node.id === item.id;
+            <div className="min-h-0 overflow-y-auto px-2 py-1 custom-scrollbar">
+              {col3 ? renderColumnItems(col3, () => {}, onCol3Activate, null) : null}
+            </div>
 
-                        return (
-                          <li key={item.id}>
-                            <button
-                              type="button"
-                              onMouseEnter={() => showGroupColumn(item, colIndex)}
-                              onClick={() => onItemActivate(item, colIndex)}
-                              className={rowClass(selected || previewed, true)}
-                            >
-                              <span className="min-w-0 flex-1">
-                                <span className="block leading-snug">
-                                  {getSubcategoryLabel(item.id, locale)}
-                                </span>
-                                {count > 0 && (
-                                  <span className="block text-[10px] text-neutral-400">
-                                    {count}
-                                  </span>
-                                )}
-                              </span>
-                              {hasChildren && (
-                                <ChevronRight
-                                  className="h-3.5 w-3.5 shrink-0 text-neutral-300"
-                                  aria-hidden="true"
-                                />
-                              )}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Remaining white space on the right — same color, never “shrinks” */}
-            <div className="min-w-0 flex-1 bg-white" aria-hidden="true" />
+            <div className="bg-white" aria-hidden="true" />
           </div>
         ) : (
           <>
@@ -523,11 +545,11 @@ export function CategoryFlyoutMenu({
             </div>
 
             {canGoBackTouch && (
-              <div className="flex items-center justify-end border-t border-black/[0.04] px-3 py-2.5">
+              <div className="flex items-center justify-end px-3 py-2.5">
                 <button
                   type="button"
                   onClick={goBackTouch}
-                  className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-medium text-neutral-800 hover:bg-black/[0.04]"
+                  className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[12px] font-medium text-neutral-800 hover:bg-neutral-100"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
                   {ui.menuBack}
