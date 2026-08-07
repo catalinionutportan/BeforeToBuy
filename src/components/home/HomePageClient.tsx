@@ -2,43 +2,29 @@
 
 import { useEffect, useState, Suspense, useCallback, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
-import { CountryCode, Product, PromoCoupon } from "@/types";
+import { Product, PromoCoupon } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { getActiveCouponsForCountry } from "@/lib/feed-parser";
 import type { ProductFetchMeta } from "@/lib/product-service";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { Header } from "@/components/Header";
 import { CategoryFlyoutMenu } from "@/components/CategoryFlyoutMenu";
-import { MarketHubTabs } from "@/components/MarketHubTabs";
 import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
 import { MarketEntryHero } from "@/components/MarketEntryHero";
 import { PlatformExplanationBanner } from "@/components/PlatformExplanationBanner";
-import { CategoryNavigation } from "@/components/CategoryNavigation";
-import {
-  CollectionNavigation,
-  isActiveCollectionSelection,
-} from "@/components/CollectionNavigation";
-import { OfferFilters } from "@/components/OfferFilters";
+import { isActiveCollectionSelection } from "@/components/CollectionNavigation";
 import { ALL_CATEGORIES_ID, productMatchesCategoryFilter } from "@/lib/categories";
-import {
-  MARKET_HUB_TABS,
-  defaultMarketHubForCountry,
-  isMarketHubId,
-} from "@/lib/market-hubs";
+import { defaultMarketHubForCountry } from "@/lib/market-hubs";
 import {
   CATEGORY_UI,
-  OFFER_FILTER_UI,
   formatCategoryUi,
   getLocalizedCategoryLabel,
 } from "@/lib/category-i18n";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
-import type { SiteLocale } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import {
   applyOfferFilters,
-  collectBrandOptions,
   hasActiveOfferFilters,
   parseOfferFiltersFromSearchParams,
   writeOfferFiltersToSearchParams,
@@ -100,7 +86,6 @@ export default function HomePageClient({
     availableLocales,
   } = useBrowseLocale(userLocation.countryCode);
   const categoryUi = CATEGORY_UI[browseLocale];
-  const offerFilterUi = OFFER_FILTER_UI[browseLocale];
   const homeUi = HOME_UI[browseLocale];
   const crossBorderCollectionActive = selectedCategory === "compare-cross-border";
   const activeOfferFilters: OfferFilterCriteria = {
@@ -233,30 +218,6 @@ export default function HomePageClient({
     [syncBrowseUrl, selectedDomain, offerFilters]
   );
 
-  const handleCollectionChange = useCallback(
-    (filterId: string) => {
-      handleCategoryChange(filterId === ALL_CATEGORIES_ID ? ALL_CATEGORIES_ID : filterId);
-    },
-    [handleCategoryChange]
-  );
-
-  const handleInternalDomainChange = useCallback(
-    (domain: string) => {
-      setSelectedDomain(domain);
-      syncBrowseUrl(selectedCategory, domain, offerFilters);
-    },
-    [syncBrowseUrl, selectedCategory, offerFilters]
-  );
-
-  const handleOfferFiltersChange = useCallback(
-    (next: OfferFilterCriteria) => {
-      const { domain: _ignored, ...rest } = next;
-      setOfferFilters(rest);
-      syncBrowseUrl(selectedCategory, selectedDomain, rest);
-    },
-    [syncBrowseUrl, selectedCategory, selectedDomain]
-  );
-
   const resetAllFilters = useCallback(() => {
     const defaultHub = defaultMarketHubForCountry(userLocation.countryCode);
     setSearchInput("");
@@ -292,7 +253,6 @@ export default function HomePageClient({
   }, [crossBorderCollectionActive, currentCountryInfo, selectedDomain, syncBrowseUrl, selectedCategory, offerFilters]);
 
 
-  const brandOptions = useMemo(() => collectBrandOptions(products), [products]);
   const browseReturnTo = useMemo(() => {
     const params = new URLSearchParams();
     if (selectedCategory && selectedCategory !== ALL_CATEGORIES_ID) {
@@ -317,15 +277,6 @@ export default function HomePageClient({
     [categoryFilteredProducts, activeOfferFilters]
   );
   const filtersActiveBeyondCategory = useMemo(() => hasActiveOfferFilters(activeOfferFilters), [activeOfferFilters]);
-  const hubCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const hub of MARKET_HUB_TABS) {
-      counts[hub.id] = products.filter((product) =>
-        productMatchesCategoryFilter(product, hub.id)
-      ).length;
-    }
-    return counts;
-  }, [products]);
   const visibleProducts = useMemo(
     () => displayedProducts.slice(0, visibleCount),
     [displayedProducts, visibleCount]
@@ -351,14 +302,6 @@ export default function HomePageClient({
     observer.observe(node);
     return () => observer.disconnect();
   }, [displayedProducts.length]);
-
-  const handleHubChange = useCallback(
-    (hubId: string) => {
-      setSelectedCategory(hubId);
-      syncBrowseUrl(hubId, selectedDomain, offerFilters);
-    },
-    [syncBrowseUrl, selectedDomain, offerFilters]
-  );
 
   const showCategoryEmptyState =
     !isLoadingProducts &&
@@ -393,246 +336,114 @@ export default function HomePageClient({
         locale={browseLocale}
       />
 
-      {/* Desktop hubs only — phones use the full-screen Meniu under the bag */}
-      <div className="hidden md:block">
-        <MarketHubTabs
-          selectedHub={
-            isMarketHubId(selectedCategory)
-              ? selectedCategory
-              : selectedCategory === ALL_CATEGORIES_ID
-                ? ALL_CATEGORIES_ID
-                : ""
-          }
-          onHubChange={handleHubChange}
-          locale={browseLocale}
-          hubCounts={hubCounts}
-          allCount={products.length}
-          countryCode={userLocation.countryCode}
-        />
-      </div>
-
-      {/* Main Container — mobile: catalog first; policy/hero below */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex-1 w-full min-w-0 flex flex-col gap-4 sm:gap-8">
-        {/* Desktop-only intro above the fold; on phones this block is ordered after products */}
-        <div className="order-2 md:order-1 space-y-4 md:space-y-8">
-          <div className="hidden md:block">
-            <MarketEntryHero locale={browseLocale} />
-          </div>
-          <div className="hidden md:block">
-            <PlatformExplanationBanner locale={browseLocale} />
-          </div>
-          <div className="hidden md:block">
-            <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
-          </div>
-        </div>
-
-        {/* Catalog cluster — first on mobile (no hero/policy above products) */}
-        <div className="order-1 md:order-2 space-y-3 sm:space-y-6">
-        {/* BeforeToBuy category modules + comparison filters */}
-        <div
-          id="browse-offers"
-          className="bg-white p-2 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-xs space-y-2 sm:space-y-3 scroll-mt-24"
-        >
-          <p className="md:hidden text-[11px] font-semibold text-slate-600 px-0.5">
-            {homeUi.appDoesOneLiner}
-          </p>
-          <div className="hidden md:block">
-            <CategoryNavigation
-              selectedCategory={selectedCategory}
-              onCategoryChange={handleCategoryChange}
-              categoryCounts={catalogMeta?.categoryCounts}
-              locale={browseLocale}
-            />
-          </div>
-
-          <div className="hidden md:block space-y-3">
-            <CollectionNavigation
-              selectedCategory={selectedCategory}
-              onCollectionChange={handleCollectionChange}
-              collectionCounts={catalogMeta?.collectionCounts}
-              locale={browseLocale}
-            />
-
-            <OfferFilters
-              criteria={activeOfferFilters}
-              brandOptions={brandOptions}
-              currencySymbol={currentCountryInfo.currency}
-              locale={browseLocale}
-              onChange={handleOfferFiltersChange}
-            />
-          </div>
-        </div>
-
-        {/* Results Bar Header */}
-        <div className="hidden sm:flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-start sm:justify-between min-w-0">
-          <div className="min-w-0">
-            <h3 className="text-base sm:text-xl font-extrabold text-slate-900 flex items-center gap-2 flex-wrap">
-              <span className="break-words">
-                {formatUi(homeUi.comparingDeals, { country: userLocation.countryName })}
-              </span>
-              {selectedCategory !== ALL_CATEGORIES_ID && (
-                <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-md border border-emerald-300">
-                  {getLocalizedCategoryLabel(selectedCategory, browseLocale)}
-                </span>
-              )}
-              {selectedDomain !== "all" && (
-                <span className="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-md border border-emerald-300">
-                  {homeUi.storeDomainLabel} {selectedDomain}
-                </span>
-              )}
-              {offerFilters.brand && (
-                <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
-                  Brand: {offerFilters.brand}
-                </span>
-              )}
-              {offerFilters.maxTotalPrice != null && (
-                <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
-                  ≤ {offerFilters.maxTotalPrice} {currentCountryInfo.currency}
-                </span>
-              )}
-              {offerFilters.inStockOnly && (
-                <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
-                  {offerFilterUi.inStock}
-                </span>
-              )}
-              {offerFilters.freeDeliveryOnly && (
-                <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
-                  {offerFilterUi.freeDelivery}
-                </span>
-              )}
-              {offerFilters.hasGtinOnly && (
-                <span className="bg-slate-100 text-slate-800 text-xs px-2.5 py-0.5 rounded-md border border-slate-300">
-                  {offerFilterUi.withEan}
-                </span>
-              )}
-              <span className="text-slate-400 font-normal text-sm">
-                ({formatUi(homeUi.itemsFound, { count: displayedProducts.length })})
-              </span>
-            </h3>
-            <p className="hidden sm:block text-xs text-slate-500 mt-0.5">
-              {catalogMeta &&
-              (catalogMeta.productionOfferCount > 0 || catalogMeta.sampleOfferCount > 0) ? (
-                <><strong className="text-emerald-700">{catalogMeta.productionOfferCount} {homeUi.liveOfferLabel}(s)</strong>. <strong className="text-amber-700">{catalogMeta.sampleOfferCount} {homeUi.sampleOfferLabel}(s)</strong> {homeUi.hybridDisclaimer}. {catalogMeta.gtinLinkedProductCount} {homeUi.gtinLinkedProductsText}. {homeUi.otherMerchantsDemoText} {homeUi.priceDisclaimer}</>
-              ) : (
-                <>
-                  {homeUi.demoOfferLabel} <strong className="text-slate-800">{userLocation.city}</strong>
-                  {catalogMeta?.gtinLinkedProductCount
-                    ? ` — ${catalogMeta.gtinLinkedProductCount} ${homeUi.gtinLinkedProductsText}`
-                    : ""} {""}
-                  — {homeUi.priceDisclaimer}
-                </>
-              )}
-            </p>
-          </div>
-
-          <button
-            onClick={() => setIsDisclosureOpen(true)}
-            className="self-start shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all inline-flex items-center gap-1.5 max-w-full"
-          >
-            <Info className="w-3.5 h-3.5 shrink-0" />
-            <span className="text-left break-words">{homeUi.howCommissions}</span>
-          </button>
-        </div>
-
-        {/* Location errors must not hide the catalog — show a banner, keep products. */}
-        {errorMessage && !isLoadingProducts && (
+      {/* Same phone shell on every viewport: catalog first, policy after */}
+      <main className="mx-auto w-full max-w-lg px-3 py-4 flex-1 min-w-0 flex flex-col gap-4">
+        <div className="space-y-3">
           <div
-            role="alert"
-            className="bg-amber-50 border border-amber-200 text-amber-950 p-3 sm:p-4 rounded-xl text-sm"
+            id="browse-offers"
+            className="bg-white p-2 rounded-xl border border-slate-200/80 shadow-xs scroll-mt-24"
           >
-            <p className="font-semibold break-words">{sanitizeString(errorMessage)}</p>
+            <p className="text-[11px] font-semibold text-slate-600 px-0.5">
+              {homeUi.appDoesOneLiner}
+            </p>
           </div>
-        )}
 
-        {/* Products Grid — 2 columns on phones (price-first cards) */}
-        {isLoadingProducts ? (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 md:gap-6">
-            {[1, 2, 3, 4, 5, 6].map((n) => (
-              <div
-                key={n}
-                className="bg-white rounded-xl border border-slate-200 p-2.5 sm:p-6 h-56 sm:h-96 animate-pulse flex flex-col justify-between space-y-2"
-              >
-                <div className="bg-slate-200 rounded-lg h-28 sm:h-48 w-full" />
-                <div className="space-y-2">
-                  <div className="bg-slate-200 h-3 rounded w-3/4" />
-                  <div className="bg-slate-200 h-3 rounded w-1/2" />
+          {errorMessage && !isLoadingProducts && (
+            <div
+              role="alert"
+              className="bg-amber-50 border border-amber-200 text-amber-950 p-3 rounded-xl text-sm"
+            >
+              <p className="font-semibold break-words">{sanitizeString(errorMessage)}</p>
+            </div>
+          )}
+
+          {isLoadingProducts ? (
+            <div className="grid grid-cols-2 gap-2.5">
+              {[1, 2, 3, 4, 5, 6].map((n) => (
+                <div
+                  key={n}
+                  className="bg-white rounded-xl border border-slate-200 p-2.5 h-56 animate-pulse flex flex-col justify-between space-y-2"
+                >
+                  <div className="bg-slate-200 rounded-lg h-28 w-full" />
+                  <div className="space-y-2">
+                    <div className="bg-slate-200 h-3 rounded w-3/4" />
+                    <div className="bg-slate-200 h-3 rounded w-1/2" />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : productFetchFailed ? (
-          <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl text-center">
-            <p className="font-bold">{sanitizeString(homeUi.productFetchError)}</p>
-          </div>
-        ) : showCategoryEmptyState ? (
-          <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-lg mx-auto space-y-4">
-            <div className="w-16 h-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
-              <SearchX className="w-8 h-8" />
-            </div>
-            <h4 className="text-lg font-bold text-slate-900">{categoryUi.emptyCategoryTitle}</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              {formatCategoryUi(categoryUi.emptyCategoryBody, {
-                country: userLocation.countryName,
-              })}
-            </p>
-            <p className="text-[11px] text-slate-400">
-              {getLocalizedCategoryLabel(selectedCategory, browseLocale)}
-              {isActiveCollectionSelection(selectedCategory)
-                ? " · comparison collection"
-                : ""}
-            </p>
-            <button
-              onClick={resetAllFilters}
-              className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
-            >
-              {categoryUi.resetFilters}
-            </button>
-          </div>
-        ) : displayedProducts.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-4">
-            <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-              <SearchX className="w-8 h-8" />
-            </div>
-            <h4 className="text-lg font-bold text-slate-900">{homeUi.noProductsTitle}</h4>
-            <p className="text-xs text-slate-500">
-              {formatUi(homeUi.noProductsBody, { country: userLocation.countryName })}
-              {debouncedSearchQuery.trim() ? ` “${debouncedSearchQuery}”` : ""}
-              {selectedDomain !== "all" ? ` · ${selectedDomain}` : ""}
-            </p>
-            <button
-              onClick={resetAllFilters}
-              className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
-            >
-              {categoryUi.resetFilters}
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 md:gap-6">
-              {visibleProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  userLocation={userLocation}
-                  locale={browseLocale}
-                  returnTo={browseReturnTo}
-                  onSelectOffer={() => {
-                    // Affiliate redirect handled by the browser via purchaseUrl
-                  }}
-                />
               ))}
             </div>
-            <div ref={loadMoreRef} className="py-3 sm:py-4 text-center text-xs text-slate-500">
-              {visibleCount < displayedProducts.length
-                ? homeUi.scrollForMoreProducts
-                : homeUi.endOfCatalog}
+          ) : productFetchFailed ? (
+            <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl text-center">
+              <p className="font-bold">{sanitizeString(homeUi.productFetchError)}</p>
             </div>
-          </div>
-        )}
+          ) : showCategoryEmptyState ? (
+            <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+                <SearchX className="w-8 h-8" />
+              </div>
+              <h4 className="text-lg font-bold text-slate-900">{categoryUi.emptyCategoryTitle}</h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                {formatCategoryUi(categoryUi.emptyCategoryBody, {
+                  country: userLocation.countryName,
+                })}
+              </p>
+              <p className="text-[11px] text-slate-400">
+                {getLocalizedCategoryLabel(selectedCategory, browseLocale)}
+                {isActiveCollectionSelection(selectedCategory)
+                  ? " · comparison collection"
+                  : ""}
+              </p>
+              <button
+                onClick={resetAllFilters}
+                className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
+              >
+                {categoryUi.resetFilters}
+              </button>
+            </div>
+          ) : displayedProducts.length === 0 ? (
+            <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                <SearchX className="w-8 h-8" />
+              </div>
+              <h4 className="text-lg font-bold text-slate-900">{homeUi.noProductsTitle}</h4>
+              <p className="text-xs text-slate-500">
+                {formatUi(homeUi.noProductsBody, { country: userLocation.countryName })}
+                {debouncedSearchQuery.trim() ? ` “${debouncedSearchQuery}”` : ""}
+                {selectedDomain !== "all" ? ` · ${selectedDomain}` : ""}
+              </p>
+              <button
+                onClick={resetAllFilters}
+                className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
+              >
+                {categoryUi.resetFilters}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-2.5">
+                {visibleProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    userLocation={userLocation}
+                    locale={browseLocale}
+                    returnTo={browseReturnTo}
+                    onSelectOffer={() => {
+                      // Affiliate redirect handled by the browser via purchaseUrl
+                    }}
+                  />
+                ))}
+              </div>
+              <div ref={loadMoreRef} className="py-3 text-center text-xs text-slate-500">
+                {visibleCount < displayedProducts.length
+                  ? homeUi.scrollForMoreProducts
+                  : homeUi.endOfCatalog}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Mobile: hero + policy after the catalog (not before products) */}
-        <div className="order-3 md:hidden space-y-4">
+        <div className="space-y-4">
           <MarketEntryHero locale={browseLocale} />
           <PlatformExplanationBanner locale={browseLocale} />
           <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
@@ -651,7 +462,6 @@ export default function HomePageClient({
             {homeUi.howCommissions}
           </button>
         </div>
-
       </main>
 
       <Suspense fallback={null}>
