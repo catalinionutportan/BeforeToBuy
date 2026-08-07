@@ -135,11 +135,12 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await page.getByRole("button", { name: /^Menu$/i }).click();
     const rootMenu = page.getByRole("dialog", { name: /^Menu$/i });
     await expect(rootMenu).toBeVisible();
-    await rootMenu.getByRole("navigation", { name: /Categories/i }).getByRole("button", { name: /^Electronics\b/ }).click();
-
-    const electronicsMenu = page.getByRole("dialog", { name: /^Electronics\b/ });
-    await expect(electronicsMenu).toBeVisible();
-    await electronicsMenu.getByRole("button", { name: /^Headphones\b/ }).click();
+    const electronicsBtn = rootMenu
+      .getByRole("navigation", { name: /Categories/i })
+      .getByRole("button", { name: /^Electronics\b/ });
+    // Desktop: hover expands preview columns; click a leaf to activate.
+    await electronicsBtn.hover();
+    await rootMenu.getByRole("button", { name: /^Headphones\b/ }).click();
     await expect(page).toHaveURL(/category=audio-headphones/);
     await expect(page.getByText(/Anzeige|Browsing|Navigation/i).first()).toBeVisible();
 
