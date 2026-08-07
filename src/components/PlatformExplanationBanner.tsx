@@ -20,11 +20,12 @@ interface PlatformExplanationBannerProps {
 }
 
 export function PlatformExplanationBanner({ locale }: PlatformExplanationBannerProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  // Collapsed by default — policy/how-it-works should not push the catalog down on phones.
+  const [isOpen, setIsOpen] = useState(false);
   const ui = HOME_UI[locale];
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs relative overflow-hidden my-4">
+    <div className="rounded-2xl md:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs relative overflow-hidden">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white shrink-0">
