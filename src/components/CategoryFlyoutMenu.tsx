@@ -27,14 +27,15 @@ interface CategoryFlyoutMenuProps {
 
 type MenuLevel = "root" | "department" | "group";
 
-/** Compact Apple-like row: hugs label, soft shadow, black type. */
+/** Glossy Apple-white row. */
 function menuRowClass(selected: boolean): string {
   return [
-    "flex w-full items-center gap-2.5 rounded-[10px] px-3 py-2 text-left transition-colors",
-    "bg-[#fffcf8] text-neutral-950",
-    "shadow-[0_1px_2px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]",
-    "hover:bg-white active:bg-[#f3efe8]",
-    selected ? "ring-1 ring-black/10 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]" : "",
+    "flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-left transition-all duration-200",
+    "bg-white/80 text-neutral-950 backdrop-blur-sm",
+    "shadow-[0_1px_2px_rgba(0,0,0,0.04),inset_0_1px_0_rgba(255,255,255,0.9)]",
+    "ring-1 ring-black/[0.04]",
+    "hover:bg-white hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] active:scale-[0.99]",
+    selected ? "bg-white ring-black/10 shadow-[0_6px_20px_rgba(0,0,0,0.08)]" : "",
   ].join(" ");
 }
 
@@ -55,14 +56,20 @@ export function CategoryFlyoutMenu({
   const titleId = useId();
   const [level, setLevel] = useState<MenuLevel>("root");
   const [activeDept, setActiveDept] = useState<ShoppingCategory | null>(null);
-  /** Stack for Fashion → Shoes → Women → Sneakers drill-down. */
   const [groupStack, setGroupStack] = useState<ShoppingSubcategory[]>([]);
+  /** Drive cinematic slide + backdrop fade after mount. */
+  const [entered, setEntered] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setEntered(false);
+      return;
+    }
     setLevel("root");
     setActiveDept(null);
     setGroupStack([]);
+    const frame = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(frame);
   }, [open]);
 
   useEffect(() => {
@@ -144,32 +151,59 @@ export function CategoryFlyoutMenu({
   const subtitle =
     level === "group" || level === "department" ? ui.menuSubcategories : ui.menuSubtitle;
 
+  const canGoBack = level === "department" || level === "group";
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-stretch justify-center"
+      className="fixed inset-0 z-50"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
     >
+      {/* Full-page bleach / bokeh veil */}
       <button
         type="button"
         aria-label={ui.menuClose}
         onClick={onClose}
-        className="absolute inset-0 cursor-default border-0 bg-black/25 backdrop-blur-[2px]"
+        className={[
+          "absolute inset-0 cursor-default border-0 transition-opacity duration-500 ease-out",
+          entered ? "opacity-100" : "opacity-0",
+        ].join(" ")}
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 20% 30%, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.82) 45%, rgba(255,255,255,0.72) 100%)",
+          backdropFilter: "blur(18px) saturate(1.2)",
+          WebkitBackdropFilter: "blur(18px) saturate(1.2)",
+        }}
       />
 
-      <div
-        className="relative z-10 m-2 sm:m-4 flex h-[min(92dvh,920px)] w-full max-w-md flex-col overflow-hidden rounded-[22px] border border-black/[0.06] bg-[#f5f1ea] shadow-[0_20px_60px_rgba(0,0,0,0.18)]"
+      {/* Edge drawer — slides from left like Samsung Edge */}
+      <aside
+        className={[
+          "absolute inset-y-0 left-0 z-10 flex w-[min(100vw,22rem)] sm:w-[min(100vw,26rem)] flex-col",
+          "border-r border-white/60 shadow-[12px_0_48px_rgba(15,23,42,0.12)]",
+          "transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform",
+          entered ? "translate-x-0" : "-translate-x-full",
+        ].join(" ")}
         style={{
           backgroundImage:
-            "linear-gradient(180deg, #fffcf7 0%, #f5f1ea 42%, #efe9df 100%)",
+            "linear-gradient(165deg, #ffffff 0%, #fbfbfd 42%, #f4f5f7 100%)",
         }}
       >
-        <div className="flex items-center justify-between gap-3 px-4 pb-2.5 pt-3.5">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-70"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 12% 8%, rgba(255,255,255,0.95) 0%, transparent 42%), radial-gradient(circle at 88% 0%, rgba(226,232,240,0.55) 0%, transparent 36%)",
+          }}
+          aria-hidden="true"
+        />
+
+        <div className="relative flex items-center justify-between gap-3 px-4 pb-3 pt-[max(0.85rem,env(safe-area-inset-top))]">
           <div className="min-w-0">
             <p
               id={titleId}
-              className="truncate text-[17px] font-semibold tracking-tight text-neutral-950"
+              className="truncate text-[18px] font-semibold tracking-tight text-neutral-950"
             >
               {title}
             </p>
@@ -178,16 +212,16 @@ export function CategoryFlyoutMenu({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black/[0.06] text-neutral-800 hover:bg-black/[0.1]"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/80 text-neutral-800 shadow-[0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.06] hover:bg-white"
           >
             <X className="h-4 w-4" aria-hidden="true" />
             <span className="sr-only">{ui.menuClose}</span>
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-3 pt-1 custom-scrollbar">
+        <div className="relative min-h-0 flex-1 overflow-y-auto px-3 pb-4 pt-1 custom-scrollbar">
           {level === "root" ? (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <button
                 type="button"
                 onClick={() => selectAndClose(ALL_CATEGORIES_ID)}
@@ -198,7 +232,7 @@ export function CategoryFlyoutMenu({
               </button>
 
               <nav aria-label={ui.menuCategories}>
-                <ul className="space-y-1.5">
+                <ul className="space-y-2">
                   {SHOPPING_CATEGORIES.map((category) => {
                     const Icon = category.icon;
                     const count = categoryCounts?.[category.id] ?? 0;
@@ -243,7 +277,7 @@ export function CategoryFlyoutMenu({
               </nav>
             </div>
           ) : level === "department" && activeDept ? (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <button
                 type="button"
                 onClick={() => selectAndClose(activeDept.id)}
@@ -259,7 +293,7 @@ export function CategoryFlyoutMenu({
                 )}
               </button>
 
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {activeDept.subcategories.map((sub) => {
                   const count = categoryCounts?.[sub.id] ?? 0;
                   const hasChildren = Boolean(sub.children?.length);
@@ -292,7 +326,7 @@ export function CategoryFlyoutMenu({
               </ul>
             </div>
           ) : level === "group" && activeGroup?.children ? (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <button
                 type="button"
                 onClick={() => selectAndClose(activeGroup.id)}
@@ -303,7 +337,7 @@ export function CategoryFlyoutMenu({
                 </span>
               </button>
 
-              <ul className="space-y-1.5">
+              <ul className="space-y-2">
                 {activeGroup.children.map((child) => {
                   const count = categoryCounts?.[child.id] ?? 0;
                   const hasChildren = Boolean(child.children?.length);
@@ -338,19 +372,19 @@ export function CategoryFlyoutMenu({
           ) : null}
         </div>
 
-        {(level === "department" || level === "group") && (
-          <div className="flex items-center justify-end px-4 pb-3.5 pt-1">
+        {canGoBack && (
+          <div className="relative flex items-center justify-end border-t border-black/[0.04] bg-white/50 px-4 py-3 backdrop-blur-sm">
             <button
               type="button"
               onClick={goBack}
-              className="inline-flex items-center gap-1 rounded-full bg-black/[0.06] px-3 py-1.5 text-[13px] font-medium text-neutral-900 hover:bg-black/[0.1]"
+              className="inline-flex items-center gap-1 rounded-full bg-white px-3.5 py-2 text-[13px] font-medium text-neutral-900 shadow-[0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/[0.06] hover:bg-neutral-50"
             >
               <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
               {ui.menuBack}
             </button>
           </div>
         )}
-      </div>
+      </aside>
     </div>
   );
 }
