@@ -5,7 +5,7 @@ export const roUi = {
     termsServiceDescriptionTitle: "1. Descrierea Serviciului / Serviciu Gratuit",
     termsServiceDescriptionBody: "<strong>{platformName}</strong> (operat de <strong>{legalName}</strong>, UID {uid}) este un serviciu gratuit de comparare a prețurilor online în versiune Beta/Demo. Nu vindem produse direct, ci comparăm prețurile și disponibilitatea retailerilor online externi. Unele oferte provin din datele catalogului demo; Brack.ch (CH) utilizează implicit date ilustrative de test AWIN. Doar ofertele marcate explicit ca &quot;Production feed&quot; provin dintr-un flux de producție configurat.",
     tagline: "Compară prețuri din magazine. Cumpără pe site-ul lor.",
-    appDoesOneLiner: "Găsim prețuri din magazine și te trimitem să cumperi acolo — noi nu vindem.",
+    appDoesOneLiner: "Cel mai bun preț online — compară magazinele, apoi cumpără la comerciant.",
     demoDisclaimerShort: "Compară prețuri → cumperi pe site-ul magazinului. Noi nu vindem.",
     marketHeroHeadline: "Găsește cel mai mic preț din magazine — apoi cumpără acolo",
     marketHeroSubline: "BeforeToBuy.com compară oferte de la magazine partenere și te redirecționează la checkout-ul lor. Nu vindem produse și nu procesăm plăți.",

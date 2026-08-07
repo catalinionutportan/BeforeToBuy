@@ -5,7 +5,7 @@ export const deUi = {
     termsServiceDescriptionTitle: "1. Leistungsbeschreibung / Free Service",
     termsServiceDescriptionBody: "<strong>{platformName}</strong> (betrieben von <strong>{legalName}</strong>, UID {uid}) ist ein kostenloser Online-Preisvergleichsdienst in Beta/Demo. Wir verkaufen selbst keine Produkte, sondern stellen Preis- und Verfügbarkeitsangaben externer Online-Händler gegenüber. Einige Angebote stammen aus Demo-Katalogdaten; Brack.ch (CH) verwendet standardmässig illustrative AWIN-Testdaten. Nur ausdrücklich als &quot;Production feed&quot; gekennzeichnete Angebote stammen aus einem konfigurierten Produktionsfeed.",
     tagline: "Shop-Preise vergleichen. Kauf auf der Händlerseite.",
-    appDoesOneLiner: "Wir finden Shop-Preise und leiten Sie zum Kauf dort weiter — wir verkaufen nichts.",
+    appDoesOneLiner: "Bester Online-Preis — Shops vergleichen, dann beim Händler kaufen.",
     demoDisclaimerShort: "Preise vergleichen → Kauf im Shop. Wir verkaufen nicht.",
     marketHeroHeadline: "Den niedrigsten Shop-Preis finden — dann dort kaufen",
     marketHeroSubline: "BeforeToBuy.com vergleicht Angebote von Partner-Shops und leitet Sie zu deren Checkout weiter. Wir verkaufen keine Produkte und nehmen keine Zahlungen entgegen.",

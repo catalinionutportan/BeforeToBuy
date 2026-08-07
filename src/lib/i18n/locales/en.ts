@@ -3,7 +3,7 @@
  */
 export const enUi = {
     tagline: "Compare store prices. Buy on the merchant site.",
-    appDoesOneLiner: "We find store prices and send you to buy there — we don't sell products.",
+    appDoesOneLiner: "Best price online — compare stores, then buy on the merchant site.",
     demoDisclaimerShort: "Compare prices → buy on the store site. We don't sell products.",
     marketHeroHeadline: "Find the lowest store price — then buy there",
     marketHeroSubline: "BeforeToBuy.com compares offers from partner stores and redirects you to their checkout. We do not sell products or take payment.",

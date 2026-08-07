@@ -3,7 +3,7 @@
  */
 export const frUi = {
     tagline: "Comparer les prix des magasins. Acheter sur leur site.",
-    appDoesOneLiner: "Nous trouvons les prix des magasins et vous y envoyons acheter — nous ne vendons pas.",
+    appDoesOneLiner: "Meilleur prix en ligne — comparez les magasins, achetez chez le marchand.",
     demoDisclaimerShort: "Comparer les prix → acheter sur le site du magasin. Nous ne vendons pas.",
     marketHeroHeadline: "Trouvez le prix le plus bas — puis achetez chez le magasin",
     marketHeroSubline: "BeforeToBuy.com compare les offres des magasins partenaires et vous redirige vers leur checkout. Nous ne vendons pas et n'encaissons pas.",
