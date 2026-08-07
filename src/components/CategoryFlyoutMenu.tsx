@@ -71,12 +71,9 @@ export function CategoryFlyoutMenu({
   const titleId = useId();
   const isTouch = useIsCoarsePointer();
 
-  // Touch / click drill-down (phone)
   const [level, setLevel] = useState<MenuLevel>("root");
   const [activeDept, setActiveDept] = useState<ShoppingCategory | null>(null);
   const [groupStack, setGroupStack] = useState<ShoppingSubcategory[]>([]);
-
-  // Desktop hover preview columns (expand left → right)
   const [previewCols, setPreviewCols] = useState<PreviewColumn[]>([]);
   const [entered, setEntered] = useState(false);
 
@@ -164,17 +161,13 @@ export function CategoryFlyoutMenu({
     selectAndClose(sub.id);
   };
 
-  const hoverDepartment = (category: ShoppingCategory) => {
-    if (isTouch) return;
-    if (category.subcategories.length === 0) {
-      setPreviewCols([]);
-      return;
-    }
+  /** Hover or click opens the next column to the right (desktop). */
+  const showDepartmentColumn = (category: ShoppingCategory) => {
+    if (category.subcategories.length === 0) return;
     setPreviewCols([{ kind: "department", category }]);
   };
 
-  const hoverGroup = (node: ShoppingSubcategory, columnIndex: number) => {
-    if (isTouch) return;
+  const showGroupColumn = (node: ShoppingSubcategory, columnIndex: number) => {
     setPreviewCols((cols) => {
       const kept = cols.slice(0, columnIndex + 1);
       if (!node.children?.length) return kept;
@@ -182,61 +175,47 @@ export function CategoryFlyoutMenu({
     });
   };
 
+  const onDepartmentActivate = (category: ShoppingCategory) => {
+    if (category.subcategories.length > 0) {
+      showDepartmentColumn(category);
+      return;
+    }
+    selectAndClose(category.id);
+  };
+
+  const onItemActivate = (item: ShoppingSubcategory, columnIndex: number) => {
+    if (item.children?.length) {
+      showGroupColumn(item, columnIndex);
+      return;
+    }
+    selectAndClose(item.id);
+  };
+
   const activeGroup = groupStack[groupStack.length - 1] ?? null;
-  const title =
-    !isTouch
-      ? ui.menuTitle
-      : activeGroup
-        ? getSubcategoryLabel(activeGroup.id, locale)
-        : level === "department" && activeDept
-          ? getDepartmentLabel(activeDept.id, locale)
-          : ui.menuTitle;
+  const title = !isTouch
+    ? ui.menuTitle
+    : activeGroup
+      ? getSubcategoryLabel(activeGroup.id, locale)
+      : level === "department" && activeDept
+        ? getDepartmentLabel(activeDept.id, locale)
+        : ui.menuTitle;
   const subtitle =
     !isTouch || level === "root" ? ui.menuSubtitle : ui.menuSubcategories;
   const canGoBackTouch = isTouch && (level === "department" || level === "group");
 
-  const panelWidthClass = !isTouch && previewCols.length > 0
-    ? previewCols.length === 1
-      ? "w-[min(100vw,40rem)] sm:w-[min(100vw,42rem)]"
-      : "w-[min(100vw,56rem)] sm:w-[min(100vw,58rem)]"
-    : "w-[min(100vw,20rem)] sm:w-[min(100vw,22rem)]";
-
   return (
     <div
-      className="fixed inset-0 z-50"
+      className={[
+        "fixed inset-0 z-50 bg-white transition-opacity duration-300 ease-out",
+        entered ? "opacity-100" : "opacity-0",
+      ].join(" ")}
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
     >
-      <button
-        type="button"
-        aria-label={ui.menuClose}
-        onClick={onClose}
-        className={[
-          "absolute inset-0 cursor-default border-0 transition-opacity duration-400 ease-out",
-          entered ? "opacity-100" : "opacity-0",
-        ].join(" ")}
-        style={{
-          background:
-            "radial-gradient(ellipse 85% 70% at 15% 25%, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.88) 50%, rgba(248,250,252,0.78) 100%)",
-          backdropFilter: "blur(20px) saturate(1.15)",
-          WebkitBackdropFilter: "blur(20px) saturate(1.15)",
-        }}
-      />
-
-      <aside
-        className={[
-          "absolute inset-y-0 left-0 z-10 flex flex-col bg-white",
-          "border-r border-black/[0.06] shadow-[16px_0_48px_rgba(15,23,42,0.10)]",
-          "transition-[transform,width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform",
-          panelWidthClass,
-          entered ? "translate-x-0" : "-translate-x-full",
-        ].join(" ")}
-        onMouseLeave={() => {
-          if (!isTouch) setPreviewCols([]);
-        }}
-      >
-        <div className="flex items-center justify-between gap-3 border-b border-black/[0.04] px-4 pb-2.5 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      {/* Full-screen solid white page — never resizes when columns expand */}
+      <div className="flex h-full w-full flex-col bg-white">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-black/[0.06] px-4 pb-2.5 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <div className="min-w-0">
             <p
               id={titleId}
@@ -256,10 +235,10 @@ export function CategoryFlyoutMenu({
           </button>
         </div>
 
-        {/* Desktop: expanding columns. Touch: single drill-down column. */}
         {!isTouch ? (
-          <div className="flex min-h-0 flex-1 overflow-hidden">
-            <div className="flex w-[min(100%,20rem)] shrink-0 flex-col border-r border-black/[0.04]">
+          <div className="flex min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
+            {/* Column 1 — root categories (fixed width; page stays full white) */}
+            <div className="flex h-full w-[min(100%,18rem)] shrink-0 flex-col border-r border-black/[0.06]">
               <div className="min-h-0 flex-1 overflow-y-auto px-2 py-2 custom-scrollbar">
                 <button
                   type="button"
@@ -289,8 +268,8 @@ export function CategoryFlyoutMenu({
                         <li key={category.id}>
                           <button
                             type="button"
-                            onMouseEnter={() => hoverDepartment(category)}
-                            onClick={() => selectAndClose(category.id)}
+                            onMouseEnter={() => showDepartmentColumn(category)}
+                            onClick={() => onDepartmentActivate(category)}
                             className={rowClass(selected || previewed)}
                           >
                             <Icon
@@ -322,6 +301,7 @@ export function CategoryFlyoutMenu({
               </div>
             </div>
 
+            {/* Columns 2+ — grow only to the right; white page behind stays full-bleed */}
             {previewCols.map((col, colIndex) => {
               const items =
                 col.kind === "department" ? col.category.subcategories : col.node.children ?? [];
@@ -334,7 +314,7 @@ export function CategoryFlyoutMenu({
               return (
                 <div
                   key={`${col.kind}-${parentId}-${colIndex}`}
-                  className="flex w-[min(100%,18rem)] shrink-0 flex-col border-r border-black/[0.04] bg-white"
+                  className="flex h-full w-[min(100%,17rem)] shrink-0 flex-col border-r border-black/[0.06] bg-white"
                 >
                   <div className="border-b border-black/[0.04] px-3 py-2">
                     <p className="truncate text-[11px] font-medium text-neutral-500">
@@ -362,8 +342,8 @@ export function CategoryFlyoutMenu({
                           <li key={item.id}>
                             <button
                               type="button"
-                              onMouseEnter={() => hoverGroup(item, colIndex)}
-                              onClick={() => selectAndClose(item.id)}
+                              onMouseEnter={() => showGroupColumn(item, colIndex)}
+                              onClick={() => onItemActivate(item, colIndex)}
                               className={rowClass(selected || previewed, true)}
                             >
                               <span className="min-w-0 flex-1">
@@ -391,6 +371,9 @@ export function CategoryFlyoutMenu({
                 </div>
               );
             })}
+
+            {/* Remaining white space on the right — same color, never “shrinks” */}
+            <div className="min-w-0 flex-1 bg-white" aria-hidden="true" />
           </div>
         ) : (
           <>
@@ -553,7 +536,7 @@ export function CategoryFlyoutMenu({
             )}
           </>
         )}
-      </aside>
+      </div>
     </div>
   );
 }
