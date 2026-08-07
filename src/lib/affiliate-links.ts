@@ -16,6 +16,9 @@ export const AFFILIATE_LINKS = {
   /** redirect_to normalized (export had double-encoded https%253A) */
   soundhouse2Performant:
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=3efdbc6c8&redirect_to=https%3A%2F%2Fsoundhouse.ro%2F",
+  /** redirect_to normalized (export had double-encoded https%253A) */
+  autobob2Performant:
+    "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=103440734&redirect_to=https%3A%2F%2Fautobob.ro",
 } as const;
 
 const SCULE365_2P_BASE =

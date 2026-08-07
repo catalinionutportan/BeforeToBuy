@@ -106,5 +106,19 @@ export async function getRoOffers(
       source: "demo" as const,
       badge: ui.affiliateDemoOfferLabel,
     },
+    {
+      id: `${product.id}-autobob`,
+      storeName: "Autobob.ro",
+      price: Math.round(targetPrice * 1.07),
+      currency,
+      inStock: true,
+      deliveryTime: "2-5 zile lucrătoare",
+      deliveryCost: 18.99,
+      purchaseUrl: AFFILIATE_LINKS.autobob2Performant,
+      affiliateNetwork: "2Performant Romania",
+      type: "online" as const,
+      source: "demo" as const,
+      badge: ui.affiliateDemoOfferLabel,
+    },
   ];
 }
