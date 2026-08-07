@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
@@ -8,7 +9,6 @@ import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 import {
   Menu,
   Navigation,
-  ShoppingBag,
   Search,
   ShieldCheck,
   Store,
@@ -91,14 +91,35 @@ export function Header({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 md:gap-3 min-w-0">
           <div className="flex items-center justify-between gap-2 min-w-0 w-full md:w-auto">
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <Link
-                href="/"
-                locale={locale}
-                className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20 shrink-0"
-                aria-label="BeforeToBuy"
-              >
-                <ShoppingBag className="w-4 h-4" />
-              </Link>
+              <div className="flex flex-col items-center gap-0.5 shrink-0">
+                <Link
+                  href="/"
+                  locale={locale}
+                  className="relative block h-9 w-9"
+                  aria-label="BeforeToBuy"
+                >
+                  <Image
+                    src="/beforetobuy-mark.png"
+                    alt=""
+                    width={72}
+                    height={72}
+                    className="h-full w-full object-contain"
+                    priority
+                  />
+                </Link>
+                {onOpenCategoryMenu && (
+                  <button
+                    type="button"
+                    onClick={onOpenCategoryMenu}
+                    className="inline-flex h-5 w-9 items-center justify-center rounded-md text-slate-700 hover:bg-slate-100 hover:text-emerald-800"
+                    aria-haspopup="dialog"
+                    aria-label={ui.menuOpen}
+                    title={ui.menuOpen}
+                  >
+                    <Menu className="h-3.5 w-3.5" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
               <Link href="/" locale={locale} className="min-w-0">
                 <h1 className="text-[15px] sm:text-base font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900 bg-clip-text text-transparent truncate leading-tight">
                   BeforeToBuy
@@ -107,17 +128,6 @@ export function Header({
                   {ui.tagline}
                 </p>
               </Link>
-              {onOpenCategoryMenu && (
-                <button
-                  type="button"
-                  onClick={onOpenCategoryMenu}
-                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-1.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 shrink-0"
-                  aria-haspopup="dialog"
-                >
-                  <Menu className="h-3 w-3" aria-hidden="true" />
-                  {ui.menuOpen}
-                </button>
-              )}
             </div>
 
             <div className="md:hidden flex items-center gap-1 shrink-0">

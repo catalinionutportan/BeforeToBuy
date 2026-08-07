@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { Mail, LifeBuoy, Scale, ShoppingBag, HelpCircle, Layers, Store } from "lucide-react";
+import { Mail, LifeBuoy, Scale, HelpCircle, Layers, Store } from "lucide-react";
 import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 import { HOME_UI } from "@/lib/i18n/ui";
@@ -23,12 +24,19 @@ export function SiteNav() {
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white">
-            <ShoppingBag className="w-4 h-4" aria-hidden="true" />
-          </div>
+          <span className="relative block h-9 w-9">
+            <Image
+              src="/beforetobuy-mark.png"
+              alt=""
+              width={72}
+              height={72}
+              className="h-full w-full object-contain"
+              priority
+            />
+          </span>
           <div>
             <span className="text-base font-extrabold text-slate-900 block leading-tight">
-              BeforeToBuy.com
+              BeforeToBuy
             </span>
             <span className="text-[10px] text-slate-500 font-medium">{homeUi.betaDemo}</span>
           </div>
