@@ -168,7 +168,7 @@ export function FooterQuickIndex() {
                     <span>Affiliate Commission & Zero-Markup</span>
                   </div>
                   <p className="text-slate-400 leading-relaxed">
-                    Free for consumers. Live affiliate redirects today: eMAG (Profitshare) and evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home & MxEnduro (2Performant) in Romania, with Affiliate consent. Other networks remain planned. A merchant or network may pay us a referral commission from their marketing budget — we do not add a BeforeToBuy fee. Final checkout price is always set by the merchant. Listed prices stay demo until product feeds are connected.
+                    Free for consumers. Live affiliate redirects today: evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home & MxEnduro (2Performant) in Romania, with Affiliate consent. Other networks remain planned. A merchant or network may pay us a referral commission from their marketing budget — we do not add a BeforeToBuy fee. Final checkout price is always set by the merchant. Listed prices stay demo until product feeds are connected.
                   </p>
                 </div>
 
@@ -291,7 +291,6 @@ export function FooterQuickIndex() {
                   "Microspot (CH)",
                   "Manor (CH)",
                   "Amazon (DE / FR / US)",
-                  "eMAG (RO) — Profitshare live",
                   "evoMAG (RO) — 2Performant live",
                   "Rowenta (RO) — 2Performant live",
                   "Scule365 (RO) — 2Performant + product feed",

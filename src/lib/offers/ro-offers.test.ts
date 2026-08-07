@@ -15,12 +15,11 @@ const location = {
 } as UserLocation;
 
 describe("getRoOffers", () => {
-  it("returns live RO affiliate outbound links including MxEnduro", async () => {
+  it("returns live RO affiliate outbound links including MxEnduro (no eMAG)", async () => {
     const offers = await getRoOffers(product, location, null, "en");
 
-    expect(offers).toHaveLength(10);
+    expect(offers).toHaveLength(9);
     expect(offers.map((o) => o.storeName)).toEqual([
-      "eMAG.ro",
       "evoMAG.ro",
       "Rowenta.ro",
       "Scule365.ro",
@@ -31,7 +30,9 @@ describe("getRoOffers", () => {
       "PAA-Home.ro",
       "MxEnduro.ro",
     ]);
-    expect(offers[9]?.purchaseUrl).toBe(AFFILIATE_LINKS.mxenduro2Performant);
+    expect(offers.some((o) => /emag/i.test(o.storeName))).toBe(false);
+    expect(offers.some((o) => /profitshare/i.test(o.affiliateNetwork ?? ""))).toBe(false);
+    expect(offers[8]?.purchaseUrl).toBe(AFFILIATE_LINKS.mxenduro2Performant);
     expect(AFFILIATE_LINKS.mxenduro2Performant).toContain("unique=90cc26df2");
   });
 });

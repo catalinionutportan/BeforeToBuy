@@ -251,19 +251,6 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
 
   // --- Romania (RO) ---
   {
-    id: "ro-emag",
-    name: "eMAG.ro",
-    domain: "emag.ro",
-    websiteUrl: AFFILIATE_LINKS.emagProfitshare,
-    countryCode: "RO",
-    affiliateNetwork: "Profitshare Romania",
-    category: "Marketplace Leader",
-    hasClickAndCollect: true,
-    status: "Live Affiliate Redirect",
-    badge: "Profitshare live · demo prices 🇷🇴",
-    description: "Romania's largest online marketplace. Outbound clicks use a live Profitshare affiliate link; listed prices remain demo until product feeds are connected.",
-  },
-  {
     id: "ro-evomag",
     name: "evoMAG.ro",
     domain: "evomag.ro",
@@ -557,10 +544,9 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: 26.1063,
       city: "București",
     },
-    supportedStores: ["emag.ro", "evomag.ro", "rowenta.ro", "scule365.ro", "autoeco.ro", "soundhouse.ro", "autobob.ro", "automobilus.ro", "paa-home.ro", "mxenduro.ro", "dedeman.ro"],
+    supportedStores: ["evomag.ro", "rowenta.ro", "scule365.ro", "autoeco.ro", "soundhouse.ro", "autobob.ro", "automobilus.ro", "paa-home.ro", "mxenduro.ro", "dedeman.ro"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "RO"),
     affiliateNetworks: [
-      "Profitshare Romania (eMAG) — live",
       "2Performant Romania (evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home, MxEnduro) — live",
       "Scule365 Google Merchant product feed — live",
       "Dedeman / additional RO merchants (pending)",
