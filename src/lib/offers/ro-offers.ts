@@ -22,21 +22,6 @@ export async function getRoOffers(
 
   return [
     {
-      id: `${product.id}-emag`,
-      storeName: "eMAG.ro",
-      price: targetPrice,
-      originalPrice: Math.round(targetPrice * 1.1),
-      currency,
-      inStock: true,
-      deliveryTime: "Livrare mâine la Easybox",
-      deliveryCost: 9.99,
-      purchaseUrl: AFFILIATE_LINKS.emagProfitshare,
-      affiliateNetwork: "Profitshare Romania",
-      type: "online" as const,
-      source: "demo" as const,
-      badge: ui.affiliateDemoOfferLabel,
-    },
-    {
       id: `${product.id}-evomag`,
       storeName: "evoMAG.ro",
       price: Math.round(targetPrice * 1.01),
