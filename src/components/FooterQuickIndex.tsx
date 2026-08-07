@@ -293,7 +293,7 @@ export function FooterQuickIndex() {
                   "Amazon (DE / FR / US)",
                   "eMAG (RO) — Profitshare live",
                   "evoMAG (RO) — 2Performant live",
-                  "Rowenta (RO) — 2Performant live",
+                  "Rowenta (RO) — 2Performant + product feed",
                   "Scule365 (RO) — 2Performant + product feed",
                   "AutoEco (RO) — 2Performant live",
                   "Soundhouse (RO) — 2Performant live",

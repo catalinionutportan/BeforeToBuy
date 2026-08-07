@@ -37,7 +37,7 @@ export const roUi = {
     offersInCountry: "Prețuri în {country}",
     demoDisclaimer: "Beta: comparăm prețuri și te trimitem la magazine — nu vindem. Unele prețuri sunt încă demo până conectăm feed-uri live.",
     hybridDisclaimer: "Beta hibridă: Brack.ch utilizează în prezent date ilustrative din feed-ul AWIN eșantion până la configurarea unui feed de producție; alți comercianți rămân în catalogul demo până la conectare.",
-    productionFeedDisclaimer: "Beta hibrid: România are redirecționări afiliate live pentru eMAG (Profitshare) și evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home & MxEnduro (2Performant) cu consimțământ Afiliat — Scule365 are feed Google Merchant (prețuri live când e configurat); eMAG/evoMAG/Rowenta rămân demo la preț până la feed. Alte piețe rămân sample/demo sau planificate.",
+    productionFeedDisclaimer: "Beta hibrid: România are redirecționări afiliate live pentru eMAG (Profitshare) și evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home & MxEnduro (2Performant) cu consimțământ Afiliat — Rowenta are feed 2Performant (prețuri live); Scule365 are feed Google Merchant (prețuri live când e configurat); eMAG/evoMAG rămân demo la preț până la feed. Alte piețe rămân sample/demo sau planificate.",
     priceDisclaimer: "Totalurile de comparare sunt indicative (preț + livrare afișată; TVA/vamă pot lipsi). Confirmați prețul final, TVA, livrarea și disponibilitatea pe site-ul magazinului.",
     rankingDisclosure: "Sortare implicită: ofertele după total indicativ (preț + livrare afișată). Filtrele pot schimba ordinea. Fără plasare comercială în Beta.",
     liveOfferLabel: "Preț din feed de producție",

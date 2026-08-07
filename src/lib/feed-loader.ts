@@ -10,13 +10,9 @@ import {
   parseGoogleMerchantXmlFeed,
   parseGoogleMerchantXmlFeedStream,
 } from "@/lib/google-merchant-feed-parser";
+import { parseTwoPerformantCsvFeedStream } from "@/lib/two-performant-feed-parser";
 import type { MappingLogEntry } from "@/lib/mapping-log";
 import { Readable } from "node:stream";
-
-type FeedParseResult = Promise<{ products: Product[]; mappingLog: MappingLogEntry[] }> | {
-  products: Product[];
-  mappingLog: MappingLogEntry[];
-};
 
 type StreamParser = (
   content: NodeJS.ReadableStream,
@@ -48,6 +44,10 @@ const FEED_PARSERS: Record<
     stream: parseGoogleMerchantXmlFeedStream,
     string: parseGoogleMerchantXmlFeed,
   },
+  TWO_PERFORMANT: {
+    stream: parseTwoPerformantCsvFeedStream,
+    string: () => ({ products: [], mappingLog: [] }),
+  },
 };
 
 export async function parseConfiguredFeed(
@@ -66,7 +66,8 @@ export async function parseConfiguredFeed(
     if (
       feed.provider === "AWIN" ||
       feed.provider === "GALAXUS" ||
-      feed.provider === "GOOGLE_MERCHANT"
+      feed.provider === "GOOGLE_MERCHANT" ||
+      feed.provider === "TWO_PERFORMANT"
     ) {
       return parsers.stream(Readable.from([content]), country, feed.merchantId, offerSource);
     }

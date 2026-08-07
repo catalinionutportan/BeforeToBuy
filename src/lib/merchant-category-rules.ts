@@ -9,6 +9,7 @@ export const MAPPING_MERCHANT_IDS = [
   "ch-interdiscount",
   "ch-fust",
   "ro-scule365",
+  "ro-rowenta",
 ] as const;
 
 export type MappingMerchantId = (typeof MAPPING_MERCHANT_IDS)[number];
@@ -241,6 +242,33 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       {
         patterns: /\b(acumulator|baterie|incarcator|încărcător|akku)\b/i,
         subcategoryId: "diy-batteries-chargers",
+      },
+    ],
+  },
+  "ro-rowenta": {
+    exact: exactRules({
+      "aspiratoare verticale": "cleaning-vacuums",
+      "aspiratoare cu abur": "cleaning-vacuums",
+      aspiratoare: "cleaning-vacuums",
+      "fiare de calcat": "laundry-ironing-sewing",
+      "fiare de călcat": "laundry-ironing-sewing",
+      "uscatoare de par": "care-hair-styling",
+      "uscătoare de păr": "care-hair-styling",
+      "aparate de gatit": "kitchen-cooking-appliances",
+      "aparate de gătit": "kitchen-cooking-appliances",
+    }),
+    patterns: [
+      {
+        patterns: /\b(aspirator|vacuum|abur|steam)\b/i,
+        subcategoryId: "cleaning-vacuums",
+      },
+      {
+        patterns: /\b(calcat|călcat|steam iron|bügeleisen)\b/i,
+        subcategoryId: "laundry-ironing-sewing",
+      },
+      {
+        patterns: /\b(uscator|uscător|hair.?dryer|haartrockner|fen)\b/i,
+        subcategoryId: "care-hair-styling",
       },
     ],
   },

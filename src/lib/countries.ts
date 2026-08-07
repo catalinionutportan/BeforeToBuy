@@ -285,9 +285,10 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     affiliateNetwork: "2Performant Romania",
     category: "Home Appliances",
     hasClickAndCollect: false,
-    status: "Live Affiliate Redirect",
-    badge: "2Performant live · demo prices 🇷🇴",
-    description: "Rowenta home appliances for Romania. Outbound clicks use a live 2Performant affiliate link; listed prices remain demo until product feeds are connected.",
+    status: "Live Feed",
+    badge: "2Performant + product feed 🇷🇴",
+    description:
+      "Rowenta home appliances for Romania. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
   },
   {
     id: "ro-scule365",
@@ -562,6 +563,7 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     affiliateNetworks: [
       "Profitshare Romania (eMAG) — live",
       "2Performant Romania (evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home, MxEnduro) — live",
+      "Rowenta 2Performant product feed — live",
       "Scule365 Google Merchant product feed — live",
       "Dedeman / additional RO merchants (pending)",
     ],
