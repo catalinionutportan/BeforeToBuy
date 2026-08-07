@@ -13,41 +13,41 @@ export function SiteFooter() {
   const { locale: browseLocale } = useBrowseLocale(DEFAULT_COUNTRY);
   const homeUi = HOME_UI[browseLocale];
   const linkClass =
-    "text-slate-300 underline-offset-2 transition-colors hover:text-emerald-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-sm";
+    "text-[11px] leading-5 text-slate-300 transition-colors hover:text-emerald-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 rounded-sm";
 
   return (
-    <footer className="mt-auto border-t border-slate-800 bg-slate-950 px-4 py-4 text-xs text-slate-400 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <span className="relative block h-7 w-7 shrink-0">
+    <footer className="mt-auto border-t border-slate-800 bg-slate-950 px-4 py-3.5 text-[11px] text-slate-400 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="relative block h-6 w-6 shrink-0">
               <Image
                 src="/beforetobuy-mark.png"
                 alt=""
-                width={56}
-                height={56}
+                width={48}
+                height={48}
                 className="h-full w-full object-contain"
               />
             </span>
             <div className="min-w-0 leading-tight">
-              <p className="text-sm font-extrabold text-white">BeforeToBuy</p>
-              <p className="truncate text-[11px] text-slate-500">{homeUi.compareBeforeYouBuy}</p>
+              <p className="text-[12px] font-extrabold text-white">BeforeToBuy</p>
+              <p className="truncate text-[10px] text-slate-500">{homeUi.compareBeforeYouBuy}</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[10px]">
             <a
               href={`mailto:${COMPANY.email}`}
               className="inline-flex items-center gap-1 text-slate-300 hover:text-sky-300"
             >
-              <Mail className="h-3 w-3 text-sky-400" aria-hidden="true" />
+              <Mail className="h-2.5 w-2.5 text-sky-400" aria-hidden="true" />
               {COMPANY.email}
             </a>
             <a
               href={COMPANY.phoneHref}
               className="inline-flex items-center gap-1 text-slate-300 hover:text-sky-300"
             >
-              <Phone className="h-3 w-3 text-sky-400" aria-hidden="true" />
+              <Phone className="h-2.5 w-2.5 text-sky-400" aria-hidden="true" />
               {COMPANY.phone}
             </a>
             <a
@@ -61,120 +61,119 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <nav aria-label="Footer" className="flex flex-col gap-1.5 border-y border-slate-800/80 py-2.5">
-          <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <span className="shrink-0 font-bold uppercase tracking-[0.14em] text-slate-500">
+        <nav
+          aria-label="Footer"
+          className="grid grid-cols-1 gap-3 border-y border-slate-800/80 py-2.5 sm:grid-cols-3 sm:gap-4"
+        >
+          <div className="min-w-0 space-y-1">
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
               {homeUi.explore}
-            </span>
-            <Link href="/about" className={linkClass}>
-              {homeUi.about}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/categories" className={linkClass}>
-              {homeUi.categories}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/stores" className={linkClass}>
-              {homeUi.stores}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/status" className={linkClass}>
-              {homeUi.platformStatus}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/transparency" className={linkClass}>
-              {homeUi.platformNotices}
-            </Link>
-          </p>
+            </h2>
+            <ul className="flex flex-col gap-0.5">
+              <li>
+                <Link href="/about" className={linkClass}>
+                  {homeUi.about}
+                </Link>
+              </li>
+              <li>
+                <Link href="/categories" className={linkClass}>
+                  {homeUi.categories}
+                </Link>
+              </li>
+              <li>
+                <Link href="/stores" className={linkClass}>
+                  {homeUi.stores}
+                </Link>
+              </li>
+              <li>
+                <Link href="/status" className={linkClass}>
+                  {homeUi.platformStatus}
+                </Link>
+              </li>
+              <li>
+                <Link href="/transparency" className={linkClass}>
+                  {homeUi.platformNotices}
+                </Link>
+              </li>
+            </ul>
+          </div>
 
-          <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <span className="shrink-0 font-bold uppercase tracking-[0.14em] text-slate-500">
+          <div className="min-w-0 space-y-1">
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
               {homeUi.support}
-            </span>
-            <Link href="/help" className={linkClass}>
-              {homeUi.helpFAQ}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/contact" className={linkClass}>
-              {homeUi.contact}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/affiliate-disclosure" className={linkClass}>
-              {homeUi.affiliateDisclosure}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/disclaimer" className={linkClass}>
-              {homeUi.priceServiceDisclaimer}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/complaints" className={linkClass}>
-              {homeUi.complaints}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/accessibility" className={linkClass}>
-              {homeUi.accessibility}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <span className="[&_button]:text-[12px] [&_button]:text-slate-300">
-              <ManageCookiePreferencesButton />
-            </span>
-          </p>
+            </h2>
+            <ul className="flex flex-col gap-0.5">
+              <li>
+                <Link href="/help" className={linkClass}>
+                  {homeUi.helpFAQ}
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className={linkClass}>
+                  {homeUi.contact}
+                </Link>
+              </li>
+              <li>
+                <Link href="/affiliate-disclosure" className={linkClass}>
+                  {homeUi.affiliateDisclosure}
+                </Link>
+              </li>
+              <li>
+                <Link href="/disclaimer" className={linkClass}>
+                  {homeUi.priceServiceDisclaimer}
+                </Link>
+              </li>
+              <li>
+                <Link href="/complaints" className={linkClass}>
+                  {homeUi.complaints}
+                </Link>
+              </li>
+              <li>
+                <Link href="/accessibility" className={linkClass}>
+                  {homeUi.accessibility}
+                </Link>
+              </li>
+              <li className="[&_button]:text-[11px] [&_button]:leading-5 [&_button]:text-slate-300 [&_svg]:h-3 [&_svg]:w-3">
+                <ManageCookiePreferencesButton />
+              </li>
+            </ul>
+          </div>
 
-          <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <span className="shrink-0 font-bold uppercase tracking-[0.14em] text-slate-500">
+          <div className="min-w-0 space-y-1">
+            <h2 className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
               {homeUi.legalCompany}
-            </span>
-            <Link href="/legal" className={linkClass}>
-              {homeUi.legalHub}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/impressum" className={linkClass}>
-              {homeUi.impressum}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/privacy" className={linkClass}>
-              {homeUi.privacy}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/cookies" className={linkClass}>
-              {homeUi.cookies}
-            </Link>
-            <span className="text-slate-700" aria-hidden="true">
-              ·
-            </span>
-            <Link href="/terms" className={linkClass}>
-              {homeUi.terms}
-            </Link>
-          </p>
+            </h2>
+            <ul className="flex flex-col gap-0.5">
+              <li>
+                <Link href="/legal" className={linkClass}>
+                  {homeUi.legalHub}
+                </Link>
+              </li>
+              <li>
+                <Link href="/impressum" className={linkClass}>
+                  {homeUi.impressum}
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className={linkClass}>
+                  {homeUi.privacy}
+                </Link>
+              </li>
+              <li>
+                <Link href="/cookies" className={linkClass}>
+                  {homeUi.cookies}
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className={linkClass}>
+                  {homeUi.terms}
+                </Link>
+              </li>
+            </ul>
+          </div>
         </nav>
 
-        <div className="flex flex-col gap-1 text-[11px] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-0.5 text-[10px] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <p className="truncate">
             {formatUi(homeUi.allRightsReserved, {
               year: new Date().getFullYear(),
@@ -182,7 +181,7 @@ export function SiteFooter() {
             })}{" "}
             · {COMPANY.legalName} · {COMPANY.uid}
           </p>
-          <Link href="/disclaimer" className="shrink-0 text-slate-500 hover:text-amber-300 hover:underline">
+          <Link href="/disclaimer" className="shrink-0 hover:text-amber-300 hover:underline">
             Beta / Demo
           </Link>
         </div>
