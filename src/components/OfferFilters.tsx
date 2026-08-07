@@ -2,11 +2,10 @@
 
 import {
   MAX_TOTAL_PRICE_OPTIONS,
-  MAX_PICKUP_DISTANCE_OPTIONS,
   type OfferFilterCriteria,
 } from "@/lib/offers/offer-filters";
 import { OFFER_FILTER_UI, type CategoryLocale } from "@/lib/category-i18n";
-import { MapPin, PackageCheck, Tag, Truck } from "lucide-react";
+import { PackageCheck, Tag, Truck } from "lucide-react";
 
 interface OfferFiltersProps {
   criteria: OfferFilterCriteria;
@@ -74,28 +73,6 @@ export function OfferFilters({
             {MAX_TOTAL_PRICE_OPTIONS.map((amount) => (
               <option key={amount} value={amount}>
                 ≤ {amount} {currencySymbol}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">
-          <MapPin className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-          <span className="text-slate-500">{ui.gpsRadiusLabel}</span>
-          <select
-            value={criteria.maxPickupDistance ?? ""}
-            onChange={(event) => {
-              const value = event.target.value;
-              patch({
-                maxPickupDistance: value ? Number(value) : undefined,
-              });
-            }}
-            className="bg-transparent text-[11px] font-bold text-slate-800 outline-none cursor-pointer"
-          >
-            <option value="">{ui.anyDistance}</option>
-            {MAX_PICKUP_DISTANCE_OPTIONS.map((dist) => (
-              <option key={dist} value={dist}>
-                ≤ {dist} km
               </option>
             ))}
           </select>

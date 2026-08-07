@@ -35,9 +35,10 @@ describe("market hubs", () => {
     ).toBe(false);
   });
 
-  it("exposes five top tabs", () => {
+  it("exposes top market hubs in usage order", () => {
     expect(MARKET_HUB_TABS.map((hub) => hub.id)).toEqual([
       "hub-electronics",
+      "hub-home",
       "hub-books",
       "hub-fashion",
       "hub-garden",

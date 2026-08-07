@@ -75,6 +75,7 @@ export const frUi = {
     menuSeeAllInDepartment: "Tout voir dans cette catégorie",
     menuPickCategory: "Choisissez une catégorie à gauche",
     menuOpen: "Menu",
+    menuBack: "Retour",
     scrollForMoreProducts: "Faites défiler pour plus de produits…",
     endOfCatalog: "Fin du catalogue démo",
     clickAndCollectIn: "Click & Collect en",

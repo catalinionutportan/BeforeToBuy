@@ -77,6 +77,7 @@ export const roUi = {
     menuSeeAllInDepartment: "Vezi tot din această categorie",
     menuPickCategory: "Alege o categorie în stânga",
     menuOpen: "Meniu",
+    menuBack: "Înapoi",
     scrollForMoreProducts: "Derulează pentru mai multe produse…",
     endOfCatalog: "Ai ajuns la finalul catalogului demo",
     clickAndCollectIn: "Click & Collect în",

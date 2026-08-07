@@ -6,11 +6,10 @@ import {
   getCollectionLabel,
   type CategoryLocale,
 } from "@/lib/category-i18n";
-import { Flame, Globe, MapPin, PackageOpen } from "lucide-react";
+import { Flame, Globe, PackageOpen } from "lucide-react";
 
 const COLLECTION_ICONS = {
   "compare-cross-border": Globe,
-  "compare-local-pickup": MapPin,
   sale: Flame,
   "compare-refurb": PackageOpen,
 } as const;

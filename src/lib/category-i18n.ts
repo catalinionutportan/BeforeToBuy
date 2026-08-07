@@ -11,158 +11,120 @@ import {
   pickLocaleString,
   type SiteLocale,
 } from "@/lib/i18n/locales";
+import { SUBCATEGORY_LABELS } from "@/lib/i18n/subcategory-labels";
 
 /** @deprecated Prefer SiteLocale — kept as alias for existing imports. */
 export type CategoryLocale = SiteLocale;
 export type { SiteLocale };
 
 const DEPARTMENT_LABELS: Record<string, Partial<Record<SiteLocale, string>> & { en: string }> = {
-  "computers-tablets": {
-    en: "Computers + Tablets",
-    de: "Computer + Tablets",
-    fr: "Ordinateurs + tablettes",
-    ro: "Calculatoare + tablete",
+  electronics: {
+    en: "Electronics",
+    de: "Elektronik",
+    fr: "Électronique",
+    it: "Elettronica",
+    ro: "Electronice",
   },
-  "pc-components-storage": {
-    en: "PC Components + Storage",
-    de: "PC-Komponenten + Speicher",
-    fr: "Composants PC + stockage",
-    ro: "Componente PC + stocare",
+  "fashion-lifestyle": {
+    en: "Fashion",
+    de: "Mode",
+    fr: "Mode",
+    it: "Moda",
+    ro: "Modă",
   },
-  "phones-wearables": {
-    en: "Phones + Wearables",
-    de: "Telefone + Wearables",
-    fr: "Téléphones + wearables",
-    ro: "Telefoane + wearables",
+  appliances: {
+    en: "Appliances",
+    de: "Haushaltsgeräte",
+    fr: "Électroménager",
+    it: "Elettrodomestici",
+    ro: "Electrocasnice",
   },
-  "tv-home-cinema": {
-    en: "TV + Home Cinema",
-    de: "TV + Heimkino",
-    fr: "TV + home cinéma",
-    ro: "TV + home cinema",
+  furniture: {
+    en: "Furniture",
+    de: "Möbel",
+    fr: "Mobilier",
+    it: "Mobili",
+    ro: "Mobilier",
   },
-  audio: {
-    en: "Audio",
-    de: "Audio",
-    fr: "Audio",
-    ro: "Audio",
+  "home-textiles": {
+    en: "Home Textiles",
+    de: "Heimtextilien",
+    fr: "Linge de maison",
+    it: "Tessile casa",
+    ro: "Textile casă",
   },
-  "gaming-vr": {
-    en: "Gaming + VR",
-    de: "Gaming + VR",
-    fr: "Gaming + VR",
-    ro: "Gaming + VR",
+  "office-stationery": {
+    en: "Office + Books",
+    de: "Büro + Bücher",
+    fr: "Bureau + livres",
+    it: "Ufficio + libri",
+    ro: "Birou + librărie",
   },
-  "photo-video-drones-optics": {
-    en: "Photo + Video + Drones",
-    de: "Foto + Video + Drohnen",
-    fr: "Photo + vidéo + drones",
-    ro: "Foto + video + drone",
+  "beverages-alcohol": {
+    en: "Wine & Spirits",
+    de: "Wein + Spirituosen",
+    fr: "Vins & spiritueux",
+    it: "Vini e distillati",
+    ro: "Vinuri & spirtoase",
   },
-  "network-smart-home-security": {
-    en: "Network + Smart Home",
-    de: "Netzwerk + Smart Home",
-    fr: "Réseau + maison connectée",
-    ro: "Rețea + smart home",
+  "diy-tools": {
+    en: "DIY + Tools",
+    de: "Baumarkt + Werkzeug",
+    fr: "Bricolage",
+    it: "Fai da te",
+    ro: "Bricolaj",
   },
-  "office-printing": {
-    en: "Office + Printing",
-    de: "Büro + Drucken",
-    fr: "Bureau + impression",
-    ro: "Birou + imprimare",
-  },
-  "large-appliances": {
-    en: "Large Appliances",
-    de: "Haushaltsgrossgeräte",
-    fr: "Gros électroménager",
-    ro: "Electrocasnice mari",
-  },
-  "kitchen-coffee": {
-    en: "Kitchen + Coffee",
-    de: "Küche + Kaffee",
-    fr: "Cuisine + café",
-    ro: "Bucătărie + cafea",
-  },
-  "cleaning-laundry-climate": {
-    en: "Cleaning + Home Climate",
-    de: "Reinigung + Raumklima",
-    fr: "Nettoyage + climat intérieur",
-    ro: "Curățenie + climat casnic",
-  },
-  "personal-care-health-baby": {
-    en: "Personal Care + Health",
-    de: "Körperpflege + Gesundheit",
-    fr: "Soins personnels + santé",
-    ro: "Îngrijire personală + sănătate",
+  garden: {
+    en: "Garden",
+    de: "Garten",
+    fr: "Jardin",
+    it: "Giardino",
+    ro: "Grădină",
   },
   "mobility-sport-outdoor": {
-    en: "E-Mobility + Sport",
-    de: "E-Mobilität + Sport",
-    fr: "E-mobilité + sport",
-    ro: "E-mobilitate + sport",
+    en: "Bikes + Scooters",
+    de: "Velo + Scooter",
+    fr: "Vélos + trottinettes",
+    it: "Bici + scooter",
+    ro: "Biciclete + scutere",
   },
-  "diy-garden-power": {
-    en: "DIY + Garden",
-    de: "Baumarkt + Garten",
-    fr: "Bricolage + jardin",
-    ro: "Bricolaj + grădină",
+  "auto-parts": {
+    en: "Auto Parts",
+    de: "Autoteile",
+    fr: "Pièces auto",
+    it: "Ricambi auto",
+    ro: "Piese auto",
   },
   "toys-hobby-rc": {
     en: "Toys + Hobby + RC",
     de: "Spielzeug + Hobby + RC",
     fr: "Jouets + hobby + RC",
+    it: "Giocattoli + hobby + RC",
     ro: "Jucării + hobby + RC",
-  },
-  "software-digital": {
-    en: "Software + Digital",
-    de: "Software + Digital",
-    fr: "Logiciels + digital",
-    ro: "Software + digital",
-  },
-  "books-games-media": {
-    en: "Books + Games + Media",
-    de: "Bücher + Games + Medien",
-    fr: "Livres + jeux + médias",
-    ro: "Cărți + jocuri + media",
   },
 };
 
 const GROUP_LABELS: Record<string, Partial<Record<SiteLocale, string>> & { en: string }> = {
-  "computers-core": {
-    en: "Computers & displays",
-    de: "Computer & Displays",
-    fr: "Ordinateurs & écrans",
-    ro: "Calculatoare & display-uri",
+  "electronics-phones-tablets": {
+    en: "Phones & tablets",
+    de: "Telefone & Tablets",
+    fr: "Téléphones & tablettes",
+    it: "Telefoni e tablet",
+    ro: "Telefoane & tablete",
   },
-  "computers-peripherals": {
-    en: "Peripherals & accessories",
-    de: "Peripherie & Zubehör",
-    fr: "Périphériques & accessoires",
-    ro: "Periferice & accesorii",
+  "electronics-computers": {
+    en: "Computers & PC",
+    de: "Computer & PC",
+    fr: "Ordinateurs & PC",
+    it: "Computer e PC",
+    ro: "Calculatoare & PC",
   },
-  "photo-cameras": {
-    en: "Cameras",
-    de: "Kameras",
-    fr: "Appareils photo",
-    ro: "Camere foto",
-  },
-  "photo-lenses-optics": {
-    en: "Lenses & optics",
-    de: "Objektive & Optik",
-    fr: "Objectifs & optique",
-    ro: "Obiective & optică",
-  },
-  "photo-accessories": {
-    en: "Photo accessories",
-    de: "Fotozubehör",
-    fr: "Accessoires photo",
-    ro: "Accesorii foto",
-  },
-  "photo-drones": {
-    en: "Drones & RC",
-    de: "Drohnen & RC",
-    fr: "Drones & RC",
-    ro: "Drone & RC",
+  "electronics-audio-tv": {
+    en: "Audio, TV & wearables",
+    de: "Audio, TV & Wearables",
+    fr: "Audio, TV & wearables",
+    it: "Audio, TV e wearables",
+    ro: "Audio, TV & wearables",
   },
 };
 
@@ -387,6 +349,10 @@ export function getCollectionLabel(filterId: string, locale: SiteLocale): string
 }
 
 export function getSubcategoryLabel(subcategoryId: string, locale: SiteLocale): string {
+  const localized = SUBCATEGORY_LABELS[subcategoryId];
+  if (localized) {
+    return pickLocaleString(localized, locale, localized.en);
+  }
   const sub = getSubcategoryById(subcategoryId);
   if (!sub) return subcategoryId;
   if (locale === "de" && sub.labelDe) return sub.labelDe;
@@ -400,9 +366,10 @@ export function getLocalizedCategoryLabel(categoryId: string, locale: CategoryLo
 
   const hubLabels: Record<string, Partial<Record<CategoryLocale, string>>> = {
     "hub-electronics": { en: "Electronics", de: "Elektronik", fr: "Électronique", it: "Elettronica", ro: "Electronice" },
-    "hub-books": { en: "Books + Media", de: "Bücher + Medien", fr: "Livres + Médias", it: "Libri + Media", ro: "Cărți + Media" },
-    "hub-fashion": { en: "Fashion", de: "Fashion", fr: "Mode", it: "Moda", ro: "Fashion" },
-    "hub-garden": { en: "Garden", de: "Garten", fr: "Jardin", it: "Giardino", ro: "Grădinărit" },
+    "hub-home": { en: "Home + Appliances", de: "Haushalt", fr: "Maison + électroménager", it: "Casa + elettrodomestici", ro: "Casă + electrocasnice" },
+    "hub-books": { en: "Office + Books", de: "Büro + Bücher", fr: "Bureau + livres", it: "Ufficio + libri", ro: "Birou + librărie" },
+    "hub-fashion": { en: "Fashion", de: "Mode", fr: "Mode", it: "Moda", ro: "Modă" },
+    "hub-garden": { en: "Garden", de: "Garten", fr: "Jardin", it: "Giardino", ro: "Grădină" },
     "hub-diy": { en: "DIY + Tools", de: "Baumarkt", fr: "Bricolage", it: "Fai da te", ro: "Bricolaj" },
   };
   const hub = hubLabels[categoryId];

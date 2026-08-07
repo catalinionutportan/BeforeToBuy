@@ -75,6 +75,7 @@ export const enUi = {
     menuSeeAllInDepartment: "See all in this category",
     menuPickCategory: "Choose a category on the left",
     menuOpen: "Menu",
+    menuBack: "Back",
     scrollForMoreProducts: "Scroll for more products…",
     endOfCatalog: "You reached the end of this demo catalog",
     clickAndCollectIn: "Click & Collect in",

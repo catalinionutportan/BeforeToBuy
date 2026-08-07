@@ -8,12 +8,15 @@ import {
   productMatchesCategoryFilter,
   resolveCategoryAlias,
   UNMAPPED_CATEGORY_ID,
+  walkSubcategories,
 } from './categories';
 import {
   mapToBeforeToBuyCategory,
   mapToBeforeToBuyCategoryWithMetadata,
 } from './category-mapper';
-import { getDepartmentLabel, getCollectionLabel, localeFromCountry } from './category-i18n';
+import { getDepartmentLabel, getCollectionLabel, getSubcategoryLabel, localeFromCountry } from './category-i18n';
+import { SITE_LOCALES } from './i18n/locales';
+import { SUBCATEGORY_LABELS } from './i18n/subcategory-labels';
 import { ALL_MERCHANT_DOMAINS, MERCHANT_ID_ALIASES } from './countries';
 
 const baseProduct = {
@@ -26,23 +29,61 @@ const baseProduct = {
 
 describe('Category and Collection Logic', () => {
   it("taxonomy v2 has unique stable department and leaf ids", () => {
-    expect(SHOPPING_CATEGORIES.length).toBe(19);
-    expect(new Set(SHOPPING_CATEGORIES.map((category) => category.id)).size).toBe(19);
+    expect(SHOPPING_CATEGORIES.length).toBe(12);
+    expect(new Set(SHOPPING_CATEGORIES.map((category) => category.id)).size).toBe(12);
+    expect(SHOPPING_CATEGORIES.map((category) => category.id)).toEqual([
+      "electronics",
+      "fashion-lifestyle",
+      "appliances",
+      "furniture",
+      "home-textiles",
+      "office-stationery",
+      "beverages-alcohol",
+      "diy-tools",
+      "garden",
+      "mobility-sport-outdoor",
+      "auto-parts",
+      "toys-hobby-rc",
+    ]);
+    expect(getParentCategoryId("media-books")).toBe("office-stationery");
+    expect(resolveCategoryAlias("books-games-media")).toBe("office-stationery");
+    expect(getParentCategoryId("vehicle-accessories")).toBe("auto-parts");
+    expect(getParentCategoryId("software-os")).toBe("electronics");
+    expect(getParentCategoryId("care-shaving-hair-removal")).toBe("fashion-lifestyle");
 
     const leafIds = SHOPPING_CATEGORIES.flatMap((category) =>
-      category.subcategories.map((subcategory) => subcategory.id)
+      walkSubcategories(category.subcategories).map((subcategory) => subcategory.id)
     );
     expect(new Set(leafIds).size).toBe(leafIds.length);
+    expect(getParentCategoryId("fashion-shoes-sneakers")).toBe("fashion-lifestyle");
+    expect(
+      productMatchesCategoryFilter(
+        { ...baseProduct, category: "fashion-shoes-sneakers" },
+        "fashion-shoes"
+      )
+    ).toBe(true);
+    expect(
+      productMatchesCategoryFilter(
+        { ...baseProduct, category: "fashion-shoes-men-sneakers" },
+        "fashion-shoes-men"
+      )
+    ).toBe(true);
+    expect(
+      productMatchesCategoryFilter(
+        { ...baseProduct, category: "fashion-shoes-kids-school" },
+        "fashion-shoes"
+      )
+    ).toBe(true);
     expect(SHOPPING_CATEGORIES.some((category) => category.id === "sale")).toBeFalsy();
     expect(SHOPPING_CATEGORIES.some((category) => category.id === "used")).toBeFalsy();
     expect(SHOPPING_COLLECTIONS.some((collection) => collection.id === "deals")).toBeTruthy();
   });
 
   it("legacy category ids resolve without changing old links", () => {
-    expect(resolveCategoryAlias("notebooks-pcs")).toBe("computers-tablets");
-    expect(resolveCategoryAlias("photo-video")).toBe("photo-video-drones-optics");
+    expect(resolveCategoryAlias("notebooks-pcs")).toBe("electronics");
+    expect(resolveCategoryAlias("photo-video")).toBe("electronics");
     expect(resolveCategoryAlias("mobile-smartwatch-phone")).toBe("wearables-smartwatch");
-    expect(getParentCategoryId("audio-headphones")).toBe("audio");
+    expect(getParentCategoryId("audio-headphones")).toBe("electronics");
   });
 
   it("parent filters use tree membership instead of id prefixes", () => {
@@ -58,6 +99,18 @@ describe('Category and Collection Logic', () => {
         "audio"
       )
     ).toBe(false);
+    expect(
+      productMatchesCategoryFilter(
+        { ...baseProduct, category: "peripherals-webcam" },
+        "electronics"
+      )
+    ).toBe(true);
+    expect(
+      productMatchesCategoryFilter(
+        { ...baseProduct, category: "large-fridges-freezers" },
+        "appliances"
+      )
+    ).toBe(true);
   });
 
   it("legacy mixed home category remains backward compatible", () => {
@@ -70,7 +123,7 @@ describe('Category and Collection Logic', () => {
     // Coarse legacy leaves must not collide with the old parent filter id.
     expect(resolveCategoryAlias("home-kitchen")).toBe("kitchen-coffee-machines");
     expect(resolveCategoryAlias("home-appliances")).toBe("cleaning-vacuums");
-    expect(getParentCategoryId("care-shaving-hair-removal")).toBe("personal-care-health-baby");
+    expect(getParentCategoryId("care-shaving-hair-removal")).toBe("fashion-lifestyle");
     expect(
       productMatchesCategoryFilter(
         { ...baseProduct, category: "care-shaving-hair-removal" },
@@ -127,16 +180,34 @@ describe('Category and Collection Logic', () => {
   });
 
   it("comparison collections stay separate from product taxonomy", () => {
-    expect(COMPARISON_COLLECTION_FILTERS.length).toBe(4);
-    expect(isCollectionFilter("compare-local-pickup")).toBe(true);
+    expect(COMPARISON_COLLECTION_FILTERS.length).toBe(3);
+    expect(isCollectionFilter("compare-local-pickup")).toBe(false);
+    expect(isCollectionFilter("sale")).toBe(true);
     expect(isCollectionFilter("audio-headphones")).toBe(false);
   });
 
   it("localized labels resolve by country locale", () => {
     expect(localeFromCountry("CH")).toBe("de");
     expect(localeFromCountry("FR")).toBe("fr");
-    expect(getDepartmentLabel("audio", "fr")).toBe("Audio");
-    expect(getCollectionLabel("sale", "ro"), "Oferte & reduceri"); // Removed `assert.equal` and added a direct `expect` call
+    expect(getDepartmentLabel("electronics", "fr")).toBe("Électronique");
+    expect(getDepartmentLabel("appliances", "ro")).toBe("Electrocasnice");
+    expect(getCollectionLabel("sale", "ro")).toBe("Oferte & reduceri");
+    expect(getSubcategoryLabel("fashion-shoes-women", "ro")).toBe("Pantofi damă");
+    expect(getSubcategoryLabel("office-group-books", "it")).toBe("Libreria");
+    expect(getSubcategoryLabel("audio-headphones", "fr")).toBe("Casques & écouteurs");
+  });
+
+  it("every taxonomy leaf has menu labels in all site locales", () => {
+    const ids = SHOPPING_CATEGORIES.flatMap((category) =>
+      walkSubcategories(category.subcategories).map((subcategory) => subcategory.id)
+    );
+    for (const id of ids) {
+      const labels = SUBCATEGORY_LABELS[id];
+      expect(labels, id).toBeTruthy();
+      for (const locale of SITE_LOCALES) {
+        expect(labels[locale]?.trim().length, `${id}:${locale}`).toBeGreaterThan(0);
+      }
+    }
   });
 
   it("Swiss merchant registry retires Microspot in favor of active retailers", () => {
