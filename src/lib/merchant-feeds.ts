@@ -1,5 +1,6 @@
 import { createReadStream } from "node:fs";
 import path from "node:path";
+import { Readable } from "node:stream";
 import { CountryCode, OfferSource, Product } from "@/types";
 import {
   MERCHANT_FEEDS,
@@ -30,7 +31,8 @@ function memoryCacheKey(feed: FeedConfig): string {
 }
 
 function redisCacheKey(feed: FeedConfig): string {
-  return `feed:v1:${feed.merchantId}:${feed.country}`;
+  // Bump when mapping/parser changes so Redis does not serve stale category ids.
+  return `feed:v2:${feed.merchantId}:${feed.country}`;
 }
 
 async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {
@@ -66,7 +68,8 @@ async function fetchRemoteFeed(
     throw new Error(`Feed fetch returned empty body for ${url}`);
   }
 
-  return response.body as unknown as NodeJS.ReadableStream;
+  // Node fetch returns a Web ReadableStream; csv-parser needs a Node stream.
+  return Readable.fromWeb(response.body as import("node:stream/web").ReadableStream);
 }
 
 function filterFeedProducts(

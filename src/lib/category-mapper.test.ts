@@ -117,6 +117,22 @@ describe('Category Mapper Functions', () => {
     expect(result.confidence).toBe(0);
   });
 
+  it("Scule365 maps from title when My Feeds omits category", () => {
+    const powered = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-scule365",
+      title: "Masina de slefuit rotativa 450W Epto EvoTools",
+    });
+    expect(powered.categoryId).toBe("diy-power-tools");
+    expect(powered.method).toBe("merchant-pattern");
+
+    const fallback = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-scule365",
+      title: "ZXQ item without a recognized product type",
+    });
+    expect(fallback.categoryId).toBe("diy-hand-tools");
+    expect(fallback.method).toBe("merchant-default");
+  });
+
   it("low-confidence keyword matches fall below threshold into unmapped", () => {
     const result = mapToBeforeToBuyCategoryWithMetadata({
       merchantId: "ch-brack",

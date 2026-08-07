@@ -1,6 +1,7 @@
 import { SHOPPING_CATEGORIES, UNMAPPED_CATEGORY_ID } from "@/lib/categories";
 import {
   getGlobalPatternMatch,
+  getMerchantDefaultCategory,
   getMerchantExactMatch,
   getMerchantPatternMatch,
   MAPPING_CONFIDENCE,
@@ -12,11 +13,13 @@ import {
  *
  * C2 resolution order:
  * 1. Merchant exact category name
- * 2. Merchant-specific pattern rules
+ * 2. Merchant-specific pattern rules on merchant category
  * 3. Global pattern rules on merchant category
- * 4. Keyword inference from combined product text
- * 5. Global pattern rules on combined text
- * 6. unmapped (or below-threshold if confidence < MIN_MAPPING_CONFIDENCE)
+ * 4. Merchant-specific pattern rules on title/description (feeds without category)
+ * 5. Keyword inference from combined product text
+ * 6. Global pattern rules on combined text
+ * 7. Merchant default leaf (known specialised catalogues)
+ * 8. unmapped (or below-threshold if confidence < MIN_MAPPING_CONFIDENCE)
  */
 
 function normalizeText(parts: (string | undefined)[]): string {
@@ -74,6 +77,7 @@ export interface CategoryMappingResult {
     | "merchant-exact"
     | "merchant-pattern"
     | "merchant-rule"
+    | "merchant-default"
     | "keyword"
     | "combined-rule"
     | "below-threshold"
@@ -92,6 +96,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
   input: CategoryMappingInput
 ): CategoryMappingResult {
   const { merchantId, merchantCategory, title, description, brand } = input;
+  const productText = normalizeText([title, description, brand]);
   const combined = normalizeText([merchantCategory, title, description, brand]);
 
   if (merchantCategory) {
@@ -126,7 +131,57 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     }
   }
 
+  // Prefer merchant title/description patterns before generic keywords (avoids
+  // false positives like "ergonomic" → office when the feed has no category).
+  const merchantTextMatch = getMerchantPatternMatch(merchantId, productText || combined);
+  if (merchantTextMatch) {
+    return applyConfidenceThreshold({
+      categoryId: merchantTextMatch,
+      method: "merchant-pattern",
+      confidence: MAPPING_CONFIDENCE.merchantPattern,
+      rawCategory: merchantCategory,
+    });
+  }
+
   const fromKeywords = inferFromKeywords(combined);
+  if (fromKeywords) {
+    const keywordMapped = applyConfidenceThreshold({
+      categoryId: fromKeywords.subcategoryId,
+      method: "keyword",
+      confidence: Math.min(
+        MAPPING_CONFIDENCE.keywordMax,
+        MAPPING_CONFIDENCE.keywordBase + fromKeywords.score * MAPPING_CONFIDENCE.keywordStep
+      ),
+      rawCategory: merchantCategory,
+    });
+    if (keywordMapped.categoryId !== UNMAPPED_CATEGORY_ID) {
+      return keywordMapped;
+    }
+  }
+
+  const globalOnCombined = getGlobalPatternMatch(combined);
+  if (globalOnCombined) {
+    const combinedMapped = applyConfidenceThreshold({
+      categoryId: globalOnCombined,
+      method: "combined-rule",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: merchantCategory,
+    });
+    if (combinedMapped.categoryId !== UNMAPPED_CATEGORY_ID) {
+      return combinedMapped;
+    }
+  }
+
+  const merchantDefault = getMerchantDefaultCategory(merchantId);
+  if (merchantDefault) {
+    return {
+      categoryId: merchantDefault,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: merchantCategory,
+    };
+  }
+
   if (fromKeywords) {
     return applyConfidenceThreshold({
       categoryId: fromKeywords.subcategoryId,
@@ -137,18 +192,6 @@ export function mapToBeforeToBuyCategoryWithMetadata(
       ),
       rawCategory: merchantCategory,
     });
-  }
-
-  if (merchantCategory) {
-    const globalOnCombined = getGlobalPatternMatch(combined);
-    if (globalOnCombined) {
-      return applyConfidenceThreshold({
-        categoryId: globalOnCombined,
-        method: "combined-rule",
-        confidence: MAPPING_CONFIDENCE.combinedPattern,
-        rawCategory: merchantCategory,
-      });
-    }
   }
 
   return {
