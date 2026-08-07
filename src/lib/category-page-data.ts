@@ -1,9 +1,9 @@
-import { UserLocation } from "@/types";
+import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
 
-export function getDefaultBrowseLocation(): UserLocation {
-  const country = COUNTRIES[DEFAULT_COUNTRY];
+export function getBrowseLocationForCountry(countryCode: CountryCode): UserLocation {
+  const country = COUNTRIES[countryCode] || COUNTRIES[DEFAULT_COUNTRY];
   return {
     latitude: country.defaultCoordinates.lat,
     longitude: country.defaultCoordinates.lng,
@@ -14,6 +14,18 @@ export function getDefaultBrowseLocation(): UserLocation {
   };
 }
 
+export function getDefaultBrowseLocation(): UserLocation {
+  return getBrowseLocationForCountry(DEFAULT_COUNTRY);
+}
+
+export async function fetchCatalogForCountry(countryCode: CountryCode, category?: string) {
+  return fetchMergedProductsForLocation(
+    getBrowseLocationForCountry(countryCode),
+    undefined,
+    category
+  );
+}
+
 export async function fetchDefaultCatalog(category?: string) {
-  return fetchMergedProductsForLocation(getDefaultBrowseLocation(), undefined, category);
+  return fetchCatalogForCountry(DEFAULT_COUNTRY, category);
 }

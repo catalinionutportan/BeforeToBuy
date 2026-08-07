@@ -124,3 +124,11 @@ export function isMarketHubId(categoryId: string): boolean {
 export function getMarketHubById(categoryId: string): MarketHubTab | undefined {
   return MARKET_HUB_TABS.find((hub) => hub.id === categoryId);
 }
+
+/** Resolve which sticky hub contains a product leaf category. */
+export function getMarketHubIdForLeaf(leafCategoryId: string): string | undefined {
+  for (const hub of MARKET_HUB_TABS) {
+    if (hub.leafIds.includes(leafCategoryId)) return hub.id;
+  }
+  return undefined;
+}
