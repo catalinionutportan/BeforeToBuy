@@ -2,16 +2,15 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ExternalLink } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { JsonLd } from "@/components/JsonLd";
-import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
+import { ProductPageOffers } from "@/components/ProductPageOffers";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { createPageMetadata } from "@/lib/metadata";
 import { getProductById, listProductIdsForSitemap } from "@/lib/product-lookup";
-import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
+import { sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import { buildProductJsonLd } from "@/lib/seo/json-ld";
 import { productPagePath } from "@/lib/seo/site-url";
 
@@ -106,55 +105,12 @@ export default async function ProductPage({ params }: PageProps) {
           </div>
         </div>
 
-        <section className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
-          <h2 className="text-lg font-bold text-slate-900">
-            {ui.compareProductPrices} — {country.name}
-          </h2>
-          <ul className="space-y-3">
-            {sortedOffers.map((offer) => {
-              const total = offer.totalPrice ?? computeTotalPrice(offer);
-              return (
-                <li
-                  key={offer.id}
-                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                >
-                  <div className="min-w-0">
-                    <p className="font-bold text-slate-900">{offer.storeName}</p>
-                    <p className="text-[11px] text-slate-500">
-                      {offer.source === "production-live"
-                        ? ui.liveOfferLabel
-                        : offer.source === "sample"
-                          ? ui.sampleOfferLabel
-                          : ui.demoOfferLabel}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <p className="font-black text-slate-900">
-                      {country.currencySymbol}
-                      {total.toLocaleString()}
-                    </p>
-                    <ConsentAwareAffiliateLink
-                      href={offer.purchaseUrl}
-                      className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition-colors"
-                      ariaLabel={
-                        offer.source === "production-live"
-                          ? `${ui.viewOfferButton} ${offer.storeName}`
-                          : `${ui.searchStoreButton} ${offer.storeName}`
-                      }
-                    >
-                      <span>
-                        {offer.source === "production-live"
-                          ? ui.viewOfferButton
-                          : ui.searchStoreButton}
-                      </span>
-                      <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-                    </ConsentAwareAffiliateLink>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+        <ProductPageOffers
+          offers={sortedOffers}
+          currencySymbol={country.currencySymbol}
+          countryName={country.name}
+          locale={DEFAULT_LOCALE}
+        />
       </div>
     </PageShell>
   );

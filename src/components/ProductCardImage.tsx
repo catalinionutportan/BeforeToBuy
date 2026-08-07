@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Product } from "@/types";
-import { HOME_UI } from "@/lib/i18n/ui";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import type { SiteLocale } from "@/lib/i18n/locales";
 import { Sparkles } from "lucide-react";
 
@@ -8,12 +8,16 @@ interface ProductCardImageProps {
   product: Product;
   locale: SiteLocale;
   verifiedBadgeOffer?: { badge: string };
+  lowestPriceLabel?: string;
+  offerCount?: number;
 }
 
 export function ProductCardImage({
   product,
   locale,
   verifiedBadgeOffer,
+  lowestPriceLabel,
+  offerCount,
 }: ProductCardImageProps) {
   const ui = HOME_UI[locale];
 
@@ -40,8 +44,23 @@ export function ProductCardImage({
         )}
       </div>
 
+      {lowestPriceLabel != null && (
+        <div className="absolute bottom-2 left-2 right-2 sm:bottom-3 sm:left-3 sm:right-auto">
+          <div className="inline-flex max-w-full flex-col gap-0.5 rounded-lg sm:rounded-xl bg-white/95 backdrop-blur-md border border-emerald-200/90 px-2 py-1.5 sm:px-3 sm:py-2 shadow-xs">
+            <p className="text-[10px] sm:text-xs font-extrabold text-emerald-900 tabular-nums leading-tight truncate">
+              {formatUi(ui.cardLowestPrice, { price: lowestPriceLabel })}
+            </p>
+            {offerCount != null && offerCount > 1 && (
+              <p className="text-[9px] sm:text-[10px] font-semibold text-emerald-800/75 leading-tight">
+                {ui.cardTapForAllPrices}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {product.rating !== undefined && product.reviewsCount !== undefined && (
-        <div className="hidden sm:block absolute bottom-3 right-3 bg-white/90 backdrop-blur-md border border-slate-200 px-2 py-1 rounded-lg text-xs font-bold text-slate-800 shadow-xs">
+        <div className="hidden lg:block absolute top-3 right-3 bg-white/90 backdrop-blur-md border border-slate-200 px-2 py-1 rounded-lg text-xs font-bold text-slate-800 shadow-xs">
           {ui.verifiedMerchantRating} {product.rating} ({product.reviewsCount})
         </div>
       )}
