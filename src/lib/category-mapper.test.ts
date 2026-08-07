@@ -133,6 +133,30 @@ describe('Category Mapper Functions', () => {
     expect(fallback.method).toBe("merchant-default");
   });
 
+  it("Rowenta maps Romanian feed categories including accessories and grooming", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-rowenta",
+        merchantCategory: "Accesorii",
+        title: "Sac de praf Rowenta",
+      })
+    ).toBe("cleaning-vacuums");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-rowenta",
+        merchantCategory: "Aparate de tuns",
+        title: "Aparat de tuns parul Rowenta",
+      })
+    ).toBe("care-shaving-hair-removal");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-rowenta",
+        merchantCategory: "Plăci de păr și perii de îndreptat părul",
+        title: "Placă de păr Rowenta",
+      })
+    ).toBe("care-hair-styling");
+  });
+
   it("low-confidence keyword matches fall below threshold into unmapped", () => {
     const result = mapToBeforeToBuyCategoryWithMetadata({
       merchantId: "ch-brack",

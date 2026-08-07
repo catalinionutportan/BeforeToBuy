@@ -32,7 +32,7 @@ function memoryCacheKey(feed: FeedConfig): string {
 
 function redisCacheKey(feed: FeedConfig): string {
   // Bump when mapping/parser changes so Redis does not serve stale category ids.
-  return `feed:v2:${feed.merchantId}:${feed.country}`;
+  return `feed:v3:${feed.merchantId}:${feed.country}`;
 }
 
 async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {

@@ -1,10 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
 import { Layers } from "lucide-react";
-import { MARKET_HUB_TABS } from "@/lib/market-hubs";
+import { MARKET_HUB_TABS, marketHubOrderForCountry } from "@/lib/market-hubs";
 import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import type { SiteLocale } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
+import type { CountryCode } from "@/types";
 
 interface MarketHubTabsProps {
   selectedHub: string;
@@ -13,6 +15,7 @@ interface MarketHubTabsProps {
   hubCounts?: Record<string, number>;
   /** Total visible catalog size for the All tab */
   allCount?: number;
+  countryCode?: CountryCode | string;
 }
 
 export function MarketHubTabs({
@@ -21,6 +24,7 @@ export function MarketHubTabs({
   locale,
   hubCounts,
   allCount,
+  countryCode,
 }: MarketHubTabsProps) {
   const ui = HOME_UI[locale];
   const labels: Record<string, string> = {
@@ -32,6 +36,11 @@ export function MarketHubTabs({
     "hub-diy": ui.hubDiy,
   };
   const allActive = !selectedHub || selectedHub === ALL_CATEGORIES_ID;
+  const orderedHubs = useMemo(() => {
+    const order = marketHubOrderForCountry(countryCode || "CH");
+    const byId = new Map(MARKET_HUB_TABS.map((hub) => [hub.id, hub]));
+    return order.map((id) => byId.get(id)).filter(Boolean) as typeof MARKET_HUB_TABS[number][];
+  }, [countryCode]);
 
   return (
     <div className="border-b border-slate-200 bg-white sticky top-0 z-30">
@@ -64,7 +73,7 @@ export function MarketHubTabs({
               </span>
             )}
           </button>
-          {MARKET_HUB_TABS.map((hub) => {
+          {orderedHubs.map((hub) => {
             const Icon = hub.icon;
             const active = selectedHub === hub.id;
             const count = hubCounts?.[hub.id];

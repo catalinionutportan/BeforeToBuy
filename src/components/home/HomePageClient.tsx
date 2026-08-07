@@ -416,13 +416,13 @@ export default function HomePageClient({
         locale={browseLocale}
         hubCounts={hubCounts}
         allCount={products.length}
+        countryCode={userLocation.countryCode}
       />
 
-      {/* Merchant domain filters — desktop/tablet; on phones filters stay optional below */}
-      <div className="hidden md:block bg-slate-900 text-white border-b border-slate-800 py-3 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs min-w-0">
-          
-          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full min-w-0 max-w-full pb-1 sm:pb-0 touch-pan-x">
+      {/* Store chips — always visible so RO users can open Rowenta vs Scule365 */}
+      <div className="bg-slate-900 text-white border-b border-slate-800 py-2.5 sm:py-3 px-3 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 text-xs min-w-0">
+          <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full min-w-0 max-w-full pb-0.5 sm:pb-0 touch-pan-x">
             <span className="font-extrabold text-emerald-400 shrink-0 uppercase tracking-wider text-[11px] flex items-center gap-1">
               <Store className="w-3.5 h-3.5" /> {homeUi.filterDomain}:
             </span>
@@ -457,7 +457,7 @@ export default function HomePageClient({
 
           <Link
             href="/stores"
-            className="text-slate-300 hover:text-emerald-400 font-bold shrink-0 inline-flex items-center gap-1 text-[11px] hover:underline max-w-full break-words"
+            className="hidden sm:inline-flex text-slate-300 hover:text-emerald-400 font-bold shrink-0 items-center gap-1 text-[11px] hover:underline max-w-full break-words"
           >
             <span className="break-words">
               {homeUi.fullStoresDirectory} (
@@ -465,7 +465,6 @@ export default function HomePageClient({
             </span>
             <ArrowRight className="w-3 h-3 text-emerald-400 shrink-0" />
           </Link>
-
         </div>
       </div>
 
