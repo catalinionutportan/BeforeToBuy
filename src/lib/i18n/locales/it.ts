@@ -168,6 +168,7 @@ export const itUi = {
     compareBeforeYouBuy: "Confronta prima di acquistare",
     portanxProductLine: "Una piattaforma {companyTradeName} per confronti di prezzo intelligenti.",
     legalSupportMenu: "Legale & Supporto",
+    legalCompanyLink: "Legal & Companie",
     shortPitch1: "Troviamo i prezzi dai negozi.",
     shortPitch2: "Tu scegli dove comprare.",
     shortPitch3: "Non vendiamo — confrontiamo soltanto.",

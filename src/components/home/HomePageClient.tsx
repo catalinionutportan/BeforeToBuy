@@ -451,7 +451,7 @@ export default function HomePageClient({
           <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-0.5 text-[10px] text-slate-400">
             <Link href="/legal" className="hover:text-slate-700 hover:underline">
-              Legal
+              {homeUi.legalCompanyLink}
             </Link>
             <button
               type="button"

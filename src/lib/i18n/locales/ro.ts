@@ -167,6 +167,7 @@ export const roUi = {
     compareBeforeYouBuy: "Compară înainte de a cumpăra",
     portanxProductLine: "O platformă {companyTradeName} pentru comparații inteligente de preț.",
     legalSupportMenu: "Legal & Suport",
+    legalCompanyLink: "Legal & Companie",
     shortPitch1: "Găsim prețuri din magazine.",
     shortPitch2: "Tu alegi unde cumperi.",
     shortPitch3: "Noi nu vindem — doar comparăm.",

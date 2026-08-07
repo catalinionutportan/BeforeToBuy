@@ -13,15 +13,22 @@ export const LEGAL_DRAFT_NOTICE = {
 export const LEGAL_PAGES = [
   { href: "/impressum", label: "Impressum / Legal Notice", category: "company" },
   { href: "/transparency", label: "Platform notices & transparency", category: "company" },
+  { href: "/contact", label: "Contact / legal contact", category: "company" },
   { href: "/terms", label: "Terms & Conditions (AGB)", category: "legal" },
-  { href: "/privacy", label: "Privacy Policy (Datenschutz)", category: "legal" },
+  { href: "/privacy", label: "Privacy Policy (GDPR / nDSG)", category: "legal" },
   { href: "/cookies", label: "Cookie Policy", category: "legal" },
+  { href: "/accessibility", label: "Accessibility Statement", category: "legal" },
   { href: "/affiliate-disclosure", label: "Affiliate Disclosure", category: "commercial" },
   { href: "/disclaimer", label: "Price & Service Disclaimer", category: "commercial" },
+  { href: "/policies/comparison", label: "Price comparison policy", category: "commercial" },
+  { href: "/policies/editorial", label: "Editorial policy", category: "commercial" },
+  { href: "/policies/feeds", label: "Feed policy", category: "commercial" },
+  { href: "/policies/merchants", label: "Merchant & stores policy", category: "commercial" },
+  { href: "/policies/notifications", label: "Platform notices policy", category: "commercial" },
   { href: "/complaints", label: "Complaints Procedure", category: "support" },
-  { href: "/accessibility", label: "Accessibility Statement", category: "support" },
   { href: "/help", label: "Help & FAQ", category: "support" },
   { href: "/status", label: "Platform Status", category: "support" },
+  { href: "/stores", label: "Merchant directory", category: "support" },
 ] as const;
 
 export const RETENTION_SCHEDULE = [
