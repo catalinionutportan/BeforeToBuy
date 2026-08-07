@@ -28,6 +28,14 @@ export function defaultMarketHubForCountry(countryCode: CountryCode | string): s
   return DEFAULT_MARKET_HUB_ID;
 }
 
+/** Prefer live RO hubs first so Rowenta (home) and Scule365 (DIY) are easy to find. */
+export function marketHubOrderForCountry(countryCode: CountryCode | string): readonly string[] {
+  if (countryCode === "RO") {
+    return ["hub-home", "hub-diy", "hub-garden", "hub-electronics", "hub-books", "hub-fashion"];
+  }
+  return MARKET_HUB_TABS.map((hub) => hub.id);
+}
+
 export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
   {
     id: "hub-electronics",

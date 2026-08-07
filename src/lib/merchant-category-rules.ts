@@ -258,17 +258,46 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     exact: exactRules({
       "aspiratoare verticale": "cleaning-vacuums",
       "aspiratoare cu abur": "cleaning-vacuums",
+      "aspiratoare cu spalare": "cleaning-vacuums",
+      "aspiratoare cu spălare": "cleaning-vacuums",
+      "aspiratoare fără sac": "cleaning-vacuums",
+      "aspiratoare fara sac": "cleaning-vacuums",
+      "aspiratoare cu sac": "cleaning-vacuums",
+      "aspiratoare de mână": "cleaning-vacuums",
+      "aspiratoare de mana": "cleaning-vacuums",
+      "aspiratoare robot": "cleaning-robots",
       aspiratoare: "cleaning-vacuums",
+      "mopuri electrice": "cleaning-floor-care",
+      accesorii: "cleaning-vacuums",
+      "pachete promo": "cleaning-vacuums",
       "fiare de calcat": "laundry-ironing-sewing",
       "fiare de călcat": "laundry-ironing-sewing",
       "uscatoare de par": "care-hair-styling",
       "uscătoare de păr": "care-hair-styling",
+      "plăci de păr și perii de îndreptat părul": "care-hair-styling",
+      "placi de par si perii de indreptat parul": "care-hair-styling",
+      "ondulatoare și aparate de coafat": "care-hair-styling",
+      "ondulatoare si aparate de coafat": "care-hair-styling",
+      "perii rotative": "care-hair-styling",
+      "îngrijirea părului": "care-hair-styling",
+      "ingrijirea parului": "care-hair-styling",
+      "karl lagerfeld": "care-hair-styling",
+      "aparate de tuns": "care-shaving-hair-removal",
+      "aparate de tuns barba": "care-shaving-hair-removal",
+      "aparate de tuns hibrid forever sharp": "care-shaving-hair-removal",
+      "aparate de tuns multifuncționale": "care-shaving-hair-removal",
+      "aparate de tuns multifunctionale": "care-shaving-hair-removal",
+      "ingrijire ten si corp": "care-shaving-hair-removal",
+      "îngrijire ten și corp": "care-shaving-hair-removal",
+      epilatoare: "care-shaving-hair-removal",
+      aeroterme: "climate-heating",
+      "filtrare aer": "climate-air-care",
       "aparate de gatit": "kitchen-cooking-appliances",
       "aparate de gătit": "kitchen-cooking-appliances",
     }),
     patterns: [
       {
-        patterns: /\b(aspirator|vacuum|abur|steam)\b/i,
+        patterns: /\b(aspirator|vacuum|abur|steam|mop)\b/i,
         subcategoryId: "cleaning-vacuums",
       },
       {
@@ -276,8 +305,21 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
         subcategoryId: "laundry-ironing-sewing",
       },
       {
-        patterns: /\b(uscator|uscător|hair.?dryer|haartrockner|fen)\b/i,
+        patterns:
+          /\b(uscator|uscător|hair.?dryer|haartrockner|fen|ondulat|placa de par|placă de păr|perie rotativ|coafat)\b/i,
         subcategoryId: "care-hair-styling",
+      },
+      {
+        patterns: /\b(tuns|trimmer|epilat|barba|barbă|ras)\b/i,
+        subcategoryId: "care-shaving-hair-removal",
+      },
+      {
+        patterns: /\b(aeroterm|heater|radiator|incalzitor|încălzitor)\b/i,
+        subcategoryId: "climate-heating",
+      },
+      {
+        patterns: /\b(purificator|filtrare aer|humidifier|dehumidifier)\b/i,
+        subcategoryId: "climate-air-care",
       },
     ],
   },
@@ -317,6 +359,7 @@ export function getMerchantPatternMatch(
  */
 export function getMerchantDefaultCategory(merchantId: string | undefined): string | null {
   if (merchantId === "ro-scule365") return "diy-hand-tools";
+  if (merchantId === "ro-rowenta") return "cleaning-vacuums";
   return null;
 }
 
