@@ -12,6 +12,7 @@ export const LEGAL_DRAFT_NOTICE = {
 
 export const LEGAL_PAGES = [
   { href: "/impressum", label: "Impressum / Legal Notice", category: "company" },
+  { href: "/transparency", label: "Platform notices & transparency", category: "company" },
   { href: "/terms", label: "Terms & Conditions (AGB)", category: "legal" },
   { href: "/privacy", label: "Privacy Policy (Datenschutz)", category: "legal" },
   { href: "/cookies", label: "Cookie Policy", category: "legal" },

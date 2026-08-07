@@ -184,6 +184,7 @@ export const itUi = {
     privacy: "Privacy",
     cookies: "Cookies",
     terms: "Termini",
+    platformNotices: "Avvisi piattaforma",
     allRightsReserved: "© {year} {companyPlatformName}. Tutti i diritti riservati.",
     companyInfo: "{companyLegalName} · {companyUid} · {companyAddressStreet}, CH-{companyAddressPostalCode} {companyAddressCity}",
     betaDemoDisclaimer: "Beta/Demo: Brack.ch utilizza dati di esempio AWIN a meno che non sia configurato un feed di produzione. Conferma sempre il prezzo finale e la disponibilità con il commerciante.",

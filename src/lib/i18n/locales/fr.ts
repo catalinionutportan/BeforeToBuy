@@ -174,6 +174,7 @@ export const frUi = {
     privacy: "Confidentialité",
     cookies: "Cookies",
     terms: "Conditions",
+    platformNotices: "Avis plateforme",
     allRightsReserved: "© {year} {companyPlatformName}. Tous droits réservés.",
     companyInfo: "{companyLegalName} · {companyUid} · {companyAddressStreet}, CH-{companyAddressPostalCode} {companyAddressCity}",
     betaDemoDisclaimer: "Bêta/Démo: Brack.ch utilise des données d'échantillon AWIN, sauf si un flux de production est configuré. Toujours confirmer le prix final et la disponibilité auprès du commerçant.",

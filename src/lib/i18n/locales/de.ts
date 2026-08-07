@@ -183,6 +183,7 @@ export const deUi = {
     privacy: "Datenschutz",
     cookies: "Cookies",
     terms: "AGB",
+    platformNotices: "Plattformhinweise",
     allRightsReserved: "© {year} {companyPlatformName}. Alle Rechte vorbehalten.",
     companyInfo: "{companyLegalName} · {companyUid} · {companyAddressStreet}, CH-{companyAddressPostalCode} {companyAddressCity}",
     betaDemoDisclaimer: "Beta/Demo: Brack.ch verwendet AWIN-Beispieldaten, sofern kein Produktions-Feed konfiguriert ist. Bestätigen Sie immer den endgültigen Preis und die Verfügbarkeit beim Händler.",

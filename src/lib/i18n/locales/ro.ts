@@ -183,6 +183,7 @@ export const roUi = {
     privacy: "Confidențialitate",
     cookies: "Cookies",
     terms: "Termeni",
+    platformNotices: "Notificări platformă",
     allRightsReserved: "© {year} {companyPlatformName}. Toate drepturile rezervate.",
     companyInfo: "{companyLegalName} · {companyUid} · {companyAddressStreet}, CH-{companyAddressPostalCode} {companyAddressCity}",
     betaDemoDisclaimer: "Beta/Demo: Brack.ch utilizează date eșantion AWIN, cu excepția cazului în care este configurat un feed de producție. Confirmați întotdeauna prețul final și disponibilitatea la comerciant.",

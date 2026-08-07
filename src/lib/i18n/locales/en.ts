@@ -173,6 +173,7 @@ export const enUi = {
     privacy: "Privacy",
     cookies: "Cookies",
     terms: "Terms",
+    platformNotices: "Platform notices",
     allRightsReserved: "© {year} {companyPlatformName}. All rights reserved.",
     companyInfo: "{companyLegalName} · {companyUid} · {companyAddressStreet}, CH-{companyAddressPostalCode} {companyAddressCity}",
     betaDemoDisclaimer: "Beta/Demo: Brack.ch uses AWIN sample data unless a production feed is configured. Always confirm final price and availability with the merchant.",
