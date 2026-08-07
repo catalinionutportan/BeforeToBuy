@@ -92,5 +92,19 @@ export async function getRoOffers(
       source: "demo" as const,
       badge: ui.affiliateDemoOfferLabel,
     },
+    {
+      id: `${product.id}-soundhouse`,
+      storeName: "Soundhouse.ro",
+      price: Math.round(targetPrice * 1.06),
+      currency,
+      inStock: true,
+      deliveryTime: "2-5 zile lucrătoare",
+      deliveryCost: 17.99,
+      purchaseUrl: AFFILIATE_LINKS.soundhouse2Performant,
+      affiliateNetwork: "2Performant Romania",
+      type: "online" as const,
+      source: "demo" as const,
+      badge: ui.affiliateDemoOfferLabel,
+    },
   ];
 }

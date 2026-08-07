@@ -13,6 +13,9 @@ export const AFFILIATE_LINKS = {
   /** aff_code filled from publisher account — quicklink export sometimes omits it */
   autoeco2Performant:
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=7cf7c22ce&redirect_to=https%3A%2F%2Fwww.autoeco.ro",
+  /** redirect_to normalized (export had double-encoded https%253A) */
+  soundhouse2Performant:
+    "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=3efdbc6c8&redirect_to=https%3A%2F%2Fsoundhouse.ro%2F",
 } as const;
 
 const SCULE365_2P_BASE =
