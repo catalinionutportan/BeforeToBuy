@@ -18,13 +18,13 @@ export function ProductCardImage({
   const ui = HOME_UI[locale];
 
   return (
-    <div className="relative bg-slate-100/60 h-36 sm:h-48 md:h-60 overflow-hidden">
+    <div className="relative bg-slate-100/60 aspect-[4/3] w-full overflow-hidden">
       <Image
         src={product.image}
         alt={product.title}
         fill
-        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 50vw, 33vw"
-        className="object-contain p-3 sm:p-5 md:p-6 transition-transform duration-300 group-hover:scale-105"
+        sizes="(max-width: 768px) 50vw, 33vw"
+        className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
       />
 
       <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-1.5 items-start max-w-[90%]">
