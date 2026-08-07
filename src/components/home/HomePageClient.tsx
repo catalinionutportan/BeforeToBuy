@@ -337,7 +337,7 @@ export default function HomePageClient({
       />
 
       {/* Same phone shell on every viewport: catalog first, policy after */}
-      <main className="mx-auto w-full max-w-lg px-3 py-4 flex-1 min-w-0 flex flex-col gap-4">
+      <main className="w-full px-3 sm:px-4 py-4 flex-1 min-w-0 flex flex-col gap-4">
         <div className="space-y-3">
           <div
             id="browse-offers"
