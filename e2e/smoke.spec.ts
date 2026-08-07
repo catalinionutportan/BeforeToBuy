@@ -131,10 +131,12 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
 
     await page.getByRole("button", { name: /^Menu$/i }).click();
-    await expect(page.getByRole("dialog", { name: /^Menu$/i })).toBeVisible();
-    await page.getByRole("button", { name: /^Electronics\b/ }).click();
-    await page.getByRole("button", { name: /^Headphones\b/ }).click();
-    await expect(page).toHaveURL(/categories\/electronics\/audio-headphones|category=audio-headphones/);
+    // Title changes after drill-down (Menu → Electronics), so don't pin dialog name.
+    const categoryMenu = page.getByRole("dialog").filter({ has: page.getByRole("button", { name: /Close|Schliessen|Închide/i }) });
+    await expect(categoryMenu).toBeVisible();
+    await categoryMenu.getByRole("button", { name: /^Electronics\b/ }).click();
+    await categoryMenu.getByRole("button", { name: /^Headphones\b/ }).click();
+    await expect(page).toHaveURL(/category=audio-headphones/);
     await expect(page.getByText(/Anzeige|Browsing|Navigation/i).first()).toBeVisible();
 
     await page.goto("/categories");
