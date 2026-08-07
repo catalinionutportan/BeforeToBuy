@@ -111,22 +111,27 @@ test.describe("BeforeToBuy smoke E2E", () => {
   test("legacy category query redirects to SEO category route", async ({ page }) => {
     await page.goto("/?category=audio");
     await expect(page).toHaveURL(/\/categories\/electronics$/);
-    await expect(page.getByRole("heading", { name: "Electronics", exact: true })).toBeVisible();
+    // SEO pages use market default locale (CH → DE): Elektronik
+    await expect(page.getByRole("heading", { name: /^(Electronics|Elektronik)$/ })).toBeVisible();
   });
 
   test("department SEO route renders products and breadcrumbs", async ({ page }) => {
     await page.goto("/categories/electronics");
     await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Electronics", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /^(Electronics|Elektronik)$/ })).toBeVisible();
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
   });
 
   test("category menu drill-down is shareable and empty departments stay hidden", async ({ page }) => {
     await page.goto("/");
+    const essentialButton = page.getByRole("button", { name: "Essential Only", exact: true });
+    if (await essentialButton.isVisible().catch(() => false)) {
+      await essentialButton.click();
+    }
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
 
     await page.getByRole("button", { name: /^Menu$/i }).click();
-    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("dialog", { name: /^Menu$/i })).toBeVisible();
     await page.getByRole("button", { name: /^Electronics\b/ }).click();
     await page.getByRole("button", { name: /^Headphones\b/ }).click();
     await expect(page).toHaveURL(/categories\/electronics\/audio-headphones|category=audio-headphones/);
@@ -147,7 +152,8 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
     expect(body.merchants.length).toBe(8);
-    expect(body.sampleFeeds.length).toBe(8);
+    // CH sample feeds stay sample; RO defaultRemoteUrl resolves to production outside vitest.
+    expect(body.sampleFeeds.length).toBeGreaterThanOrEqual(6);
     expect(body.feedMerchantIds).toContain("ch-brack");
     expect(body.feedMerchantIds).toContain("ch-digitec");
     expect(body.feedMerchantIds).toContain("ch-galaxus");
