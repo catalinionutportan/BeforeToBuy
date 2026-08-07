@@ -444,20 +444,6 @@ export default function HomePageClient({
               locale={browseLocale}
             />
           </div>
-          <div className="md:hidden flex items-center justify-between gap-2 px-0.5">
-            <button
-              type="button"
-              onClick={() => setIsCategoryMenuOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-extrabold text-slate-800 shadow-xs"
-            >
-              {homeUi.menuOpen}
-              {selectedCategory !== ALL_CATEGORIES_ID && (
-                <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-800">
-                  {getLocalizedCategoryLabel(selectedCategory, browseLocale)}
-                </span>
-              )}
-            </button>
-          </div>
 
           <div className="hidden md:block space-y-3">
             <CollectionNavigation
