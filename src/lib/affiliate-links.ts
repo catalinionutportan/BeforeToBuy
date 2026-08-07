@@ -21,6 +21,8 @@ export const AFFILIATE_LINKS = {
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=103440734&redirect_to=https%3A%2F%2Fautobob.ro",
   automobilus2Performant:
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=ef2621c0a&redirect_to=https%3A%2F%2Fautomobilus.ro",
+  paahome2Performant:
+    "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=2c9f51768&redirect_to=https%3A%2F%2Fpaa-home.ro",
 } as const;
 
 const SCULE365_2P_BASE =
