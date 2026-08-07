@@ -18,22 +18,22 @@ export function ProductCardImage({
   const ui = HOME_UI[locale];
 
   return (
-    <div className="relative bg-slate-100/60 h-60 overflow-hidden">
+    <div className="relative bg-slate-100/60 h-36 sm:h-48 md:h-60 overflow-hidden">
       <Image
         src={product.image}
         alt={product.title}
         fill
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        className="object-contain p-6 transition-transform duration-300 group-hover:scale-105"
+        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 50vw, 33vw"
+        className="object-contain p-3 sm:p-5 md:p-6 transition-transform duration-300 group-hover:scale-105"
       />
 
-      <div className="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
-        <span className="bg-slate-900/85 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider">
+      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-1.5 items-start max-w-[90%]">
+        <span className="bg-slate-900/85 backdrop-blur-md text-white text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg uppercase tracking-wider truncate max-w-full">
           {product.brand}
         </span>
 
         {verifiedBadgeOffer?.badge && (
-          <span className="bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1">
+          <span className="hidden sm:flex bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-xs items-center gap-1">
             <Sparkles className="w-3 h-3" aria-hidden="true" />
             {verifiedBadgeOffer.badge}
           </span>
@@ -41,7 +41,7 @@ export function ProductCardImage({
       </div>
 
       {product.rating !== undefined && product.reviewsCount !== undefined && (
-        <div className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md border border-slate-200 px-2 py-1 rounded-lg text-xs font-bold text-slate-800 shadow-xs">
+        <div className="hidden sm:block absolute bottom-3 right-3 bg-white/90 backdrop-blur-md border border-slate-200 px-2 py-1 rounded-lg text-xs font-bold text-slate-800 shadow-xs">
           {ui.verifiedMerchantRating} {product.rating} ({product.reviewsCount})
         </div>
       )}

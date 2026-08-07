@@ -425,20 +425,32 @@ export default function HomePageClient({
         </div>
       </div>
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full min-w-0 space-y-8">
-        <MarketEntryHero locale={browseLocale} />
+      {/* Main Container — mobile: catalog first; policy/hero below */}
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex-1 w-full min-w-0 flex flex-col gap-4 sm:gap-8">
+        {/* Desktop-only intro above the fold; on phones this block is ordered after products */}
+        <div className="order-2 md:order-1 space-y-4 md:space-y-8">
+          <div className="hidden md:block">
+            <MarketEntryHero locale={browseLocale} />
+          </div>
+          <div className="hidden md:block">
+            <PlatformExplanationBanner locale={browseLocale} />
+          </div>
+          <div className="hidden md:block">
+            <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
+          </div>
+        </div>
 
-        {/* Explanatory Banner: How BeforeToBuy Works & price transparency notice */}
-        <PlatformExplanationBanner locale={browseLocale} />
-
-        {/* Promos & Vouchers Section Highlighted at Top */}
-        <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
+        {/* Catalog cluster — first on mobile */}
+        <div className="order-1 md:order-2 space-y-4 sm:space-y-6">
+        {/* Compact mobile brand strip (full hero moves below) */}
+        <div className="md:hidden">
+          <MarketEntryHero locale={browseLocale} />
+        </div>
 
         {/* BeforeToBuy category modules + comparison filters */}
         <div
           id="browse-offers"
-          className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3 scroll-mt-24"
+          className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-xs space-y-3 scroll-mt-24"
         >
           <CategoryNavigation
             selectedCategory={selectedCategory}
@@ -447,26 +459,28 @@ export default function HomePageClient({
             locale={browseLocale}
           />
 
-          <CollectionNavigation
-            selectedCategory={selectedCategory}
-            onCollectionChange={handleCollectionChange}
-            collectionCounts={catalogMeta?.collectionCounts}
-            locale={browseLocale}
-          />
+          <div className="hidden sm:block space-y-3">
+            <CollectionNavigation
+              selectedCategory={selectedCategory}
+              onCollectionChange={handleCollectionChange}
+              collectionCounts={catalogMeta?.collectionCounts}
+              locale={browseLocale}
+            />
 
-          <OfferFilters
-            criteria={activeOfferFilters}
-            brandOptions={brandOptions}
-            currencySymbol={currentCountryInfo.currency}
-            locale={browseLocale}
-            onChange={handleOfferFiltersChange}
-          />
+            <OfferFilters
+              criteria={activeOfferFilters}
+              brandOptions={brandOptions}
+              currencySymbol={currentCountryInfo.currency}
+              locale={browseLocale}
+              onChange={handleOfferFiltersChange}
+            />
+          </div>
         </div>
 
         {/* Results Bar Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between min-w-0">
+        <div className="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-start sm:justify-between min-w-0">
           <div className="min-w-0">
-            <h3 className="text-xl font-extrabold text-slate-900 flex items-center gap-2 flex-wrap">
+            <h3 className="text-base sm:text-xl font-extrabold text-slate-900 flex items-center gap-2 flex-wrap">
               <span className="break-words">
                 {formatUi(homeUi.comparingDeals, { country: userLocation.countryName })}
               </span>
@@ -509,7 +523,7 @@ export default function HomePageClient({
                 ({formatUi(homeUi.itemsFound, { count: displayedProducts.length })})
               </span>
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="hidden sm:block text-xs text-slate-500 mt-0.5">
               {catalogMeta &&
               (catalogMeta.productionOfferCount > 0 || catalogMeta.sampleOfferCount > 0) ? (
                 <><strong className="text-emerald-700">{catalogMeta.productionOfferCount} {homeUi.liveOfferLabel}(s)</strong>. <strong className="text-amber-700">{catalogMeta.sampleOfferCount} {homeUi.sampleOfferLabel}(s)</strong> {homeUi.hybridDisclaimer}. {catalogMeta.gtinLinkedProductCount} {homeUi.gtinLinkedProductsText}. {homeUi.otherMerchantsDemoText} {homeUi.priceDisclaimer}</>
@@ -523,11 +537,14 @@ export default function HomePageClient({
                 </>
               )}
             </p>
+            <p className="sm:hidden text-[11px] text-slate-500 mt-0.5">
+              {homeUi.priceDisclaimer}
+            </p>
           </div>
 
           <button
             onClick={() => setIsDisclosureOpen(true)}
-            className="self-start shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 max-w-full"
+            className="hidden sm:inline-flex self-start shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all items-center gap-1.5 max-w-full"
           >
             <Info className="w-3.5 h-3.5 shrink-0" />
             <span className="text-left break-words">{homeUi.howCommissions}</span>
@@ -544,20 +561,19 @@ export default function HomePageClient({
           </div>
         )}
 
-        {/* Products Grid */}
+        {/* Products Grid — 2 columns on phones (price-first cards) */}
         {isLoadingProducts ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 md:gap-6">
             {[1, 2, 3, 4, 5, 6].map((n) => (
               <div
                 key={n}
-                className="bg-white rounded-2xl border border-slate-200 p-6 h-96 animate-pulse flex flex-col justify-between space-y-4"
+                className="bg-white rounded-xl border border-slate-200 p-2.5 sm:p-6 h-56 sm:h-96 animate-pulse flex flex-col justify-between space-y-2"
               >
-                <div className="bg-slate-200 rounded-xl h-48 w-full" />
+                <div className="bg-slate-200 rounded-lg h-28 sm:h-48 w-full" />
                 <div className="space-y-2">
-                  <div className="bg-slate-200 h-4 rounded w-3/4" />
+                  <div className="bg-slate-200 h-3 rounded w-3/4" />
                   <div className="bg-slate-200 h-3 rounded w-1/2" />
                 </div>
-                <div className="bg-slate-200 h-10 rounded-xl w-full" />
               </div>
             ))}
           </div>
@@ -608,8 +624,8 @@ export default function HomePageClient({
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-4 md:gap-6">
               {visibleProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -622,13 +638,31 @@ export default function HomePageClient({
                 />
               ))}
             </div>
-            <div ref={loadMoreRef} className="py-4 text-center text-xs text-slate-500">
+            <div ref={loadMoreRef} className="py-3 sm:py-4 text-center text-xs text-slate-500">
               {visibleCount < displayedProducts.length
                 ? homeUi.scrollForMoreProducts
                 : homeUi.endOfCatalog}
             </div>
           </div>
         )}
+        </div>
+
+        {/* Mobile: policy / how-it-works / promos after the catalog */}
+        <div className="order-3 md:hidden space-y-4">
+          <PlatformExplanationBanner locale={browseLocale} />
+          <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
+          <p className="text-[11px] text-slate-500 px-1 leading-relaxed">
+            {homeUi.marketHeroPartnerNote}
+          </p>
+          <button
+            type="button"
+            onClick={() => setIsDisclosureOpen(true)}
+            className="w-full text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-2.5 rounded-xl inline-flex items-center justify-center gap-1.5"
+          >
+            <Info className="w-3.5 h-3.5 shrink-0" />
+            {homeUi.howCommissions}
+          </button>
+        </div>
 
       </main>
 
