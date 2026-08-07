@@ -1,6 +1,6 @@
 import { CountryCode } from "@/types";
 
-export type FeedProvider = "AWIN" | "GALAXUS" | "GOOGLE_MERCHANT";
+export type FeedProvider = "AWIN" | "GALAXUS" | "GOOGLE_MERCHANT" | "TWO_PERFORMANT";
 export type FeedMode = "production" | "sample" | "unconfigured";
 export type FeedSampleFormat = "csv" | "json" | "xml";
 
@@ -90,15 +90,24 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     sampleFormat: "csv",
   },
   {
-    provider: "GOOGLE_MERCHANT",
+    provider: "TWO_PERFORMANT",
+    country: "RO",
+    merchantId: "ro-rowenta",
+    merchantName: "Rowenta.ro",
+    envVar: "TWO_PERFORMANT_FEED_URL_RO_ROWENTA",
+    defaultRemoteUrl: "https://api.2performant.com/feed/c55b99d30.csv",
+    sampleFile: "sample-2performant-rowenta-ro.csv",
+    sampleFormat: "csv",
+  },
+  {
+    provider: "TWO_PERFORMANT",
     country: "RO",
     merchantId: "ro-scule365",
     merchantName: "Scule365.ro",
-    envVar: "GOOGLE_MERCHANT_FEED_URL_RO_SCULE365",
-    defaultRemoteUrl:
-      "https://www.scule365.ro/feed/google_xml/ea1c1391c197733db36fe91ee7e0b901",
-    sampleFile: "sample-google-merchant-scule365-ro.xml",
-    sampleFormat: "xml",
+    envVar: "TWO_PERFORMANT_FEED_URL_RO_SCULE365",
+    defaultRemoteUrl: "https://api.2performant.com/feed/fcdbb3e99.csv",
+    sampleFile: "sample-2performant-scule365-ro.csv",
+    sampleFormat: "csv",
   },
 ];
 

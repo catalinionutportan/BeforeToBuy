@@ -9,6 +9,7 @@ export const MAPPING_MERCHANT_IDS = [
   "ch-interdiscount",
   "ch-fust",
   "ro-scule365",
+  "ro-rowenta",
 ] as const;
 
 export type MappingMerchantId = (typeof MAPPING_MERCHANT_IDS)[number];
@@ -224,23 +225,59 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       incarcatoare: "diy-batteries-chargers",
       încărcătoare: "diy-batteries-chargers",
     }),
+    // My Feeds CSV often omits category — match Romanian title/description text.
     patterns: [
       {
         patterns:
-          /\b(slefuit|bormasin|bormașin|rotopercutor|drujb|polizor|flex|circular|electrice|power tool)\b/i,
-        subcategoryId: "diy-power-tools",
+          /\b(acumulatori?|baterie|baterii|incarcator|încărcător|incarcatoare|încărcătoare|akku)\b/i,
+        subcategoryId: "diy-batteries-chargers",
       },
       {
-        patterns: /\b(cheie|surubelnit|șurubelniț|ciocan|clește|cleste|set scule|hand tool)\b/i,
-        subcategoryId: "diy-hand-tools",
-      },
-      {
-        patterns: /\b(pompa|pompă|stropit|gradina|grădin|motocoas|cositoare)\b/i,
+        patterns:
+          /\b(pompa|pompă|pompe|stropit|gradina|grădin|motocoas|cositoare|submersibil|hidrofor)\b/i,
         subcategoryId: "garden-equipment",
       },
       {
-        patterns: /\b(acumulator|baterie|incarcator|încărcător|akku)\b/i,
-        subcategoryId: "diy-batteries-chargers",
+        patterns:
+          /\b(generator|generatoare|invertor|invertor(?:ul)?|stabilizator)\b/i,
+        subcategoryId: "diy-electrical",
+      },
+      {
+        patterns:
+          /\b(slefuit|slefuitoare|bormasin|bormașin|rotopercutor|drujb|polizor|flex|circular|fierastrau|ferăstrău|unghiular|impact|sudura|sudură|pistol|masina de|mașină de|electrice?|brushless|power tool)\b/i,
+        subcategoryId: "diy-power-tools",
+      },
+      {
+        patterns:
+          /\b(cheie|surubelnit|șurubelniț|ciocan|clește|cleste|trusa|trusă|disc|burghie|lama|lamă|protectie|protecție|accesorii|set scule|hand tool|maner|mâner)\b/i,
+        subcategoryId: "diy-hand-tools",
+      },
+    ],
+  },
+  "ro-rowenta": {
+    exact: exactRules({
+      "aspiratoare verticale": "cleaning-vacuums",
+      "aspiratoare cu abur": "cleaning-vacuums",
+      aspiratoare: "cleaning-vacuums",
+      "fiare de calcat": "laundry-ironing-sewing",
+      "fiare de călcat": "laundry-ironing-sewing",
+      "uscatoare de par": "care-hair-styling",
+      "uscătoare de păr": "care-hair-styling",
+      "aparate de gatit": "kitchen-cooking-appliances",
+      "aparate de gătit": "kitchen-cooking-appliances",
+    }),
+    patterns: [
+      {
+        patterns: /\b(aspirator|vacuum|abur|steam)\b/i,
+        subcategoryId: "cleaning-vacuums",
+      },
+      {
+        patterns: /\b(calcat|călcat|steam iron|bügeleisen)\b/i,
+        subcategoryId: "laundry-ironing-sewing",
+      },
+      {
+        patterns: /\b(uscator|uscător|hair.?dryer|haartrockner|fen)\b/i,
+        subcategoryId: "care-hair-styling",
       },
     ],
   },
@@ -271,6 +308,15 @@ export function getMerchantPatternMatch(
   for (const rule of MERCHANT_CATEGORY_RULES[merchantId].patterns) {
     if (rule.patterns.test(text)) return rule.subcategoryId;
   }
+  return null;
+}
+
+/**
+ * Last-resort leaf when a merchant catalogue is known DIY/tools but feed rows
+ * lack category labels and keyword inference failed.
+ */
+export function getMerchantDefaultCategory(merchantId: string | undefined): string | null {
+  if (merchantId === "ro-scule365") return "diy-hand-tools";
   return null;
 }
 

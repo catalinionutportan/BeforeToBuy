@@ -3,9 +3,11 @@ import {
   BookOpen,
   Flower2,
   Hammer,
+  Home,
   Shirt,
   Smartphone,
 } from "lucide-react";
+import type { CountryCode } from "@/types";
 
 /**
  * Top-level market hubs shown as sticky tabs.
@@ -19,6 +21,12 @@ export interface MarketHubTab {
 }
 
 export const DEFAULT_MARKET_HUB_ID = "hub-electronics";
+
+/** Romania live catalogue is DIY + home appliances — start on All so nothing is hub-hidden. */
+export function defaultMarketHubForCountry(countryCode: CountryCode | string): string {
+  if (countryCode === "RO") return "all";
+  return DEFAULT_MARKET_HUB_ID;
+}
 
 export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
   {
@@ -50,6 +58,30 @@ export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
       "photo-mirrorless",
       "network-routers",
       "smart-home-security",
+    ],
+  },
+  {
+    id: "hub-home",
+    icon: Home,
+    leafIds: [
+      "cleaning-vacuums",
+      "cleaning-robots",
+      "cleaning-floor-care",
+      "climate-cooling",
+      "climate-heating",
+      "climate-air-care",
+      "laundry-ironing-sewing",
+      "kitchen-coffee-machines",
+      "kitchen-machines-mixers",
+      "kitchen-cooking-appliances",
+      "kitchen-microwaves",
+      "kitchen-breakfast",
+      "kitchen-water-treatment",
+      "care-hair-styling",
+      "care-shaving-hair-removal",
+      "care-oral",
+      "health-monitors-scales",
+      "office-home",
     ],
   },
   {

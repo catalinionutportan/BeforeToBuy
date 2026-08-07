@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { getRoOffers } from "@/lib/offers/ro-offers";
-import { AFFILIATE_LINKS } from "@/lib/affiliate-links";
 import type { Product, UserLocation } from "@/types";
 
 const product = {
@@ -15,23 +14,8 @@ const location = {
 } as UserLocation;
 
 describe("getRoOffers", () => {
-  it("returns live RO affiliate outbound links including MxEnduro", async () => {
+  it("returns no synthetic RO demo offers (catalog comes from live feeds)", async () => {
     const offers = await getRoOffers(product, location, null, "en");
-
-    expect(offers).toHaveLength(10);
-    expect(offers.map((o) => o.storeName)).toEqual([
-      "eMAG.ro",
-      "evoMAG.ro",
-      "Rowenta.ro",
-      "Scule365.ro",
-      "AutoEco.ro",
-      "Soundhouse.ro",
-      "Autobob.ro",
-      "Automobilus.ro",
-      "PAA-Home.ro",
-      "MxEnduro.ro",
-    ]);
-    expect(offers[9]?.purchaseUrl).toBe(AFFILIATE_LINKS.mxenduro2Performant);
-    expect(AFFILIATE_LINKS.mxenduro2Performant).toContain("unique=90cc26df2");
+    expect(offers).toEqual([]);
   });
 });

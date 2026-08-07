@@ -41,7 +41,7 @@ const BRACK_SAMPLE_ROWS = [
 describe('Category Mapper Functions', () => {
   it("merchant category rules validate without conflicts", () => {
     expect(validateMerchantCategoryRules()).toEqual([]);
-    expect(MAPPING_MERCHANT_IDS.length).toBe(6);
+    expect(MAPPING_MERCHANT_IDS.length).toBe(8);
   });
 
   it("Brack sample feed rows map with merchant-exact rules", () => {
@@ -115,6 +115,22 @@ describe('Category Mapper Functions', () => {
     expect(result.categoryId).toBe(UNMAPPED_CATEGORY_ID);
     expect(result.method).toBe("unmapped");
     expect(result.confidence).toBe(0);
+  });
+
+  it("Scule365 maps from title when My Feeds omits category", () => {
+    const powered = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-scule365",
+      title: "Masina de slefuit rotativa 450W Epto EvoTools",
+    });
+    expect(powered.categoryId).toBe("diy-power-tools");
+    expect(powered.method).toBe("merchant-pattern");
+
+    const fallback = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-scule365",
+      title: "ZXQ item without a recognized product type",
+    });
+    expect(fallback.categoryId).toBe("diy-hand-tools");
+    expect(fallback.method).toBe("merchant-default");
   });
 
   it("low-confidence keyword matches fall below threshold into unmapped", () => {

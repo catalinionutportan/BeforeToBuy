@@ -125,6 +125,7 @@ export interface Product {
       | "merchant-exact"
       | "merchant-pattern"
       | "merchant-rule"
+      | "merchant-default"
       | "keyword"
       | "combined-rule"
       | "below-threshold"

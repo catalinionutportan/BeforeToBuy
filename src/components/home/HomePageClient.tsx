@@ -22,7 +22,11 @@ import {
 } from "@/components/CollectionNavigation";
 import { OfferFilters } from "@/components/OfferFilters";
 import { ALL_CATEGORIES_ID, productMatchesCategoryFilter } from "@/lib/categories";
-import { DEFAULT_MARKET_HUB_ID, MARKET_HUB_TABS, isMarketHubId } from "@/lib/market-hubs";
+import {
+  MARKET_HUB_TABS,
+  defaultMarketHubForCountry,
+  isMarketHubId,
+} from "@/lib/market-hubs";
 import {
   CATEGORY_UI,
   OFFER_FILTER_UI,
@@ -75,7 +79,7 @@ export default function HomePageClient({
   const [searchInput, setSearchInput] = useState<string>("");
   const debouncedSearchQuery = useDebouncedValue(searchInput, 350);
   const [selectedDomain, setSelectedDomain] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_MARKET_HUB_ID);
+  const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORIES_ID);
   const [visibleCount, setVisibleCount] = useState(12);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [offerFilters, setOfferFilters] = useState<OfferFilterCriteria>({});
@@ -118,7 +122,9 @@ export default function HomePageClient({
 
     const readBrowseState = () => {
       const params = new URLSearchParams(window.location.search);
-      setSelectedCategory(params.get("category") || DEFAULT_MARKET_HUB_ID);
+      setSelectedCategory(
+        params.get("category") || defaultMarketHubForCountry(userLocation.countryCode)
+      );
       setSearchInput(params.get("q") || "");
       const parsed = parseOfferFiltersFromSearchParams(params);
       setSelectedDomain(parsed.domain || "all");
@@ -134,7 +140,16 @@ export default function HomePageClient({
     readBrowseState();
     window.addEventListener("popstate", readBrowseState);
     return () => window.removeEventListener("popstate", readBrowseState);
-  }, []);
+  }, [userLocation.countryCode]);
+
+  // When switching market without an explicit category URL, use country default hub.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("category")) return;
+    const next = defaultMarketHubForCountry(userLocation.countryCode);
+    setSelectedCategory(next);
+  }, [userLocation.countryCode]);
 
   // Keep `q` shareable in the URL after debounce.
   useEffect(() => {
@@ -251,18 +266,26 @@ export default function HomePageClient({
   );
 
   const resetAllFilters = useCallback(() => {
+    const defaultHub = defaultMarketHubForCountry(userLocation.countryCode);
     setSearchInput("");
     setSelectedDomain("all");
     setOfferFilters({});
-    setSelectedCategory(DEFAULT_MARKET_HUB_ID);
+    setSelectedCategory(defaultHub);
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
-      url.searchParams.set("category", DEFAULT_MARKET_HUB_ID);
+      if (defaultHub === ALL_CATEGORIES_ID) url.searchParams.delete("category");
+      else url.searchParams.set("category", defaultHub);
       url.searchParams.delete("q");
       writeOfferFiltersToSearchParams(url, {});
       window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
     }
-  }, [setSearchInput, setSelectedDomain, setOfferFilters, setSelectedCategory]);
+  }, [
+    setSearchInput,
+    setSelectedDomain,
+    setOfferFilters,
+    setSelectedCategory,
+    userLocation.countryCode,
+  ]);
 
   // Drop cross-border domain chip selection when leaving that collection.
   useEffect(() => {
@@ -368,10 +391,17 @@ export default function HomePageClient({
       />
 
       <MarketHubTabs
-        selectedHub={isMarketHubId(selectedCategory) ? selectedCategory : ""}
+        selectedHub={
+          isMarketHubId(selectedCategory)
+            ? selectedCategory
+            : selectedCategory === ALL_CATEGORIES_ID
+              ? ALL_CATEGORIES_ID
+              : ""
+        }
         onHubChange={handleHubChange}
         locale={browseLocale}
         hubCounts={hubCounts}
+        allCount={products.length}
       />
 
       {/* Merchant domain filters — desktop/tablet; on phones filters stay optional below */}
@@ -450,14 +480,12 @@ export default function HomePageClient({
           <p className="md:hidden text-[11px] font-semibold text-slate-600 px-0.5">
             {homeUi.appDoesOneLiner}
           </p>
-          <div className="hidden sm:block">
-            <CategoryNavigation
-              selectedCategory={selectedCategory}
-              onCategoryChange={handleCategoryChange}
-              categoryCounts={catalogMeta?.categoryCounts}
-              locale={browseLocale}
-            />
-          </div>
+          <CategoryNavigation
+            selectedCategory={selectedCategory}
+            onCategoryChange={handleCategoryChange}
+            categoryCounts={catalogMeta?.categoryCounts}
+            locale={browseLocale}
+          />
 
           <div className="hidden md:block space-y-3">
             <CollectionNavigation
