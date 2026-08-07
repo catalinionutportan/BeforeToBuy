@@ -134,5 +134,19 @@ export async function getRoOffers(
       source: "demo" as const,
       badge: ui.affiliateDemoOfferLabel,
     },
+    {
+      id: `${product.id}-paahome`,
+      storeName: "PAA-Home.ro",
+      price: Math.round(targetPrice * 1.09),
+      currency,
+      inStock: true,
+      deliveryTime: "2-5 zile lucrătoare",
+      deliveryCost: 20.99,
+      purchaseUrl: AFFILIATE_LINKS.paahome2Performant,
+      affiliateNetwork: "2Performant Romania",
+      type: "online" as const,
+      source: "demo" as const,
+      badge: ui.affiliateDemoOfferLabel,
+    },
   ];
 }

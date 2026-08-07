@@ -15,10 +15,10 @@ const location = {
 } as UserLocation;
 
 describe("getRoOffers", () => {
-  it("returns live RO affiliate outbound links including Automobilus", async () => {
+  it("returns live RO affiliate outbound links including PAA-Home", async () => {
     const offers = await getRoOffers(product, location, null, "en");
 
-    expect(offers).toHaveLength(8);
+    expect(offers).toHaveLength(9);
     expect(offers.map((o) => o.storeName)).toEqual([
       "eMAG.ro",
       "evoMAG.ro",
@@ -28,8 +28,9 @@ describe("getRoOffers", () => {
       "Soundhouse.ro",
       "Autobob.ro",
       "Automobilus.ro",
+      "PAA-Home.ro",
     ]);
-    expect(offers[7]?.purchaseUrl).toBe(AFFILIATE_LINKS.automobilus2Performant);
-    expect(AFFILIATE_LINKS.automobilus2Performant).toContain("unique=ef2621c0a");
+    expect(offers[8]?.purchaseUrl).toBe(AFFILIATE_LINKS.paahome2Performant);
+    expect(AFFILIATE_LINKS.paahome2Performant).toContain("unique=2c9f51768");
   });
 });
