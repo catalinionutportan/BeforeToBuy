@@ -374,8 +374,8 @@ export default function HomePageClient({
         hubCounts={hubCounts}
       />
 
-      {/* Merchant Stores & Integrated Domains Banner Bar */}
-      <div className="bg-slate-900 text-white border-b border-slate-800 py-3 px-4 sm:px-6 lg:px-8">
+      {/* Merchant domain filters — desktop/tablet; on phones filters stay optional below */}
+      <div className="hidden md:block bg-slate-900 text-white border-b border-slate-800 py-3 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs min-w-0">
           
           <div className="flex items-center gap-2 overflow-x-auto custom-scrollbar w-full min-w-0 max-w-full pb-1 sm:pb-0 touch-pan-x">
@@ -440,26 +440,26 @@ export default function HomePageClient({
           </div>
         </div>
 
-        {/* Catalog cluster — first on mobile */}
-        <div className="order-1 md:order-2 space-y-4 sm:space-y-6">
-        {/* Compact mobile brand strip (full hero moves below) */}
-        <div className="md:hidden">
-          <MarketEntryHero locale={browseLocale} />
-        </div>
-
+        {/* Catalog cluster — first on mobile (no hero/policy above products) */}
+        <div className="order-1 md:order-2 space-y-3 sm:space-y-6">
         {/* BeforeToBuy category modules + comparison filters */}
         <div
           id="browse-offers"
-          className="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-xs space-y-3 scroll-mt-24"
+          className="bg-white p-2 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-xs space-y-2 sm:space-y-3 scroll-mt-24"
         >
-          <CategoryNavigation
-            selectedCategory={selectedCategory}
-            onCategoryChange={handleCategoryChange}
-            categoryCounts={catalogMeta?.categoryCounts}
-            locale={browseLocale}
-          />
+          <p className="md:hidden text-[11px] font-semibold text-slate-600 px-0.5">
+            {homeUi.appDoesOneLiner}
+          </p>
+          <div className="hidden sm:block">
+            <CategoryNavigation
+              selectedCategory={selectedCategory}
+              onCategoryChange={handleCategoryChange}
+              categoryCounts={catalogMeta?.categoryCounts}
+              locale={browseLocale}
+            />
+          </div>
 
-          <div className="hidden sm:block space-y-3">
+          <div className="hidden md:block space-y-3">
             <CollectionNavigation
               selectedCategory={selectedCategory}
               onCollectionChange={handleCollectionChange}
@@ -478,7 +478,7 @@ export default function HomePageClient({
         </div>
 
         {/* Results Bar Header */}
-        <div className="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-start sm:justify-between min-w-0">
+        <div className="hidden sm:flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-start sm:justify-between min-w-0">
           <div className="min-w-0">
             <h3 className="text-base sm:text-xl font-extrabold text-slate-900 flex items-center gap-2 flex-wrap">
               <span className="break-words">
@@ -537,14 +537,11 @@ export default function HomePageClient({
                 </>
               )}
             </p>
-            <p className="sm:hidden text-[11px] text-slate-500 mt-0.5">
-              {homeUi.priceDisclaimer}
-            </p>
           </div>
 
           <button
             onClick={() => setIsDisclosureOpen(true)}
-            className="hidden sm:inline-flex self-start shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all items-center gap-1.5 max-w-full"
+            className="self-start shrink-0 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all inline-flex items-center gap-1.5 max-w-full"
           >
             <Info className="w-3.5 h-3.5 shrink-0" />
             <span className="text-left break-words">{homeUi.howCommissions}</span>
@@ -647,10 +644,14 @@ export default function HomePageClient({
         )}
         </div>
 
-        {/* Mobile: policy / how-it-works / promos after the catalog */}
+        {/* Mobile: hero + policy after the catalog (not before products) */}
         <div className="order-3 md:hidden space-y-4">
+          <MarketEntryHero locale={browseLocale} />
           <PlatformExplanationBanner locale={browseLocale} />
           <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
+          <p className="text-[11px] text-slate-500 px-1 leading-relaxed">
+            {homeUi.priceDisclaimer}
+          </p>
           <p className="text-[11px] text-slate-500 px-1 leading-relaxed">
             {homeUi.marketHeroPartnerNote}
           </p>
