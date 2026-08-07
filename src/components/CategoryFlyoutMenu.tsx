@@ -354,9 +354,9 @@ export function CategoryFlyoutMenu({
                         const count = categoryCounts?.[item.id] ?? 0;
                         const hasChildren = Boolean(item.children?.length);
                         const selected = nodeContainsSelected(item, selectedCategory);
+                        const nextCol = previewCols[colIndex + 1];
                         const previewed =
-                          previewCols[colIndex + 1]?.kind === "group" &&
-                          previewCols[colIndex + 1].node.id === item.id;
+                          nextCol?.kind === "group" && nextCol.node.id === item.id;
 
                         return (
                           <li key={item.id}>
