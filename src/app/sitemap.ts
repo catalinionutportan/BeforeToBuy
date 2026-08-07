@@ -22,6 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/help",
     "/contact",
     "/legal",
+    "/transparency",
     "/affiliate-disclosure",
     "/disclaimer",
     "/impressum",
@@ -31,6 +32,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/complaints",
     "/accessibility",
     "/status",
+    "/policies/comparison",
+    "/policies/editorial",
+    "/policies/feeds",
+    "/policies/merchants",
+    "/policies/notifications",
   ];
 
   const staticRoutes: MetadataRoute.Sitemap = staticPaths.map((routePath) => ({

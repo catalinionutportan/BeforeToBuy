@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { ManageCookiePreferencesButton } from "@/components/ManageCookiePreferencesButton";
 import { COMPANY } from "@/lib/company-info";
 import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
@@ -55,12 +56,15 @@ export function SiteFooter() {
           </p>
         </div>
 
-        <Link
-          href="/legal"
-          className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-2.5 text-[12px] font-semibold text-slate-900 shadow-sm transition-colors hover:border-[#e85d04]/50 hover:text-[#e85d04]"
-        >
-          {homeUi.legalCompanyLink}
-        </Link>
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+          <Link
+            href="/legal"
+            className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-2.5 text-[12px] font-semibold text-slate-900 shadow-sm transition-colors hover:border-[#e85d04]/50 hover:text-[#e85d04]"
+          >
+            {homeUi.legalCompanyLink}
+          </Link>
+          <ManageCookiePreferencesButton />
+        </div>
       </div>
     </footer>
   );
