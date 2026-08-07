@@ -157,6 +157,7 @@ export const frUi = {
     demoFeedLabel: "Démo",
     compareBeforeYouBuy: "Comparez avant d'acheter",
     portanxProductLine: "Une plateforme {companyTradeName} pour comparer les prix intelligemment.",
+    legalSupportMenu: "Légal & Support",
     shortPitch1: "Nous trouvons les prix des magasins.",
     shortPitch2: "Vous choisissez où acheter.",
     shortPitch3: "Nous ne vendons pas — nous comparons seulement.",

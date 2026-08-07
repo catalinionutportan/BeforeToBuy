@@ -167,6 +167,7 @@ export const itUi = {
     demoFeedLabel: "Demo",
     compareBeforeYouBuy: "Confronta prima di acquistare",
     portanxProductLine: "Una piattaforma {companyTradeName} per confronti di prezzo intelligenti.",
+    legalSupportMenu: "Legale & Supporto",
     shortPitch1: "Troviamo i prezzi dai negozi.",
     shortPitch2: "Tu scegli dove comprare.",
     shortPitch3: "Non vendiamo — confrontiamo soltanto.",
