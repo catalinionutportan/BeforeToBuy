@@ -1,4 +1,6 @@
-/** Single source of truth for company and legal entity data on BeforeToBuy.com */
+/** Single source of truth for company and legal entity data on BeforeToBuy.com.
+ * Registry fields aligned with SHAB / help.ch Neueintrag publication HR01-1006718835 (29.07.2026).
+ */
 export const COMPANY = {
   legalName: "PortanX - Catalin Portan",
   tradeName: "PortanX",
@@ -6,6 +8,8 @@ export const COMPANY = {
   legalForm: {
     en: "Sole proprietorship (Einzelunternehmen)",
     de: "Einzelunternehmen",
+    fr: "Entreprise individuelle",
+    it: "Ditta individuale",
     ro: "Întreprindere individuală",
   },
   owner: "Catalin Ionut Portan",
@@ -17,7 +21,7 @@ export const COMPANY = {
     country: "Switzerland",
     countryCode: "CH",
     formatted: "Flurstrasse 24, CH-3014 Bern, Switzerland",
-    formattedDe: "Flurstrasse 24, CH-3014 Bern, Schweiz",
+    formattedDe: "Flurstrasse 24, 3014 Bern",
   },
   uid: "CHE-373.501.736",
   /** UID is the Swiss enterprise ID — not a VAT number. Update when VAT-registered. */
@@ -28,19 +32,24 @@ export const COMPANY = {
     it: "Non soggetto a IVA (l'UID non è un numero IVA/MWST)",
     ro: "Neînregistrat în scopuri de TVA (UID nu este număr MWST/TVA)",
   },
+  /** Cantonal company ID (CH-ID), separate from SHAB Meldungsnummer. */
   hrNumber: "CH-036.1.108.540-6",
-  commercialRegistry: "Handelsregister des Kantons Bern",
+  commercialRegistry: "Handelsregisteramt des Kantons Bern",
   registrationDate: "2026-07-24",
   registryPublication: {
     registerCategory: "Handelsregistereintragungen",
     subcategory: "Neueintrag",
     publicationDate: "2026-07-29",
+    publicationDateDisplay: "SHAB 29.07.2026",
     shabMessageNumber: "HR01-1006718835",
     dailyRegisterNumber: "14193",
     dailyRegisterDate: "2026-07-24",
+    dailyRegisterDisplay: "Tagesregister-Nr. 14193 vom 24.07.2026",
     publishingOffice:
       "Bundesamt für Justiz (BJ), Eidgenössisches Amt für das Handelsregister",
+    publishingOfficeAddress: "Bundesrain 20, 3003 Bern",
     registryOffice: "Handelsregisteramt des Kantons Bern",
+    noticeTitle: "Neueintragung PortanX - Catalin Portan, Bern",
   },
   registeredPerson: {
     name: "Portan, Catalin Ionut",
@@ -58,7 +67,13 @@ export const COMPANY = {
   businessPurpose: {
     en: "Development of software, mobile apps, web platforms and digital services.",
     de: "Entwicklung von Software, mobilen Apps, Webplattformen und digitalen Dienstleistungen.",
+    fr: "Développement de logiciels, d'applications mobiles, de plateformes web et de services numériques.",
+    it: "Sviluppo di software, app mobili, piattaforme web e servizi digitali.",
+    ro: "Dezvoltare de software, aplicații mobile, platforme web și servicii digitale.",
   },
+  /** Official SHAB Neueintrag body (German), for impressum / diligence pages. */
+  shabNoticeDe:
+    "PortanX - Catalin Portan, in Bern, CHE-373.501.736, Flurstrasse 24, 3014 Bern, Einzelunternehmen (Neueintragung). Zweck: Entwicklung von Software, mobilen Apps, Webplattformen und digitalen Dienstleistungen. Eingetragene Personen: Portan, Catalin Ionut, rumänischer Staatsangehöriger, in Bern, Inhaber, mit Einzelunterschrift. Tagesregister-Nr. 14193 vom 24.07.2026. Kontaktstelle: Handelsregisteramt des Kantons Bern.",
 } as const;
 
 export const LEGAL_CONTACT = {

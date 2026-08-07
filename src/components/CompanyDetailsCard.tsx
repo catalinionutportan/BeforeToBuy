@@ -50,10 +50,12 @@ export function CompanyDetailsCard() {
             <br />
             HR-Nr: {COMPANY.hrNumber}
             <br />
-            Registered: {COMPANY.registrationDate}
+            {COMPANY.registryPublication.dailyRegisterDisplay}
             <br />
             SHAB: {COMPANY.registryPublication.shabMessageNumber} (
-            {COMPANY.registryPublication.publicationDate})
+            {COMPANY.registryPublication.publicationDateDisplay})
+            <br />
+            {COMPANY.registryPublication.registryOffice}
           </p>
         </div>
       </div>

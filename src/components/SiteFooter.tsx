@@ -43,6 +43,7 @@ export function SiteFooter() {
               {COMPANY.tradeName}
             </p>
             <p className="text-slate-300">{COMPANY.legalName}</p>
+            <p className="text-slate-500">{COMPANY.address.formattedDe}</p>
             <p>
               <span className="text-slate-500">UID</span>{" "}
               <span className="font-mono text-emerald-400/90">{COMPANY.uid}</span>
@@ -52,7 +53,7 @@ export function SiteFooter() {
               <span className="font-mono text-slate-300">{COMPANY.hrNumber}</span>
             </p>
             <p>
-              <span className="text-slate-500">Dosar</span>{" "}
+              <span className="text-slate-500">Tagesregister</span>{" "}
               <span className="font-mono text-slate-300">
                 {COMPANY.registryPublication.dailyRegisterNumber}
               </span>
@@ -62,7 +63,7 @@ export function SiteFooter() {
                 {COMPANY.registryPublication.shabMessageNumber}
               </span>
             </p>
-            <p className="text-slate-500">{COMPANY.address.formatted}</p>
+            <p className="text-slate-500">{COMPANY.registryPublication.registryOffice}</p>
             <div className="flex flex-col gap-0.5 pt-0.5">
               <a
                 href={`mailto:${COMPANY.email}`}
