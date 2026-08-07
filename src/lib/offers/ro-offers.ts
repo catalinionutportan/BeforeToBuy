@@ -148,5 +148,19 @@ export async function getRoOffers(
       source: "demo" as const,
       badge: ui.affiliateDemoOfferLabel,
     },
+    {
+      id: `${product.id}-mxenduro`,
+      storeName: "MxEnduro.ro",
+      price: Math.round(targetPrice * 1.1),
+      currency,
+      inStock: true,
+      deliveryTime: "2-5 zile lucrătoare",
+      deliveryCost: 21.99,
+      purchaseUrl: AFFILIATE_LINKS.mxenduro2Performant,
+      affiliateNetwork: "2Performant Romania",
+      type: "online" as const,
+      source: "demo" as const,
+      badge: ui.affiliateDemoOfferLabel,
+    },
   ];
 }
