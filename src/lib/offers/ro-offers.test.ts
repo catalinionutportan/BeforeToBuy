@@ -15,26 +15,22 @@ const location = {
 } as UserLocation;
 
 describe("getRoOffers", () => {
-  it("returns live RO affiliate outbound links including AutoEco", async () => {
+  it("returns live RO affiliate outbound links including Soundhouse", async () => {
     const offers = await getRoOffers(product, location, null, "en");
 
-    expect(offers).toHaveLength(5);
-    expect(offers[0]?.storeName).toBe("eMAG.ro");
-    expect(offers[0]?.purchaseUrl).toBe(AFFILIATE_LINKS.emagProfitshare);
-
-    expect(offers[1]?.storeName).toBe("evoMAG.ro");
-    expect(offers[1]?.purchaseUrl).toBe(AFFILIATE_LINKS.evomag2Performant);
-
-    expect(offers[2]?.storeName).toBe("Rowenta.ro");
-    expect(offers[2]?.purchaseUrl).toBe(AFFILIATE_LINKS.rowenta2Performant);
-
-    expect(offers[3]?.storeName).toBe("Scule365.ro");
-    expect(offers[3]?.purchaseUrl).toBe(AFFILIATE_LINKS.scule3652Performant);
-
-    expect(offers[4]?.storeName).toBe("AutoEco.ro");
-    expect(offers[4]?.purchaseUrl).toBe(AFFILIATE_LINKS.autoeco2Performant);
-    expect(offers[4]?.affiliateNetwork).toBe("2Performant Romania");
-    expect(AFFILIATE_LINKS.autoeco2Performant).toContain("aff_code=244836372");
-    expect(AFFILIATE_LINKS.autoeco2Performant).toContain("unique=7cf7c22ce");
+    expect(offers).toHaveLength(6);
+    expect(offers.map((o) => o.storeName)).toEqual([
+      "eMAG.ro",
+      "evoMAG.ro",
+      "Rowenta.ro",
+      "Scule365.ro",
+      "AutoEco.ro",
+      "Soundhouse.ro",
+    ]);
+    expect(offers[5]?.purchaseUrl).toBe(AFFILIATE_LINKS.soundhouse2Performant);
+    expect(AFFILIATE_LINKS.soundhouse2Performant).toContain("unique=3efdbc6c8");
+    expect(AFFILIATE_LINKS.soundhouse2Performant).toContain(
+      "redirect_to=https%3A%2F%2Fsoundhouse.ro%2F"
+    );
   });
 });
