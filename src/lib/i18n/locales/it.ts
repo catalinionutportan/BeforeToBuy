@@ -67,6 +67,8 @@ export const itUi = {
     hubFashion: "Moda",
     hubGarden: "Giardino",
     hubDiy: "Fai da te",
+    hubHome: "Casa",
+    hubAll: "Tutti",
     scrollForMoreProducts: "Scorri per altri prodotti…",
     endOfCatalog: "Fine del catalogo demo",
     clickAndCollectIn: "Click & Collect in",

@@ -985,6 +985,8 @@ export function getCategoryLabel(categoryId: string): string {
     switch (hub.id) {
       case "hub-electronics":
         return "Electronics";
+      case "hub-home":
+        return "Home + Appliances";
       case "hub-books":
         return "Books + Media";
       case "hub-fashion":

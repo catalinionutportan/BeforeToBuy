@@ -65,6 +65,8 @@ export const frUi = {
     hubFashion: "Mode",
     hubGarden: "Jardin",
     hubDiy: "Bricolage",
+    hubHome: "Maison",
+    hubAll: "Tout",
     scrollForMoreProducts: "Faites défiler pour plus de produits…",
     endOfCatalog: "Fin du catalogue démo",
     clickAndCollectIn: "Click & Collect en",

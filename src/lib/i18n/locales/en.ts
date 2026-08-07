@@ -65,6 +65,8 @@ export const enUi = {
     hubFashion: "Fashion",
     hubGarden: "Garden",
     hubDiy: "DIY / Bricolaj",
+    hubHome: "Home + Appliances",
+    hubAll: "All",
     scrollForMoreProducts: "Scroll for more products…",
     endOfCatalog: "You reached the end of this demo catalog",
     clickAndCollectIn: "Click & Collect in",

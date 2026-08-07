@@ -67,6 +67,8 @@ export const roUi = {
     hubFashion: "Fashion",
     hubGarden: "Grădinărit",
     hubDiy: "Bricolaj",
+    hubHome: "Casă + Electrocasnice",
+    hubAll: "Toate",
     scrollForMoreProducts: "Derulează pentru mai multe produse…",
     endOfCatalog: "Ai ajuns la finalul catalogului demo",
     clickAndCollectIn: "Click & Collect în",
