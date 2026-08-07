@@ -19,7 +19,14 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: path.join(__dirname),
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      // 2Performant RO merchant product images
+      { protocol: "https", hostname: "c.cdnmp.net" },
+      { protocol: "https", hostname: "cdnmpro.com" },
+      { protocol: "https", hostname: "www.rowenta.ro" },
+      { protocol: "https", hostname: "rowenta.ro" },
+    ],
   },
   async headers() {
     return [

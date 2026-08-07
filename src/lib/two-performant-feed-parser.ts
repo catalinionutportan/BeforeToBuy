@@ -58,11 +58,16 @@ function parsePrice(value?: string): number | undefined {
   return Number.isFinite(amount) && amount > 0 ? amount : undefined;
 }
 
-function firstImage(imageUrls?: string): string {
+/** Pick the first usable image URL from a 2P `image_urls` cell (comma/`|` separated). */
+export function firstImage(imageUrls?: string): string {
   if (!imageUrls?.trim()) {
     return "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600";
   }
-  return imageUrls.split(/[|,]/)[0]?.trim() || imageUrls.trim();
+  const first = imageUrls
+    .split(/\s*[|,]\s*/)
+    .map((part) => part.trim())
+    .find((part) => part.startsWith("http"));
+  return first || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600";
 }
 
 function storeNameForMerchant(feedMerchantId: string): string {
