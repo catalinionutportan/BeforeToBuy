@@ -125,17 +125,21 @@ test.describe("BeforeToBuy smoke E2E", () => {
   test("category menu drill-down is shareable and empty departments stay hidden", async ({ page }) => {
     await page.goto("/");
     const essentialButton = page.getByRole("button", { name: "Essential Only", exact: true });
-    if (await essentialButton.isVisible().catch(() => false)) {
-      await essentialButton.click();
-    }
+    await expect(essentialButton).toBeVisible({ timeout: 10_000 });
+    await essentialButton.click();
+    await expect(page.getByRole("dialog", { name: /Cookie & Privacy Preferences/i })).toHaveCount(0, {
+      timeout: 5_000,
+    });
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
 
     await page.getByRole("button", { name: /^Menu$/i }).click();
-    // Title changes after drill-down (Menu → Electronics), so don't pin dialog name.
-    const categoryMenu = page.getByRole("dialog").filter({ has: page.getByRole("button", { name: /Close|Schliessen|Închide/i }) });
-    await expect(categoryMenu).toBeVisible();
-    await categoryMenu.getByRole("button", { name: /^Electronics\b/ }).click();
-    await categoryMenu.getByRole("button", { name: /^Headphones\b/ }).click();
+    const rootMenu = page.getByRole("dialog", { name: /^Menu$/i });
+    await expect(rootMenu).toBeVisible();
+    await rootMenu.getByRole("navigation", { name: /Categories/i }).getByRole("button", { name: /^Electronics\b/ }).click();
+
+    const electronicsMenu = page.getByRole("dialog", { name: /^Electronics\b/ });
+    await expect(electronicsMenu).toBeVisible();
+    await electronicsMenu.getByRole("button", { name: /^Headphones\b/ }).click();
     await expect(page).toHaveURL(/category=audio-headphones/);
     await expect(page.getByText(/Anzeige|Browsing|Navigation/i).first()).toBeVisible();
 
