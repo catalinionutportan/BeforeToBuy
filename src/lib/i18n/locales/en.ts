@@ -2,9 +2,11 @@
  * EN UI copy for HOME_UI. Keep keys structurally aligned with other locales.
  */
 export const enUi = {
-    tagline: "Compare prices. Buy on the merchant site. (Beta)",
-    marketHeroHeadline: "Compare electronics prices before you buy",
-    marketHeroSubline: "BeforeToBuy.com is a Swiss Beta helper: we show indicative offers (online and local pickup context) and redirect you to the merchant checkout. We do not sell products or take payment.",
+    tagline: "Compare store prices. Buy on the merchant site.",
+    appDoesOneLiner: "We find store prices and send you to buy there — we don't sell products.",
+    demoDisclaimerShort: "Compare prices → buy on the store site. We don't sell products.",
+    marketHeroHeadline: "Find the lowest store price — then buy there",
+    marketHeroSubline: "BeforeToBuy.com compares offers from partner stores and redirects you to their checkout. We do not sell products or take payment.",
     marketHeroDiff: "Unlike a marketplace or Maps listing, we focus on price comparison and transparent redirection — you choose the offer that fits you.",
     marketHeroTrustSwiss: "Swiss operator",
     marketHeroTrustBeta: "Honest Beta",
@@ -31,7 +33,7 @@ export const enUi = {
     countryMarket: "Country / market",
     comparePrices: "Compare {count} prices",
     offersInCountry: "Prices in {country}",
-    demoDisclaimer: "BeforeToBuy.com is in Beta/Demo. We compare electronics prices and redirect you to merchant websites — we do not sell products. Most listings are still illustrative sample/demo data until production feeds are connected.",
+    demoDisclaimer: "Beta: we compare prices and redirect to stores — we don't sell. Some prices are still demo until live feeds are connected.",
     hybridDisclaimer: "Hybrid Beta: Brack.ch currently uses illustrative AWIN sample data unless a production feed is configured; other merchants remain demo catalog until connected.",
     productionFeedDisclaimer: "Hybrid Beta: Romania has live affiliate redirects for eMAG (Profitshare) and evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home & MxEnduro (2Performant) with Affiliate consent — Scule365 has a Google Merchant feed (live prices when configured); eMAG/evoMAG/Rowenta stay demo-priced until feeds. Other markets remain sample/demo or planned.",
     priceDisclaimer: "Comparison totals are indicative (list price + shown delivery where available; VAT/customs may be excluded). Confirm final price, VAT, shipping, and availability on the merchant website before buying.",
@@ -80,7 +82,7 @@ export const enUi = {
     collectAt: "Collect at",
     bestSellerUS: "Example listing (demo)",
     storePickup: "Store Pickup",
-    freePriceComparisonEngine: "Free Beta price comparison (demo catalog)",
+    freePriceComparisonEngine: "Compare prices · buy on the store site",
     integratedStoreDomains: "Merchant directory (Beta)",
     inCountry: "in",
     detected: "Detected:",

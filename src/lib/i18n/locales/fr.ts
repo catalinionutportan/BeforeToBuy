@@ -2,9 +2,11 @@
  * FR UI copy for HOME_UI. Keep keys structurally aligned with other locales.
  */
 export const frUi = {
-    tagline: "Comparer les prix. Acheter chez le marchand. (Beta)",
-    marketHeroHeadline: "Comparez les prix électronique avant d'acheter",
-    marketHeroSubline: "BeforeToBuy.com est un aide Beta suisse : nous affichons des offres indicatives (en ligne et contexte retrait local) et vous redirigeons vers le checkout marchand. Nous ne vendons pas et n'encaissons pas.",
+    tagline: "Comparer les prix des magasins. Acheter sur leur site.",
+    appDoesOneLiner: "Nous trouvons les prix des magasins et vous y envoyons acheter — nous ne vendons pas.",
+    demoDisclaimerShort: "Comparer les prix → acheter sur le site du magasin. Nous ne vendons pas.",
+    marketHeroHeadline: "Trouvez le prix le plus bas — puis achetez chez le magasin",
+    marketHeroSubline: "BeforeToBuy.com compare les offres des magasins partenaires et vous redirige vers leur checkout. Nous ne vendons pas et n'encaissons pas.",
     marketHeroDiff: "Contrairement à une marketplace ou à Maps, nous nous concentrons sur la comparaison de prix et une redirection transparente — vous choisissez.",
     marketHeroTrustSwiss: "Opérateur suisse",
     marketHeroTrustBeta: "Beta honnête",
@@ -31,7 +33,7 @@ export const frUi = {
     countryMarket: "Pays / marché",
     comparePrices: "Comparer {count} prix",
     offersInCountry: "Prix en {country}",
-    demoDisclaimer: "BeforeToBuy.com est en version Beta/Démo. Nous comparons les prix de l'électronique et vous redirigeons vers les sites des marchands — nous ne vendons pas de produits. La plupart des listes restent des données d'échantillon/démo illustratives jusqu'à la connexion des flux de production.",
+    demoDisclaimer: "Beta : nous comparons les prix et vous redirigeons vers les magasins — nous ne vendons pas. Certains prix restent démo jusqu'aux flux live.",
     hybridDisclaimer: "Bêta hybride : Brack.ch utilise actuellement des données illustratives d'échantillons AWIN à moins qu'un flux de production ne soit configuré ; les autres marchands restent dans le catalogue démo jusqu'à ce qu'ils soient connectés.",
     productionFeedDisclaimer: "Beta hybride : la Roumanie a des redirections d'affiliation live pour eMAG (Profitshare) et evoMAG, Rowenta, Scule365, AutoEco, Soundhouse, Autobob, Automobilus, PAA-Home & MxEnduro (2Performant) avec consentement Affilié — les prix restent démo jusqu'aux flux. Autres marchés sample/démo ou prévus.",
     priceDisclaimer: "Les totaux de comparaison sont indicatifs (prix + livraison affichée ; TVA/douanes peuvent être exclus). Confirmez prix final, TVA, livraison et disponibilité sur le site du marchand.",
@@ -80,7 +82,7 @@ export const frUi = {
     collectAt: "Collecte à",
     bestSellerUS: "Exemple (démo)",
     storePickup: "Retrait en magasin",
-    freePriceComparisonEngine: "Comparaison de prix Beta gratuite (catalogue démo)",
+    freePriceComparisonEngine: "Comparer les prix · acheter sur le site du magasin",
     integratedStoreDomains: "Annuaire des marchands (Beta)",
     inCountry: "en",
     detected: "Détecté :",
