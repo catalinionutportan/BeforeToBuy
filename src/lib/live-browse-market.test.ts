@@ -1,15 +1,19 @@
 import { describe, expect, it } from "vitest";
 import {
+  countryHasBrowseCatalogue,
   countryHasLiveFeeds,
   getPrimaryLiveBrowseCountry,
   resolveBrowseCountry,
 } from "@/lib/live-browse-market";
 
 describe("live browse market", () => {
-  it("prefers RO while Swiss feeds are offline", () => {
+  it("prefers RO browse catalogue while Swiss feeds are offline", () => {
     expect(getPrimaryLiveBrowseCountry()).toBe("RO");
-    expect(countryHasLiveFeeds("RO")).toBe(true);
+    // Request-path CSV feeds for RO are disabled (Supabase import path).
+    expect(countryHasLiveFeeds("RO")).toBe(false);
+    expect(countryHasBrowseCatalogue("RO")).toBe(true);
     expect(countryHasLiveFeeds("CH")).toBe(false);
+    expect(countryHasBrowseCatalogue("CH")).toBe(false);
   });
 
   it("resolves empty markets to the primary live catalogue", () => {
@@ -17,6 +21,7 @@ describe("live browse market", () => {
     expect(resolveBrowseCountry("DE")).toBe("RO");
     expect(resolveBrowseCountry(null)).toBe("RO");
     expect(resolveBrowseCountry("RO")).toBe("RO");
+    expect(resolveBrowseCountry("GB")).toBe("GB");
   });
 
   it("maps geo country codes without forcing empty CH", async () => {

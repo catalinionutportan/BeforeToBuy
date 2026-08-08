@@ -8,25 +8,37 @@ export function countryHasLiveFeeds(countryCode: CountryCode): boolean {
 }
 
 /**
+ * Markets the UI may browse even when request-path CSV feeds are disabled.
+ * RO is served from Supabase (offline import); GB still uses AWIN when enabled.
+ */
+export function countryHasBrowseCatalogue(countryCode: CountryCode): boolean {
+  if (countryHasLiveFeeds(countryCode)) return true;
+  // RO catalogues are imported into Supabase — not loaded via merchant-feeds on request.
+  if (countryCode === "RO") return true;
+  return false;
+}
+
+/**
  * Primary browse market while CH (and other) catalogues await approval.
- * Prefer RO when live; otherwise first enabled feed country; else DEFAULT_COUNTRY.
+ * Prefer RO (Supabase / live); otherwise first enabled feed country; else DEFAULT_COUNTRY.
  */
 export function getPrimaryLiveBrowseCountry(): CountryCode {
+  if (countryHasBrowseCatalogue("RO")) return "RO";
   const enabled = getEnabledMerchantFeeds();
-  if (enabled.some((feed) => feed.country === "RO")) return "RO";
   if (enabled.some((feed) => feed.country === "GB")) return "GB";
   if (enabled[0]?.country) return enabled[0].country;
   return DEFAULT_COUNTRY;
 }
 
 /**
- * Use the preferred market only when it has live feeds; otherwise RO (or next live).
+ * Use the preferred market when it has a browse catalogue; otherwise primary live.
  * Prevents empty CH/DE catalogues from cookie, IP geo, or stale DEFAULT_COUNTRY.
+ * Manual RO selection must stick even with request-path feeds disabled.
  */
 export function resolveBrowseCountry(
   preferred: CountryCode | null | undefined
 ): CountryCode {
-  if (preferred && countryHasLiveFeeds(preferred)) return preferred;
+  if (preferred && countryHasBrowseCatalogue(preferred)) return preferred;
   return getPrimaryLiveBrowseCountry();
 }
 
