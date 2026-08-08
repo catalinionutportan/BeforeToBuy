@@ -129,7 +129,9 @@ export const GLOBAL_CATEGORY_PATTERN_RULES: MerchantPatternRule[] = [
   { patterns: /\b(ink|toner|cartridge|druckerpatrone)/i, subcategoryId: "office-ink-toner" },
   { patterns: /\b(printer|scanner|multifunction|drucker)/i, subcategoryId: "office-printers" },
   {
-    patterns: /\b(office furniture|desk|chair|home office|büromöbel|ergonomic)/i,
+    // Do not match bare "desk"/"chair"/"ergonomic" — tools often say "maner ergonomic".
+    patterns:
+      /\b(office furniture|standing desk|home office|büromöbel|office chair|monitor arm)\b/i,
     subcategoryId: "office-home",
   },
   { patterns: /\b(shredder|laminator|label printer|office tech)/i, subcategoryId: "office-tech" },
@@ -235,16 +237,18 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
         subcategoryId: "diy-sanders",
       },
       {
-        patterns: /\b(pistol(?:\s+electric)?\s+(?:de\s+|pentru\s+)?vopsit|hvlp|aerograf)\b/i,
+        patterns:
+          /\b(trafalet|pensul[aă]|pistol(?:\s+electric)?\s+(?:de\s+|pentru\s+)?vopsit|hvlp|aerograf|zugr[aă]vit)\b/i,
         subcategoryId: "diy-painting-tools",
       },
       {
-        patterns: /\b(sudur[aă]|aparat\s+de\s+sudur|lipit\s+plastic|pistol\s+pentru\s+lipit)\b/i,
+        patterns:
+          /\b(sudur[aă]|aparat\s+de\s+sudur|lipit\s+plastic|pistol\s+(?:pentru\s+)?lipit|pistol\s+lipit|aer\s+cald|hot\s+air)\b/i,
         subcategoryId: "diy-welding-soldering",
       },
       {
         patterns:
-          /\b(pompa|pompă|pompe|stropit|gradina|grădin|motocoas|cositoare|submersibil|hidrofor|aspirator\s+umed)\b/i,
+          /\b(pompa|pompă|pompe|stropit|gradina|grădin|motocoas|cositoare|tuns\s+iarb|masina\s+tuns\s+iarb|mașină\s+tuns\s+iarb|submersibil|hidrofor|aspirator\s+umed|moara\s+de\s+cereale|batoza)\b/i,
         subcategoryId: "garden-equipment",
       },
       {
@@ -253,7 +257,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       },
       {
         patterns:
-          /\b(bormasin|bormașin|rotopercutor|drujb|polizor|flex|circular|fierastrau|ferăstrău|unghiular|impact|brushless|ciocan\s+rotopercutor|demolator|picamer|masina de (?:gaurit|găurit|insurubat|înșurubat|frezat)|mașină de (?:găurit|înșurubat|frezat)|oberfreza|amestecator|placa compactoare|compactoare)\b/i,
+          /\b(bormasin|bormașin|rotopercutor|drujb|polizor|flex|circular|fierastrau|ferăstrău|unghiular|impact|brushless|ciocan\s+rotopercutor|demolator|picamer|masina de (?:gaurit|găurit|insurubat|înșurubat|frezat)|mașină de (?:găurit|înșurubat|frezat)|oberfreza|amestecator|placa compactoare|compactoare|taiat\s+gresie|aparat\s+de\s+taiat\s+gresie|dispozitiv\s+taiat\s+gresie)\b/i,
         subcategoryId: "diy-power-tools",
       },
       {
@@ -263,17 +267,23 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       },
       {
         patterns:
-          /\b(disc|burghie|burghiu|lama|lamă|lant|lanț|tarod|filiera|filer[aă]|bituri|mandrina|panza\s+fierastrau|pânză)\b/i,
+          /\b(disc|burghie|burghiu|lama|lamă|lant|lanț|tarod|filiera|filer[aă]|bituri|prelungitor\s+bits|mandrina|panza\s+fierastrau|pânză)\b/i,
         subcategoryId: "diy-fasteners-consumables",
       },
       {
+        // Prefix match: "Surubelnite" must hit "surubelnit" (JS \b is ASCII-word only).
         patterns:
-          /\b(cheie|surubelnit|șurubelniț|clește|cleste|trusa|trusă|patent|sfic|set scule|hand tool|extractor|port\s+tarod|port\s+filiera|menghina|menghină|foarfec|dalta|daltă|dorn)\b/i,
+          /\b(chei[ei]?|surubelnit\w*|șurubelniț\w*|clește|cleste|trus[aă]|patent|sfic|set\s+scule|hand\s+tool|extractor|port\s+tarod|port\s+filiera|menghin[aă]|foarfec\w*|dalt[aă]|dorn|presa\s+tip|presa\s+fixare|capsator|gresor|ventuz[aă]|capre\s+suport)\b/i,
         subcategoryId: "diy-hand-tools",
       },
       {
         patterns:
-          /\b(bocanci|casca\s+protectie|cască\s+protecție|manusi\s+de\s+protectie|mănuși\s+de\s+protecție|ochelari\s+de\s+protectie|jacheta\s+confort|vest[aă]\s+reflectoriz|antifon|echipament\s+protectie)\b/i,
+          /\b(oale|tigaie|tocat\s+carne|carnati|cârnați|masina\s+(?:de\s+)?(?:tocat|carnati)|mașină\s+(?:de\s+)?(?:tocat|cârnați))\b/i,
+        subcategoryId: "kitchen-cooking-appliances",
+      },
+      {
+        patterns:
+          /\b(bocanci|casca\s+protectie|cască\s+protecție|manusi\s+de\s+protectie|mănuși\s+de\s+protecție|ochelari\s+de\s+protectie|jacheta\s+confort|vest[aă]\s+reflectoriz|antifon|echipament\s+protectie|pelerin[aă]\s+de\s+ploaie)\b/i,
         subcategoryId: "diy-workwear-safety",
       },
       {

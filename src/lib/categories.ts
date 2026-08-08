@@ -102,7 +102,7 @@ const LEGACY_SHOPPING_CATEGORIES: ShoppingCategory[] = [
     subcategories: [
       { id: "office-printers", label: "Printers & Scanners", labelDe: "Drucker & Scanner", searchKeywords: ["printer", "scanner", "multifunction", "inkjet", "laser", "mfp", "epson", "hp laserjet", "brother"] },
       { id: "office-ink-toner", label: "Ink & Toner", labelDe: "Tinte & Toner", searchKeywords: ["ink", "toner", "cartridge", "druckerpatrone", "ink cartridge", "toner cartridge", "xl ink", "compatible toner"] },
-      { id: "office-home", label: "Home Office & Ergonomics", labelDe: "Homeoffice & Ergonomie", searchKeywords: ["desk", "office chair", "ergonomic", "monitor arm", "standing desk", "home office", "office furniture", "lumbar"] },
+      { id: "office-home", label: "Home Office & Ergonomics", labelDe: "Homeoffice & Ergonomie", searchKeywords: ["office chair", "monitor arm", "standing desk", "home office", "office furniture", "büromöbel"] },
       { id: "office-tech", label: "Office Technology", labelDe: "Bürotechnik", searchKeywords: ["shredder", "laminator", "label printer", "document scanner", "projector office", "calculator", "binding machine", "office equipment"] },
     ],
   },

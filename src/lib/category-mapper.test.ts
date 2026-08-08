@@ -137,6 +137,19 @@ describe('Category Mapper Functions', () => {
     });
     expect(fallback.categoryId).toBe("diy-hand-tools");
     expect(fallback.method).toBe("merchant-default");
+
+    const screwdrivers = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-scule365",
+      title: "Set Surubelnite 26 bucati cu Suport, Ingco HKSD2628 – Maner Ergonomic",
+    });
+    expect(screwdrivers.categoryId).toBe("diy-hand-tools");
+    expect(screwdrivers.method).toBe("merchant-pattern");
+
+    const tileCutter = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-scule365",
+      title: "Dispozitiv Taiat Gresie/Faianta Cu Perforator 450 mm Evotools",
+    });
+    expect(tileCutter.categoryId).toBe("diy-power-tools");
   });
 
   it("Rowenta maps Romanian feed categories into fine cleaning and grooming leaves", () => {
