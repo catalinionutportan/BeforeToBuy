@@ -93,7 +93,7 @@ describe("2Performant Scule365 CSV feed", () => {
   });
 });
 
-describe("2Performant evoMAG CSV feed (slice stock-store)", () => {
+describe("2Performant evoMAG CSV feed (slice full-catalog)", () => {
   it("parses sample products into laptop / phone / TV leaves", async () => {
     const csv = fs.readFileSync(evomagSamplePath, "utf8");
     const parsed = await parseTwoPerformantCsvFeedStream(
@@ -111,7 +111,7 @@ describe("2Performant evoMAG CSV feed (slice stock-store)", () => {
     expect(byCategory.has("tv-televisions")).toBe(true);
   });
 
-  it("enabled evoMAG stock-store slice loads via getFeedProducts", async () => {
+  it("enabled evoMAG full-catalog slice loads via getFeedProducts", async () => {
     clearFeedCacheForTests();
     const result = await getFeedProducts("RO");
     expect(result.merchantProductCounts["ro-evomag"]).toBeGreaterThanOrEqual(4);

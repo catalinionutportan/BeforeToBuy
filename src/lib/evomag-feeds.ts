@@ -29,18 +29,17 @@ export type EvomagFeedSlice = {
 export const EVOMAG_FEED_SLICES: readonly EvomagFeedSlice[] = [
   {
     key: "full-catalog",
-    label: "Catalog evoMAG (toate produsele)",
+    label: "evoMAG (catalog principal)",
     envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG_FULL",
     approxProducts: 104_828,
-    // Start with in-store stock feed first (smaller, cleaner); enable full later.
-    enabled: false,
+    enabled: true,
   },
   {
     key: "stock-store",
     label: "Produse in stoc magazin",
     envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG_STOCK",
     approxProducts: 8_541,
-    enabled: true,
+    enabled: false,
   },
   {
     key: "mobile",

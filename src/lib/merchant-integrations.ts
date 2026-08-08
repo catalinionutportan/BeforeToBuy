@@ -152,8 +152,8 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
       categoryHint: slice.categoryHint,
       enabled: slice.enabled,
       sampleFile:
-        slice.key === "stock-store" ? "sample-2performant-evomag-ro.csv" : undefined,
-      sampleFormat: slice.key === "stock-store" ? "csv" : undefined,
+        slice.key === "full-catalog" ? "sample-2performant-evomag-ro.csv" : undefined,
+      sampleFormat: slice.key === "full-catalog" ? "csv" : undefined,
     })
   ),
 ];
