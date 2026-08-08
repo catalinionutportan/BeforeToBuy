@@ -442,8 +442,15 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "accesorii monitoare": "notebooks-monitors",
       "laptopuri / notebook": "notebooks-laptops",
       "laptopuri refurbished": "notebooks-laptops",
-      "genti si huse laptop": "notebooks-laptops",
-      "rucsacuri si ghiozdane laptop": "notebooks-laptops",
+      "laptopuri 2 in 1": "notebooks-laptops",
+      // Bags / batteries / stands are accessories — keep them out of the laptop aisle.
+      "genti si huse laptop": "peripherals-accessories",
+      "rucsacuri si ghiozdane laptop": "peripherals-accessories",
+      "huse laptop": "peripherals-accessories",
+      "baterii si acumulatori laptop": "peripherals-accessories",
+      "tastaturi laptop": "peripherals-keyboard-mouse",
+      "cooler-stand laptop": "computers-docks",
+      "componente laptop": "peripherals-accessories",
       "calculatoare refurbished": "notebooks-desktops",
       televizoare: "tv-televisions",
       "suporturi tv": "tv-televisions",
@@ -508,8 +515,13 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       controllere: "gaming-accessories",
       "alte accesorii console": "gaming-accessories",
       "scaune gaming": "gaming-accessories",
-      "piese trotinete electrice": "mobility-escooters",
-      "piese biciclete si accesorii": "mobility-bicycles",
+      "trotinete electrice adulti & copii": "mobility-escooters",
+      "trotinete si triciclete": "mobility-escooters",
+      "accesorii vehicule electrice": "mobility-accessories",
+      // Parts must not fill the scooter / bike aisles.
+      "piese trotinete electrice": "mobility-accessories",
+      "piese biciclete si accesorii": "mobility-accessories",
+      "accesorii transport": "mobility-accessories",
       "utile in bucatarie": "kitchen-breakfast",
       "fierbatoare apa": "kitchen-breakfast",
       "blendere si tocatoare": "kitchen-machines-mixers",
@@ -537,7 +549,6 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "alte accesorii": "peripherals-accessories",
       "alte accesorii servere": "peripherals-accessories",
       "acumulatori foto": "photo-compact",
-      "accesorii transport": "mobility-bicycles",
       "ghiozdane&rucsacuri": "office-stationery-school",
       "recipiente pentru calatorie": "baby-monitoring-feeding",
     }),
@@ -550,6 +561,11 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       },
       { patterns: /\b(range\s+extender|wifi\s+extender|extender\s+wireless)\b/i, subcategoryId: "networking-routers" },
       { patterns: /\b(router\s+wireless|router\s+wifi|mesh\s+wifi)\b/i, subcategoryId: "networking-routers" },
+      {
+        patterns:
+          /\b(geanta\s+laptop|husa\s+laptop|rucsac\s+laptop|baterie\s+laptop|cooler\s+laptop|stand\s+laptop|acumulatori?\s+laptop)\b/i,
+        subcategoryId: "peripherals-accessories",
+      },
       { patterns: /\b(laptop|notebook|macbook)\b/i, subcategoryId: "notebooks-laptops" },
       {
         // Handset titles only. No bare "smartphone" (matches "smartphone app" on robots).
@@ -560,7 +576,15 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       { patterns: /\b(monitor\s+led|monitor\s+lcd|ultrawide)\b/i, subcategoryId: "notebooks-monitors" },
       { patterns: /\b(televizor|smart\s*tv|oled\s*tv)\b/i, subcategoryId: "tv-televisions" },
       { patterns: /\b(playstation|xbox\s*series|nintendo\s+switch)\b/i, subcategoryId: "gaming-consoles" },
-      { patterns: /\b(trotinet[aă]|hoverboard|biciclet[aă]\s+electric)\b/i, subcategoryId: "mobility-escooters" },
+      {
+        patterns:
+          /\b(piese\s+trotinet|piese\s+biciclet|pentru\s+trotinet|accesorii\s+(trotinet|biciclet|vehicule\s+electrice))\b/i,
+        subcategoryId: "mobility-accessories",
+      },
+      {
+        patterns: /\b(trotinet[aă]\s+electric|hoverboard|biciclet[aă]\s+electric)\b/i,
+        subcategoryId: "mobility-escooters",
+      },
       { patterns: /\b(aer\s+conditionat|aparat\s+aer\s+condiționat)\b/i, subcategoryId: "climate-cooling" },
     ],
   },

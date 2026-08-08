@@ -27,20 +27,31 @@ const PRIORITY_AISLE_RULES: AisleQuotaRule[] = [
   { match: /^telefoane$/i, weight: 20, min: 800, max: 1000 },
   { match: /^telefoane seniori$/i, weight: 3, min: 12, max: 24 },
   { match: /^tablete$/i, weight: 8, min: 80, max: 140 },
-  { match: /^laptopuri/i, weight: 10, min: 160, max: 240 },
+  // Real laptop aisles only (not bags / batteries).
+  { match: /^laptopuri\s*\/\s*notebook/i, weight: 12, min: 220, max: 320 },
+  { match: /^laptopuri refurbished/i, weight: 10, min: 160, max: 240 },
+  { match: /^laptopuri 2 in 1/i, weight: 4, min: 24, max: 60 },
   { match: /^televizoare/i, weight: 8, min: 80, max: 140 },
   { match: /^smartwatch$/i, weight: 5, min: 40, max: 80 },
   { match: /^monitoare led/i, weight: 5, min: 40, max: 80 },
-  { match: /^aspiratoare/i, weight: 4, min: 30, max: 70 },
-  { match: /^masini de spalat/i, weight: 4, min: 24, max: 60 },
-  { match: /^aparate de aer conditionat/i, weight: 4, min: 24, max: 60 },
-  { match: /^frigidere/i, weight: 4, min: 24, max: 60 },
+  // Appliances — keep washers/fridges visible (tall products; image CSS fixed separately).
+  { match: /^masini de spalat/i, weight: 8, min: 80, max: 140 },
+  { match: /^frigidere/i, weight: 6, min: 48, max: 100 },
+  { match: /^aspiratoare/i, weight: 5, min: 40, max: 80 },
+  { match: /^aparate de aer conditionat/i, weight: 5, min: 36, max: 80 },
+  { match: /^cuptoare/i, weight: 4, min: 24, max: 60 },
+  { match: /^plite/i, weight: 4, min: 24, max: 60 },
+  { match: /^trotinete electrice/i, weight: 6, min: 40, max: 80 },
+  { match: /^trotinete si triciclete/i, weight: 4, min: 20, max: 50 },
   { match: /^jocuri video/i, weight: 3, min: 20, max: 50 },
   { match: /^controllere/i, weight: 2, min: 12, max: 40 },
-  // Accessories stay present but cannot crowd out handsets.
+  // Accessories stay present but cannot crowd out core aisles.
   { match: /^huse telefoane/i, weight: 1, min: 16, max: 48 },
   { match: /^folii protectie telefoane/i, weight: 1, min: 12, max: 40 },
   { match: /^incarcatoare$/i, weight: 1, min: 12, max: 40 },
+  { match: /^genti si huse laptop/i, weight: 1, min: 8, max: 24 },
+  { match: /^piese trotinete/i, weight: 1, min: 8, max: 24 },
+  { match: /^piese biciclete/i, weight: 1, min: 8, max: 24 },
 ];
 
 function normalizeAisle(raw: string): string {

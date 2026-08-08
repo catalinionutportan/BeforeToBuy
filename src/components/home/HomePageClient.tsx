@@ -29,6 +29,7 @@ import {
   writeOfferFiltersToSearchParams,
   type OfferFilterCriteria,
 } from "@/lib/offers/offer-filters";
+import { sortProductsForBrowse } from "@/lib/browse-product-order";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import {
   Info,
@@ -279,7 +280,10 @@ export default function HomePageClient({
     [products, selectedCategory]
   );
   const displayedProducts = useMemo(
-    () => applyOfferFilters(categoryFilteredProducts, activeOfferFilters),
+    () =>
+      sortProductsForBrowse(
+        applyOfferFilters(categoryFilteredProducts, activeOfferFilters)
+      ),
     [categoryFilteredProducts, activeOfferFilters]
   );
   const filtersActiveBeyondCategory = useMemo(() => hasActiveOfferFilters(activeOfferFilters), [activeOfferFilters]);

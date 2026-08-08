@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
 import { Product } from "@/types";
 import { HOME_UI } from "@/lib/i18n/ui";
 import type { SiteLocale } from "@/lib/i18n/locales";
@@ -17,33 +20,45 @@ export function ProductCardImage({
   verifiedBadgeOffer,
 }: ProductCardImageProps) {
   const ui = HOME_UI[locale];
+  const [broken, setBroken] = useState(false);
 
   return (
-    <div className="relative bg-slate-100/60 aspect-[4/3] w-full overflow-hidden">
-      <Image
-        src={product.image}
-        alt={product.title}
-        fill
-        sizes="(max-width: 768px) 50vw, 33vw"
-        className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
-        unoptimized={shouldBypassImageOptimization(product.image)}
-      />
+    <div className="relative bg-slate-100/60 aspect-square w-full overflow-hidden">
+      {/* Padding on the frame only — padding on fill Image crops tall appliances. */}
+      <div className="absolute inset-2 sm:inset-3">
+        {!broken ? (
+          <Image
+            src={product.image}
+            alt={product.title}
+            fill
+            sizes="(max-width: 768px) 50vw, 33vw"
+            className="object-contain object-center"
+            unoptimized={shouldBypassImageOptimization(product.image)}
+            referrerPolicy="no-referrer"
+            onError={() => setBroken(true)}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center rounded-md bg-slate-100 text-[11px] font-medium text-slate-400">
+            {product.brand}
+          </div>
+        )}
+      </div>
 
-      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-1.5 items-start max-w-[90%]">
-        <span className="bg-slate-900/85 backdrop-blur-md text-white text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg uppercase tracking-wider truncate max-w-full">
+      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-[1] flex max-w-[90%] flex-col items-start gap-1 sm:gap-1.5">
+        <span className="max-w-full truncate rounded-md bg-slate-900/85 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white backdrop-blur-md sm:rounded-lg sm:px-2.5 sm:py-1 sm:text-[11px]">
           {product.brand}
         </span>
 
         {verifiedBadgeOffer?.badge && (
-          <span className="hidden sm:flex bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-xs items-center gap-1">
-            <Sparkles className="w-3 h-3" aria-hidden="true" />
+          <span className="hidden items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[10px] font-bold text-white shadow-xs sm:flex">
+            <Sparkles className="h-3 w-3" aria-hidden="true" />
             {verifiedBadgeOffer.badge}
           </span>
         )}
       </div>
 
       {product.rating !== undefined && product.reviewsCount !== undefined && (
-        <div className="hidden sm:block absolute bottom-3 right-3 bg-white/90 backdrop-blur-md border border-slate-200 px-2 py-1 rounded-lg text-xs font-bold text-slate-800 shadow-xs">
+        <div className="absolute bottom-3 right-3 z-[1] hidden rounded-lg border border-slate-200 bg-white/90 px-2 py-1 text-xs font-bold text-slate-800 shadow-xs backdrop-blur-md sm:block">
           {ui.verifiedMerchantRating} {product.rating} ({product.reviewsCount})
         </div>
       )}

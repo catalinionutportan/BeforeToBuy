@@ -334,6 +334,32 @@ describe('Category Mapper Functions', () => {
     expect(phone.method).toBe("merchant-exact");
   });
 
+  it("evoMAG keeps laptop bags and scooter parts out of core aisles", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-evomag",
+        merchantCategory: "Genti si Huse laptop",
+        title: "Geanta Laptop Targus TAR300 15.6inch",
+      })
+    ).toBe("peripherals-accessories");
+
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-evomag",
+        merchantCategory: "Piese Trotinete Electrice",
+        title: "Disc de frana pentru trotineta electrica Xiaomi",
+      })
+    ).toBe("mobility-accessories");
+
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-evomag",
+        merchantCategory: "Trotinete electrice adulti & copii",
+        title: "Trotineta electrica Xiaomi",
+      })
+    ).toBe("mobility-escooters");
+  });
+
   it("evoMAG skips keyword invention when aisle is unknown", () => {
     const robot = mapToBeforeToBuyCategoryWithMetadata({
       merchantId: "ro-evomag",

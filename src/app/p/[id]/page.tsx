@@ -100,15 +100,18 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs">
           <div className="relative aspect-square bg-slate-50 rounded-2xl overflow-hidden border border-slate-100">
             {product.image ? (
-              <Image
-                src={product.image}
-                alt={product.title}
-                fill
-                className="object-contain p-6"
-                sizes="(max-width: 768px) 100vw, 40vw"
-                priority
-                unoptimized={shouldBypassImageOptimization(product.image)}
-              />
+              <div className="absolute inset-6">
+                <Image
+                  src={product.image}
+                  alt={product.title}
+                  fill
+                  className="object-contain object-center"
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                  priority
+                  unoptimized={shouldBypassImageOptimization(product.image)}
+                  referrerPolicy="no-referrer"
+                />
+              </div>
             ) : null}
           </div>
 
