@@ -216,6 +216,10 @@ export default function HomePageClient({
     (categoryId: string) => {
       setSelectedCategory(categoryId);
       syncBrowseUrl(categoryId, selectedDomain, offerFilters);
+      // Stay at the top of browse results after filtering (do not keep footer scroll).
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      }
     },
     [syncBrowseUrl, selectedDomain, offerFilters]
   );

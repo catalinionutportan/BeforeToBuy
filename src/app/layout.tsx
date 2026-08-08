@@ -8,6 +8,7 @@ import { SiteJsonLd } from "@/components/SiteJsonLd";
 import { defaultOpenGraph } from "@/lib/metadata";
 import { DEFAULT_LOCALE, type SiteLocale } from "@/lib/i18n/locales";
 import { ClientLocalizationProvider } from "@/components/ClientLocalizationProvider";
+import { ScrollToTopOnNavigate } from "@/components/ScrollToTopOnNavigate";
 import { HOME_UI } from "@/lib/i18n/ui";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -45,6 +46,7 @@ export default function RootLayout({
     <html lang={locale}>
       <body className="antialiased font-sans bg-slate-50 text-slate-900">
         <ClientLocalizationProvider currentLocale={locale}>
+          <ScrollToTopOnNavigate />
           <SiteJsonLd />
           <DatadogRum />
           <BetaDemoBanner />
