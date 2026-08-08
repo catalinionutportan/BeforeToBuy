@@ -7,6 +7,8 @@ export const AFFILIATE_LINKS = {
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=d19151f4f&redirect_to=https%3A%2F%2Fwww.rowenta.ro%2F",
   scule3652Performant:
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=8e59c17b0&redirect_to=https%3A%2F%2Fwww.scule365.ro",
+  /** Quicklink updated when evoMAG programme unique= is confirmed from My Feeds deep links. */
+  evomag2Performant: "https://www.evomag.ro/",
 } as const;
 
 const SCULE365_2P_BASE =

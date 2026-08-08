@@ -229,6 +229,7 @@ describe('Category and Collection Logic', () => {
 
   it("public registry exposes only live RO merchants", () => {
     expect(ALL_MERCHANT_DOMAINS.map((m) => m.id).sort()).toEqual([
+      "ro-evomag",
       "ro-rowenta",
       "ro-scule365",
     ]);

@@ -27,12 +27,14 @@ const CACHE_TTL_SECONDS = 60 * 60;
 const feedCache = new Map<string, FeedCacheEntry>();
 
 function memoryCacheKey(feed: FeedConfig): string {
-  return `${feed.merchantId}:${feed.country}`;
+  const slice = feed.feedKey ? `:${feed.feedKey}` : "";
+  return `${feed.merchantId}${slice}:${feed.country}`;
 }
 
 function redisCacheKey(feed: FeedConfig): string {
   // Bump when mapping/parser changes so Redis does not serve stale category ids.
-  return `feed:v6:${feed.merchantId}:${feed.country}`;
+  const slice = feed.feedKey ? `:${feed.feedKey}` : "";
+  return `feed:v7:${feed.merchantId}${slice}:${feed.country}`;
 }
 
 async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {
@@ -51,13 +53,16 @@ async function fetchRemoteFeed(
         ? "application/xml, text/xml, */*"
         : "text/csv, text/plain, */*";
 
+  // evoMAG full catalog CSV can be large — allow a longer pull for 2Performant.
+  const timeoutMs = provider === "TWO_PERFORMANT" ? 90_000 : 15_000;
+
   const response = await fetchWithTimeout(
     url,
     {
       headers: { Accept: accept },
       next: { revalidate: 3600 },
     },
-    { timeoutMs: 15_000, retries: 2 }
+    { timeoutMs, retries: 2 }
   );
 
   if (!response.ok) {
@@ -189,7 +194,7 @@ export async function getFeedProducts(
   );
 
   for (const { products, mappingLog, source, merchantId } of results) {
-    merchantProductCounts[merchantId] = products.length;
+    merchantProductCounts[merchantId] = (merchantProductCounts[merchantId] ?? 0) + products.length;
     if (products.length > 0) {
       sources.add(source);
       allProducts.push(...products);

@@ -365,7 +365,20 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Romanian tools and DIY retailer. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
   },
-
+  {
+    id: "ro-evomag",
+    name: "evoMAG.ro",
+    domain: "evomag.ro",
+    websiteUrl: AFFILIATE_LINKS.evomag2Performant,
+    countryCode: "RO",
+    affiliateNetwork: "2Performant Romania",
+    category: "Electronics + General",
+    hasClickAndCollect: true,
+    status: "Live Feed",
+    badge: "2Performant + product feeds 🇷🇴",
+    description:
+      "Romanian electronics and general retailer. Live 2Performant product feeds (enabled slice by slice) with affiliate deep links.",
+  },
 ];
 
 export const COUNTRIES: Record<CountryCode, CountryInfo> = {

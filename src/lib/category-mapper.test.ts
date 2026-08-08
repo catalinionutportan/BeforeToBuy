@@ -41,7 +41,7 @@ const BRACK_SAMPLE_ROWS = [
 describe('Category Mapper Functions', () => {
   it("merchant category rules validate without conflicts", () => {
     expect(validateMerchantCategoryRules()).toEqual([]);
-    expect(MAPPING_MERCHANT_IDS.length).toBe(8);
+    expect(MAPPING_MERCHANT_IDS.length).toBe(9);
   });
 
   it("Brack sample feed rows map with merchant-exact rules", () => {

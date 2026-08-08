@@ -15,6 +15,7 @@ export const MAPPING_MERCHANT_IDS = [
   "ch-fust",
   "ro-scule365",
   "ro-rowenta",
+  "ro-evomag",
 ] as const;
 
 export type MappingMerchantId = (typeof MAPPING_MERCHANT_IDS)[number];
@@ -405,6 +406,50 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       },
     ],
   },
+  /**
+   * Universal catalogue — rely on feed `category` strings + title patterns.
+   * Grow `exact` from real evoMAG aisle names as each My Feeds slice goes live.
+   * Do NOT clamp to one department (unlike Scule365 / Rowenta).
+   */
+  "ro-evomag": {
+    exact: exactRules({
+      laptopuri: "notebooks-laptops",
+      laptop: "notebooks-laptops",
+      "notebook & ultraportabile": "notebooks-laptops",
+      telefoane: "mobile-smartphones",
+      "telefoane mobile": "mobile-smartphones",
+      smartphone: "mobile-smartphones",
+      monitoare: "notebooks-monitors",
+      "monitoare lcd": "notebooks-monitors",
+      televizoare: "tv-televisions",
+      "tv & video": "tv-televisions",
+      "componente pc": "peripherals-storage",
+      "sisteme pc": "notebooks-desktops",
+      desktop: "notebooks-desktops",
+      gaming: "gaming-consoles",
+      "console gaming": "gaming-consoles",
+      "ingrijire personala": "care-shaving-hair-removal",
+      "îngrijire personală": "care-shaving-hair-removal",
+      "mama si copilul": "baby-monitoring-feeding",
+      "mamă și copilul": "baby-monitoring-feeding",
+      "sport & fitness": "sport-fitness-equipment",
+      "aere conditionate": "climate-cooling",
+      "aer conditionat": "climate-cooling",
+      "vehicule electrice": "mobility-escooters",
+      trotinete: "mobility-escooters",
+      foto: "photo-mirrorless",
+      "aparate foto": "photo-mirrorless",
+    }),
+    patterns: [
+      { patterns: /\b(laptop|notebook|macbook)\b/i, subcategoryId: "notebooks-laptops" },
+      { patterns: /\b(smartphone|iphone|galaxy|telefon\s+mobil)\b/i, subcategoryId: "mobile-smartphones" },
+      { patterns: /\b(monitor\s+led|monitor\s+lcd|ultrawide)\b/i, subcategoryId: "notebooks-monitors" },
+      { patterns: /\b(televizor|smart\s*tv|oled\s*tv)\b/i, subcategoryId: "tv-televisions" },
+      { patterns: /\b(playstation|xbox|nintendo)\b/i, subcategoryId: "gaming-consoles" },
+      { patterns: /\b(trotinet[aă]|hoverboard|biciclet[aă]\s+electric)\b/i, subcategoryId: "mobility-escooters" },
+      { patterns: /\b(aer\s+conditionat|aparat\s+aer\s+condiționat)\b/i, subcategoryId: "climate-cooling" },
+    ],
+  },
 };
 
 export function normalizeMerchantCategory(raw?: string): string {
@@ -467,6 +512,7 @@ export function isRowentaAllowedCategory(categoryId: string): boolean {
 export function getMerchantDefaultCategory(merchantId: string | undefined): string | null {
   if (merchantId === "ro-scule365") return "diy-hand-tools";
   if (merchantId === "ro-rowenta") return "cleaning-vacuums";
+  // evoMAG is universal — never force a single aisle; leave unmapped for review.
   return null;
 }
 

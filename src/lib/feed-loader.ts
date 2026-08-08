@@ -56,6 +56,13 @@ export async function parseConfiguredFeed(
   country: CountryCode,
   offerSource: Extract<OfferSource, "production-live" | "sample">
 ): Promise<{ products: Product[]; mappingLog: MappingLogEntry[] }> {
+  if (feed.provider === "TWO_PERFORMANT") {
+    const stream = typeof content === "string" ? Readable.from([content]) : content;
+    return parseTwoPerformantCsvFeedStream(stream, country, feed.merchantId, offerSource, {
+      categoryHint: feed.categoryHint,
+    });
+  }
+
   const parsers = FEED_PARSERS[feed.provider];
   if (!parsers) {
     throw new Error(`Unsupported feed provider: ${feed.provider}`);
@@ -63,12 +70,7 @@ export async function parseConfiguredFeed(
 
   if (typeof content === "string") {
     // Prefer stream path when possible so CSV/JSON parsing stays unified.
-    if (
-      feed.provider === "AWIN" ||
-      feed.provider === "GALAXUS" ||
-      feed.provider === "GOOGLE_MERCHANT" ||
-      feed.provider === "TWO_PERFORMANT"
-    ) {
+    if (feed.provider === "AWIN" || feed.provider === "GALAXUS" || feed.provider === "GOOGLE_MERCHANT") {
       return parsers.stream(Readable.from([content]), country, feed.merchantId, offerSource);
     }
     return parsers.string(content, country, feed.merchantId, offerSource);

@@ -1,4 +1,5 @@
 import { CountryCode } from "@/types";
+import { EVOMAG_FEED_SLICES, EVOMAG_MERCHANT_ID } from "@/lib/evomag-feeds";
 
 export type FeedProvider = "AWIN" | "GALAXUS" | "GOOGLE_MERCHANT" | "TWO_PERFORMANT";
 export type FeedMode = "production" | "sample" | "unconfigured";
@@ -24,6 +25,13 @@ export interface FeedConfig {
    * Defaults to true when omitted.
    */
   enabled?: boolean;
+  /**
+   * Distinguishes multiple feed URLs for the same merchant (evoMAG slices).
+   * Used in cache keys so slices do not overwrite each other.
+   */
+  feedKey?: string;
+  /** Fallback BeforeToBuy leaf when the CSV category cell is empty. */
+  categoryHint?: string;
 }
 
 export function isFeedEnabled(feed: FeedConfig): boolean {
@@ -132,10 +140,30 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     sampleFile: "sample-2performant-scule365-ro.csv",
     sampleFormat: "csv",
   },
+  // evoMAG: many specialty feeds — enable in EVOMAG_FEED_SLICES order, one URL at a time.
+  ...EVOMAG_FEED_SLICES.map(
+    (slice): FeedConfig => ({
+      provider: "TWO_PERFORMANT",
+      country: "RO",
+      merchantId: EVOMAG_MERCHANT_ID,
+      merchantName: "evoMAG.ro",
+      envVar: slice.envVar,
+      feedKey: slice.key,
+      categoryHint: slice.categoryHint,
+      enabled: slice.enabled,
+      sampleFile:
+        slice.key === "full-catalog" ? "sample-2performant-evomag-ro.csv" : undefined,
+      sampleFormat: slice.key === "full-catalog" ? "csv" : undefined,
+    })
+  ),
 ];
 
 export function getFeedConfig(merchantId: string): FeedConfig | undefined {
-  return MERCHANT_FEEDS.find((feed) => feed.merchantId === merchantId);
+  return MERCHANT_FEEDS.find((feed) => feed.merchantId === merchantId && isFeedEnabled(feed));
+}
+
+export function getFeedsForMerchant(merchantId: string): FeedConfig[] {
+  return MERCHANT_FEEDS.filter((feed) => feed.merchantId === merchantId && isFeedEnabled(feed));
 }
 
 export function resolveFeedRemoteUrl(feed: FeedConfig): string | undefined {
@@ -195,7 +223,8 @@ export function getConfiguredFeedUrls(): Record<string, string> {
   for (const feed of getEnabledMerchantFeeds()) {
     const url = resolveFeedRemoteUrl(feed);
     if (url) {
-      urls[feed.merchantId] = url;
+      const key = feed.feedKey ? `${feed.merchantId}:${feed.feedKey}` : feed.merchantId;
+      urls[key] = url;
     }
   }
 

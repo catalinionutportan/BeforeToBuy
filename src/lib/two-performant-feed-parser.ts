@@ -1,6 +1,8 @@
 import csv from "csv-parser";
 import { CountryCode, Offer, OfferSource, Product } from "@/types";
 import { mapToBeforeToBuyCategoryWithMetadata } from "@/lib/category-mapper";
+import { UNMAPPED_CATEGORY_ID } from "@/lib/categories";
+import { MAPPING_CONFIDENCE } from "@/lib/merchant-category-rules";
 import { createMappingLogEntry, type MappingLogEntry } from "@/lib/mapping-log";
 import { resolveGtin } from "@/lib/product-identity/gtin";
 import { enrichProductIdentity } from "@/lib/product-identity/merge-products";
@@ -73,6 +75,7 @@ export function firstImage(imageUrls?: string): string {
 function storeNameForMerchant(feedMerchantId: string): string {
   if (feedMerchantId === "ro-rowenta") return "Rowenta.ro";
   if (feedMerchantId === "ro-scule365") return "Scule365.ro";
+  if (feedMerchantId === "ro-evomag") return "evoMAG.ro";
   return "2Performant Merchant";
 }
 
@@ -126,7 +129,8 @@ function ingestRow(
   feedMerchantId: string,
   source: Extract<OfferSource, "production-live" | "sample">,
   productsMap: Map<string, Product>,
-  mappingLog: MappingLogEntry[]
+  mappingLog: MappingLogEntry[],
+  categoryHint?: string
 ): void {
   const merchantProductId = resolveProductId(row);
   if (!merchantProductId) return;
@@ -145,14 +149,27 @@ function ingestRow(
   const title = row.title.trim();
   const description = stripHtml(row.description || title) || title;
   const brand = (row.brand || "Generic").trim() || "Generic";
-
-  const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
+  let categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
     merchantId: feedMerchantId,
     merchantCategory: row.category,
     title,
     description,
     brand,
   });
+
+  // Specialty evoMAG feeds: if CSV category is weak, fall back to the feed’s aisle hint.
+  if (
+    categoryHint &&
+    categoryMapping.categoryId === UNMAPPED_CATEGORY_ID
+  ) {
+    categoryMapping = {
+      categoryId: categoryHint,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: row.category,
+      proposedCategoryId: categoryMapping.proposedCategoryId,
+    };
+  }
 
   mappingLog.push(
     createMappingLogEntry({
@@ -189,16 +206,26 @@ export async function parseTwoPerformantCsvFeedStream(
   content: NodeJS.ReadableStream,
   targetCountry: CountryCode,
   feedMerchantId: string,
-  source: Extract<OfferSource, "production-live" | "sample">
+  source: Extract<OfferSource, "production-live" | "sample">,
+  options?: { categoryHint?: string }
 ): Promise<{ products: Product[]; mappingLog: MappingLogEntry[] }> {
   const productsMap = new Map<string, Product>();
   const mappingLog: MappingLogEntry[] = [];
+  const categoryHint = options?.categoryHint;
 
   await new Promise<void>((resolve, reject) => {
     content
       .pipe(csv())
       .on("data", (row: RawTwoPerformantFeedItem) => {
-        ingestRow(row, targetCountry, feedMerchantId, source, productsMap, mappingLog);
+        ingestRow(
+          row,
+          targetCountry,
+          feedMerchantId,
+          source,
+          productsMap,
+          mappingLog,
+          categoryHint
+        );
       })
       .on("end", () => resolve())
       .on("error", (error: Error) => reject(error));
