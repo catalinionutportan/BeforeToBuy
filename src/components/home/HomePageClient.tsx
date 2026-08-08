@@ -12,7 +12,6 @@ import { Header } from "@/components/Header";
 import { CategoryFlyoutMenu } from "@/components/CategoryFlyoutMenu";
 import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
-import { MarketEntryHero } from "@/components/MarketEntryHero";
 import { isActiveCollectionSelection } from "@/components/CollectionNavigation";
 import { ALL_CATEGORIES_ID, productMatchesCategoryFilter } from "@/lib/categories";
 import { defaultMarketHubForCountry } from "@/lib/market-hubs";
@@ -448,7 +447,6 @@ export default function HomePageClient({
         </div>
 
         <div className="space-y-3">
-          <MarketEntryHero locale={browseLocale} />
           <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-0.5 text-[10px] text-slate-400">
             <Link href="/legal" className="hover:text-slate-700 hover:underline">
