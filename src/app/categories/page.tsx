@@ -13,7 +13,7 @@ import {
   getDepartmentLabel,
   localeFromCountry,
 } from "@/lib/category-i18n";
-import { ArrowRight, Sparkles, Tag } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { CategoryProductGrid } from "@/components/CategoryProductGrid";
 import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
@@ -49,18 +49,22 @@ export default async function CategoriesPage() {
       <div className="space-y-8">
         <CategoryBreadcrumbs items={[{ label: "Home", href: "/" }, { label: homeUi.allProducts }]} />
 
-        <div className="bg-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-800 space-y-3">
-          <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full inline-flex items-center gap-1.5">
-            <Tag className="w-3.5 h-3.5" /> {homeUi.priceComparison}
-          </span>
-          <h1 className="text-3xl font-extrabold tracking-tight">{homeUi.compareProductPrices}</h1>
-          <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
+        <header className="space-y-1.5">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+            {homeUi.compareProductPrices}
+          </h1>
+          <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
             {homeUi.categoriesDescription}
           </p>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-            {formatUi(homeUi.productsComparedIn, { count: catalog.products.length, countryName: country.name })}
-          </p>
-        </div>
+          {catalog.products.length > 0 ? (
+            <p className="text-xs text-slate-500">
+              {formatUi(homeUi.productsComparedIn, {
+                count: catalog.products.length,
+                countryName: country.name,
+              })}
+            </p>
+          ) : null}
+        </header>
 
         {visibleCollections.length > 0 && (
           <section className="flex flex-wrap items-center gap-2">
@@ -109,9 +113,7 @@ export default async function CategoriesPage() {
         {catalog.products.length > 0 ? (
           <CategoryProductGrid products={catalog.products} countryCode={DEFAULT_COUNTRY} />
         ) : (
-          <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
-            {homeUi.noOffersAvailable}
-          </div>
+          <p className="text-sm text-slate-500">{homeUi.noOffersAvailable}</p>
         )}
       </div>
     </PageShell>

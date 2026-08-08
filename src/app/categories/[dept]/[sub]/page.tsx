@@ -78,26 +78,26 @@ export default async function SubcategoryCategoryPage({ params }: SubcategoryPag
           ]}
         />
 
-        <div className="bg-slate-900 text-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-800 space-y-3">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+        <header className="space-y-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             {departmentLabel}
           </p>
-          <h1 className="text-3xl font-extrabold tracking-tight">{subcategoryLabel}</h1>
-          <p className="text-slate-300 text-sm max-w-3xl leading-relaxed">
-            Compare {subcategoryLabel.toLowerCase()} offers from Swiss and cross-border retailers before
-            you buy.
-          </p>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-            {catalog.products.length} products compared in Switzerland
-          </p>
-        </div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+            {subcategoryLabel}
+          </h1>
+          {catalog.products.length > 0 ? (
+            <p className="text-xs text-slate-500">
+              {catalog.products.length} products compared in Switzerland
+            </p>
+          ) : null}
+        </header>
 
         {catalog.products.length > 0 ? (
           <CategoryProductGrid products={catalog.products} countryCode={DEFAULT_COUNTRY} />
         ) : (
-          <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
+          <p className="text-sm text-slate-500">
             No offers are available in this category for Switzerland yet.
-          </div>
+          </p>
         )}
       </div>
     </PageShell>
