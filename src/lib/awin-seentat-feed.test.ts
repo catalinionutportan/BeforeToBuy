@@ -27,10 +27,11 @@ describe("AWIN Seentat UK feed", () => {
     expect(first?.category).not.toBe("unmapped");
   });
 
-  it("registers enabled Seentat feed with default remote URL", () => {
+  it("registers enabled Seentat feed with AWIN feed id (no hardcoded API key)", () => {
     const feed = MERCHANT_FEEDS.find((item) => item.merchantId === "gb-seentat");
     expect(feed?.enabled).not.toBe(false);
-    expect(feed?.defaultRemoteUrl).toContain("fid/115553");
+    expect(feed?.awinFeedId).toBe("115553");
+    expect(feed?.defaultRemoteUrl).toBeUndefined();
     expect(feed?.country).toBe("GB");
   });
 

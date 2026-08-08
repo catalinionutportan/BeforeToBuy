@@ -15,8 +15,11 @@ export interface FeedConfig {
   /**
    * Public production feed URL used when env vars are unset.
    * Prefer env override in deploy; sampleFile remains the offline/CI fallback when fetch fails.
+   * Never put AWIN API keys in defaultRemoteUrl — use AWIN_API_KEY + awinFeedId instead.
    */
   defaultRemoteUrl?: string;
+  /** AWIN datafeed id (fid). Combined with AWIN_API_KEY when env URL is unset. */
+  awinFeedId?: string;
   sampleFile?: string;
   sampleFormat?: FeedSampleFormat;
   /**
@@ -156,12 +159,29 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     merchantId: "gb-seentat",
     merchantName: "Seentat UK",
     envVar: "AWIN_FEED_URL_GB_SEENTAT",
-    defaultRemoteUrl:
-      "https://productdata.awin.com/datafeed/download/apikey/6a69e3351e01683913dc498a00c5d5b1/language/en/fid/115553/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/",
+    awinFeedId: "115553",
     sampleFile: "sample-awin-seentat-gb.csv",
     sampleFormat: "csv",
   },
 ];
+
+/** Columns requested for AWIN productdata downloads (no secrets). */
+const AWIN_PRODUCTDATA_COLUMNS =
+  "aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id";
+
+export function buildAwinProductdataUrl(apiKey: string, feedId: string, language = "en"): string {
+  const key = apiKey.trim();
+  const fid = feedId.trim();
+  if (!key || !fid) {
+    throw new Error("AWIN productdata URL requires apiKey and feedId");
+  }
+  return (
+    `https://productdata.awin.com/datafeed/download/apikey/${encodeURIComponent(key)}` +
+    `/language/${encodeURIComponent(language)}/fid/${encodeURIComponent(fid)}` +
+    `/rid/0/hasEnhancedFeeds/0/columns/${AWIN_PRODUCTDATA_COLUMNS}` +
+    `/format/csv/delimiter/%2C/compression/gzip/`
+  );
+}
 
 export function getFeedConfig(merchantId: string): FeedConfig | undefined {
   return MERCHANT_FEEDS.find((feed) => feed.merchantId === merchantId && isFeedEnabled(feed));
@@ -180,7 +200,14 @@ export function resolveFeedRemoteUrl(feed: FeedConfig): string | undefined {
     if (legacy) return legacy;
   }
 
-  // Vitest / offline CI should keep using sample files (no network).
+  if (feed.provider === "AWIN" && feed.awinFeedId) {
+    const apiKey = process.env.AWIN_API_KEY?.trim();
+    if (apiKey) {
+      return buildAwinProductdataUrl(apiKey, feed.awinFeedId);
+    }
+  }
+
+  // Vitest / offline CI should keep using sample files (no hardcoded remotes).
   if (process.env.VITEST || process.env.NODE_ENV === "test") {
     return undefined;
   }

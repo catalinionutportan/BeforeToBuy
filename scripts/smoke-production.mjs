@@ -17,9 +17,16 @@ const endpoints = [
   },
   {
     name: "Products API (RO live feeds)",
-    path: "/api/products?country=RO",
+    path: "/api/products?country=RO&limit=24",
     json: true,
     expectKey: "meta.feedProductCount",
+    min: 1,
+  },
+  {
+    name: "Products API pagination meta",
+    path: "/api/products?country=RO&limit=24&offset=0",
+    json: true,
+    expectKey: "meta.totalMatched",
     min: 1,
   },
 ];

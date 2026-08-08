@@ -47,7 +47,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const catalog = await fetchDefaultCatalog();
+    // Meta/counts only — avoid serializing thousands of products into sitemap work.
+    const catalog = await fetchDefaultCatalog(undefined, {
+      limit: 0,
+      compact: true,
+      includePriceHistory: false,
+    });
     const counts = catalog.meta.categoryCounts;
     const collectionCounts = catalog.meta.collectionCounts ?? {};
 

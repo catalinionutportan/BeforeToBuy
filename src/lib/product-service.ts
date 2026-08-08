@@ -22,6 +22,7 @@ import {
 } from "@/lib/categories";
 import { applyCrossBorderVisibility } from "@/lib/offers/cross-border";
 import { DEFAULT_LOCALE, type SiteLocale } from "@/lib/i18n/locales";
+import type { ProductListOptions } from "@/lib/product-list-options";
 
 async function attachPriceHistory(products: Product[]): Promise<Product[]> {
   const batchedPriceHistories = await getOffersPriceHistoryBatch(products);
@@ -43,14 +44,35 @@ function countGtinLinkedProducts(products: Product[]): number {
   return products.filter((product) => Boolean(product.gtin)).length;
 }
 
+function compactProductsForList(products: Product[]): Product[] {
+  return products.map((product) => ({
+    ...product,
+    description: "",
+    offers: product.offers.map((offer) => ({
+      ...offer,
+      // Keep browse cards light; detail pages load richer data separately.
+      priceHistory: undefined,
+    })),
+  }));
+}
+
 export { mergeFeedAndDemoProducts } from "@/lib/product-identity/merge-products";
 
 export async function fetchMergedProductsForLocation(
   userLocation: UserLocation,
   query?: string,
   category?: string,
-  locale: SiteLocale = DEFAULT_LOCALE
+  locale: SiteLocale = DEFAULT_LOCALE,
+  listOptions: ProductListOptions = {}
 ) {
+  const offset = Math.max(0, Math.floor(listOptions.offset ?? 0));
+  const limit =
+    listOptions.limit == null || !Number.isFinite(listOptions.limit)
+      ? undefined
+      : Math.max(0, Math.floor(listOptions.limit));
+  const includePriceHistory = listOptions.includePriceHistory === true;
+  const compact = listOptions.compact ?? limit != null;
+
   const [demoProducts, feedResult] = await Promise.all([
     fetchProductsForLocation(userLocation, query, undefined, locale),
     getFeedProducts(userLocation.countryCode, query),
@@ -59,13 +81,9 @@ export async function fetchMergedProductsForLocation(
   const fetchedAt = new Date().toISOString();
   const mergedProducts = mergeFeedAndDemoProducts(demoProducts, feedResult.products);
   const timestampedProducts = attachOfferTimestamps(mergedProducts, fetchedAt);
-  // Price history is written by the cron snapshot job — not on every browse.
-  // await recordProductPriceHistory(timestampedProducts, fetchedAt);
 
-  const visibleProducts = await attachPriceHistory(
-    timestampedProducts.filter(
-      (product) => resolveCategoryAlias(product.category) !== UNMAPPED_CATEGORY_ID
-    )
+  const visibleProducts = timestampedProducts.filter(
+    (product) => resolveCategoryAlias(product.category) !== UNMAPPED_CATEGORY_ID
   );
 
   const categoryCounts = visibleProducts.reduce<Record<string, number>>((counts, product) => {
@@ -89,18 +107,28 @@ export async function fetchMergedProductsForLocation(
     : visibleProducts;
   // Collection counts use the full offer set; the returned list hides cross-border
   // unless the Cross-border collection is selected (CH default = Swiss offers only).
-  const products = applyCrossBorderVisibility(categoryMatched, category);
+  const matchedProducts = applyCrossBorderVisibility(categoryMatched, category);
+  const totalMatched = matchedProducts.length;
+  const pageSlice =
+    limit == null ? matchedProducts.slice(offset) : matchedProducts.slice(offset, offset + limit);
+
+  const productsWithHistory = includePriceHistory
+    ? await attachPriceHistory(pageSlice)
+    : pageSlice;
+  const products = compact ? compactProductsForList(productsWithHistory) : productsWithHistory;
+
   const unmappedProductCount = feedResult.products.filter(
     (product) => product.category === UNMAPPED_CATEGORY_ID
   ).length;
 
-  const productionOfferCount = products.reduce(
+  const productionOfferCount = matchedProducts.reduce(
     (count, product) =>
       count + product.offers.filter((offer) => offer.source === "production-live").length,
     0
   );
-  const sampleOfferCount = products.reduce(
-    (count, product) => count + product.offers.filter((offer) => offer.source === "sample").length,
+  const sampleOfferCount = matchedProducts.reduce(
+    (count, product) =>
+      count + product.offers.filter((offer) => offer.source === "sample").length,
     0
   );
   const productionProductCount = feedResult.products.filter((product) =>
@@ -109,12 +137,14 @@ export async function fetchMergedProductsForLocation(
   const mappingReport = buildMappingReport(feedResult.mappingLog);
   const feedMerchants = feedResult.merchantProductCounts;
   const priceHistoryStats = await getPriceHistoryStats();
-  const gtinLinkedProductCount = countGtinLinkedProducts(products);
-  const priceTrendSample = products
-    .flatMap((product) =>
-      product.offers.map((offer) => getPriceTrend(offer.priceHistory ?? []))
-    )
-    .filter(Boolean).length;
+  const gtinLinkedProductCount = countGtinLinkedProducts(matchedProducts);
+  const priceTrendSample = includePriceHistory
+    ? products
+        .flatMap((product) =>
+          product.offers.map((offer) => getPriceTrend(offer.priceHistory ?? []))
+        )
+        .filter(Boolean).length
+    : 0;
 
   return {
     products,
@@ -132,6 +162,10 @@ export async function fetchMergedProductsForLocation(
       mappingSummary: mappingReport.summary,
       feedMerchants,
       gtinLinkedProductCount,
+      totalMatched,
+      limit: limit ?? null,
+      offset,
+      hasMore: limit == null ? false : offset + products.length < totalMatched,
       priceHistory: {
         enabled: true,
         backend: getPriceHistoryBackend(),

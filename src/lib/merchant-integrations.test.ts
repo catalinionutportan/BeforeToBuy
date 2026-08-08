@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   MERCHANT_FEEDS,
+  buildAwinProductdataUrl,
   getEnabledMerchantFeeds,
   getFeedMode,
   getIntegrationSummary,
@@ -26,6 +27,33 @@ describe('Merchant Integrations', () => {
   it("enabled feed mode defaults to sample when env var is unset", () => {
     for (const feed of getEnabledMerchantFeeds()) {
       expect(getFeedMode(feed)).toBe("sample");
+    }
+  });
+
+  it("builds AWIN productdata URLs from API key + feed id", () => {
+    const url = buildAwinProductdataUrl("test-key", "115553");
+    expect(url).toContain("/apikey/test-key/");
+    expect(url).toContain("/fid/115553/");
+    expect(url).toContain("productdata.awin.com");
+  });
+
+  it("resolves Seentat production URL from AWIN_API_KEY", () => {
+    const seentat = MERCHANT_FEEDS.find((feed) => feed.merchantId === "gb-seentat");
+    expect(seentat).toBeDefined();
+
+    const previousKey = process.env.AWIN_API_KEY;
+    const previousUrl = process.env.AWIN_FEED_URL_GB_SEENTAT;
+    delete process.env.AWIN_FEED_URL_GB_SEENTAT;
+    process.env.AWIN_API_KEY = "unit-test-awin-key";
+
+    try {
+      expect(resolveFeedRemoteUrl(seentat!)).toContain("/apikey/unit-test-awin-key/");
+      expect(resolveFeedRemoteUrl(seentat!)).toContain("/fid/115553/");
+    } finally {
+      if (previousKey === undefined) delete process.env.AWIN_API_KEY;
+      else process.env.AWIN_API_KEY = previousKey;
+      if (previousUrl === undefined) delete process.env.AWIN_FEED_URL_GB_SEENTAT;
+      else process.env.AWIN_FEED_URL_GB_SEENTAT = previousUrl;
     }
   });
 

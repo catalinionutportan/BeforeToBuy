@@ -30,6 +30,7 @@ import {
   type OfferFilterCriteria,
 } from "@/lib/offers/offer-filters";
 import { sortProductsForBrowse } from "@/lib/browse-product-order";
+import { DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import {
   Info,
@@ -140,8 +141,8 @@ export default function HomePageClient({
     window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
   }, [debouncedSearchQuery]);
 
-  // Fetch products when location, debounced search, or browse locale changes.
-  // AbortController prevents a stale CH response from wiping a later RO catalog.
+  // Fetch a capped page when location, category, search, or locale changes.
+  // AbortController prevents a stale market response from wiping a later catalog.
   useEffect(() => {
     const controller = new AbortController();
     const requestCountry = userLocation.countryCode;
@@ -155,13 +156,17 @@ export default function HomePageClient({
           lat: String(userLocation.latitude),
           lng: String(userLocation.longitude),
           locale: browseLocale,
+          limit: String(DEFAULT_PRODUCT_LIST_LIMIT),
+          offset: "0",
         });
 
         if (debouncedSearchQuery.trim()) {
           params.set("q", debouncedSearchQuery.trim());
         }
+        if (selectedCategory && selectedCategory !== ALL_CATEGORIES_ID) {
+          params.set("category", selectedCategory);
+        }
 
-        // Fetch full market catalog; hub/department tabs filter client-side.
         const response = await fetch(`/api/products?${params.toString()}`, {
           signal: controller.signal,
         });
@@ -202,7 +207,80 @@ export default function HomePageClient({
 
     void loadProductsAndCoupons();
     return () => controller.abort();
-  }, [userLocation, debouncedSearchQuery, browseLocale, setProducts, setCatalogMeta, setCoupons]);
+  }, [
+    userLocation,
+    debouncedSearchQuery,
+    browseLocale,
+    selectedCategory,
+    setProducts,
+    setCatalogMeta,
+    setCoupons,
+  ]);
+
+  // Append the next server page when the user scrolls near the end of the loaded set.
+  useEffect(() => {
+    if (!catalogMeta?.hasMore || isLoadingProducts || productFetchFailed) return;
+    if (visibleCount < products.length) return;
+
+    const controller = new AbortController();
+    const requestCountry = userLocation.countryCode;
+    // Client accumulates pages from offset 0, so the next page starts at loaded length.
+    const nextOffset = products.length;
+
+    async function loadMoreProducts() {
+      try {
+        const params = new URLSearchParams({
+          country: requestCountry,
+          lat: String(userLocation.latitude),
+          lng: String(userLocation.longitude),
+          locale: browseLocale,
+          limit: String(DEFAULT_PRODUCT_LIST_LIMIT),
+          offset: String(nextOffset),
+        });
+        if (debouncedSearchQuery.trim()) {
+          params.set("q", debouncedSearchQuery.trim());
+        }
+        if (selectedCategory && selectedCategory !== ALL_CATEGORIES_ID) {
+          params.set("category", selectedCategory);
+        }
+
+        const response = await fetch(`/api/products?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        if (controller.signal.aborted || !response.ok) return;
+
+        const data = (await response.json()) as {
+          products: Product[];
+          meta: ProductFetchMeta;
+        };
+        if (controller.signal.aborted) return;
+
+        setProducts((prev) => {
+          const seen = new Set(prev.map((product) => product.id));
+          const appended = (data.products || []).filter((product) => !seen.has(product.id));
+          return appended.length ? [...prev, ...appended] : prev;
+        });
+        setCatalogMeta(data.meta || null);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Failed to load more products:", error);
+      }
+    }
+
+    void loadMoreProducts();
+    return () => controller.abort();
+  }, [
+    catalogMeta?.hasMore,
+    catalogMeta?.offset,
+    visibleCount,
+    products.length,
+    isLoadingProducts,
+    productFetchFailed,
+    userLocation,
+    browseLocale,
+    debouncedSearchQuery,
+    selectedCategory,
+  ]);
 
   const syncBrowseUrl = useCallback(
     (
@@ -461,7 +539,7 @@ export default function HomePageClient({
                 ))}
               </div>
               <div ref={loadMoreRef} className="py-3 text-center text-xs text-slate-500">
-                {visibleCount < displayedProducts.length
+                {visibleCount < displayedProducts.length || catalogMeta?.hasMore
                   ? homeUi.scrollForMoreProducts
                   : homeUi.endOfCatalog}
               </div>

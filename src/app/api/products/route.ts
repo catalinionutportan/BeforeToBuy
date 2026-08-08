@@ -4,6 +4,11 @@ import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
+import {
+  clampProductListLimit,
+  DEFAULT_PRODUCT_LIST_LIMIT,
+  parseProductListOffset,
+} from "@/lib/product-list-options";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n/locales";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
@@ -62,6 +67,14 @@ export async function GET(request: Request) {
   const query = sanitizeQueryParam(searchParams.get("q"));
   const category = sanitizeQueryParam(searchParams.get("category"));
   const locale = normalizeLocale(searchParams.get("locale")) ?? DEFAULT_LOCALE;
+  const limit = clampProductListLimit(
+    searchParams.get("limit") ? Number(searchParams.get("limit")) : undefined,
+    DEFAULT_PRODUCT_LIST_LIMIT
+  );
+  const offset = parseProductListOffset(
+    searchParams.get("offset") ? Number(searchParams.get("offset")) : undefined
+  );
+  const includePriceHistory = searchParams.get("priceHistory") === "1";
   const userLocation = buildUserLocation(
     countryCode,
     searchParams.get("lat"),
@@ -69,7 +82,12 @@ export async function GET(request: Request) {
   );
 
   try {
-    const result = await fetchMergedProductsForLocation(userLocation, query, category, locale);
+    const result = await fetchMergedProductsForLocation(userLocation, query, category, locale, {
+      limit,
+      offset,
+      includePriceHistory,
+      compact: true,
+    });
     return NextResponse.json(result, {
       headers: {
         "Cache-Control": "private, max-age=30",
