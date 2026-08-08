@@ -1,4 +1,12 @@
 {
+  "functions": {
+    "src/app/api/products/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/cron/price-snapshot/route.ts": {
+      "maxDuration": 300
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/price-snapshot",

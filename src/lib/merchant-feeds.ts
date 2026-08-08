@@ -34,7 +34,15 @@ function memoryCacheKey(feed: FeedConfig): string {
 function redisCacheKey(feed: FeedConfig): string {
   // Bump when mapping/parser changes so Redis does not serve stale category ids.
   const slice = feed.feedKey ? `:${feed.feedKey}` : "";
-  return `feed:v7:${feed.merchantId}${slice}:${feed.country}`;
+  return `feed:v8:${feed.merchantId}${slice}:${feed.country}`;
+}
+
+/** Soft cap for huge catalogues (evoMAG ~100k) so Vercel serverless can finish. */
+function maxProductsForFeed(feed: FeedConfig): number | null {
+  if (feed.merchantId !== "ro-evomag") return null;
+  const raw = process.env.EVOMAG_MAX_PRODUCTS?.trim();
+  const parsed = raw ? Number.parseInt(raw, 10) : 4_000;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 4_000;
 }
 
 async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {
@@ -53,8 +61,9 @@ async function fetchRemoteFeed(
         ? "application/xml, text/xml, */*"
         : "text/csv, text/plain, */*";
 
-  // evoMAG full catalog CSV can be large — allow a longer pull for 2Performant.
-  const timeoutMs = provider === "TWO_PERFORMANT" ? 90_000 : 15_000;
+  // evoMAG CSV is large — long timeout, few retries (retries multiply wall time).
+  const timeoutMs = provider === "TWO_PERFORMANT" ? 120_000 : 15_000;
+  const retries = provider === "TWO_PERFORMANT" ? 1 : 2;
 
   const response = await fetchWithTimeout(
     url,
@@ -62,7 +71,7 @@ async function fetchRemoteFeed(
       headers: { Accept: accept },
       next: { revalidate: 3600 },
     },
-    { timeoutMs, retries: 2 }
+    { timeoutMs, retries }
   );
 
   if (!response.ok) {
@@ -123,13 +132,12 @@ async function loadFeedForMerchant(
       content = await fetchRemoteFeed(remoteUrl, feed.provider);
       source = "remote";
     } catch (error) {
-      console.error(`[merchant-feeds] remote fetch failed for ${feed.merchantId}:`, error);
-      if (feed.sampleFile) {
-        content = await readSampleFeed(feed.sampleFile);
-        source = "sample";
-      } else {
-        return { products: [], mappingLog: [], source: "sample" };
-      }
+      console.error(
+        `[merchant-feeds] remote fetch failed for ${feed.merchantId}${feed.feedKey ? `:${feed.feedKey}` : ""}:`,
+        error
+      );
+      // Never poison Redis/memory with tiny sample data when a production URL is configured.
+      return { products: [], mappingLog: [], source: "sample" };
     }
   } else if (feed.sampleFile) {
     content = await readSampleFeed(feed.sampleFile);
@@ -142,7 +150,18 @@ async function loadFeedForMerchant(
     source === "remote" ? "production-live" : "sample";
   const parsed = await parseConfiguredFeed(feed, content, feed.country, offerSource);
   const fetchedAtIso = new Date().toISOString();
-  const products = parsed.products.map((product) => ({
+  const productCap = maxProductsForFeed(feed);
+  const limitedProducts =
+    productCap && parsed.products.length > productCap
+      ? parsed.products.slice(0, productCap)
+      : parsed.products;
+  if (productCap && parsed.products.length > productCap) {
+    console.warn(
+      `[merchant-feeds] capped ${feed.merchantId}${feed.feedKey ? `:${feed.feedKey}` : ""} from ${parsed.products.length} to ${productCap} products for serverless limits`
+    );
+  }
+
+  const products = limitedProducts.map((product) => ({
     ...product,
     catalogSource: offerSource,
     offers: product.offers.map((offer) => ({
@@ -156,12 +175,16 @@ async function loadFeedForMerchant(
   const entry: FeedCacheEntry = {
     fetchedAt: Date.now(),
     products,
-    mappingLog: parsed.mappingLog,
+    // Omit bulky mapping logs from Redis payload (products are enough to serve the site).
+    mappingLog: source === "remote" ? [] : parsed.mappingLog,
     source,
   };
 
   feedCache.set(memKey, entry);
-  void redisSetJson(redisCacheKey(feed), entry, CACHE_TTL_SECONDS);
+  // Only persist successful remote catalogues — never cache empty/error fallbacks.
+  if (source === "remote" && products.length > 0) {
+    void redisSetJson(redisCacheKey(feed), entry, CACHE_TTL_SECONDS);
+  }
 
   return { products, mappingLog: parsed.mappingLog, source };
 }
