@@ -341,10 +341,9 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "ingrijire ten si corp": "care-shaving-hair-removal",
       "îngrijire ten și corp": "care-shaving-hair-removal",
       epilatoare: "care-shaving-hair-removal",
+      // Climate / ironing stay in the Rowenta appliance aisle; kitchen does not.
       aeroterme: "climate-heating",
       "filtrare aer": "climate-air-care",
-      "aparate de gatit": "kitchen-cooking-appliances",
-      "aparate de gătit": "kitchen-cooking-appliances",
     }),
     patterns: [
       {
@@ -437,7 +436,32 @@ export function getMerchantPatternMatch(
 }
 
 /**
- * Last-resort leaf when a merchant catalogue is known DIY/tools but feed rows
+ * Rowenta catalogue: vacuums + accessories, hair styling / grooming,
+ * plus core ironing & climate lines — never Fashion / DIY / Kitchen.
+ */
+export const ROWENTA_ALLOWED_CATEGORY_IDS = new Set([
+  "cleaning-vacuums",
+  "cleaning-stick-vacuums",
+  "cleaning-bagless-vacuums",
+  "cleaning-bagged-vacuums",
+  "cleaning-wet-vacuums",
+  "cleaning-handheld",
+  "cleaning-accessories",
+  "cleaning-robots",
+  "cleaning-floor-care",
+  "care-hair-styling",
+  "care-shaving-hair-removal",
+  "laundry-ironing-sewing",
+  "climate-heating",
+  "climate-air-care",
+]);
+
+export function isRowentaAllowedCategory(categoryId: string): boolean {
+  return ROWENTA_ALLOWED_CATEGORY_IDS.has(categoryId);
+}
+
+/**
+ * Last-resort leaf when a merchant catalogue is specialised but feed rows
  * lack category labels and keyword inference failed.
  */
 export function getMerchantDefaultCategory(merchantId: string | undefined): string | null {
@@ -479,15 +503,20 @@ export function validateMerchantCategoryRules(): string[] {
       }
     }
 
-    if (merchantId === "ro-scule365") {
+    if (merchantId === "ro-scule365" || merchantId === "ro-rowenta") {
       const targets = [
         ...Object.values(ruleSet.exact),
         ...ruleSet.patterns.map((rule) => rule.subcategoryId),
       ];
       for (const subcategoryId of targets) {
-        if (getParentCategoryId(subcategoryId) !== "diy-tools") {
+        if (merchantId === "ro-scule365" && getParentCategoryId(subcategoryId) !== "diy-tools") {
           errors.push(
             `${merchantId}: "${subcategoryId}" must stay under diy-tools (Bricolaj)`
+          );
+        }
+        if (merchantId === "ro-rowenta" && !isRowentaAllowedCategory(subcategoryId)) {
+          errors.push(
+            `${merchantId}: "${subcategoryId}" must stay in Rowenta vacuum/care aisle`
           );
         }
       }

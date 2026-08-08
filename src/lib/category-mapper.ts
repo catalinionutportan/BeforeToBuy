@@ -9,6 +9,7 @@ import {
   getMerchantDefaultCategory,
   getMerchantExactMatch,
   getMerchantPatternMatch,
+  isRowentaAllowedCategory,
   MAPPING_CONFIDENCE,
   MIN_MAPPING_CONFIDENCE,
 } from "@/lib/merchant-category-rules";
@@ -16,6 +17,9 @@ import {
 /** Scule365 is a DIY catalogue — every product stays under Bricolaj. */
 const SCULE365_PARENT_ID = "diy-tools";
 const SCULE365_FALLBACK_LEAF = "diy-hand-tools";
+
+/** Rowenta fallback when title/category is ambiguous. */
+const ROWENTA_FALLBACK_LEAF = "cleaning-vacuums";
 
 /**
  * Maps merchant / affiliate feed categories + product text → BeforeToBuy subcategory id.
@@ -113,6 +117,23 @@ function clampScule365ToDiy(result: CategoryMappingResult): CategoryMappingResul
   };
 }
 
+/** Force Rowenta into vacuum / hair-care / ironing / climate leaves only. */
+function clampRowentaToAppliances(result: CategoryMappingResult): CategoryMappingResult {
+  if (result.categoryId === UNMAPPED_CATEGORY_ID || !isRowentaAllowedCategory(result.categoryId)) {
+    return {
+      ...result,
+      categoryId: ROWENTA_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      proposedCategoryId:
+        result.categoryId !== UNMAPPED_CATEGORY_ID && result.categoryId !== ROWENTA_FALLBACK_LEAF
+          ? result.categoryId
+          : result.proposedCategoryId,
+    };
+  }
+  return result;
+}
+
 export interface CategoryMappingInput {
   merchantId?: string;
   merchantCategory?: string;
@@ -148,10 +169,12 @@ export function mapToBeforeToBuyCategoryWithMetadata(
   const { merchantId, merchantCategory, title, description, brand } = input;
   const productText = normalizeText([title, description, brand]);
   const combined = normalizeText([merchantCategory, title, description, brand]);
-  const finalize =
-    merchantId === "ro-scule365"
-      ? (result: CategoryMappingResult) => clampScule365ToDiy(applyConfidenceThreshold(result))
-      : applyConfidenceThreshold;
+  const finalize = (result: CategoryMappingResult): CategoryMappingResult => {
+    const scored = applyConfidenceThreshold(result);
+    if (merchantId === "ro-scule365") return clampScule365ToDiy(scored);
+    if (merchantId === "ro-rowenta") return clampRowentaToAppliances(scored);
+    return scored;
+  };
 
   if (merchantCategory) {
     const exactMatch = getMerchantExactMatch(merchantId, merchantCategory);
@@ -197,10 +220,18 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     });
   }
 
-  // Specialised DIY catalogue: never leave Bricolaj via noisy keywords.
+  // Specialised catalogues: never leak via noisy global keywords.
   if (merchantId === "ro-scule365") {
     return {
       categoryId: SCULE365_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: merchantCategory,
+    };
+  }
+  if (merchantId === "ro-rowenta") {
+    return {
+      categoryId: ROWENTA_FALLBACK_LEAF,
       method: "merchant-default",
       confidence: MAPPING_CONFIDENCE.combinedPattern,
       rawCategory: merchantCategory,

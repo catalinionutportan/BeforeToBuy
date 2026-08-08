@@ -195,6 +195,21 @@ describe('Category Mapper Functions', () => {
         title: "Placă de păr Rowenta",
       })
     ).toBe("care-hair-styling");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-rowenta",
+        merchantCategory: "Epilatoare",
+        title: "Epilator Rowenta",
+      })
+    ).toBe("care-shaving-hair-removal");
+
+    // Kitchen / unrelated wording must not leave the Rowenta aisle.
+    const kitchenLeak = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-rowenta",
+      merchantCategory: "Aparate de gatit",
+      title: "Cuptor electric Rowenta",
+    });
+    expect(kitchenLeak.categoryId).toBe("cleaning-vacuums");
   });
 
   it("low-confidence keyword matches fall below threshold into unmapped", () => {
