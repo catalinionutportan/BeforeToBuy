@@ -28,8 +28,7 @@ function sanitizeQueryParam(input: string | null | undefined): string | undefine
 const VALID_COUNTRIES = new Set<CountryCode>(Object.keys(COUNTRIES) as CountryCode[]);
 
 function parseCountry(value: string | null): CountryCode {
-  // Default to the primary live catalogue (RO) — DEFAULT_COUNTRY is still CH
-  // and returns an empty feed set, which looks like a broken homepage.
+  // Default to the primary live catalogue when country is omitted/invalid.
   if (!value) return getPrimaryLiveBrowseCountry();
   const code = value.toUpperCase() as CountryCode;
   return VALID_COUNTRIES.has(code) ? code : getPrimaryLiveBrowseCountry();

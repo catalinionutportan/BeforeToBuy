@@ -18,4 +18,14 @@ describe("live browse market", () => {
     expect(resolveBrowseCountry(null)).toBe("RO");
     expect(resolveBrowseCountry("RO")).toBe("RO");
   });
+
+  it("maps geo country codes without forcing empty CH", async () => {
+    const { resolveGeoCountryCode } = await import("@/lib/live-browse-market");
+    expect(resolveGeoCountryCode("CH")).toBe("RO");
+    expect(resolveGeoCountryCode("ch")).toBe("RO");
+    expect(resolveGeoCountryCode(null)).toBe("RO");
+    expect(resolveGeoCountryCode("")).toBe("RO");
+    expect(resolveGeoCountryCode("ZZ")).toBe("RO");
+    expect(resolveGeoCountryCode("RO")).toBe("RO");
+  });
 });

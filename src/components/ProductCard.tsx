@@ -32,7 +32,7 @@ export function ProductCard({
   const resolvedLocale = locale ?? defaultLocaleFromCountry(userLocation.countryCode);
   const ui = HOME_UI[resolvedLocale];
   const currencySymbol =
-    (COUNTRIES[userLocation.countryCode] || COUNTRIES.CH).currencySymbol;
+    (COUNTRIES[userLocation.countryCode] || COUNTRIES.RO).currencySymbol;
 
   const sortedOffers = useMemo(() => sortOffersByTotalPrice(product.offers), [product.offers]);
   const feedOffers = useMemo(

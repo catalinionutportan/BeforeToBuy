@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { CountryCode } from "@/types";
-import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { getFeedMappingReport } from "@/lib/merchant-feeds";
 import { isInternalApiAuthorized } from "@/lib/internal-api-auth";
+import { getPrimaryLiveBrowseCountry } from "@/lib/live-browse-market";
 
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
@@ -13,8 +13,9 @@ const homeUi = HOME_UI[DEFAULT_LOCALE];
 const VALID_COUNTRIES = new Set<CountryCode>(["CH", "DE", "FR", "RO", "GB", "US"]);
 
 function parseCountry(value: string | null): CountryCode {
-  const code = (value || DEFAULT_COUNTRY).toUpperCase() as CountryCode;
-  return VALID_COUNTRIES.has(code) ? code : DEFAULT_COUNTRY;
+  const fallback = getPrimaryLiveBrowseCountry();
+  const code = (value || fallback).toUpperCase() as CountryCode;
+  return VALID_COUNTRIES.has(code) ? code : fallback;
 }
 
 export async function GET(request: Request) {

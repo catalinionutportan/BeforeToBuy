@@ -501,4 +501,8 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
   },
 };
 
-export const DEFAULT_COUNTRY: CountryCode = "CH";
+/**
+ * Default browse market while other catalogues (incl. CH HQ market) await live feeds.
+ * Company/legal address stays Switzerland in company-info — this is catalogue default only.
+ */
+export const DEFAULT_COUNTRY: CountryCode = "RO";

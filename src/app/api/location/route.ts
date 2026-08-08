@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { CountryCode } from "@/types";
-import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import { COUNTRIES } from "@/lib/countries";
+import { resolveGeoCountryCode } from "@/lib/live-browse-market";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { hasServerConsent } from "@/lib/server-consent";
 
@@ -48,8 +48,8 @@ export async function GET(request: Request) {
 
     if (res.ok) {
       const data = await res.json();
-      const code = (data.country_code?.toUpperCase() || "CH") as CountryCode;
-      const validCode: CountryCode = COUNTRIES[code] ? code : DEFAULT_COUNTRY;
+      // Never force empty CH on missing/unknown country — prefer live catalogue (RO).
+      const validCode = resolveGeoCountryCode(data.country_code);
 
       return NextResponse.json({
         latitude: data.latitude || COUNTRIES[validCode].defaultCoordinates.lat,
@@ -65,13 +65,9 @@ export async function GET(request: Request) {
     console.warn(homeUi.serverSideIpLocationFailed, error);
   }
 
-  const def = COUNTRIES[DEFAULT_COUNTRY];
-  return NextResponse.json({
-    latitude: def.defaultCoordinates.lat,
-    longitude: def.defaultCoordinates.lng,
-    countryCode: DEFAULT_COUNTRY,
-    countryName: def.name,
-    city: def.defaultCoordinates.city,
-    isGps: false,
-  });
+  // Fail soft: do not invent a CH (or any) market — client keeps cookie / primary live.
+  return NextResponse.json(
+    { error: homeUi.geolocationPositionUnavailable },
+    { status: 503 }
+  );
 }

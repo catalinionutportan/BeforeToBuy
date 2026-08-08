@@ -26,7 +26,7 @@ export function LocationBanner({
   sampleOfferCount = 0,
   locale,
 }: LocationBannerProps) {
-  const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
+  const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.RO;
   const ui = HOME_UI[locale];
 
   return (

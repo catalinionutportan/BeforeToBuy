@@ -96,6 +96,7 @@ export function useUserLocation(): UseUserLocationResult {
       }
       setErrorMessage(null);
     } catch (error) {
+      // Prefer last known / primary-live market — never invent CH on geo failure.
       console.warn("Error fetching IP location:", formatLocationError(error));
       setErrorMessage(homeUi.geolocationPositionUnavailable);
     } finally {

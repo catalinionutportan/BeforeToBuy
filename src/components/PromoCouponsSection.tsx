@@ -20,7 +20,7 @@ export function PromoCouponsSection({
 }: PromoCouponsSectionProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const { affiliate } = useConsent();
-  const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
+  const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.RO;
   const { locale: browseLocale } = useBrowseLocale(userLocation.countryCode);
   const homeUi = HOME_UI[browseLocale];
 

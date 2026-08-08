@@ -15,7 +15,7 @@ export function AffiliateDisclosureModal({
   onClose,
 }: AffiliateDisclosureModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const { locale: browseLocale } = useBrowseLocale("CH"); // Default to CH for initial render, actual countryCode might be dynamic
+  const { locale: browseLocale } = useBrowseLocale("RO"); // Initial SSR/locale; runtime country comes from location hook
   const homeUi = HOME_UI[browseLocale];
 
   useEffect(() => {

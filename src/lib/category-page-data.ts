@@ -1,11 +1,11 @@
 import { CountryCode, UserLocation } from "@/types";
-import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import { COUNTRIES } from "@/lib/countries";
 import { getPrimaryLiveBrowseCountry } from "@/lib/live-browse-market";
 import type { ProductListOptions } from "@/lib/product-list-options";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
 
 export function getBrowseLocationForCountry(countryCode: CountryCode): UserLocation {
-  const country = COUNTRIES[countryCode] || COUNTRIES[DEFAULT_COUNTRY];
+  const country = COUNTRIES[countryCode] || COUNTRIES[getPrimaryLiveBrowseCountry()];
   return {
     latitude: country.defaultCoordinates.lat,
     longitude: country.defaultCoordinates.lng,

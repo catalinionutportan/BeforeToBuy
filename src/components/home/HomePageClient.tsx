@@ -86,7 +86,7 @@ export default function HomePageClient({
 
   const { userLocation, isLocating, errorMessage, handleCountryChange, handleRefreshGps } = useUserLocation();
 
-  const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
+  const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.RO;
   const {
     locale: browseLocale,
     setLocale: setBrowseLocale,

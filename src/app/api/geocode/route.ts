@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { CountryCode } from "@/types";
-import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import { COUNTRIES } from "@/lib/countries";
+import { resolveGeoCountryCode } from "@/lib/live-browse-market";
 import { validateLatLng } from "@/lib/api-validation";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { hasServerConsent } from "@/lib/server-consent";
@@ -58,8 +58,8 @@ export async function GET(request: Request) {
 
     if (res.ok) {
       const data = await res.json();
-      const code = (data.address?.country_code?.toUpperCase() || "CH") as CountryCode;
-      const validCode: CountryCode = COUNTRIES[code] ? code : DEFAULT_COUNTRY;
+      // Never force empty CH on missing/unknown country — prefer live catalogue (RO).
+      const validCode = resolveGeoCountryCode(data.address?.country_code);
       const city =
         data.address?.city ||
         data.address?.town ||
@@ -77,9 +77,9 @@ export async function GET(request: Request) {
     console.warn("Reverse geocode server-side failed:", err);
   }
 
-  return NextResponse.json({
-    countryCode: DEFAULT_COUNTRY,
-    countryName: COUNTRIES[DEFAULT_COUNTRY].name,
-    city: COUNTRIES[DEFAULT_COUNTRY].defaultCoordinates.city,
-  });
+  // Fail soft: client keeps cookie / GPS coords with primary-live fallback in geolocation.ts.
+  return NextResponse.json(
+    { error: homeUi.geolocationPositionUnavailable },
+    { status: 503 }
+  );
 }

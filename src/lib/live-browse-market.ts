@@ -1,5 +1,5 @@
 import type { CountryCode } from "@/types";
-import { DEFAULT_COUNTRY } from "@/lib/countries";
+import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { getEnabledMerchantFeeds } from "@/lib/merchant-integrations";
 
 /** True when at least one enabled product feed exists for the country. */
@@ -21,11 +21,23 @@ export function getPrimaryLiveBrowseCountry(): CountryCode {
 
 /**
  * Use the preferred market only when it has live feeds; otherwise RO (or next live).
- * Prevents empty CH/DE catalogues from cookie, IP geo, or DEFAULT_COUNTRY=CH.
+ * Prevents empty CH/DE catalogues from cookie, IP geo, or stale DEFAULT_COUNTRY.
  */
 export function resolveBrowseCountry(
   preferred: CountryCode | null | undefined
 ): CountryCode {
   if (preferred && countryHasLiveFeeds(preferred)) return preferred;
+  return getPrimaryLiveBrowseCountry();
+}
+
+/**
+ * Map a raw geo country code onto a live browse market.
+ * Unknown / missing codes → primary live market (never silent CH).
+ */
+export function resolveGeoCountryCode(raw: string | null | undefined): CountryCode {
+  const code = raw?.trim().toUpperCase();
+  if (code && Object.prototype.hasOwnProperty.call(COUNTRIES, code)) {
+    return resolveBrowseCountry(code as CountryCode);
+  }
   return getPrimaryLiveBrowseCountry();
 }

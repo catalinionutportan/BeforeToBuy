@@ -1,5 +1,5 @@
 import { CountryCode, Offer, PhysicalStoreBranch, Product, UserLocation } from "@/types";
-import { COUNTRIES } from "./countries";
+import { COUNTRIES, DEFAULT_COUNTRY } from "./countries";
 import { calculateHaversineDistance } from "./geolocation";
 import { getChOffers } from "./offers/ch-offers";
 import { getDeOffers } from "./offers/de-offers";
@@ -59,13 +59,13 @@ export async function generateOffersForLocation(
   locale: SiteLocale = DEFAULT_LOCALE
 ): Promise<Offer[]> {
   const country = userLocation.countryCode;
-  const currInfo = COUNTRIES[country] || COUNTRIES.CH;
+  const currInfo = COUNTRIES[country] || COUNTRIES[DEFAULT_COUNTRY];
   const currency = currInfo.currency;
   const mult = (await fetchCountryPriceMultipliers())[country] || 1.0;
   const basePrice = product.basePrice || 350;
   const targetPrice = Math.round(basePrice * mult);
 
-  const stores = STORE_BRANCHES[country] || STORE_BRANCHES.CH;
+  const stores = STORE_BRANCHES[country] || STORE_BRANCHES[DEFAULT_COUNTRY];
   const storesWithDistance = stores
     .map((store) => {
       const dist = calculateHaversineDistance(

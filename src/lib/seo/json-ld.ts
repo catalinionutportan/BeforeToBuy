@@ -1,6 +1,6 @@
 import type { Offer, Product } from "@/types";
 import type { CountryCode } from "@/types";
-import { COUNTRIES } from "@/lib/countries";
+import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { COMPANY } from "@/lib/company-info";
 import { computeTotalPrice } from "@/lib/pricing/total-price";
 import { getSiteUrl, productPageUrl } from "@/lib/seo/site-url";
@@ -67,7 +67,7 @@ export function buildProductJsonLd(
     offers?: Offer[];
   }
 ) {
-  const country = COUNTRIES[options.countryCode] || COUNTRIES.CH;
+  const country = COUNTRIES[options.countryCode] || COUNTRIES[DEFAULT_COUNTRY];
   const offers = options.offers ?? product.offers;
   // Only expose production-feed offers in structured data — never demo/sample as authoritative prices.
   const schemaOffers = offers.filter((o) => o.source === "production-live");

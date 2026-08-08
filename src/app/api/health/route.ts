@@ -58,7 +58,7 @@ async function checkSampleFeedFiles() {
 
 async function checkProductsMerge() {
   try {
-    // DEFAULT_COUNTRY (CH) may be empty while Swiss merchants await approval.
+    // Probe an enabled feed country — empty markets (e.g. CH) must not fail health.
     // Probe the first country that still has enabled feeds (today: RO).
     const enabledCountries = [
       ...new Set(getEnabledMerchantFeeds().map((feed) => feed.country)),

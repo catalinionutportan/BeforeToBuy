@@ -1,5 +1,5 @@
 import { Product, Offer, UserLocation } from "@/types";
-import { COUNTRIES } from "@/lib/countries";
+import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 
 // This function will eventually call the Amazon PA-API
 // For now, it will return mock data based on existing product info
@@ -7,7 +7,7 @@ export async function fetchAmazonOffers(product: Product, userLocation: UserLoca
   // TODO: Implement actual Amazon PA-API call here
   // For now, returning a mock Amazon offer
   const countryCode = userLocation.countryCode;
-  const currInfo = COUNTRIES[countryCode] || COUNTRIES.CH;
+  const currInfo = COUNTRIES[countryCode] || COUNTRIES[DEFAULT_COUNTRY];
   const currency = currInfo.currency;
 
   const targetPrice = Math.round(product.basePrice || 350);

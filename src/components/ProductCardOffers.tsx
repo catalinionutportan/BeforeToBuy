@@ -33,7 +33,7 @@ export function ProductCardOffers({
   lowestFeedTotal,
 }: ProductCardOffersProps) {
   const { affiliate } = useConsent();
-  const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.CH;
+  const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.RO;
   const ui = HOME_UI[locale ?? defaultLocaleFromCountry(userLocation.countryCode)];
 
   const handleAffiliateClick = (

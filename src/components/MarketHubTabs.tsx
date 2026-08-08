@@ -7,6 +7,7 @@ import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import type { SiteLocale } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import type { CountryCode } from "@/types";
+import { getPrimaryLiveBrowseCountry } from "@/lib/live-browse-market";
 
 interface MarketHubTabsProps {
   selectedHub: string;
@@ -37,7 +38,7 @@ export function MarketHubTabs({
   };
   const allActive = !selectedHub || selectedHub === ALL_CATEGORIES_ID;
   const orderedHubs = useMemo(() => {
-    const order = marketHubOrderForCountry(countryCode || "CH");
+    const order = marketHubOrderForCountry(countryCode || getPrimaryLiveBrowseCountry());
     const byId = new Map(MARKET_HUB_TABS.map((hub) => [hub.id, hub]));
     return order.map((id) => byId.get(id)).filter(Boolean) as typeof MARKET_HUB_TABS[number][];
   }, [countryCode]);
