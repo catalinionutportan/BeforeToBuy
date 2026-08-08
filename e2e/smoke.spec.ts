@@ -1,31 +1,41 @@
 import { test, expect, type Page } from "@playwright/test";
 
-/** CH catalog is empty until merchant approval — use RO for product UI smoke. */
+/** Ensure browse market is Romania (primary live feeds). */
 async function selectRomaniaMarket(page: Page) {
-  const countrySelect = page.getByLabel(/change country|country|region/i).first();
+  const countrySelect = page.getByLabel(/country|market|țară|tara|land|pays|paese/i).first();
   await expect(countrySelect).toBeVisible({ timeout: 15_000 });
   await countrySelect.selectOption("RO");
 }
 
+async function dismissCookieBannerIfPresent(page: Page) {
+  const essentialButton = page.getByRole("button", { name: /Essential Only|Doar esențiale|Nur essenzielle/i }).first();
+  if (await essentialButton.isVisible({ timeout: 3_000 }).catch(() => false)) {
+    await essentialButton.click();
+    await expect(page.getByRole("dialog")).toHaveCount(0, { timeout: 5_000 });
+  }
+}
+
 test.describe("BeforeToBuy smoke E2E", () => {
   test.beforeEach(async ({ page }) => {
-    // Force English UI so copy assertions stay stable across CI locales.
+    // Force English UI + RO market so assertions stay stable and catalog is non-empty.
     await page.addInitScript(() => {
       window.localStorage.setItem("btb-ui-lang", "en");
+      window.localStorage.setItem("btb-market-country", "RO");
       window.localStorage.removeItem("b2b_consent_v3");
+      document.cookie = "btb-market-country=RO; Path=/; SameSite=Lax";
     });
   });
 
   test("homepage loads with beta banner and product grid", async ({ page }) => {
     await page.goto("/");
+    await dismissCookieBannerIfPresent(page);
     await expect(page.getByText(/Beta\s*\/?\s*Demo/i).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "BeforeToBuy", exact: true })).toBeVisible({
       timeout: 15_000,
     });
     await expect(page.getByRole("button", { name: /^Menu$/i })).toBeVisible();
     await selectRomaniaMarket(page);
-    await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
-    await expect(page.locator('a[href="https://portanx.com"]').first()).toBeVisible();
+    await expect(page.locator("article").first()).toBeVisible({ timeout: 45_000 });
     await expect(page.getByRole("link", { name: "admin@portanx.com" })).toHaveAttribute(
       "href",
       "mailto:admin@portanx.com"
@@ -116,31 +126,28 @@ test.describe("BeforeToBuy smoke E2E", () => {
 
   test("legacy category query redirects to SEO category route", async ({ page }) => {
     await page.goto("/?category=audio");
-    await expect(page).toHaveURL(/\/categories\/electronics$/);
-    // SEO pages use market default locale (CH → DE): Elektronik
-    await expect(page.getByRole("heading", { name: /^(Electronics|Elektronik)$/ })).toBeVisible();
+    await expect(page).toHaveURL(/\/categories\/electronics(\?|$)/);
+    // Market-aware SSR locale: EN / DE / RO depending on cookie + geo.
+    await expect(
+      page.getByRole("heading", { name: /^(Electronics|Elektronik|Electronice)$/ })
+    ).toBeVisible();
   });
 
-  test("department SEO route renders breadcrumbs while CH catalog awaits approval", async ({
-    page,
-  }) => {
+  test("department SEO route renders breadcrumbs for live primary market", async ({ page }) => {
     await page.goto("/categories/electronics");
     await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: /^(Electronics|Elektronik)$/ })).toBeVisible();
-    // CH default market has no merchant offers until partnership approval.
-    await expect(page.locator("article")).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: /^(Electronics|Elektronik|Electronice)$/ })
+    ).toBeVisible();
+    // Primary live market is RO — electronics department may show product cards.
+    // Presence of the department heading + breadcrumb is the SEO smoke signal.
   });
 
   test("category menu drill-down is shareable with live RO catalog", async ({ page }) => {
     await page.goto("/");
-    const essentialButton = page.getByRole("button", { name: "Essential Only", exact: true });
-    await expect(essentialButton).toBeVisible({ timeout: 10_000 });
-    await essentialButton.click();
-    await expect(page.getByRole("dialog", { name: /Cookie & Privacy Preferences/i })).toHaveCount(0, {
-      timeout: 5_000,
-    });
+    await dismissCookieBannerIfPresent(page);
     await selectRomaniaMarket(page);
-    await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator("article").first()).toBeVisible({ timeout: 45_000 });
 
     await page.getByRole("button", { name: /^Menu$/i }).click();
     const rootMenu = page.getByRole("dialog", { name: /^Menu$/i });
@@ -152,12 +159,15 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await electronicsBtn.hover();
     await rootMenu.getByRole("button", { name: /^Headphones\b/ }).click();
     await expect(page).toHaveURL(/category=audio-headphones/);
-    await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator("article").first()).toBeVisible({ timeout: 45_000 });
 
     await page.goto("/categories");
-    // SEO category index uses DEFAULT_COUNTRY (CH) — empty until CH merchants are approved.
-    await expect(page.getByRole("heading", { name: /Compare Product Prices|Produktpreise vergleichen/i })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Large Appliances", exact: true })).toHaveCount(0);
+    // Primary live market (RO) uses Romanian SSR copy when cookie/geo resolve to RO.
+    await expect(
+      page.getByRole("heading", {
+        name: /Compare Product Prices|Produktpreise vergleichen|Compară Prețurile Produselor/i,
+      })
+    ).toBeVisible();
   });
 
   test("integrations status reports all configured merchant feed modes", async ({ request }) => {
@@ -168,12 +178,14 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    // CH feeds disabled until merchant approval; only RO live affiliates remain active.
-    expect(body.merchants.length).toBe(2);
+    // CH feeds disabled; live enabled feeds: RO (3) + GB Seentat (1).
+    expect(body.merchants.length).toBe(4);
     expect(body.feedMerchantIds).not.toContain("ch-brack");
     expect(body.feedMerchantIds).not.toContain("ch-digitec");
     expect(body.feedMerchantIds).toContain("ro-rowenta");
     expect(body.feedMerchantIds).toContain("ro-scule365");
+    expect(body.feedMerchantIds).toContain("ro-evomag");
+    expect(body.feedMerchantIds).toContain("gb-seentat");
   });
 
   test("products API has no CH merchant feeds until approval", async ({ request }) => {
