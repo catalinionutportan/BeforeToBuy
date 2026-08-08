@@ -549,7 +549,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       // Order matters: accessories / networking before phone model names.
       {
         patterns:
-          /\b(husa|folie\s+protectie|book\s*cover|carcasa|capac\s+spate|powerbank|incarcator\s+(telefon|usb|wireless)|selfie\s+stick|stylus)\b/i,
+          /\b(husa|folie\s+protectie|book\s*cover|carcasa|capac\s+spate|protectie\s+(spate|toc)|clear\s+cover|leather\s+sleeve|powerbank|incarcator\s+(telefon|usb|wireless)|selfie\s+stick|stylus)\b/i,
         subcategoryId: "mobile-accessories",
       },
       { patterns: /\b(range\s+extender|wifi\s+extender|extender\s+wireless)\b/i, subcategoryId: "networking-routers" },
