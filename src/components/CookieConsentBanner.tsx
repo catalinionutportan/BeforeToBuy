@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, X } from "lucide-react";
+import { X } from "lucide-react";
 import {
   acceptAllConsent,
   acceptEssentialConsent,
@@ -129,8 +130,15 @@ export function CookieConsentBanner() {
         className="pointer-events-auto mx-auto w-full max-w-lg rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-lg focus:outline-none"
       >
         <div className="flex items-start gap-3 p-4 pb-2 min-w-0">
-          <div className="w-10 h-10 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 flex items-center justify-center shrink-0">
-            <ShoppingBag className="w-5 h-5" aria-hidden="true" />
+          <div className="relative h-12 w-12 shrink-0">
+            <Image
+              src="/beforetobuy-logo-cutout.png"
+              alt=""
+              width={96}
+              height={126}
+              className="h-full w-full object-contain"
+              priority
+            />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">
@@ -212,7 +220,7 @@ export function CookieConsentBanner() {
         )}
 
         {!showDetails && (
-          <div className="px-4 mb-2 pl-[3.75rem]">
+          <div className="px-4 mb-2 pl-16">
             <button
               type="button"
               onClick={() => setShowDetails(true)}
