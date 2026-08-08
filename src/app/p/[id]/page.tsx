@@ -85,7 +85,7 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
   });
 
   return (
-    <PageShell maxWidthClass="max-w-5xl">
+    <PageShell maxWidthClass="max-w-7xl">
       <JsonLd data={jsonLd} />
       <div className="space-y-8">
         <nav className="text-xs text-slate-500 flex flex-wrap items-center gap-1.5">

@@ -337,8 +337,8 @@ export default function HomePageClient({
         locale={browseLocale}
       />
 
-      {/* Same phone shell on every viewport: catalog first, policy after */}
-      <main className="w-full px-3 sm:px-4 py-4 flex-1 min-w-0 flex flex-col gap-4">
+      {/* Mobile-first catalog; desktop uses a normal wide content column */}
+      <main className="mx-auto flex w-full max-w-7xl min-w-0 flex-1 flex-col gap-4 px-3 py-4 sm:px-6 lg:px-8">
         <div className="space-y-3">
           <div
             id="browse-offers"
