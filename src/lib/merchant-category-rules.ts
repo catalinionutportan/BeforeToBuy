@@ -97,6 +97,11 @@ const SHARED_SWISS_EXACT: Record<string, string> = {
 };
 
 function exactRules(...entries: Record<string, string>[]): Record<string, string> {
+  return Object.assign({}, ...entries);
+}
+
+/** Swiss catalogues share a common exact-name baseline; RO merchants must not inherit it. */
+function swissExactRules(...entries: Record<string, string>[]): Record<string, string> {
   return Object.assign({}, SHARED_SWISS_EXACT, ...entries);
 }
 
@@ -145,7 +150,7 @@ export const GLOBAL_CATEGORY_PATTERN_RULES: MerchantPatternRule[] = [
 
 export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategoryRuleSet> = {
   "ch-brack": {
-    exact: exactRules({
+    exact: swissExactRules({
       "computer accessories": "peripherals-accessories",
       "pc-zubehör": "peripherals-accessories",
       "tv & audio": "tv-televisions",
@@ -154,7 +159,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     patterns: SHARED_SWISS_PATTERNS,
   },
   "ch-digitec": {
-    exact: exactRules({
+    exact: swissExactRules({
       "mobile & smartphones": "mobile-smartphones",
       "notebooks & tablets": "notebooks-laptops",
       "pc & gaming": "gaming-consoles",
@@ -169,7 +174,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     patterns: SHARED_SWISS_PATTERNS,
   },
   "ch-galaxus": {
-    exact: exactRules({
+    exact: swissExactRules({
       "mobile telephony": "mobile-smartphones",
       "it & electronics": "notebooks-laptops",
       "household & living": "cleaning-vacuums",
@@ -181,7 +186,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     patterns: SHARED_SWISS_PATTERNS,
   },
   "ch-interdiscount": {
-    exact: exactRules({
+    exact: swissExactRules({
       "tv & audio": "tv-televisions",
       "it & office": "notebooks-laptops",
       "photo & video": "photo-mirrorless",
@@ -192,7 +197,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     patterns: SHARED_SWISS_PATTERNS,
   },
   "ch-fust": {
-    exact: exactRules({
+    exact: swissExactRules({
       "large household appliances": "large-fridges-freezers",
       "kitchen appliances": "kitchen-coffee-machines",
       "tv & audio": "tv-televisions",
@@ -207,7 +212,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     ],
   },
   "ch-mediamarkt": {
-    exact: exactRules({
+    exact: swissExactRules({
       "smartphones & tablets": "mobile-smartphones",
       "tv & audio": "tv-televisions",
       "computers & office": "notebooks-laptops",
