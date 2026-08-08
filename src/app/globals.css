@@ -4,14 +4,15 @@
 
 html {
   height: auto;
-  overflow-x: hidden;
-  overflow-y: scroll;
+  /* clip (not hidden) keeps position:sticky working in Safari */
+  overflow-x: clip;
+  overflow-y: auto;
 }
 
 body {
   @apply bg-slate-50 text-slate-900 antialiased font-sans;
   min-height: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   overflow-y: visible;
 }
 

@@ -48,9 +48,20 @@ function nodeContainsSelected(node: ShoppingSubcategory, selectedId: string): bo
   return Boolean(node.children?.some((child) => nodeContainsSelected(child, selectedId)));
 }
 
+/** Desktop menu type scales with viewport; stays large on wide screens. */
+const DESKTOP_MENU_TEXT =
+  "text-[clamp(0.95rem,0.55vw+0.72rem,1.125rem)] leading-snug";
+const DESKTOP_MENU_COUNT =
+  "text-[clamp(0.75rem,0.3vw+0.55rem,0.875rem)]";
+const DESKTOP_MENU_TITLE =
+  "text-[clamp(1.125rem,0.8vw+0.75rem,1.375rem)]";
+const DESKTOP_MENU_SUBTITLE =
+  "text-[clamp(0.8125rem,0.35vw+0.65rem,0.95rem)]";
+
 function desktopRowClass(selected: boolean): string {
   return [
-    "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[13px] font-normal text-neutral-900 transition-colors",
+    "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-left font-normal text-neutral-900 transition-colors",
+    DESKTOP_MENU_TEXT,
     "hover:bg-neutral-100/80 active:bg-neutral-100",
     selected ? "bg-neutral-100 font-medium" : "",
   ].join(" ");
@@ -247,7 +258,9 @@ export function CategoryFlyoutMenu({
 
     return (
       <>
-        <p className="mb-1 truncate px-2 text-[11px] font-medium text-neutral-400">
+        <p
+          className={`mb-1.5 truncate px-2.5 font-medium text-neutral-400 ${DESKTOP_MENU_SUBTITLE}`}
+        >
           {columnTitle}
         </p>
         <button
@@ -276,12 +289,16 @@ export function CategoryFlyoutMenu({
                       {getSubcategoryLabel(item.id, locale)}
                     </span>
                     {count > 0 && (
-                      <span className="block text-[10px] text-neutral-400">{count}</span>
+                      <span
+                        className={`mt-0.5 block text-neutral-400 ${DESKTOP_MENU_COUNT}`}
+                      >
+                        {count}
+                      </span>
                     )}
                   </span>
                   {hasChildren && (
                     <ChevronRight
-                      className="h-3.5 w-3.5 shrink-0 text-neutral-300"
+                      className="h-4 w-4 shrink-0 text-neutral-300"
                       aria-hidden="true"
                     />
                   )}
@@ -296,25 +313,25 @@ export function CategoryFlyoutMenu({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-white"
+      className="fixed inset-0 z-[60] bg-white"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
     >
       <div className="flex h-full w-full flex-col bg-white">
-        <div className="flex shrink-0 items-center justify-between gap-3 px-4 pb-2.5 pt-[max(0.85rem,env(safe-area-inset-top))]">
+        <div className="flex shrink-0 items-center justify-between gap-3 px-4 pb-3 pt-[max(0.85rem,env(safe-area-inset-top))] sm:px-6">
           <div className="min-w-0">
             <p
               id={titleId}
               className={`truncate font-semibold tracking-tight text-neutral-950 ${
-                isTouch ? "text-[20px]" : "text-[15px]"
+                isTouch ? "text-[20px]" : DESKTOP_MENU_TITLE
               }`}
             >
               {isTouch ? mobileTitle : ui.menuTitle}
             </p>
             <p
               className={`truncate text-neutral-500 ${
-                isTouch ? "text-[14px]" : "text-[11px]"
+                isTouch ? "text-[14px]" : DESKTOP_MENU_SUBTITLE
               }`}
             >
               {isTouch ? mobileSubtitle : ui.menuSubtitle}
@@ -496,10 +513,10 @@ export function CategoryFlyoutMenu({
             className="grid min-h-0 flex-1 overflow-x-auto overflow-y-hidden bg-white"
             style={{
               gridTemplateColumns:
-                "minmax(9.5rem, 11.5rem) minmax(9rem, 11rem) minmax(9rem, 11rem) minmax(0, 1fr)",
+                "minmax(12rem, 15rem) minmax(11.5rem, 14rem) minmax(11.5rem, 14rem) minmax(0, 1fr)",
             }}
           >
-            <div className="min-h-0 overflow-y-auto px-2 py-1 custom-scrollbar">
+            <div className="min-h-0 overflow-y-auto px-2.5 py-1.5 custom-scrollbar">
               <button
                 type="button"
                 onClick={() => selectAndClose(ALL_CATEGORIES_ID)}
@@ -509,7 +526,7 @@ export function CategoryFlyoutMenu({
                 }}
                 className={desktopRowClass(selectedCategory === ALL_CATEGORIES_ID)}
               >
-                <Layers className="h-3.5 w-3.5 shrink-0 text-neutral-500" aria-hidden="true" />
+                <Layers className="h-5 w-5 shrink-0 text-neutral-500" aria-hidden="true" />
                 <span className="flex-1">{ui.hubAll}</span>
               </button>
 
@@ -535,7 +552,7 @@ export function CategoryFlyoutMenu({
                           className={desktopRowClass(selected || previewed)}
                         >
                           <Icon
-                            className="h-3.5 w-3.5 shrink-0 text-neutral-500"
+                            className="h-5 w-5 shrink-0 text-neutral-500"
                             aria-hidden="true"
                           />
                           <span className="min-w-0 flex-1">
@@ -543,14 +560,16 @@ export function CategoryFlyoutMenu({
                               {getDepartmentLabel(category.id, locale)}
                             </span>
                             {count > 0 && (
-                              <span className="block text-[10px] text-neutral-400">
+                              <span
+                                className={`mt-0.5 block text-neutral-400 ${DESKTOP_MENU_COUNT}`}
+                              >
                                 {count}
                               </span>
                             )}
                           </span>
                           {hasSubs && (
                             <ChevronRight
-                              className="h-3.5 w-3.5 shrink-0 text-neutral-300"
+                              className="h-4 w-4 shrink-0 text-neutral-300"
                               aria-hidden="true"
                             />
                           )}
@@ -562,7 +581,7 @@ export function CategoryFlyoutMenu({
               </nav>
             </div>
 
-            <div className="min-h-0 overflow-y-auto px-2 py-1 custom-scrollbar">
+            <div className="min-h-0 overflow-y-auto px-2.5 py-1.5 custom-scrollbar">
               {col2
                 ? renderDesktopColumnItems(
                     col2,
@@ -573,7 +592,7 @@ export function CategoryFlyoutMenu({
                 : null}
             </div>
 
-            <div className="min-h-0 overflow-y-auto px-2 py-1 custom-scrollbar">
+            <div className="min-h-0 overflow-y-auto px-2.5 py-1.5 custom-scrollbar">
               {col3
                 ? renderDesktopColumnItems(col3, () => {}, onCol3Activate, null)
                 : null}
