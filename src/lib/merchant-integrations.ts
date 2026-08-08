@@ -192,6 +192,11 @@ export function getFeedsForMerchant(merchantId: string): FeedConfig[] {
 }
 
 export function resolveFeedRemoteUrl(feed: FeedConfig): string | undefined {
+  // Playwright e2e: use checked-in sample feeds only (skip huge remote evoMAG pulls).
+  if (process.env.FORCE_SAMPLE_FEEDS === "1") {
+    return undefined;
+  }
+
   const primary = process.env[feed.envVar]?.trim();
   if (primary) return primary;
 

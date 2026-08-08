@@ -12,6 +12,7 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? "github" : "list",
+  timeout: 60_000,
   use: {
     ...devices["Desktop Chrome"],
     baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://127.0.0.1:3000",
@@ -35,6 +36,8 @@ export default defineConfig({
       INTERNAL_API_SECRET: E2E_INTERNAL_SECRET,
       // Ensure CI `next start` (NODE_ENV=production) without Vercel KV stays usable.
       RATE_LIMIT_FAIL_OPEN: "1",
+      // Avoid 120s evoMAG remote pulls during smoke — use checked-in sample feeds.
+      FORCE_SAMPLE_FEEDS: "1",
     },
   },
 });

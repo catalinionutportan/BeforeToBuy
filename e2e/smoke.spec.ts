@@ -27,6 +27,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
   });
 
   test("homepage loads with beta banner and product grid", async ({ page }) => {
+    test.setTimeout(90_000);
     await page.goto("/");
     await dismissCookieBannerIfPresent(page);
     await expect(page.getByText(/Beta\s*\/?\s*Demo/i).first()).toBeVisible();
@@ -35,7 +36,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
     await expect(page.getByRole("button", { name: /^Menu$/i })).toBeVisible();
     await selectRomaniaMarket(page);
-    await expect(page.locator("article").first()).toBeVisible({ timeout: 45_000 });
+    await expect(page.locator("article").first()).toBeVisible({ timeout: 60_000 });
     await expect(page.getByRole("link", { name: "admin@portanx.com" })).toHaveAttribute(
       "href",
       "mailto:admin@portanx.com"
