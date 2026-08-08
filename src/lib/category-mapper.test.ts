@@ -309,4 +309,21 @@ describe('Category Mapper Functions', () => {
     expect(phone.categoryId).toBe("mobile-smartphones");
     expect(phone.method).toBe("merchant-exact");
   });
+
+  it("evoMAG skips keyword invention when aisle is unknown", () => {
+    const robot = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-evomag",
+      merchantCategory: "Mystery aisle xyz",
+      title: "Aspirator Robot Xiaomi Wi-Fi",
+      description: "controleaza de pe smartphone",
+    });
+    expect(robot.categoryId).toBe(UNMAPPED_CATEGORY_ID);
+
+    const husa = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-evomag",
+      merchantCategory: "Telefoane, Tablete & Accesorii",
+      title: "Husa Book Cover OEM pentru Samsung Galaxy A5 (2017)",
+    });
+    expect(husa.categoryId).toBe("mobile-accessories");
+  });
 });

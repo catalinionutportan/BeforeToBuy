@@ -222,7 +222,12 @@ const LEGACY_SHOPPING_CATEGORIES: ShoppingCategory[] = [
     icon: Smartphone,
     description: "Mobile phones, tablets, smartwatches (phones), and mobile accessories.",
     subcategories: [
-      { id: "mobile-smartphones", label: "Smartphones", searchKeywords: ["iphone", "samsung galaxy", "smartphone", "pixel", "xiaomi"] },
+      {
+        id: "mobile-smartphones",
+        label: "Smartphones",
+        // Keep brand-only tokens out — "xiaomi" / "pixel" match printers & cameras.
+        searchKeywords: ["iphone", "samsung galaxy", "smartphone", "telefon mobil"],
+      },
       { id: "mobile-tablets", label: "Tablets", searchKeywords: ["ipad", "galaxy tab", "tablet"] },
       { id: "mobile-accessories", label: "Cases & Chargers", searchKeywords: ["phone case", "charger", "power bank", "screen protector"] },
       { id: "mobile-smartwatch-phone", label: "Smartwatch (Mobile)", searchKeywords: ["apple watch", "galaxy watch", "fitbit"] },

@@ -423,16 +423,25 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "acumulatori externi": "mobile-accessories",
       "suport auto pentru telefon, universal sau popsocket": "mobile-accessories",
       telefoane: "mobile-smartphones",
+      "telefoane seniori": "mobile-smartphones",
       tablete: "mobile-tablets",
       "extendere wi-fi": "networking-routers",
       "adaptoare wireless": "networking-routers",
       "camere supraveghere video pentru interior": "smart-home-security",
       "senzori si detectoare": "smart-home-security",
+      "network video recorder (nvr)": "smart-home-security",
       "tablete grafice": "peripherals-accessories",
       "sisteme etichetare": "office-printers",
       "licente digitale": "software-os",
       "boxe pc pentru gaming si muzica": "audio-speakers",
       "casti alergare/sport - wireless si cu fir": "audio-headphones",
+      "aspiratoare robot": "cleaning-robots",
+      "selfie stick": "mobile-accessories",
+      "navigatie gps": "mobile-navigation-radio",
+      "imprimante foto": "photo-compact",
+      "telefoane voip": "office-tech",
+      "stylus pen": "mobile-accessories",
+      "statii incarcare electrice": "diy-electrical",
       "monitoare led": "notebooks-monitors",
       "accesorii monitoare": "notebooks-monitors",
       "laptopuri / notebook": "notebooks-laptops",
@@ -537,12 +546,19 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "recipiente pentru calatorie": "baby-monitoring-feeding",
     }),
     patterns: [
-      // Title-only patterns (mapper ignores description). Keep phone rules strict —
-      // bare "galaxy" / "smartphone" in accessory titles causes aisle chaos.
-      { patterns: /\b(laptop|notebook|macbook)\b/i, subcategoryId: "notebooks-laptops" },
+      // Order matters: accessories / networking before phone model names.
       {
         patterns:
-          /\b((smart\s*)?telefon\s+mobil|smartphone|iphone\s*\d|samsung\s+galaxy\s*[a-z]?\s*\d)/i,
+          /\b(husa|folie\s+protectie|book\s*cover|carcasa|capac\s+spate|powerbank|incarcator\s+(telefon|usb|wireless)|selfie\s+stick|stylus)\b/i,
+        subcategoryId: "mobile-accessories",
+      },
+      { patterns: /\b(range\s+extender|wifi\s+extender|extender\s+wireless)\b/i, subcategoryId: "networking-routers" },
+      { patterns: /\b(router\s+wireless|router\s+wifi|mesh\s+wifi)\b/i, subcategoryId: "networking-routers" },
+      { patterns: /\b(laptop|notebook|macbook)\b/i, subcategoryId: "notebooks-laptops" },
+      {
+        // Handset titles only. No bare "smartphone" (matches "smartphone app" on robots).
+        patterns:
+          /\b((smart\s*)?telefon\s+mobil|iphone\s*\d{1,2}|samsung\s+galaxy\s+(a|s|z|m|f|xcover|note)\s*\d{1,2})\b/i,
         subcategoryId: "mobile-smartphones",
       },
       { patterns: /\b(monitor\s+led|monitor\s+lcd|ultrawide)\b/i, subcategoryId: "notebooks-monitors" },
@@ -550,12 +566,6 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       { patterns: /\b(playstation|xbox\s*series|nintendo\s+switch)\b/i, subcategoryId: "gaming-consoles" },
       { patterns: /\b(trotinet[aă]|hoverboard|biciclet[aă]\s+electric)\b/i, subcategoryId: "mobility-escooters" },
       { patterns: /\b(aer\s+conditionat|aparat\s+aer\s+condiționat)\b/i, subcategoryId: "climate-cooling" },
-      {
-        patterns: /\b(husa?\s+telefon|folie\s+protectie|powerbank|incarcator\s+(telefon|usb|wireless))\b/i,
-        subcategoryId: "mobile-accessories",
-      },
-      { patterns: /\b(range\s+extender|wifi\s+extender|extender\s+wireless)\b/i, subcategoryId: "networking-routers" },
-      { patterns: /\b(router\s+wireless|router\s+wifi|mesh\s+wifi)\b/i, subcategoryId: "networking-routers" },
     ],
   },
 };

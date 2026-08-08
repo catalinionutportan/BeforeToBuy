@@ -34,7 +34,7 @@ function memoryCacheKey(feed: FeedConfig): string {
 function redisCacheKey(feed: FeedConfig): string {
   // Bump when mapping/parser changes so Redis does not serve stale category ids.
   const slice = feed.feedKey ? `:${feed.feedKey}` : "";
-  return `feed:v9:${feed.merchantId}${slice}:${feed.country}`;
+  return `feed:v10:${feed.merchantId}${slice}:${feed.country}`;
 }
 
 /** Soft cap for huge catalogues (evoMAG ~100k) so Vercel serverless can finish. */
