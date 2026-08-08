@@ -1,19 +1,6 @@
 import { Product, Offer, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 
-interface AmazonOffer {
-  // Define the structure of an offer from Amazon PA-API
-  // This will depend on the actual API response
-  // For now, it's a placeholder
-  id: string;
-  title: string;
-  price: number;
-  currency: string;
-  inStock: boolean;
-  url: string;
-  // Add other relevant fields from Amazon API
-}
-
 // This function will eventually call the Amazon PA-API
 // For now, it will return mock data based on existing product info
 export async function fetchAmazonOffers(product: Product, userLocation: UserLocation): Promise<Offer[]> {

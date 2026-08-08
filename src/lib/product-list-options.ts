@@ -2,6 +2,15 @@
 export const DEFAULT_PRODUCT_LIST_LIMIT = 96;
 export const MAX_PRODUCT_LIST_LIMIT = 480;
 export const HOME_SSR_PRODUCT_LIMIT = 48;
+/** SEO category / compare pages — keep HTML payloads small; meta.totalMatched stays full. */
+export const CATEGORY_PAGE_PRODUCT_LIMIT = 96;
+/** Product URLs included in sitemap.xml (counts still come from full matched set). */
+export const SITEMAP_PRODUCT_LIMIT = 200;
+
+export const BROWSE_LIST_OPTIONS = {
+  compact: true,
+  includePriceHistory: false,
+} as const;
 
 export type ProductListOptions = {
   /** Max products in the response body. Omit for uncapped (sitemap counts / product lookup). */

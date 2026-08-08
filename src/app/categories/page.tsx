@@ -21,6 +21,10 @@ import { createPageMetadata } from "@/lib/metadata";
 import { COUNTRIES } from "@/lib/countries";
 import { fetchCatalogForCountry } from "@/lib/category-page-data";
 import { getRequestMarketCountry } from "@/lib/request-market";
+import {
+  BROWSE_LIST_OPTIONS,
+  CATEGORY_PAGE_PRODUCT_LIMIT,
+} from "@/lib/product-list-options";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 
 export const dynamic = "force-dynamic";
@@ -41,13 +45,17 @@ export default async function CategoriesPage() {
   const country = COUNTRIES[countryCode];
   const locale = localeFromCountry(countryCode);
   const homeUi = HOME_UI[locale];
-  const catalog = await fetchCatalogForCountry(countryCode);
+  const catalog = await fetchCatalogForCountry(countryCode, undefined, {
+    ...BROWSE_LIST_OPTIONS,
+    limit: CATEGORY_PAGE_PRODUCT_LIMIT,
+  });
   const visibleCategories = SHOPPING_CATEGORIES.filter(
     (category) => (catalog.meta.categoryCounts[category.id] ?? 0) > 0
   );
   const visibleCollections = COMPARISON_COLLECTION_FILTERS.filter(
     (collection) => (catalog.meta.collectionCounts?.[collection.id] ?? 0) > 0
   );
+  const comparedCount = catalog.meta.totalMatched ?? catalog.products.length;
 
   return (
     <PageShell maxWidthClass="max-w-7xl">
@@ -66,10 +74,10 @@ export default async function CategoriesPage() {
           <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
             {homeUi.categoriesDescription}
           </p>
-          {catalog.products.length > 0 ? (
+          {comparedCount > 0 ? (
             <p className="text-xs text-slate-500">
               {formatUi(homeUi.productsComparedIn, {
-                count: catalog.products.length,
+                count: comparedCount,
                 countryName: country.name,
               })}
             </p>

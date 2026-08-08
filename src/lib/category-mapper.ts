@@ -242,9 +242,35 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     };
   }
 
-  // evoMAG already ships aisle names. If exact/pattern missed them, leave
-  // unmapped — keyword inference invents phones from "xiaomi" / "wifi" noise.
+  // evoMAG ships aisle names. Prefer category-only keywords/patterns — never title
+  // brand inference here ("xiaomi" / "wifi" marketing copy invents phones).
   if (merchantId === "ro-evomag" && merchantCategory?.trim()) {
+    const categoryOnly = normalizeText([merchantCategory]);
+    const fromCategoryKeywords = inferFromKeywords(categoryOnly);
+    if (fromCategoryKeywords) {
+      const keywordMapped = finalize({
+        categoryId: fromCategoryKeywords.subcategoryId,
+        method: "keyword",
+        confidence: Math.min(
+          MAPPING_CONFIDENCE.keywordMax,
+          MAPPING_CONFIDENCE.keywordBase +
+            fromCategoryKeywords.score * MAPPING_CONFIDENCE.keywordStep
+        ),
+        rawCategory: merchantCategory,
+      });
+      if (keywordMapped.categoryId !== UNMAPPED_CATEGORY_ID) {
+        return keywordMapped;
+      }
+    }
+    const globalOnCategoryOnly = getGlobalPatternMatch(categoryOnly);
+    if (globalOnCategoryOnly) {
+      return finalize({
+        categoryId: globalOnCategoryOnly,
+        method: "combined-rule",
+        confidence: MAPPING_CONFIDENCE.combinedPattern,
+        rawCategory: merchantCategory,
+      });
+    }
     return {
       categoryId: UNMAPPED_CATEGORY_ID,
       method: "unmapped",

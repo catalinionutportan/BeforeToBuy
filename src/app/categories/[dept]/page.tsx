@@ -15,10 +15,19 @@ import { getDepartmentLabel, getSubcategoryLabel, localeFromCountry } from "@/li
 import { getCategoryById } from "@/lib/categories";
 import { COUNTRIES } from "@/lib/countries";
 import { getRequestMarketCountry } from "@/lib/request-market";
+import {
+  BROWSE_LIST_OPTIONS,
+  CATEGORY_PAGE_PRODUCT_LIMIT,
+} from "@/lib/product-list-options";
 import { ChevronRight } from "lucide-react";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_LIST = {
+  ...BROWSE_LIST_OPTIONS,
+  limit: CATEGORY_PAGE_PRODUCT_LIMIT,
+} as const;
 
 interface DepartmentPageProps {
   params: Promise<{ dept: string }>;
@@ -41,7 +50,7 @@ export async function generateMetadata({ params }: DepartmentPageProps): Promise
   }
 
   const label = getDepartmentLabel(route.deptId, locale);
-  const catalog = await fetchCatalogForCountry(countryCode, route.deptId);
+  const catalog = await fetchCatalogForCountry(countryCode, route.deptId, PAGE_LIST);
 
   return createCategoryMetadata({
     title: formatUi(homeUi.categoryPriceComparisonMetaTitle, { label }),
@@ -49,7 +58,7 @@ export async function generateMetadata({ params }: DepartmentPageProps): Promise
       label: label.toLowerCase(),
     }),
     path: `/categories/${dept}`,
-    index: catalog.products.length > 0,
+    index: (catalog.meta.totalMatched ?? catalog.products.length) > 0,
   });
 }
 
@@ -68,7 +77,7 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
   const country = COUNTRIES[countryCode];
   const locale = localeFromCountry(countryCode);
   const homeUi = HOME_UI[locale];
-  const catalog = await fetchCatalogForCountry(countryCode, route.deptId);
+  const catalog = await fetchCatalogForCountry(countryCode, route.deptId, PAGE_LIST);
   const visibleSubs = category.subcategories.filter(
     (sub) => (catalog.meta.categoryCounts[sub.id] ?? 0) > 0
   );
@@ -90,10 +99,10 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
             {departmentLabel}
           </h1>
           <p className="max-w-3xl text-sm leading-relaxed text-slate-600">{category.description}</p>
-          {catalog.products.length > 0 ? (
+          {(catalog.meta.totalMatched ?? catalog.products.length) > 0 ? (
             <p className="text-xs text-slate-500">
               {formatUi(homeUi.productsComparedIn, {
-                count: catalog.products.length,
+                count: catalog.meta.totalMatched ?? catalog.products.length,
                 countryName: country.name,
               })}
             </p>

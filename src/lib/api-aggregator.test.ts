@@ -63,7 +63,7 @@ describe("API Aggregator", () => {
       id: "test-product",
       basePrice: 100,
       targetCountries: ["DE"],
-    } as any;
+    } as Parameters<typeof generateOffersForLocation>[0];
     const mockUserLocation: UserLocation = {
       latitude: 52.52,
       longitude: 13.405,
@@ -83,7 +83,7 @@ describe("API Aggregator", () => {
       id: "test-product",
       basePrice: 100,
       targetCountries: ["DE"],
-    } as any;
+    } as Parameters<typeof generateOffersForLocation>[0];
     const mockUserLocation: UserLocation = {
       latitude: 52.52,
       longitude: 13.405,

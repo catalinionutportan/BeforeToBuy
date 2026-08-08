@@ -38,11 +38,22 @@ describe("getRequestMarketCountry", () => {
     await expect(getRequestMarketCountry()).resolves.toBe("RO");
   });
 
-  it("falls back to default country when cookie and geo are absent", async () => {
+  it("falls back to primary live browse country when cookie and geo are absent", async () => {
     cookiesMock.mockResolvedValue({ get: () => undefined });
     headersMock.mockResolvedValue({ get: () => null });
 
     const { getRequestMarketCountry } = await import("@/lib/request-market");
-    await expect(getRequestMarketCountry()).resolves.toBe("CH");
+    // CH feeds are disabled — primary live market is RO.
+    await expect(getRequestMarketCountry()).resolves.toBe("RO");
+  });
+
+  it("ignores geo for markets without live feeds", async () => {
+    cookiesMock.mockResolvedValue({ get: () => undefined });
+    headersMock.mockResolvedValue({
+      get: (name: string) => (name === "x-vercel-ip-country" ? "CH" : null),
+    });
+
+    const { getRequestMarketCountry } = await import("@/lib/request-market");
+    await expect(getRequestMarketCountry()).resolves.toBe("RO");
   });
 });

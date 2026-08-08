@@ -1,23 +1,24 @@
 import HomePageClient from "@/components/home/HomePageClient";
 import { fetchCatalogForCountry } from "@/lib/category-page-data";
-import { HOME_SSR_PRODUCT_LIMIT } from "@/lib/product-list-options";
+import { BROWSE_LIST_OPTIONS, HOME_SSR_PRODUCT_LIMIT } from "@/lib/product-list-options";
 import { getRequestMarketCountry } from "@/lib/request-market";
 import type { ProductFetchMeta } from "@/lib/product-service";
 import type { Product } from "@/types";
 
 export default async function Home() {
+  // Resolve market outside the catalog try/catch so Next.js dynamic-cookie
+  // signals are not misreported as a product fetch failure during build.
+  const marketCountry = await getRequestMarketCountry();
+
   let initialProducts: Product[] = [];
   let initialMeta: ProductFetchMeta | null = null;
   let initialFetchFailed = false;
 
   try {
-    // Cookie / live-geo / primary live market (RO) — never force empty CH on new visitors.
-    const marketCountry = await getRequestMarketCountry();
     const catalog = await fetchCatalogForCountry(marketCountry, undefined, {
+      ...BROWSE_LIST_OPTIONS,
       limit: HOME_SSR_PRODUCT_LIMIT,
       offset: 0,
-      compact: true,
-      includePriceHistory: false,
     });
     initialProducts = catalog.products;
     initialMeta = catalog.meta;

@@ -6,15 +6,20 @@ import { DatadogRum } from "@/components/DatadogRum";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteJsonLd } from "@/components/SiteJsonLd";
 import { defaultOpenGraph } from "@/lib/metadata";
-import { DEFAULT_LOCALE, type SiteLocale } from "@/lib/i18n/locales";
+import { type SiteLocale } from "@/lib/i18n/locales";
 import { ClientLocalizationProvider } from "@/components/ClientLocalizationProvider";
 import { ScrollToTopOnNavigate } from "@/components/ScrollToTopOnNavigate";
 import { HOME_UI } from "@/lib/i18n/ui";
+import { localeFromCountry } from "@/lib/category-i18n";
+import { getRequestMarketCountry } from "@/lib/request-market";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const locale: SiteLocale = DEFAULT_LOCALE;
+  const marketCountry = await getRequestMarketCountry();
+  const locale: SiteLocale = localeFromCountry(marketCountry);
   const ui = HOME_UI[locale];
   const keywords = ui.metaKeywords.split(", ");
+  const ogLocale =
+    locale === "en" ? "en_US" : `${locale}_${locale.toUpperCase()}`;
 
   return {
     title: ui.metaTitle,
@@ -26,6 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
       ...defaultOpenGraph,
       title: ui.metaTitle,
       description: ui.metaDescription,
+      locale: ogLocale,
     },
     twitter: {
       card: "summary_large_image",
@@ -35,12 +41,13 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale: SiteLocale = DEFAULT_LOCALE;
+  const marketCountry = await getRequestMarketCountry();
+  const locale: SiteLocale = localeFromCountry(marketCountry);
 
   return (
     <html lang={locale}>

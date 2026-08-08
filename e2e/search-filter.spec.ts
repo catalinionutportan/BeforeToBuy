@@ -33,9 +33,7 @@ test.describe("Search and Filter E2E tests", () => {
     await expect(page).toHaveURL(/category=electronics/);
     await expect(page.locator("article").first()).toBeVisible();
 
-    const productCategories = await page.locator("article p.text-xs").allTextContents(); // Assuming category is in description
-    // This assertion might need to be more specific depending on how category is displayed
-    // For now, we'll just check if products are visible after filtering.
+    // Category chips filter client-side; presence of products is enough for smoke.
   });
 
   test("should filter products by merchant domain", async ({ page }) => {
@@ -53,9 +51,6 @@ test.describe("Search and Filter E2E tests", () => {
 
     await expect(page).toHaveURL(/domain=brack.ch/);
     await expect(page.locator("article").first()).toBeVisible();
-    const merchantNames = await page.locator("article span.bg-blue-100").allTextContents(); // Assuming merchant name is within this span
-    // This assertion needs to be more robust, checking the actual store names
-    // For now, we'll check if products are visible and the URL is correct.
   });
 
   test("should combine search and category filter", async ({ page }) => {

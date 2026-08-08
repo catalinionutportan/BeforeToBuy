@@ -3,7 +3,7 @@ import { DEFAULT_LOCALE, SITE_LOCALES, type SiteLocale } from "./i18n/locales";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.beforetobuy.com";
 
-function buildAlternates(path: string, currentLocale: SiteLocale) {
+function buildAlternates(path: string, _currentLocale: SiteLocale) {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   const canonical = `${SITE_URL}${normalized === "/" ? "" : normalized}` || SITE_URL;
 

@@ -44,8 +44,8 @@ describe('Locale Utility Functions', () => {
     expect(isSiteLocale('EN')).toBe(false);
     expect(isSiteLocale('  en  ')).toBe(false);
     expect(isSiteLocale('invalid')).toBe(false);
-    expect(isSiteLocale(null as any)).toBe(false);
-    expect(isSiteLocale(undefined as any)).toBe(false);
+    expect(isSiteLocale(null)).toBe(false);
+    expect(isSiteLocale(undefined)).toBe(false);
   });
 
   it('defaultLocaleFromCountry maps shopping country defaults', () => {
@@ -53,7 +53,7 @@ describe('Locale Utility Functions', () => {
     expect(defaultLocaleFromCountry('FR')).toBe('fr');
     expect(defaultLocaleFromCountry('RO')).toBe('ro');
     expect(defaultLocaleFromCountry('US')).toBe('en');
-    expect(defaultLocaleFromCountry('XX' as any)).toBe('en');
+    expect(defaultLocaleFromCountry('XX' as unknown as 'CH')).toBe('en');
   });
 
   it('offers all UI languages for every shopping country', () => {
@@ -71,7 +71,7 @@ describe('Locale Utility Functions', () => {
     expect(pickLocaleString({}, 'de', 'fallback')).toBe('fallback');
     expect(pickLocaleString({ de: 'Computer' }, 'fr', 'fallback')).toBe('fallback');
     expect(pickLocaleString(translations, 'de', '')).toBe('Computer');
-    expect(pickLocaleString(translations, 'fr', undefined as any)).toBe('Computers');
+    expect(pickLocaleString(translations, 'fr', '')).toBe('Computers');
   });
 
   it('locale preference functions operate correctly', () => {

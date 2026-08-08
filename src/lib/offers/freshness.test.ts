@@ -14,10 +14,10 @@ describe('Offer Freshness Utilities', () => {
   it("getFreshestOfferTimestamp ignores demo offers", () => {
     expect(
       getFreshestOfferTimestamp([
-        { source: "demo", fetchedAt: "2026-08-05T11:00:00.000Z" } as any,
-        { source: "sample", fetchedAt: "2026-08-05T10:00:00.000Z" } as any,
-        { source: "sample", fetchedAt: "2026-08-05T11:30:00.000Z" } as any,
-      ]),
+        { source: "demo", fetchedAt: "2026-08-05T11:00:00.000Z" },
+        { source: "sample", fetchedAt: "2026-08-05T10:00:00.000Z" },
+        { source: "sample", fetchedAt: "2026-08-05T11:30:00.000Z" },
+      ] as Parameters<typeof getFreshestOfferTimestamp>[0]),
     ).toBe("2026-08-05T11:30:00.000Z");
   });
 });

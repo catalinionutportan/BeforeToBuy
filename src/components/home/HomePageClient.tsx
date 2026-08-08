@@ -10,11 +10,17 @@ import type { ProductFetchMeta } from "@/lib/product-service";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { Header } from "@/components/Header";
 import { CategoryFlyoutMenu } from "@/components/CategoryFlyoutMenu";
+import { MarketHubTabs } from "@/components/MarketHubTabs";
+import { OfferFilters } from "@/components/OfferFilters";
 import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
 import { isActiveCollectionSelection } from "@/components/CollectionNavigation";
 import { ALL_CATEGORIES_ID, productMatchesCategoryFilter } from "@/lib/categories";
-import { defaultMarketHubForCountry } from "@/lib/market-hubs";
+import {
+  defaultMarketHubForCountry,
+  MARKET_HUB_LEAF_GROUPS,
+  MARKET_HUB_TABS,
+} from "@/lib/market-hubs";
 import {
   CATEGORY_UI,
   formatCategoryUi,
@@ -89,10 +95,32 @@ export default function HomePageClient({
   const categoryUi = CATEGORY_UI[browseLocale];
   const homeUi = HOME_UI[browseLocale];
   const crossBorderCollectionActive = selectedCategory === "compare-cross-border";
-  const activeOfferFilters: OfferFilterCriteria = {
-    ...offerFilters,
-    domain: selectedDomain,
-  };
+  const activeOfferFilters = useMemo<OfferFilterCriteria>(
+    () => ({
+      ...offerFilters,
+      domain: selectedDomain,
+    }),
+    [offerFilters, selectedDomain]
+  );
+
+  const brandOptions = useMemo(() => {
+    const brands = new Set<string>();
+    for (const product of products) {
+      const brand = product.brand?.trim();
+      if (brand) brands.add(brand);
+    }
+    return Array.from(brands).sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
+  const hubCounts = useMemo(() => {
+    const leafCounts = catalogMeta?.categoryCounts ?? {};
+    const counts: Record<string, number> = {};
+    for (const hub of MARKET_HUB_TABS) {
+      const leaves = MARKET_HUB_LEAF_GROUPS[hub.id] ?? [];
+      counts[hub.id] = leaves.reduce((sum, leafId) => sum + (leafCounts[leafId] ?? 0), 0);
+    }
+    return counts;
+  }, [catalogMeta?.categoryCounts]);
 
   // Read shareable browse state and respond to browser back/forward navigation.
   useEffect(() => {
@@ -318,6 +346,27 @@ export default function HomePageClient({
     [syncBrowseUrl, selectedDomain, offerFilters]
   );
 
+  const handleOfferFiltersChange = useCallback(
+    (next: OfferFilterCriteria) => {
+      const { domain, ...rest } = next;
+      const nextDomain = domain === undefined ? selectedDomain : domain || "all";
+      if (nextDomain !== selectedDomain) {
+        setSelectedDomain(nextDomain);
+      }
+      setOfferFilters(rest);
+      syncBrowseUrl(selectedCategory, nextDomain, rest);
+    },
+    [selectedCategory, selectedDomain, syncBrowseUrl]
+  );
+
+  const handleDomainChange = useCallback(
+    (domain: string) => {
+      setSelectedDomain(domain);
+      syncBrowseUrl(selectedCategory, domain, offerFilters);
+    },
+    [selectedCategory, offerFilters, syncBrowseUrl]
+  );
+
   const resetAllFilters = useCallback(() => {
     const defaultHub = defaultMarketHubForCountry(userLocation.countryCode);
     setSearchInput("");
@@ -428,6 +477,17 @@ export default function HomePageClient({
         onLocaleChange={setBrowseLocale}
         availableLocales={availableLocales}
         onOpenCategoryMenu={() => setIsCategoryMenuOpen(true)}
+        selectedDomain={selectedDomain}
+        onDomainChange={handleDomainChange}
+      />
+
+      <MarketHubTabs
+        selectedHub={selectedCategory}
+        onHubChange={handleCategoryChange}
+        locale={browseLocale}
+        hubCounts={hubCounts}
+        allCount={catalogMeta?.totalMatched}
+        countryCode={userLocation.countryCode}
       />
 
       <CategoryFlyoutMenu
@@ -450,6 +510,32 @@ export default function HomePageClient({
             <p className="text-[11px] text-slate-500">
               {homeUi.shortPitch2} {homeUi.shortPitch3}
             </p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="inline-flex max-w-full items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">
+              <span className="text-slate-500">{homeUi.storeDomainLabel}</span>
+              <select
+                aria-label={homeUi.storeDomainLabel}
+                value={selectedDomain}
+                onChange={(event) => handleDomainChange(event.target.value)}
+                className="max-w-[12rem] min-w-0 bg-transparent text-[11px] font-bold text-slate-800 outline-none"
+              >
+                <option value="all">{homeUi.allStores}</option>
+                {currentCountryInfo.merchantDomains.map((merchant) => (
+                  <option key={merchant.id} value={merchant.domain}>
+                    {merchant.domain}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <OfferFilters
+              criteria={activeOfferFilters}
+              brandOptions={brandOptions}
+              currencySymbol={currentCountryInfo.currencySymbol}
+              locale={browseLocale}
+              onChange={handleOfferFiltersChange}
+            />
           </div>
 
           {errorMessage && !isLoadingProducts && (

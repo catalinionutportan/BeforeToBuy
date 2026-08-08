@@ -98,6 +98,11 @@ export async function GET(request: Request) {
   const startedAt = Date.now();
   const integrations = getIntegrationSummary();
 
+  const enabledFeedCount = getEnabledMerchantFeeds().length;
+  const liveMerchantCount = integrations.feedMerchantIds?.length
+    ?? integrations.productionMerchantIds?.length
+    ?? enabledFeedCount;
+
   // Public health must stay cheap for smoke/monitoring — skip full catalog merge.
   // Internal callers still run the expensive productsMerge probe.
   const [sampleFeed, productsMerge, priceHistoryStats] = await Promise.all([
@@ -105,14 +110,17 @@ export async function GET(request: Request) {
     authorized
       ? checkProductsMerge()
       : Promise.resolve({
-          status: (integrations.hasProductionFeed && getEnabledMerchantFeeds().length > 0
+          status: (integrations.hasProductionFeed && enabledFeedCount > 0
             ? "ok"
             : "error") as "ok" | "error",
-          productCount: 0,
+          // Public callers should not see a misleading zero productCount.
+          productCount: liveMerchantCount,
           productionOfferCount: 0,
           sampleOfferCount: 0,
           probedCountry: undefined as string | undefined,
           skippedFullMerge: true,
+          enabledFeedCount,
+          liveMerchantCount,
         }),
     getPriceHistoryStats().catch(() => ({
       trackedOffers: 0,
@@ -136,11 +144,17 @@ export async function GET(request: Request) {
     sampleFeed: { status: sampleFeed.status },
     productsMerge: {
       status: productsMerge.status,
+      // For public cheap checks this is enabled live-merchant count, not SKU count.
       productCount: productsMerge.productCount,
+      skippedFullMerge: "skippedFullMerge" in productsMerge ? productsMerge.skippedFullMerge : false,
+      enabledFeedCount:
+        "enabledFeedCount" in productsMerge ? productsMerge.enabledFeedCount : enabledFeedCount,
+      hasProductionFeed: integrations.hasProductionFeed,
     },
     integrations: {
       status: integrations.hasProductionFeed ? ("ok" as const) : ("warn" as const),
       hasProductionFeed: integrations.hasProductionFeed,
+      enabledFeedCount,
     },
     priceHistory: {
       status: priceHistoryStats.totalPoints > 0 ? ("ok" as const) : ("warn" as const),

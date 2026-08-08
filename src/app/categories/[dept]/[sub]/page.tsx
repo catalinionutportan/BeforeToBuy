@@ -19,9 +19,18 @@ import {
 import { getCategoryById, getSubcategoryById } from "@/lib/categories";
 import { COUNTRIES } from "@/lib/countries";
 import { getRequestMarketCountry } from "@/lib/request-market";
+import {
+  BROWSE_LIST_OPTIONS,
+  CATEGORY_PAGE_PRODUCT_LIMIT,
+} from "@/lib/product-list-options";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_LIST = {
+  ...BROWSE_LIST_OPTIONS,
+  limit: CATEGORY_PAGE_PRODUCT_LIMIT,
+} as const;
 
 interface SubcategoryPageProps {
   params: Promise<{ dept: string; sub: string }>;
@@ -44,7 +53,7 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
   }
 
   const label = getSubcategoryLabel(route.subId, locale);
-  const catalog = await fetchCatalogForCountry(countryCode, route.subId);
+  const catalog = await fetchCatalogForCountry(countryCode, route.subId, PAGE_LIST);
 
   return createCategoryMetadata({
     title: formatUi(homeUi.categoryPriceComparisonMetaTitle, { label }),
@@ -52,7 +61,7 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
       label: label.toLowerCase(),
     }),
     path: subcategoryCategoryPath(route.deptId, route.subId),
-    index: catalog.products.length > 0,
+    index: (catalog.meta.totalMatched ?? catalog.products.length) > 0,
   });
 }
 
@@ -72,7 +81,7 @@ export default async function SubcategoryCategoryPage({ params }: SubcategoryPag
   const country = COUNTRIES[countryCode];
   const locale = localeFromCountry(countryCode);
   const homeUi = HOME_UI[locale];
-  const catalog = await fetchCatalogForCountry(countryCode, route.subId);
+  const catalog = await fetchCatalogForCountry(countryCode, route.subId, PAGE_LIST);
   const departmentLabel = getDepartmentLabel(route.deptId, locale);
   const subcategoryLabel = getSubcategoryLabel(route.subId, locale);
 
@@ -95,10 +104,10 @@ export default async function SubcategoryCategoryPage({ params }: SubcategoryPag
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
             {subcategoryLabel}
           </h1>
-          {catalog.products.length > 0 ? (
+          {(catalog.meta.totalMatched ?? catalog.products.length) > 0 ? (
             <p className="text-xs text-slate-500">
               {formatUi(homeUi.productsComparedIn, {
-                count: catalog.products.length,
+                count: catalog.meta.totalMatched ?? catalog.products.length,
                 countryName: country.name,
               })}
             </p>

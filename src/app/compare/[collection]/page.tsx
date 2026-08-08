@@ -13,9 +13,18 @@ import { getCollectionLabel, localeFromCountry } from "@/lib/category-i18n";
 import { COMPARISON_COLLECTION_FILTERS } from "@/lib/categories";
 import { COUNTRIES } from "@/lib/countries";
 import { getRequestMarketCountry } from "@/lib/request-market";
+import {
+  BROWSE_LIST_OPTIONS,
+  CATEGORY_PAGE_PRODUCT_LIMIT,
+} from "@/lib/product-list-options";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_LIST = {
+  ...BROWSE_LIST_OPTIONS,
+  limit: CATEGORY_PAGE_PRODUCT_LIMIT,
+} as const;
 
 interface CollectionPageProps {
   params: Promise<{ collection: string }>;
@@ -38,7 +47,7 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
   }
 
   const label = getCollectionLabel(collectionId, locale);
-  const catalog = await fetchCatalogForCountry(countryCode, collectionId);
+  const catalog = await fetchCatalogForCountry(countryCode, collectionId, PAGE_LIST);
 
   return createCategoryMetadata({
     title: `${label} | BeforeToBuy.com`,
@@ -46,7 +55,7 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
       label: label.toLowerCase(),
     }),
     path: collectionBrowsePath(collectionId),
-    index: catalog.products.length > 0,
+    index: (catalog.meta.totalMatched ?? catalog.products.length) > 0,
   });
 }
 
@@ -66,7 +75,7 @@ export default async function ComparisonCollectionPage({ params }: CollectionPag
   const country = COUNTRIES[countryCode];
   const locale = localeFromCountry(countryCode);
   const homeUi = HOME_UI[locale];
-  const catalog = await fetchCatalogForCountry(countryCode, collectionId);
+  const catalog = await fetchCatalogForCountry(countryCode, collectionId, PAGE_LIST);
   const label = getCollectionLabel(collectionId, locale);
 
   return (
@@ -88,7 +97,7 @@ export default async function ComparisonCollectionPage({ params }: CollectionPag
           <p className="text-sm max-w-3xl leading-relaxed text-orange-900/90">{config.description}</p>
           <p className="text-[11px] font-bold uppercase tracking-wider text-orange-700">
             {formatUi(homeUi.productsComparedIn, {
-              count: catalog.products.length,
+              count: catalog.meta.totalMatched ?? catalog.products.length,
               countryName: country.name,
             })}
           </p>
