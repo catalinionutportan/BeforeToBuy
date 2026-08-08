@@ -242,18 +242,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     };
   }
 
-  // evoMAG already ships aisle names. If exact/pattern missed them, leave
-  // unmapped — keyword inference invents phones from "xiaomi" / "wifi" noise.
-  if (merchantId === "ro-evomag" && merchantCategory?.trim()) {
-    return {
-      categoryId: UNMAPPED_CATEGORY_ID,
-      method: "unmapped",
-      confidence: 0,
-      rawCategory: merchantCategory,
-    };
-  }
-
-  // Keywords also ignore descriptions (same smartphone-app false positives).
+  // Keywords also ignore descriptions (marketing copy false positives).
   const fromKeywords = inferFromKeywords(
     normalizeText([merchantCategory, title, brand]) || combined
   );

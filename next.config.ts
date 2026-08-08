@@ -26,11 +26,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdnmpro.com" },
       { protocol: "https", hostname: "www.rowenta.ro" },
       { protocol: "https", hostname: "rowenta.ro" },
-      // evoMAG CDN (product stills)
-      { protocol: "https", hostname: "static2.evomag.ro" },
-      { protocol: "https", hostname: "static.evomag.ro" },
-      { protocol: "https", hostname: "www.evomag.ro" },
-      { protocol: "https", hostname: "evomag.ro" },
     ],
   },
   async headers() {

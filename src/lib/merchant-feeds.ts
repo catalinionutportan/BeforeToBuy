@@ -34,49 +34,7 @@ function memoryCacheKey(feed: FeedConfig): string {
 function redisCacheKey(feed: FeedConfig): string {
   // Bump when mapping/parser changes so Redis does not serve stale category ids.
   const slice = feed.feedKey ? `:${feed.feedKey}` : "";
-  return `feed:v11:${feed.merchantId}${slice}:${feed.country}`;
-}
-
-/** Soft cap for huge catalogues (evoMAG ~100k) so Vercel serverless can finish. */
-function maxProductsForFeed(feed: FeedConfig): number | null {
-  if (feed.merchantId !== "ro-evomag") return null;
-  const raw = process.env.EVOMAG_MAX_PRODUCTS?.trim();
-  const parsed = raw ? Number.parseInt(raw, 10) : 4_000;
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 4_000;
-}
-
-/**
- * Keep aisle diversity under the soft cap — CSV head is networking-heavy, so a
- * naive slice(0, N) starves phones / appliances later in the file.
- */
-function diversifyProductCap(products: Product[], cap: number): Product[] {
-  if (products.length <= cap) return products;
-
-  const buckets = new Map<string, Product[]>();
-  for (const product of products) {
-    const key =
-      product.categoryAssignment?.rawCategory?.trim().toLowerCase() ||
-      product.category ||
-      "unknown";
-    const list = buckets.get(key);
-    if (list) list.push(product);
-    else buckets.set(key, [product]);
-  }
-
-  const queues = [...buckets.values()];
-  const selected: Product[] = [];
-  let progress = true;
-  while (selected.length < cap && progress) {
-    progress = false;
-    for (const queue of queues) {
-      if (selected.length >= cap) break;
-      const next = queue.shift();
-      if (!next) continue;
-      selected.push(next);
-      progress = true;
-    }
-  }
-  return selected;
+  return `feed:v12:${feed.merchantId}${slice}:${feed.country}`;
 }
 
 async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {
@@ -95,9 +53,8 @@ async function fetchRemoteFeed(
         ? "application/xml, text/xml, */*"
         : "text/csv, text/plain, */*";
 
-  // evoMAG CSV is large — long timeout, few retries (retries multiply wall time).
-  const timeoutMs = provider === "TWO_PERFORMANT" ? 120_000 : 15_000;
-  const retries = provider === "TWO_PERFORMANT" ? 1 : 2;
+  const timeoutMs = provider === "TWO_PERFORMANT" ? 30_000 : 15_000;
+  const retries = provider === "TWO_PERFORMANT" ? 2 : 2;
 
   const response = await fetchWithTimeout(
     url,
@@ -184,18 +141,8 @@ async function loadFeedForMerchant(
     source === "remote" ? "production-live" : "sample";
   const parsed = await parseConfiguredFeed(feed, content, feed.country, offerSource);
   const fetchedAtIso = new Date().toISOString();
-  const productCap = maxProductsForFeed(feed);
-  const limitedProducts =
-    productCap && parsed.products.length > productCap
-      ? diversifyProductCap(parsed.products, productCap)
-      : parsed.products;
-  if (productCap && parsed.products.length > productCap) {
-    console.warn(
-      `[merchant-feeds] capped ${feed.merchantId}${feed.feedKey ? `:${feed.feedKey}` : ""} from ${parsed.products.length} to ${productCap} products for serverless limits`
-    );
-  }
 
-  const products = limitedProducts.map((product) => ({
+  const products = parsed.products.map((product) => ({
     ...product,
     catalogSource: offerSource,
     offers: product.offers.map((offer) => ({

@@ -7,7 +7,7 @@ import { HOME_UI } from "@/lib/i18n/ui";
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 function isAuthorized(request: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET;

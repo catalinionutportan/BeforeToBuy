@@ -8,8 +8,7 @@ import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n/locales";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 
-/** evoMAG catalogue pull + parse needs headroom on Vercel Pro. */
-export const maxDuration = 300;
+export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];

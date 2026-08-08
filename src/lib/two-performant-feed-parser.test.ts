@@ -12,7 +12,6 @@ import { clearFeedCacheForTests, getFeedProducts } from "@/lib/merchant-feeds";
 
 const rowentaSamplePath = path.join(process.cwd(), "src/data/sample-2performant-rowenta-ro.csv");
 const scule365SamplePath = path.join(process.cwd(), "src/data/sample-2performant-scule365-ro.csv");
-const evomagSamplePath = path.join(process.cwd(), "src/data/sample-2performant-evomag-ro.csv");
 
 describe("firstImage", () => {
   it("keeps full CDN URL when multiple images are comma-separated", () => {
@@ -90,28 +89,6 @@ describe("2Performant Scule365 CSV feed", () => {
     clearFeedCacheForTests();
     const result = await getFeedProducts("RO");
     expect(result.merchantProductCounts["ro-scule365"]).toBeGreaterThanOrEqual(3);
-  });
-});
-
-describe("2Performant evoMAG CSV feed (slice full-catalog)", () => {
-  it("parses live-shaped sample rows with affiliate links and categories", async () => {
-    const csv = fs.readFileSync(evomagSamplePath, "utf8");
-    const parsed = await parseTwoPerformantCsvFeedStream(
-      Readable.from([csv]),
-      "RO",
-      "ro-evomag",
-      "sample"
-    );
-
-    expect(parsed.products.length).toBeGreaterThanOrEqual(3);
-    expect(parsed.products[0]?.offers[0]?.storeName).toBe("evoMAG.ro");
-    expect(parsed.products[0]?.offers[0]?.purchaseUrl).toContain("event.2performant.com");
-    expect(parsed.products.every((product) => product.category !== "unmapped")).toBe(true);
-  });
-
-  it("enabled evoMAG full-catalog slice loads via getFeedProducts", async () => {
-    clearFeedCacheForTests();
-    const result = await getFeedProducts("RO");
-    expect(result.merchantProductCounts["ro-evomag"]).toBeGreaterThanOrEqual(4);
+    expect(result.merchantProductCounts["ro-evomag"]).toBeUndefined();
   });
 });

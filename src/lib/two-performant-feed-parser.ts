@@ -75,7 +75,6 @@ export function firstImage(imageUrls?: string): string {
 function storeNameForMerchant(feedMerchantId: string): string {
   if (feedMerchantId === "ro-rowenta") return "Rowenta.ro";
   if (feedMerchantId === "ro-scule365") return "Scule365.ro";
-  if (feedMerchantId === "ro-evomag") return "evoMAG.ro";
   return "2Performant Merchant";
 }
 
@@ -157,7 +156,7 @@ function ingestRow(
     brand,
   });
 
-  // Specialty evoMAG feeds: if CSV category is weak, fall back to the feed’s aisle hint.
+  // Specialty feeds: if CSV category is weak, fall back to the feed’s aisle hint.
   if (
     categoryHint &&
     categoryMapping.categoryId === UNMAPPED_CATEGORY_ID

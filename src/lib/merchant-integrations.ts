@@ -1,5 +1,4 @@
 import { CountryCode } from "@/types";
-import { EVOMAG_FEED_SLICES, EVOMAG_MERCHANT_ID } from "@/lib/evomag-feeds";
 
 export type FeedProvider = "AWIN" | "GALAXUS" | "GOOGLE_MERCHANT" | "TWO_PERFORMANT";
 export type FeedMode = "production" | "sample" | "unconfigured";
@@ -26,7 +25,7 @@ export interface FeedConfig {
    */
   enabled?: boolean;
   /**
-   * Distinguishes multiple feed URLs for the same merchant (evoMAG slices).
+   * Distinguishes multiple feed URLs for the same merchant (future multi-feed).
    * Used in cache keys so slices do not overwrite each other.
    */
   feedKey?: string;
@@ -140,23 +139,6 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     sampleFile: "sample-2performant-scule365-ro.csv",
     sampleFormat: "csv",
   },
-  // evoMAG: many specialty feeds — enable in EVOMAG_FEED_SLICES order, one URL at a time.
-  ...EVOMAG_FEED_SLICES.map(
-    (slice): FeedConfig => ({
-      provider: "TWO_PERFORMANT",
-      country: "RO",
-      merchantId: EVOMAG_MERCHANT_ID,
-      merchantName: "evoMAG.ro",
-      envVar: slice.envVar,
-      feedKey: slice.key,
-      categoryHint: slice.categoryHint,
-      enabled: slice.enabled,
-      defaultRemoteUrl: slice.defaultRemoteUrl,
-      sampleFile:
-        slice.key === "full-catalog" ? "sample-2performant-evomag-ro.csv" : undefined,
-      sampleFormat: slice.key === "full-catalog" ? "csv" : undefined,
-    })
-  ),
 ];
 
 export function getFeedConfig(merchantId: string): FeedConfig | undefined {
