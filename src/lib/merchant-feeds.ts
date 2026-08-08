@@ -14,6 +14,7 @@ import { buildMappingReport, type MappingLogEntry, type MappingReport } from "@/
 import { mergeFeedProductsByIdentity } from "@/lib/product-identity/merge-products";
 import { productMatchesSearchQuery } from "@/lib/product-search";
 import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
+import { diversifyProductCap } from "@/lib/feed-product-cap";
 import { redisGetJson, redisSetJson } from "@/lib/redis-cache";
 
 type FeedCacheEntry = {
@@ -35,7 +36,7 @@ function memoryCacheKey(feed: FeedConfig): string {
 function redisCacheKey(feed: FeedConfig): string {
   // Bump when mapping/parser changes so Redis does not serve stale category ids.
   const slice = feed.feedKey ? `:${feed.feedKey}` : "";
-  return `feed:v14:${feed.merchantId}${slice}:${feed.country}`;
+  return `feed:v15:${feed.merchantId}${slice}:${feed.country}`;
 }
 
 /** Soft cap for huge catalogues (evoMAG ~100k) so Vercel serverless can finish. */
@@ -44,40 +45,6 @@ function maxProductsForFeed(feed: FeedConfig): number | null {
   const raw = process.env.EVOMAG_MAX_PRODUCTS?.trim();
   const parsed = raw ? Number.parseInt(raw, 10) : 4_000;
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 4_000;
-}
-
-/**
- * Keep aisle diversity under the soft cap — CSV head is networking-heavy, so a
- * naive slice(0, N) starves phones / appliances later in the file.
- */
-function diversifyProductCap(products: Product[], cap: number): Product[] {
-  if (products.length <= cap) return products;
-
-  const buckets = new Map<string, Product[]>();
-  for (const product of products) {
-    const key =
-      product.categoryAssignment?.rawCategory?.trim().toLowerCase() ||
-      product.category ||
-      "unknown";
-    const list = buckets.get(key);
-    if (list) list.push(product);
-    else buckets.set(key, [product]);
-  }
-
-  const queues = [...buckets.values()];
-  const selected: Product[] = [];
-  let progress = true;
-  while (selected.length < cap && progress) {
-    progress = false;
-    for (const queue of queues) {
-      if (selected.length >= cap) break;
-      const next = queue.shift();
-      if (!next) continue;
-      selected.push(next);
-      progress = true;
-    }
-  }
-  return selected;
 }
 
 async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {
