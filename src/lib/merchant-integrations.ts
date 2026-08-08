@@ -201,9 +201,14 @@ export function resolveFeedRemoteUrl(feed: FeedConfig): string | undefined {
   }
 
   if (feed.provider === "AWIN" && feed.awinFeedId) {
-    const apiKey = process.env.AWIN_API_KEY?.trim();
-    if (apiKey) {
-      return buildAwinProductdataUrl(apiKey, feed.awinFeedId);
+    const apiKeyRaw = process.env.AWIN_API_KEY?.trim();
+    if (apiKeyRaw) {
+      // Tolerate pasting the full productdata URL into AWIN_API_KEY by mistake.
+      if (/^https?:\/\//i.test(apiKeyRaw)) {
+        return apiKeyRaw;
+      }
+      const extracted = apiKeyRaw.match(/\/apikey\/([^/]+)\//i)?.[1];
+      return buildAwinProductdataUrl(extracted || apiKeyRaw, feed.awinFeedId);
     }
   }
 

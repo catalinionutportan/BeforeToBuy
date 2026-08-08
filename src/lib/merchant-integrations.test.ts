@@ -57,6 +57,25 @@ describe('Merchant Integrations', () => {
     }
   });
 
+  it("accepts a full productdata URL pasted into AWIN_API_KEY", () => {
+    const seentat = MERCHANT_FEEDS.find((feed) => feed.merchantId === "gb-seentat");
+    const previousKey = process.env.AWIN_API_KEY;
+    const previousUrl = process.env.AWIN_FEED_URL_GB_SEENTAT;
+    delete process.env.AWIN_FEED_URL_GB_SEENTAT;
+    const fullUrl =
+      "https://productdata.awin.com/datafeed/download/apikey/abc123/language/en/fid/115553/format/csv/";
+    process.env.AWIN_API_KEY = `  ${fullUrl}  `;
+
+    try {
+      expect(resolveFeedRemoteUrl(seentat!)).toBe(fullUrl);
+    } finally {
+      if (previousKey === undefined) delete process.env.AWIN_API_KEY;
+      else process.env.AWIN_API_KEY = previousKey;
+      if (previousUrl === undefined) delete process.env.AWIN_FEED_URL_GB_SEENTAT;
+      else process.env.AWIN_FEED_URL_GB_SEENTAT = previousUrl;
+    }
+  });
+
   it("legacy Brack env var resolves as production remote URL", () => {
     const brack = MERCHANT_FEEDS.find((feed) => feed.merchantId === "ch-brack");
     expect(brack).toBeDefined();
