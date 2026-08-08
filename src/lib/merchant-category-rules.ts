@@ -213,7 +213,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
   },
   "ro-scule365": {
     exact: exactRules({
-      slefuitoare: "diy-power-tools",
+      slefuitoare: "diy-sanders",
       "scule electrice": "diy-power-tools",
       "scule de mana": "diy-hand-tools",
       "scule de mână": "diy-hand-tools",
@@ -228,50 +228,77 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       încărcătoare: "diy-batteries-chargers",
     }),
     // My Feeds CSV often omits category — match Romanian title/description text.
+    // Order matters: tool types before battery packs (titles often say "cu/fara acumulator").
     patterns: [
       {
-        patterns:
-          /\b(acumulatori?|baterie|baterii|incarcator|încărcător|incarcatoare|încărcătoare|akku)\b/i,
-        subcategoryId: "diy-batteries-chargers",
+        patterns: /\b(slefuit|slefuitoare|masina de slefuit|mașină de slefuit)\b/i,
+        subcategoryId: "diy-sanders",
+      },
+      {
+        patterns: /\b(pistol(?:\s+electric)?\s+(?:de\s+|pentru\s+)?vopsit|hvlp|aerograf)\b/i,
+        subcategoryId: "diy-painting-tools",
+      },
+      {
+        patterns: /\b(sudur[aă]|aparat\s+de\s+sudur|lipit\s+plastic|pistol\s+pentru\s+lipit)\b/i,
+        subcategoryId: "diy-welding-soldering",
       },
       {
         patterns:
-          /\b(pompa|pompă|pompe|stropit|gradina|grădin|motocoas|cositoare|submersibil|hidrofor)\b/i,
+          /\b(pompa|pompă|pompe|stropit|gradina|grădin|motocoas|cositoare|submersibil|hidrofor|aspirator\s+umed)\b/i,
         subcategoryId: "garden-equipment",
       },
       {
-        patterns:
-          /\b(generator|generatoare|invertor|invertor(?:ul)?|stabilizator)\b/i,
+        patterns: /\b(generator|generatoare|invertor|compresor|stabilizator|redresor)\b/i,
         subcategoryId: "diy-electrical",
       },
       {
         patterns:
-          /\b(slefuit|slefuitoare|bormasin|bormașin|rotopercutor|drujb|polizor|flex|circular|fierastrau|ferăstrău|unghiular|impact|sudura|sudură|pistol|masina de|mașină de|electrice?|brushless|power tool)\b/i,
+          /\b(bormasin|bormașin|rotopercutor|drujb|polizor|flex|circular|fierastrau|ferăstrău|unghiular|impact|brushless|ciocan\s+rotopercutor|demolator|picamer|masina de (?:gaurit|găurit|insurubat|înșurubat|frezat)|mașină de (?:găurit|înșurubat|frezat)|oberfreza|amestecator|placa compactoare|compactoare)\b/i,
         subcategoryId: "diy-power-tools",
       },
       {
         patterns:
-          /\b(cheie|surubelnit|șurubelniț|ciocan|clește|cleste|trusa|trusă|disc|burghie|lama|lamă|protectie|protecție|accesorii|set scule|hand tool|maner|mâner)\b/i,
+          /\b(telemetru|multimetru|nivel[aă]|dreptar|detector|manometru|termometru|roata\s+masura|rulet[aă])\b/i,
+        subcategoryId: "diy-measuring",
+      },
+      {
+        patterns:
+          /\b(disc|burghie|burghiu|lama|lamă|lant|lanț|tarod|filiera|filer[aă]|bituri|mandrina|panza\s+fierastrau|pânză)\b/i,
+        subcategoryId: "diy-fasteners-consumables",
+      },
+      {
+        patterns:
+          /\b(cheie|surubelnit|șurubelniț|clește|cleste|trusa|trusă|patent|sfic|set scule|hand tool|extractor|port\s+tarod|port\s+filiera|menghina|menghină|foarfec|dalta|daltă|dorn)\b/i,
         subcategoryId: "diy-hand-tools",
+      },
+      {
+        patterns:
+          /\b(bocanci|casca\s+protectie|cască\s+protecție|manusi\s+de\s+protectie|mănuși\s+de\s+protecție|ochelari\s+de\s+protectie|jacheta\s+confort|vest[aă]\s+reflectoriz|antifon|echipament\s+protectie)\b/i,
+        subcategoryId: "diy-workwear-safety",
+      },
+      {
+        // Standalone packs/chargers only — ignore "cu/fara acumulator" on tool titles.
+        patterns:
+          /(?<!cu\s)(?<!fara\s)(?<!fără\s)\b(acumulatori?|baterie|baterii)\b(?:\s+\d+\s*v|\s+\d+\s*ah|\s+li-?ion)?|\b(incarcator|încărcător|incarcatoare|încărcătoare)\b(?:\s+\d+\s*v)?/i,
+        subcategoryId: "diy-batteries-chargers",
       },
     ],
   },
   "ro-rowenta": {
     exact: exactRules({
-      "aspiratoare verticale": "cleaning-vacuums",
-      "aspiratoare cu abur": "cleaning-vacuums",
-      "aspiratoare cu spalare": "cleaning-vacuums",
-      "aspiratoare cu spălare": "cleaning-vacuums",
-      "aspiratoare fără sac": "cleaning-vacuums",
-      "aspiratoare fara sac": "cleaning-vacuums",
-      "aspiratoare cu sac": "cleaning-vacuums",
-      "aspiratoare de mână": "cleaning-vacuums",
-      "aspiratoare de mana": "cleaning-vacuums",
+      "aspiratoare verticale": "cleaning-stick-vacuums",
+      "aspiratoare cu abur": "cleaning-wet-vacuums",
+      "aspiratoare cu spalare": "cleaning-wet-vacuums",
+      "aspiratoare cu spălare": "cleaning-wet-vacuums",
+      "aspiratoare fără sac": "cleaning-bagless-vacuums",
+      "aspiratoare fara sac": "cleaning-bagless-vacuums",
+      "aspiratoare cu sac": "cleaning-bagged-vacuums",
+      "aspiratoare de mână": "cleaning-handheld",
+      "aspiratoare de mana": "cleaning-handheld",
       "aspiratoare robot": "cleaning-robots",
       aspiratoare: "cleaning-vacuums",
       "mopuri electrice": "cleaning-floor-care",
-      accesorii: "cleaning-vacuums",
-      "pachete promo": "cleaning-vacuums",
+      // Accessories / promo packs: resolve via title patterns below (not forced into vacuums).
       "fiare de calcat": "laundry-ironing-sewing",
       "fiare de călcat": "laundry-ironing-sewing",
       "uscatoare de par": "care-hair-styling",
@@ -283,6 +310,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "perii rotative": "care-hair-styling",
       "îngrijirea părului": "care-hair-styling",
       "ingrijirea parului": "care-hair-styling",
+      "hair therapist": "care-hair-styling",
       "karl lagerfeld": "care-hair-styling",
       "aparate de tuns": "care-shaving-hair-removal",
       "aparate de tuns barba": "care-shaving-hair-removal",
@@ -299,7 +327,39 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     }),
     patterns: [
       {
-        patterns: /\b(aspirator|vacuum|abur|steam|mop)\b/i,
+        patterns: /\b(robot|x-plorer|explorer)\b/i,
+        subcategoryId: "cleaning-robots",
+      },
+      {
+        patterns: /\b(mop|steam cleaner|pardoseal)\b/i,
+        subcategoryId: "cleaning-floor-care",
+      },
+      {
+        patterns: /\b(filtru|sac\b|accesoriu|accesorii|perie aspirator|burete filtru)\b/i,
+        subcategoryId: "cleaning-accessories",
+      },
+      {
+        patterns: /\b(vertical|stick|cordless vacuum|x-force|rh\d)\b/i,
+        subcategoryId: "cleaning-stick-vacuums",
+      },
+      {
+        patterns: /\b(fără sac|fara sac|bagless|silence force|ro\d{4})\b/i,
+        subcategoryId: "cleaning-bagless-vacuums",
+      },
+      {
+        patterns: /\b(cu sac|bagged)\b/i,
+        subcategoryId: "cleaning-bagged-vacuums",
+      },
+      {
+        patterns: /\b(sp[aă]lare|wash|abur|steam vacuum|wet)\b/i,
+        subcategoryId: "cleaning-wet-vacuums",
+      },
+      {
+        patterns: /\b(de m[aâ]n[aă]|handheld|hand vac)\b/i,
+        subcategoryId: "cleaning-handheld",
+      },
+      {
+        patterns: /\b(aspirator|vacuum)\b/i,
         subcategoryId: "cleaning-vacuums",
       },
       {
@@ -308,7 +368,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       },
       {
         patterns:
-          /\b(uscator|uscător|hair.?dryer|haartrockner|fen|ondulat|placa de par|placă de păr|perie rotativ|coafat)\b/i,
+          /\b(uscator|uscător|hair.?dryer|haartrockner|fen|ondulat|placa de par|placă de păr|perie rotativ|coafat|hair therapist)\b/i,
         subcategoryId: "care-hair-styling",
       },
       {
@@ -320,7 +380,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
         subcategoryId: "climate-heating",
       },
       {
-        patterns: /\b(purificator|filtrare aer|humidifier|dehumidifier)\b/i,
+        patterns: /\b(purificator|filtrare aer|humidifier|dehumidifier|intense pure)\b/i,
         subcategoryId: "climate-air-care",
       },
     ],

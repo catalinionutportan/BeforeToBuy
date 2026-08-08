@@ -118,12 +118,18 @@ describe('Category Mapper Functions', () => {
   });
 
   it("Scule365 maps from title when My Feeds omits category", () => {
-    const powered = mapToBeforeToBuyCategoryWithMetadata({
+    const sander = mapToBeforeToBuyCategoryWithMetadata({
       merchantId: "ro-scule365",
       title: "Masina de slefuit rotativa 450W Epto EvoTools",
     });
-    expect(powered.categoryId).toBe("diy-power-tools");
-    expect(powered.method).toBe("merchant-pattern");
+    expect(sander.categoryId).toBe("diy-sanders");
+    expect(sander.method).toBe("merchant-pattern");
+
+    const drill = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-scule365",
+      title: "Bormasina cu impact brushless 20V Ingco",
+    });
+    expect(drill.categoryId).toBe("diy-power-tools");
 
     const fallback = mapToBeforeToBuyCategoryWithMetadata({
       merchantId: "ro-scule365",
@@ -133,14 +139,21 @@ describe('Category Mapper Functions', () => {
     expect(fallback.method).toBe("merchant-default");
   });
 
-  it("Rowenta maps Romanian feed categories including accessories and grooming", () => {
+  it("Rowenta maps Romanian feed categories into fine cleaning and grooming leaves", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-rowenta",
+        merchantCategory: "Aspiratoare verticale",
+        title: "Aspirator vertical Rowenta X-Force",
+      })
+    ).toBe("cleaning-stick-vacuums");
     expect(
       mapToBeforeToBuyCategory({
         merchantId: "ro-rowenta",
         merchantCategory: "Accesorii",
         title: "Sac de praf Rowenta",
       })
-    ).toBe("cleaning-vacuums");
+    ).toBe("cleaning-accessories");
     expect(
       mapToBeforeToBuyCategory({
         merchantId: "ro-rowenta",
