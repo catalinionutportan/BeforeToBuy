@@ -24,7 +24,7 @@ const DEFAULT_AISLE_MAX = 40;
 /** Shopper-facing aisles that must stay visible under the soft cap. */
 const PRIORITY_AISLE_RULES: AisleQuotaRule[] = [
   // Take essentially the full handset aisle (~717 in live My Feeds CSV).
-  { match: /^telefoane$/i, weight: 20, min: 700, max: 900 },
+  { match: /^telefoane$/i, weight: 20, min: 800, max: 1000 },
   { match: /^telefoane seniori$/i, weight: 3, min: 12, max: 24 },
   { match: /^tablete$/i, weight: 8, min: 80, max: 140 },
   { match: /^laptopuri/i, weight: 10, min: 160, max: 240 },
