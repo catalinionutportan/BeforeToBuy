@@ -1,5 +1,6 @@
 import { CountryCode, UserLocation } from "@/types";
-import { COUNTRIES, DEFAULT_COUNTRY } from "./countries";
+import { COUNTRIES } from "./countries";
+import { getPrimaryLiveBrowseCountry } from "@/lib/live-browse-market";
 
 /**
  * Calculates the Haversine distance in kilometers between two GPS points
@@ -25,11 +26,12 @@ export function calculateHaversineDistance(
 }
 
 export function defaultLocation(): UserLocation {
-  const def = COUNTRIES[DEFAULT_COUNTRY];
+  const countryCode = getPrimaryLiveBrowseCountry();
+  const def = COUNTRIES[countryCode];
   return {
     latitude: def.defaultCoordinates.lat,
     longitude: def.defaultCoordinates.lng,
-    countryCode: DEFAULT_COUNTRY,
+    countryCode,
     countryName: def.name,
     city: def.defaultCoordinates.city,
     isGps: false,
@@ -145,11 +147,12 @@ export function detectUserLocationGps(): Promise<UserLocation> {
             locationKind: "gps",
           });
         } catch {
-          const fallback = COUNTRIES[DEFAULT_COUNTRY];
+          const countryCode = getPrimaryLiveBrowseCountry();
+          const fallback = COUNTRIES[countryCode];
           resolve({
             latitude,
             longitude,
-            countryCode: DEFAULT_COUNTRY,
+            countryCode,
             countryName: fallback.name,
             city: fallback.defaultCoordinates.city,
             isGps: true,

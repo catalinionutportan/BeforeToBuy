@@ -16,7 +16,6 @@ import { buildProductJsonLd } from "@/lib/seo/json-ld";
 import { productPagePath, safeReturnPath } from "@/lib/seo/site-url";
 import { getMarketHubIdForLeaf } from "@/lib/market-hubs";
 import { ALL_CATEGORIES_ID, getParentCategoryId } from "@/lib/categories";
-import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 
 export const dynamic = "force-dynamic";
 
@@ -101,25 +100,14 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
           <div className="relative aspect-square bg-slate-50 rounded-2xl overflow-hidden border border-slate-100">
             {product.image ? (
               <div className="absolute inset-6">
-                {shouldUseNativeProductImage(product.image) ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={product.image}
-                    alt={product.title}
-                    className="h-full w-full object-contain object-center"
-                    referrerPolicy="no-referrer"
-                    decoding="async"
-                  />
-                ) : (
-                  <Image
-                    src={product.image}
-                    alt={product.title}
-                    fill
-                    className="object-contain object-center"
-                    sizes="(max-width: 768px) 100vw, 40vw"
-                    priority
-                  />
-                )}
+                <Image
+                  src={product.image}
+                  alt={product.title}
+                  fill
+                  className="object-contain object-center"
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                  priority
+                />
               </div>
             ) : null}
           </div>

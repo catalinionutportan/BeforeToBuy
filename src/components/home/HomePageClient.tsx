@@ -176,7 +176,9 @@ export default function HomePageClient({
     const requestCountry = userLocation.countryCode;
 
     async function loadProductsAndCoupons() {
-      setIsLoadingProducts(true);
+      // Keep SSR products visible while refetching the same market.
+      const hasSsrCatalog = initialProducts.length > 0;
+      setIsLoadingProducts(!hasSsrCatalog);
 
       try {
         const params = new URLSearchParams({
@@ -215,7 +217,22 @@ export default function HomePageClient({
         };
         if (controller.signal.aborted) return;
 
-        setProducts(data.products || []);
+        // Never replace a populated grid with an empty empty-market payload
+        // (stale CH cookie / DEFAULT_COUNTRY race). Real empty category filters
+        // still clear when hasProductionFeed is true.
+        const nextProducts = data.products || [];
+        if (
+          nextProducts.length === 0 &&
+          !debouncedSearchQuery.trim() &&
+          data.meta &&
+          !data.meta.hasProductionFeed
+        ) {
+          setCatalogMeta(data.meta);
+          setProductFetchFailed(false);
+          return;
+        }
+
+        setProducts(nextProducts);
         setCatalogMeta(data.meta || null);
         setProductFetchFailed(false);
       } catch (error) {
@@ -240,6 +257,7 @@ export default function HomePageClient({
     debouncedSearchQuery,
     browseLocale,
     selectedCategory,
+    initialProducts.length,
     setProducts,
     setCatalogMeta,
     setCoupons,

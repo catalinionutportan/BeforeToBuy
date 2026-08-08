@@ -18,3 +18,14 @@ export function getPrimaryLiveBrowseCountry(): CountryCode {
   if (enabled[0]?.country) return enabled[0].country;
   return DEFAULT_COUNTRY;
 }
+
+/**
+ * Use the preferred market only when it has live feeds; otherwise RO (or next live).
+ * Prevents empty CH/DE catalogues from cookie, IP geo, or DEFAULT_COUNTRY=CH.
+ */
+export function resolveBrowseCountry(
+  preferred: CountryCode | null | undefined
+): CountryCode {
+  if (preferred && countryHasLiveFeeds(preferred)) return preferred;
+  return getPrimaryLiveBrowseCountry();
+}

@@ -1,7 +1,7 @@
 /**
- * evoMAG (and similar) CDNs serve signed URLs with query strings.
- * Vercel/Next `_next/image` often fails those with INVALID_IMAGE_OPTIMIZE_REQUEST
- * even when the source URL returns a valid image/jpeg to browsers.
+ * evoMAG CDN hosts that historically needed special handling.
+ * Direct browser fetches to static2.evomag.ro often time out / fail;
+ * Next/Image (`/_next/image`) proxies them successfully in production.
  */
 export function shouldBypassImageOptimization(src: string | undefined): boolean {
   if (!src) return false;
@@ -19,9 +19,10 @@ export function shouldBypassImageOptimization(src: string | undefined): boolean 
 }
 
 /**
- * Prefer native <img> for signed merchant CDNs.
- * Next/Image still flakes on many static2.evomag.ro URLs even with unoptimized.
+ * Always prefer Next/Image so merchant CDNs go through the optimizer proxy.
+ * Native <img> to evoMAG was the production "no product photos" failure mode:
+ * the CDN times out in-browser while `/_next/image` returns a valid JPEG.
  */
-export function shouldUseNativeProductImage(src: string | undefined): boolean {
-  return shouldBypassImageOptimization(src);
+export function shouldUseNativeProductImage(_src: string | undefined): boolean {
+  return false;
 }

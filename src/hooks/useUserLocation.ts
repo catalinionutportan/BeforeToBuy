@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { CountryCode, UserLocation } from "@/types";
-import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import { COUNTRIES } from "@/lib/countries";
 import {
   CONSENT_UPDATED_EVENT,
   getConsentPreferences,
@@ -11,7 +11,10 @@ import {
   readStoredMarketCountry,
   writeStoredMarketCountry,
 } from "@/lib/market-preference";
-import { getPrimaryLiveBrowseCountry } from "@/lib/live-browse-market";
+import {
+  getPrimaryLiveBrowseCountry,
+  resolveBrowseCountry,
+} from "@/lib/live-browse-market";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 
@@ -27,11 +30,12 @@ function locationFromCountry(
   countryCode: CountryCode,
   locationKind: UserLocation["locationKind"]
 ): UserLocation {
-  const targetCountry = COUNTRIES[countryCode] || COUNTRIES[DEFAULT_COUNTRY];
+  const resolved = resolveBrowseCountry(countryCode);
+  const targetCountry = COUNTRIES[resolved] || COUNTRIES[getPrimaryLiveBrowseCountry()];
   return {
     latitude: targetCountry.defaultCoordinates.lat,
     longitude: targetCountry.defaultCoordinates.lng,
-    countryCode,
+    countryCode: resolved,
     countryName: targetCountry.name,
     city: targetCountry.defaultCoordinates.city,
     isGps: false,
@@ -39,9 +43,26 @@ function locationFromCountry(
   };
 }
 
+/** Map IP/GPS detection onto a live catalogue market (never empty CH). */
+function browseLocationFromDetected(loc: UserLocation): UserLocation {
+  const resolved = resolveBrowseCountry(loc.countryCode);
+  if (resolved === loc.countryCode) return loc;
+  const target = COUNTRIES[resolved];
+  return {
+    ...loc,
+    countryCode: resolved,
+    countryName: target.name,
+    city: target.defaultCoordinates.city,
+    latitude: target.defaultCoordinates.lat,
+    longitude: target.defaultCoordinates.lng,
+    isGps: false,
+    locationKind: loc.locationKind === "manual" ? "manual" : "default",
+  };
+}
+
 export function useUserLocation(): UseUserLocationResult {
   const [userLocation, setUserLocation] = useState<UserLocation>(() => {
-    // Prefer saved market; otherwise primary live catalogue (RO) — not empty CH.
+    // Prefer saved market when it has feeds; otherwise primary live catalogue (RO).
     const initial =
       (typeof window !== "undefined" && readStoredMarketCountry()) ||
       getPrimaryLiveBrowseCountry();
@@ -66,7 +87,13 @@ export function useUserLocation(): UseUserLocationResult {
       if (marketLockedRef.current || readStoredMarketCountry()) {
         return;
       }
-      setUserLocation(loc);
+      // IP geo to CH must not wipe the RO catalogue — only lock live markets.
+      const browseLoc = browseLocationFromDetected(loc);
+      setUserLocation(browseLoc);
+      if (browseLoc.countryCode !== loc.countryCode) {
+        // Persist the live fallback so SSR/category pages stay aligned.
+        writeStoredMarketCountry(browseLoc.countryCode);
+      }
       setErrorMessage(null);
     } catch (error) {
       console.warn("Error fetching IP location:", formatLocationError(error));
@@ -80,10 +107,11 @@ export function useUserLocation(): UseUserLocationResult {
   useEffect(() => {
     const stored = readStoredMarketCountry();
     if (stored) {
+      const resolved = resolveBrowseCountry(stored);
       marketLockedRef.current = true;
-      // Refresh cookie so SSR category pages see the same market as localStorage.
-      writeStoredMarketCountry(stored);
-      setUserLocation(locationFromCountry(stored, "manual"));
+      // Migrate stale empty-market cookies (e.g. CH) to the live primary market.
+      writeStoredMarketCountry(resolved);
+      setUserLocation(locationFromCountry(resolved, "manual"));
     }
 
     const prefs = getConsentPreferences();
@@ -104,13 +132,16 @@ export function useUserLocation(): UseUserLocationResult {
 
   const handleCountryChange = useCallback((countryCode: CountryCode) => {
     marketLockedRef.current = true;
-    writeStoredMarketCountry(countryCode);
+    // Manual picker: still coerce empty markets to a live catalogue so the grid
+    // never goes blank after audit "CH cookie = 0 products" regressions.
+    const resolved = resolveBrowseCountry(countryCode);
+    writeStoredMarketCountry(resolved);
     setErrorMessage(null);
-    setUserLocation(locationFromCountry(countryCode, "manual"));
+    setUserLocation(locationFromCountry(resolved, "manual"));
   }, []);
 
   // GPS only on explicit user action and with Location consent.
-  // Explicit GPS may update market; still persists the detected country.
+  // Explicit GPS may update market; still persists a live browse country.
   const handleRefreshGps = useCallback(async () => {
     const prefs = getConsentPreferences();
     if (!prefs?.location) {
@@ -123,8 +154,9 @@ export function useUserLocation(): UseUserLocationResult {
     try {
       const loc = await detectUserLocationGps();
       marketLockedRef.current = true;
-      writeStoredMarketCountry(loc.countryCode);
-      setUserLocation(loc);
+      const browseLoc = browseLocationFromDetected(loc);
+      writeStoredMarketCountry(browseLoc.countryCode);
+      setUserLocation(browseLoc);
       setErrorMessage(null);
     } catch (error) {
       const isGeoError =
@@ -138,8 +170,9 @@ export function useUserLocation(): UseUserLocationResult {
         try {
           const ipLoc = await getLocationFromIp();
           marketLockedRef.current = true;
-          writeStoredMarketCountry(ipLoc.countryCode);
-          setUserLocation(ipLoc);
+          const browseLoc = browseLocationFromDetected(ipLoc);
+          writeStoredMarketCountry(browseLoc.countryCode);
+          setUserLocation(browseLoc);
           setErrorMessage(null);
           return;
         } catch (ipError) {

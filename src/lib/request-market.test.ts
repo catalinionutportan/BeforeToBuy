@@ -56,4 +56,15 @@ describe("getRequestMarketCountry", () => {
     const { getRequestMarketCountry } = await import("@/lib/request-market");
     await expect(getRequestMarketCountry()).resolves.toBe("RO");
   });
+
+  it("ignores stale empty-market cookies (CH has no live feeds)", async () => {
+    cookiesMock.mockResolvedValue({
+      get: (name: string) =>
+        name === "btb-market-country" ? { value: "CH" } : undefined,
+    });
+    headersMock.mockResolvedValue({ get: () => null });
+
+    const { getRequestMarketCountry } = await import("@/lib/request-market");
+    await expect(getRequestMarketCountry()).resolves.toBe("RO");
+  });
 });

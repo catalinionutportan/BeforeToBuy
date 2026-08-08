@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { CountryCode, UserLocation } from "@/types";
-import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import { COUNTRIES } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
 import {
@@ -9,6 +9,7 @@ import {
   DEFAULT_PRODUCT_LIST_LIMIT,
   parseProductListOffset,
 } from "@/lib/product-list-options";
+import { getPrimaryLiveBrowseCountry } from "@/lib/live-browse-market";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n/locales";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
@@ -27,8 +28,11 @@ function sanitizeQueryParam(input: string | null | undefined): string | undefine
 const VALID_COUNTRIES = new Set<CountryCode>(Object.keys(COUNTRIES) as CountryCode[]);
 
 function parseCountry(value: string | null): CountryCode {
-  const code = (value || DEFAULT_COUNTRY).toUpperCase() as CountryCode;
-  return VALID_COUNTRIES.has(code) ? code : DEFAULT_COUNTRY;
+  // Default to the primary live catalogue (RO) — DEFAULT_COUNTRY is still CH
+  // and returns an empty feed set, which looks like a broken homepage.
+  if (!value) return getPrimaryLiveBrowseCountry();
+  const code = value.toUpperCase() as CountryCode;
+  return VALID_COUNTRIES.has(code) ? code : getPrimaryLiveBrowseCountry();
 }
 
 function buildUserLocation(
@@ -36,7 +40,7 @@ function buildUserLocation(
   lat: string | null,
   lng: string | null
 ): UserLocation {
-  const country = COUNTRIES[countryCode] || COUNTRIES[DEFAULT_COUNTRY];
+  const country = COUNTRIES[countryCode] || COUNTRIES[getPrimaryLiveBrowseCountry()];
   const parsedLat = lat ? Number(lat) : country.defaultCoordinates.lat;
   const parsedLng = lng ? Number(lng) : country.defaultCoordinates.lng;
 
