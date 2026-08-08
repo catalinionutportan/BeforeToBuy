@@ -168,7 +168,7 @@ export async function fetchMergedProductsForLocation(
       };
     }
   } catch (error) {
-    console.warn(
+    console.error(
       "[product-service] Supabase read failed; falling back to merchant-feeds:",
       error instanceof Error ? error.message : error
     );

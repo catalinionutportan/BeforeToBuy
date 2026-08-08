@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Cookie, X } from "lucide-react";
+import { ShoppingBag, X } from "lucide-react";
 import {
   acceptAllConsent,
   acceptEssentialConsent,
@@ -115,7 +115,7 @@ export function CookieConsentBanner() {
     <div
       className={
         promptMode
-          ? "fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/55 p-3 sm:p-4"
+          ? "fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 p-3 sm:p-4"
           : "fixed inset-x-0 bottom-0 z-50 p-3 sm:p-4 pointer-events-none"
       }
     >
@@ -126,93 +126,97 @@ export function CookieConsentBanner() {
         aria-labelledby="cookie-consent-title"
         aria-describedby="cookie-consent-description"
         tabIndex={-1}
-        className="pointer-events-auto mx-auto w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 text-white shadow-2xl focus:outline-none"
+        className="pointer-events-auto mx-auto w-full max-w-lg rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-lg focus:outline-none"
       >
-        <div className="flex items-start justify-between gap-3 p-4 pb-2 min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-              <Cookie className="w-4 h-4" aria-hidden="true" />
-            </div>
-            <h4 id="cookie-consent-title" className="font-bold text-sm text-white break-words min-w-0">
-              {promptMode ? homeUi.enableAffiliateToOpen : homeUi.cookiePrivacyPreferences}
-            </h4>
+        <div className="flex items-start gap-3 p-4 pb-2 min-w-0">
+          <div className="w-10 h-10 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 flex items-center justify-center shrink-0">
+            <ShoppingBag className="w-5 h-5" aria-hidden="true" />
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              if (promptMode || getConsentPreferences()) {
-                setIsVisible(false);
-                setPromptMode(false);
-                return;
-              }
-              void handleEssentialOnly();
-            }}
-            disabled={isSaving}
-            aria-label={homeUi.closeAndAcceptEssential}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors shrink-0"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <h4
+                id="cookie-consent-title"
+                className="font-semibold text-sm text-slate-900 break-words min-w-0 pt-1"
+              >
+                {promptMode ? homeUi.enableAffiliateToOpen : homeUi.cookiePrivacyPreferences}
+              </h4>
+              <button
+                type="button"
+                onClick={() => {
+                  if (promptMode || getConsentPreferences()) {
+                    setIsVisible(false);
+                    setPromptMode(false);
+                    return;
+                  }
+                  void handleEssentialOnly();
+                }}
+                disabled={isSaving}
+                aria-label={homeUi.closeAndAcceptEssential}
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p
+              id="cookie-consent-description"
+              className={`mt-1.5 text-xs text-slate-600 leading-relaxed ${showDetails ? "" : "line-clamp-3"}`}
+            >
+              {homeUi.essentialLocalStorageDescription}
+            </p>
+          </div>
         </div>
-
-        <p
-          id="cookie-consent-description"
-          className={`px-4 text-xs text-slate-300 leading-relaxed ${showDetails ? "mb-3" : "mb-2 line-clamp-2"}`}
-        >
-          {homeUi.essentialLocalStorageDescription}
-        </p>
 
         {showDetails && (
           <div className="px-4 text-[11px] space-y-2 mb-3 max-h-[28vh] overflow-y-auto">
-            <div className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5">
-              <strong className="text-slate-200">{homeUi.essential}</strong>
-              <span className="text-slate-400">{homeUi.requiredPreferences}</span>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-2.5">
+              <strong className="text-slate-800">{homeUi.essential}</strong>
+              <span className="text-slate-500">{homeUi.requiredPreferences}</span>
             </div>
-            <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
+            <label className="rounded-lg border border-slate-200 bg-white p-2.5 flex items-start gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={locationConsent}
                 onChange={(event) => setLocationConsent(event.target.checked)}
-                className="mt-0.5 accent-emerald-500"
+                className="mt-0.5 accent-slate-800"
               />
               <span>
-                <strong className="text-slate-200">{homeUi.location}</strong>
-                <span className="text-slate-400">{homeUi.locationDescription}</span>
+                <strong className="text-slate-800">{homeUi.location}</strong>
+                <span className="text-slate-500">{homeUi.locationDescription}</span>
               </span>
             </label>
-            <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
+            <label className="rounded-lg border border-slate-200 bg-white p-2.5 flex items-start gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={affiliateConsent}
                 onChange={(event) => setAffiliateConsent(event.target.checked)}
-                className="mt-0.5 accent-emerald-500"
+                className="mt-0.5 accent-slate-800"
               />
               <span>
-                <strong className="text-slate-200">{homeUi.affiliate}</strong>
-                <span className="text-slate-400">{homeUi.affiliateDescription}</span>
+                <strong className="text-slate-800">{homeUi.affiliate}</strong>
+                <span className="text-slate-500">{homeUi.affiliateDescription}</span>
               </span>
             </label>
-            <label className="rounded-lg border border-slate-700 bg-slate-800/70 p-2.5 flex items-start gap-2 cursor-pointer">
+            <label className="rounded-lg border border-slate-200 bg-white p-2.5 flex items-start gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={analyticsConsent}
                 onChange={(event) => setAnalyticsConsent(event.target.checked)}
-                className="mt-0.5 accent-emerald-500"
+                className="mt-0.5 accent-slate-800"
               />
               <span>
-                <strong className="text-slate-200">{homeUi.analytics}</strong>
-                <span className="text-slate-400">{homeUi.analyticsDescription}</span>
+                <strong className="text-slate-800">{homeUi.analytics}</strong>
+                <span className="text-slate-500">{homeUi.analyticsDescription}</span>
               </span>
             </label>
           </div>
         )}
 
         {!showDetails && (
-          <div className="px-4 mb-2">
+          <div className="px-4 mb-2 pl-[3.75rem]">
             <button
               type="button"
               onClick={() => setShowDetails(true)}
-              className="text-[11px] text-emerald-400 underline underline-offset-2"
+              className="text-[11px] text-slate-700 underline underline-offset-2"
             >
               {homeUi.cookiePrivacyPreferences}
             </button>
@@ -220,7 +224,7 @@ export function CookieConsentBanner() {
         )}
 
         {saveError && (
-          <p role="alert" className="px-4 text-[11px] text-red-300 mb-2">
+          <p role="alert" className="px-4 text-[11px] text-red-600 mb-2">
             {saveError}
           </p>
         )}
@@ -230,7 +234,7 @@ export function CookieConsentBanner() {
             type="button"
             onClick={handleAcceptAll}
             disabled={isSaving}
-            className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white font-bold py-3 px-3 rounded-xl transition-colors cursor-pointer text-center"
+            className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white font-semibold py-3 px-3 rounded-xl transition-colors cursor-pointer text-center"
           >
             {homeUi.acceptAll}
           </button>
@@ -239,7 +243,7 @@ export function CookieConsentBanner() {
               type="button"
               onClick={handleSavePreferences}
               disabled={isSaving}
-              className="w-full bg-blue-700 hover:bg-blue-600 disabled:opacity-60 text-white font-bold py-3 px-3 rounded-xl transition-colors cursor-pointer text-center"
+              className="w-full bg-white hover:bg-slate-50 disabled:opacity-60 text-slate-900 font-semibold py-3 px-3 rounded-xl transition-colors cursor-pointer text-center border border-slate-300"
             >
               {homeUi.saveSelection}
             </button>
@@ -248,17 +252,17 @@ export function CookieConsentBanner() {
             type="button"
             onClick={handleEssentialOnly}
             disabled={isSaving}
-            className="w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-60 text-slate-300 font-semibold py-3 px-3 rounded-xl transition-colors cursor-pointer text-center border border-slate-700"
+            className="w-full bg-white hover:bg-slate-50 disabled:opacity-60 text-slate-700 font-semibold py-3 px-3 rounded-xl transition-colors cursor-pointer text-center border border-slate-300"
           >
             {homeUi.essentialOnly}
           </button>
         </div>
 
-        <div className="px-4 pb-3 text-[11px] text-slate-400 flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
-          <Link href="/cookies" className="hover:text-emerald-400 underline break-words">
+        <div className="px-4 pb-3 text-[11px] text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+          <Link href="/cookies" className="hover:text-slate-800 underline break-words">
             {homeUi.cookiePolicy}
           </Link>
-          <Link href="/privacy" className="hover:text-emerald-400 underline break-words">
+          <Link href="/privacy" className="hover:text-slate-800 underline break-words">
             {homeUi.privacyPolicy}
           </Link>
           <span className="shrink-0">{homeUi.consentVersion} 3</span>
