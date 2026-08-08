@@ -2,17 +2,50 @@ import { getRedis, isRedisConfigured } from "@/lib/redis";
 
 const RATELIMIT_PREFIX = "ratelimit:";
 
+type RateLimitResult = { allowed: boolean; retryAfterSeconds: number };
+
+/** Best-effort per-instance fallback when Redis is unavailable. */
+const memoryCounters = new Map<string, { count: number; resetAt: number }>();
+
+function checkMemoryRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): RateLimitResult {
+  const now = Date.now();
+  const existing = memoryCounters.get(key);
+  if (!existing || existing.resetAt <= now) {
+    memoryCounters.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, retryAfterSeconds: 0 };
+  }
+
+  existing.count += 1;
+  if (existing.count > limit) {
+    return {
+      allowed: false,
+      retryAfterSeconds: Math.max(1, Math.ceil((existing.resetAt - now) / 1000)),
+    };
+  }
+  return { allowed: true, retryAfterSeconds: 0 };
+}
+
 /**
  * Persistent rate limiter for serverless API routes using Upstash Redis.
  * Uses INCR + EXPIRE for atomic sliding fixed windows.
+ * On Redis errors, falls back to in-memory limits (fail-open for catalog APIs
+ * unless RATE_LIMIT_FAIL_CLOSED=1).
  */
 export async function checkRateLimit(
   key: string,
   limit = 30,
   windowMs = 60_000
-): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
+): Promise<RateLimitResult> {
   const redisKey = `${RATELIMIT_PREFIX}${key}`;
   const windowSeconds = Math.ceil(windowMs / 1000);
+
+  if (!isRedisConfigured()) {
+    return checkMemoryRateLimit(key, limit, windowMs);
+  }
 
   try {
     const redis = getRedis();
@@ -33,14 +66,16 @@ export async function checkRateLimit(
     return { allowed: true, retryAfterSeconds: 0 };
   } catch (error) {
     console.error("Rate limit Redis error:", error);
-    // Fail closed only when Redis is configured (expected to work). Without Redis
-    // (local `next start`, CI e2e), fail open so APIs remain usable.
-    const failOpen =
-      process.env.RATE_LIMIT_FAIL_OPEN === "1" || !isRedisConfigured();
-    if (!failOpen) {
+    // Upstash outage / quota must not blank /api/products for every visitor.
+    // RATE_LIMIT_FAIL_OPEN=1 (e2e) and default production: soft degrade.
+    // Opt into hard deny with RATE_LIMIT_FAIL_CLOSED=1.
+    if (
+      process.env.RATE_LIMIT_FAIL_CLOSED === "1" &&
+      process.env.RATE_LIMIT_FAIL_OPEN !== "1"
+    ) {
       return { allowed: false, retryAfterSeconds: 60 };
     }
-    return { allowed: true, retryAfterSeconds: 0 };
+    return checkMemoryRateLimit(key, limit, windowMs);
   }
 }
 
@@ -75,4 +110,9 @@ export function getClientIp(request: Request): string {
   }
 
   return request.headers.get("x-real-ip") || "unknown";
+}
+
+/** Test helper */
+export function resetMemoryRateLimitForTests(): void {
+  memoryCounters.clear();
 }
