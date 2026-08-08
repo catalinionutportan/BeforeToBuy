@@ -6,8 +6,11 @@ export const MERCHANT_ID_ALIASES: Record<string, string> = {
   "ch-microspot": "ch-interdiscount",
 };
 
-export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
-  // --- Switzerland (CH) ---
+/**
+ * Swiss retailers kept offline until written partnership / affiliate approval.
+ * Not shown in /stores or country chips — flip into ALL_MERCHANT_DOMAINS when approved.
+ */
+export const CH_MERCHANTS_PENDING_APPROVAL: MerchantDomainInfo[] = [
   {
     id: "ch-digitec",
     name: "Digitec",
@@ -127,9 +130,9 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Conrad Electronic AG — Swiss tech and electronics retailer for consumer and specialist assortments. Planned integration.",
   },
-  // Amazon.de is Germany-only in the merchant registry.
-  // CH browse must stay Swiss retailers; foreign delivery stays opt-in via Cross-border offers.
+];
 
+export const DEMO_MERCHANTS_PENDING_APPROVAL: MerchantDomainInfo[] = [
   // --- Germany (DE) ---
   {
     id: "de-amazon",
@@ -249,37 +252,6 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description: "French specialist in household appliances, TV, computing, and repair services.",
   },
 
-  // --- Romania (RO) ---
-  // Only merchants with live affiliate + product feed. Add others one-by-one when ready.
-  {
-    id: "ro-rowenta",
-    name: "Rowenta.ro",
-    domain: "rowenta.ro",
-    websiteUrl: AFFILIATE_LINKS.rowenta2Performant,
-    countryCode: "RO",
-    affiliateNetwork: "2Performant Romania",
-    category: "Home Appliances",
-    hasClickAndCollect: false,
-    status: "Live Feed",
-    badge: "2Performant + product feed 🇷🇴",
-    description:
-      "Rowenta home appliances for Romania. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
-  },
-  {
-    id: "ro-scule365",
-    name: "Scule365.ro",
-    domain: "scule365.ro",
-    websiteUrl: AFFILIATE_LINKS.scule3652Performant,
-    countryCode: "RO",
-    affiliateNetwork: "2Performant Romania",
-    category: "DIY + Tools",
-    hasClickAndCollect: false,
-    status: "Live Feed",
-    badge: "2Performant + product feed 🇷🇴",
-    description:
-      "Romanian tools and DIY retailer. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
-  },
-
   // --- United Kingdom (GB) ---
   {
     id: "gb-amazon",
@@ -361,6 +333,41 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
   },
 ];
 
+export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
+  // Live public merchants only. Restore others from *_PENDING_APPROVAL after agreements.
+  // --- Romania (RO) ---
+  // Only merchants with live affiliate + product feed. Add others one-by-one when ready.
+  {
+    id: "ro-rowenta",
+    name: "Rowenta.ro",
+    domain: "rowenta.ro",
+    websiteUrl: AFFILIATE_LINKS.rowenta2Performant,
+    countryCode: "RO",
+    affiliateNetwork: "2Performant Romania",
+    category: "Home Appliances",
+    hasClickAndCollect: false,
+    status: "Live Feed",
+    badge: "2Performant + product feed 🇷🇴",
+    description:
+      "Rowenta home appliances for Romania. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
+  },
+  {
+    id: "ro-scule365",
+    name: "Scule365.ro",
+    domain: "scule365.ro",
+    websiteUrl: AFFILIATE_LINKS.scule3652Performant,
+    countryCode: "RO",
+    affiliateNetwork: "2Performant Romania",
+    category: "DIY + Tools",
+    hasClickAndCollect: false,
+    status: "Live Feed",
+    badge: "2Performant + product feed 🇷🇴",
+    description:
+      "Romanian tools and DIY retailer. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
+  },
+
+];
+
 export const COUNTRIES: Record<CountryCode, CountryInfo> = {
   CH: {
     code: "CH",
@@ -374,23 +381,10 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: 8.5417,
       city: "Zürich",
     },
-    supportedStores: [
-      "digitec.ch",
-      "galaxus.ch",
-      "brack.ch",
-      "mediamarkt.ch",
-      "interdiscount.ch",
-      "fust.ch",
-      "fnac.ch",
-      "nettoshop.ch",
-      "conrad.ch",
-    ],
+    // Empty until CH merchant partnerships are approved.
+    supportedStores: [],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "CH"),
-    affiliateNetworks: [
-      "AWIN Switzerland (planned)",
-      "Digitec/Galaxus affiliate via networks (planned — not Merchant seller programme)",
-      "Rakuten CH (planned)",
-    ],
+    affiliateNetworks: [],
   },
   DE: {
     code: "DE",
@@ -404,9 +398,9 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: 13.405,
       city: "Berlin",
     },
-    supportedStores: ["amazon.de", "mediamarkt.de", "saturn.de", "otto.de", "cyberport.de"],
+    supportedStores: [],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "DE"),
-    affiliateNetworks: ["Amazon DE (planned)", "AWIN Germany (planned)", "CJ Affiliate (planned)"],
+    affiliateNetworks: [],
   },
   FR: {
     code: "FR",
@@ -420,9 +414,9 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: 2.3522,
       city: "Paris",
     },
-    supportedStores: ["amazon.fr", "fnac.com", "cdiscount.com", "darty.com"],
+    supportedStores: [],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "FR"),
-    affiliateNetworks: ["Amazon FR (planned)", "AWIN France (planned)", "Effinity (planned)"],
+    affiliateNetworks: [],
   },
   RO: {
     code: "RO",
@@ -456,9 +450,9 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: -0.1278,
       city: "London",
     },
-    supportedStores: ["amazon.co.uk", "currys.co.uk", "argos.co.uk"],
+    supportedStores: [],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "GB"),
-    affiliateNetworks: ["Amazon UK (planned)", "AWIN UK (planned)", "CJ UK (planned)"],
+    affiliateNetworks: [],
   },
   US: {
     code: "US",
@@ -472,14 +466,9 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: -74.006,
       city: "New York",
     },
-    supportedStores: ["amazon.com", "bestbuy.com", "target.com"],
+    supportedStores: [],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "US"),
-    affiliateNetworks: [
-      "Amazon US (planned)",
-      "CJ Affiliate (planned)",
-      "Rakuten US (planned)",
-      "Impact (planned)",
-    ],
+    affiliateNetworks: [],
   },
 };
 

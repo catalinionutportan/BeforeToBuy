@@ -57,19 +57,12 @@ describe("Merchant Feed Processing", () => {
     expect(brackParsed.products.length).toBe(6);
   });
 
-  it("getFeedProducts loads all CH sample merchant feeds", async () => {
+  it("getFeedProducts skips disabled CH merchant feeds until approval", async () => {
     clearFeedCacheForTests();
     const result = await getFeedProducts("CH");
 
-    // Real sample feeds share 3 valid EANs/GTINs across merchants
-    // (MacBook, Sony WH-1000XM5, Galaxy S24 Ultra) → 16 rows merge to 13 products.
-    expect(result.products.length).toBe(13);
-    expect(result.sources.includes("sample")).toBe(true);
-    expect(result.merchantProductCounts["ch-brack"]).toBe(6);
-    expect(result.merchantProductCounts["ch-digitec"]).toBe(2);
-    expect(result.merchantProductCounts["ch-galaxus"]).toBe(2);
-    expect(result.merchantProductCounts["ch-fust"]).toBe(2);
-    expect(result.merchantProductCounts["ch-interdiscount"]).toBe(2);
-    expect(result.merchantProductCounts["ch-mediamarkt"]).toBe(2);
+    expect(result.products.length).toBe(0);
+    expect(result.sources).toEqual([]);
+    expect(result.merchantProductCounts).toEqual({});
   });
 });

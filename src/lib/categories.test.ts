@@ -17,7 +17,12 @@ import {
 import { getDepartmentLabel, getCollectionLabel, getSubcategoryLabel, localeFromCountry } from './category-i18n';
 import { SITE_LOCALES } from './i18n/locales';
 import { SUBCATEGORY_LABELS } from './i18n/subcategory-labels';
-import { ALL_MERCHANT_DOMAINS, MERCHANT_ID_ALIASES } from './countries';
+import {
+  ALL_MERCHANT_DOMAINS,
+  CH_MERCHANTS_PENDING_APPROVAL,
+  DEMO_MERCHANTS_PENDING_APPROVAL,
+  MERCHANT_ID_ALIASES,
+} from './countries';
 
 const baseProduct = {
   title: "Example product",
@@ -210,42 +215,30 @@ describe('Category and Collection Logic', () => {
     }
   });
 
-  it("Swiss merchant registry retires Microspot in favor of active retailers", () => {
-    const swissMerchantIds = new Set(
-      ALL_MERCHANT_DOMAINS.filter((merchant) => merchant.countryCode === "CH").map(
-        (merchant) => merchant.id
-      )
-    );
+  it("Swiss merchants stay pending approval and off the public registry", () => {
+    expect(ALL_MERCHANT_DOMAINS.filter((m) => m.countryCode === "CH")).toHaveLength(0);
 
-    expect(swissMerchantIds.has("ch-microspot")).toBeFalsy();
-    expect(swissMerchantIds.has("ch-interdiscount")).toBeTruthy();
-    expect(swissMerchantIds.has("ch-fust")).toBeTruthy();
+    const pendingIds = new Set(CH_MERCHANTS_PENDING_APPROVAL.map((m) => m.id));
+    expect(pendingIds.has("ch-microspot")).toBeFalsy();
+    expect(pendingIds.has("ch-interdiscount")).toBeTruthy();
+    expect(pendingIds.has("ch-fust")).toBeTruthy();
+    expect(pendingIds.has("ch-nettoshop")).toBeTruthy();
+    expect(pendingIds.has("ch-conrad")).toBeTruthy();
     expect(MERCHANT_ID_ALIASES["ch-microspot"]).toBe("ch-interdiscount");
   });
 
-  it("Amazon.de is not listed as a Swiss merchant domain", () => {
-    const swissDomains = ALL_MERCHANT_DOMAINS.filter((merchant) => merchant.countryCode === "CH");
-    expect(swissDomains.some((merchant) => merchant.id === "ch-amazon-de")).toBeFalsy();
-    expect(swissDomains.some((merchant) => merchant.domain === "amazon.de")).toBeFalsy();
+  it("public registry exposes only live RO merchants", () => {
+    expect(ALL_MERCHANT_DOMAINS.map((m) => m.id).sort()).toEqual([
+      "ro-rowenta",
+      "ro-scule365",
+    ]);
     expect(
-      ALL_MERCHANT_DOMAINS.some(
+      CH_MERCHANTS_PENDING_APPROVAL.some((merchant) => merchant.domain === "amazon.de")
+    ).toBeFalsy();
+    expect(
+      DEMO_MERCHANTS_PENDING_APPROVAL.some(
         (merchant) => merchant.id === "de-amazon" && merchant.countryCode === "DE"
       )
     ).toBeTruthy();
-  });
-
-  it("Swiss registry includes verified Nettoshop and Conrad as planned integrations", () => {
-    const swissById = new Map(
-      ALL_MERCHANT_DOMAINS.filter((merchant) => merchant.countryCode === "CH").map((merchant) => [
-        merchant.id,
-        merchant,
-      ])
-    );
-
-    expect(swissById.get("ch-nettoshop")?.domain).toBe("nettoshop.ch");
-    expect(swissById.get("ch-nettoshop")?.status).toBe("Planned Integration");
-    expect(swissById.get("ch-conrad")?.domain).toBe("conrad.ch");
-    expect(swissById.get("ch-conrad")?.status).toBe("Planned Integration");
-    expect(swissById.has("ch-melectronics")).toBeFalsy();
   });
 });

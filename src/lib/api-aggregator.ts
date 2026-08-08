@@ -1,8 +1,6 @@
 import { CountryCode, Offer, PhysicalStoreBranch, Product, UserLocation } from "@/types";
 import { COUNTRIES } from "./countries";
 import { calculateHaversineDistance } from "./geolocation";
-import { productMatchesCategoryFilter, ALL_CATEGORIES_ID } from "./categories";
-import { productMatchesSearchQuery } from "./product-search";
 import { getChOffers } from "./offers/ch-offers";
 import { getDeOffers } from "./offers/de-offers";
 import { getFrOffers } from "./offers/fr-offers";
@@ -16,7 +14,6 @@ import frBranches from "@/data/store-branches-fr.json";
 import roBranches from "@/data/store-branches-ro.json";
 import gbBranches from "@/data/store-branches-gb.json";
 import usBranches from "@/data/store-branches-us.json";
-import { fetchBaseProducts } from "./product-data";
 import { DEFAULT_LOCALE, type SiteLocale } from "@/lib/i18n/locales";
 
 export async function fetchCountryPriceMultipliers(): Promise<Record<CountryCode, number>> {
@@ -49,7 +46,8 @@ const OFFER_LOADERS: Record<CountryCode, OfferLoader> = {
 };
 
 function allowDemoFallbackOffers(): boolean {
-  return process.env.NODE_ENV !== "production" || process.env.ALLOW_DEMO_DEFAULT_OFFERS === "1";
+  // Hard-off: no synthetic "Default Store" / demo merchants in the app.
+  return process.env.ALLOW_DEMO_DEFAULT_OFFERS === "1";
 }
 
 /**
@@ -122,45 +120,12 @@ export async function generateOffersForLocation(
 }
 
 export async function fetchProductsForLocation(
-  userLocation: UserLocation,
-  query?: string,
-  category?: string,
-  locale: SiteLocale = DEFAULT_LOCALE
+  _userLocation: UserLocation,
+  _query?: string,
+  _category?: string,
+  _locale: SiteLocale = DEFAULT_LOCALE
 ): Promise<Product[]> {
-  const allBaseProducts = await fetchBaseProducts(locale);
-
-  let filtered = allBaseProducts.filter((p) =>
-    p.targetCountries.includes(userLocation.countryCode)
-  );
-
-  if (category && category !== ALL_CATEGORIES_ID) {
-    filtered = filtered.filter((p) => productMatchesCategoryFilter(p, category));
-  }
-
-  if (query && query.trim() !== "") {
-    filtered = filtered.filter((p) => productMatchesSearchQuery(p, query));
-  }
-
-  return Promise.all(
-    filtered.map(async (prod) => {
-      try {
-        const offers = (await generateOffersForLocation(prod, userLocation, locale)).map((offer) => ({
-          ...offer,
-          source: "demo" as const,
-        }));
-        return {
-          ...prod,
-          offers,
-          catalogSource: "demo" as const,
-        };
-      } catch (error) {
-        console.error(`[api-aggregator] product hydrate failed for ${prod.id}:`, error);
-        return {
-          ...prod,
-          offers: [],
-          catalogSource: "demo" as const,
-        };
-      }
-    })
-  );
+  // Demo / hardcoded catalog removed. Products come only from enabled merchant feeds
+  // (currently Rowenta + Scule365 via 2Performant). Re-add demo hydration only if needed for tests.
+  return [];
 }

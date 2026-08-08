@@ -1,4 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+/** CH catalog is empty until merchant approval — use RO for product UI smoke. */
+async function selectRomaniaMarket(page: Page) {
+  const countrySelect = page.getByLabel(/change country|country|region/i).first();
+  await expect(countrySelect).toBeVisible({ timeout: 15_000 });
+  await countrySelect.selectOption("RO");
+}
 
 test.describe("BeforeToBuy smoke E2E", () => {
   test.beforeEach(async ({ page }) => {
@@ -16,6 +23,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
       timeout: 15_000,
     });
     await expect(page.getByRole("button", { name: /^Menu$/i })).toBeVisible();
+    await selectRomaniaMarket(page);
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('a[href="https://portanx.com"]').first()).toBeVisible();
     await expect(page.getByRole("link", { name: "admin@portanx.com" })).toHaveAttribute(
@@ -85,27 +93,25 @@ test.describe("BeforeToBuy smoke E2E", () => {
     }
   });
 
-  test("products API labels the default CH feed as sample data", async ({ request }) => {
+  test("products API has empty CH catalog until merchant approval", async ({ request }) => {
     const response = await request.get("/api/products?country=CH");
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    expect(body.products.length).toBeGreaterThan(0);
+    expect(body.products.length).toBe(0);
     expect(body.meta.productionOfferCount).toBe(0);
-    expect(body.meta.sampleOfferCount).toBeGreaterThan(0);
-    type ApiOffer = { source: string; originalPrice?: number };
-    const sampleOffers = body.products
-      .flatMap((product: { offers: ApiOffer[] }) => product.offers)
-      .filter((offer: ApiOffer) => offer.source === "sample");
-    expect(sampleOffers.length).toBeGreaterThan(0);
-    expect(sampleOffers.every((offer: { originalPrice?: number }) => offer.originalPrice === undefined)).toBeTruthy();
-    expect(body.products.every((product: { rating?: number }) => product.rating === undefined)).toBeTruthy();
-    const audioSignal =
-      (body.meta.categoryCounts.audio ?? 0) + (body.meta.categoryCounts["audio-headphones"] ?? 0);
-    expect(audioSignal).toBeGreaterThan(0);
-    expect(body.meta.collectionCounts["compare-local-pickup"] ?? 0).toBeGreaterThanOrEqual(0);
-    expect(body.meta.mappingSummary?.total).toBeGreaterThan(0);
-    expect(body.meta.unmappedProductCount).toBeGreaterThanOrEqual(0);
-    expect(body.products.every((product: { category: string }) => product.category !== "unmapped")).toBeTruthy();
+    expect(body.meta.sampleOfferCount).toBe(0);
+    expect(body.meta.feedProductCount).toBe(0);
+    expect(body.meta.mappingSummary?.total ?? 0).toBe(0);
+  });
+
+  test("products API still serves live RO affiliate feeds", async ({ request }) => {
+    const response = await request.get("/api/products?country=RO");
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    expect(body.products.length).toBeGreaterThan(0);
+    expect(body.meta.productionOfferCount).toBeGreaterThan(0);
+    expect(body.meta.feedMerchants["ro-rowenta"]).toBeGreaterThan(0);
+    expect(body.meta.feedMerchants["ro-scule365"]).toBeGreaterThan(0);
   });
 
   test("legacy category query redirects to SEO category route", async ({ page }) => {
@@ -115,14 +121,17 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.getByRole("heading", { name: /^(Electronics|Elektronik)$/ })).toBeVisible();
   });
 
-  test("department SEO route renders products and breadcrumbs", async ({ page }) => {
+  test("department SEO route renders breadcrumbs while CH catalog awaits approval", async ({
+    page,
+  }) => {
     await page.goto("/categories/electronics");
     await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toBeVisible();
     await expect(page.getByRole("heading", { name: /^(Electronics|Elektronik)$/ })).toBeVisible();
-    await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
+    // CH default market has no merchant offers until partnership approval.
+    await expect(page.locator("article")).toHaveCount(0);
   });
 
-  test("category menu drill-down is shareable and empty departments stay hidden", async ({ page }) => {
+  test("category menu drill-down is shareable with live RO catalog", async ({ page }) => {
     await page.goto("/");
     const essentialButton = page.getByRole("button", { name: "Essential Only", exact: true });
     await expect(essentialButton).toBeVisible({ timeout: 10_000 });
@@ -130,6 +139,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.getByRole("dialog", { name: /Cookie & Privacy Preferences/i })).toHaveCount(0, {
       timeout: 5_000,
     });
+    await selectRomaniaMarket(page);
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
 
     await page.getByRole("button", { name: /^Menu$/i }).click();
@@ -145,8 +155,8 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
 
     await page.goto("/categories");
-    await expect(page.locator("article").first()).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByRole("heading", { name: "Compare Product Prices" })).toBeVisible();
+    // SEO category index uses DEFAULT_COUNTRY (CH) — empty until CH merchants are approved.
+    await expect(page.getByRole("heading", { name: /Compare Product Prices|Produktpreise vergleichen/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Large Appliances", exact: true })).toHaveCount(0);
   });
 
@@ -158,28 +168,25 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    expect(body.merchants.length).toBe(8);
-    // CH sample feeds stay sample; RO defaultRemoteUrl resolves to production outside vitest.
-    expect(body.sampleFeeds.length).toBeGreaterThanOrEqual(6);
-    expect(body.feedMerchantIds).toContain("ch-brack");
-    expect(body.feedMerchantIds).toContain("ch-digitec");
-    expect(body.feedMerchantIds).toContain("ch-galaxus");
+    // CH feeds disabled until merchant approval; only RO live affiliates remain active.
+    expect(body.merchants.length).toBe(2);
+    expect(body.feedMerchantIds).not.toContain("ch-brack");
+    expect(body.feedMerchantIds).not.toContain("ch-digitec");
     expect(body.feedMerchantIds).toContain("ro-rowenta");
     expect(body.feedMerchantIds).toContain("ro-scule365");
   });
 
-  test("products API exposes per-merchant feed counts", async ({ request }) => {
+  test("products API has no CH merchant feeds until approval", async ({ request }) => {
     const response = await request.get("/api/products?country=CH");
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    expect(body.meta.feedMerchants["ch-brack"]).toBe(6);
-    expect(body.meta.feedMerchants["ch-digitec"]).toBe(2);
-    // feedProductCount is GTIN-merged across merchants (16 raw rows -> fewer canonical products)
-    expect(body.meta.feedProductCount).toBeGreaterThanOrEqual(12);
+    expect(body.meta.feedMerchants).toEqual({});
+    expect(body.meta.feedProductCount).toBe(0);
+    expect(body.products?.length ?? 0).toBe(0);
     expect(body.meta.priceHistory?.enabled).toBe(true);
   });
 
-  test("mapping report API exposes review queue for feed products", async ({ request }) => {
+  test("mapping report API is empty for CH while merchants are pending", async ({ request }) => {
     const response = await request.get("/api/mapping/report?country=CH", {
       headers: {
         Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || process.env.CRON_SECRET || "playwright-internal-api-secret-32chars!"}`,
@@ -187,17 +194,19 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    expect(body.summary.total).toBeGreaterThan(0);
-    expect(body.summary.byMerchant["ch-brack"]).toBeTruthy();
+    expect(body.summary.total).toBe(0);
+    expect(body.summary.byMerchant["ch-brack"]).toBeFalsy();
     expect(Array.isArray(body.reviewQueue)).toBeTruthy();
   });
 
-  test("stores page lists Brack as Sample Feed", async ({ page }) => {
+  test("stores page does not list CH sample merchants", async ({ page }) => {
     await page.goto("/stores");
-    await expect(page.getByRole("heading", { name: "Brack.ch" })).toBeVisible();
-    await expect(page.getByText("Sample Feed").first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Interdiscount" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Fust" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Brack.ch" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Digitec" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Interdiscount" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Fust" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Microspot.ch" })).toHaveCount(0);
+    // RO live affiliates remain listed.
+    await expect(page.getByRole("heading", { name: "Rowenta.ro" })).toBeVisible();
   });
 });

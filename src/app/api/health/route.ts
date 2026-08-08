@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { getIntegrationSummary, MERCHANT_FEEDS } from "@/lib/merchant-integrations";
+import {
+  getEnabledMerchantFeeds,
+  getIntegrationSummary,
+  MERCHANT_FEEDS,
+} from "@/lib/merchant-integrations";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import type { CountryCode } from "@/types";
 import { LEGAL_DOCUMENT_VERSION, LEGAL_LAST_UPDATED } from "@/lib/legal-config";
 import { getPriceHistoryBackend, getPriceHistoryStats } from "@/lib/pricing/price-history";
 import { SITE_PHASE } from "@/lib/site-config";
@@ -53,11 +58,17 @@ async function checkSampleFeedFiles() {
 
 async function checkProductsMerge() {
   try {
-    const country = COUNTRIES[DEFAULT_COUNTRY];
+    // DEFAULT_COUNTRY (CH) may be empty while Swiss merchants await approval.
+    // Probe the first country that still has enabled feeds (today: RO).
+    const enabledCountries = [
+      ...new Set(getEnabledMerchantFeeds().map((feed) => feed.country)),
+    ] as CountryCode[];
+    const probeCode = enabledCountries[0] ?? DEFAULT_COUNTRY;
+    const country = COUNTRIES[probeCode] || COUNTRIES[DEFAULT_COUNTRY];
     const result = await fetchMergedProductsForLocation({
       latitude: country.defaultCoordinates.lat,
       longitude: country.defaultCoordinates.lng,
-      countryCode: DEFAULT_COUNTRY,
+      countryCode: probeCode,
       countryName: country.name,
       city: country.defaultCoordinates.city,
       isGps: false,
@@ -69,6 +80,7 @@ async function checkProductsMerge() {
       productCount: result.products.length,
       productionOfferCount: result.meta.productionOfferCount,
       sampleOfferCount: result.meta.sampleOfferCount,
+      probedCountry: probeCode,
     };
   } catch (error) {
     return {

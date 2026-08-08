@@ -3,7 +3,7 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { CountryCode, OfferSource, Product } from "@/types";
 import {
-  MERCHANT_FEEDS,
+  getEnabledMerchantFeeds,
   resolveFeedRemoteUrl,
   type FeedConfig,
 } from "@/lib/merchant-integrations";
@@ -175,7 +175,7 @@ export async function getFeedProducts(
   mappingLog: MappingLogEntry[];
   merchantProductCounts: Record<string, number>;
 }> {
-  const feeds = MERCHANT_FEEDS.filter((feed) => feed.country === country);
+  const feeds = getEnabledMerchantFeeds().filter((feed) => feed.country === country);
   const allProducts: Product[] = [];
   const allMappingLog: MappingLogEntry[] = [];
   const sources = new Set<"remote" | "sample">();

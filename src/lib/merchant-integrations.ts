@@ -19,6 +19,19 @@ export interface FeedConfig {
   defaultRemoteUrl?: string;
   sampleFile?: string;
   sampleFormat?: FeedSampleFormat;
+  /**
+   * When false, feed is kept for re-enable after merchant approval but not loaded or listed.
+   * Defaults to true when omitted.
+   */
+  enabled?: boolean;
+}
+
+export function isFeedEnabled(feed: FeedConfig): boolean {
+  return feed.enabled !== false;
+}
+
+export function getEnabledMerchantFeeds(): FeedConfig[] {
+  return MERCHANT_FEEDS.filter(isFeedEnabled);
 }
 
 export interface MerchantFeedStatus {
@@ -32,7 +45,11 @@ export interface MerchantFeedStatus {
   sampleAvailable: boolean;
 }
 
-/** Primary CH merchant feed registry (C4). Production URLs activate via env vars. */
+/**
+ * Merchant feed registry.
+ * CH sample retailers stay listed but disabled until partnership approval.
+ * RO Rowenta / Scule365 remain live.
+ */
 export const MERCHANT_FEEDS: FeedConfig[] = [
   {
     provider: "AWIN",
@@ -43,6 +60,7 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     legacyEnvVars: ["AWIN_FEED_URL_CH"],
     sampleFile: "sample-awin-brack-ch.csv",
     sampleFormat: "csv",
+    enabled: false,
   },
   {
     provider: "GALAXUS",
@@ -52,6 +70,7 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     envVar: "GALAXUS_FEED_URL_CH_DIGITEC",
     sampleFile: "sample-galaxus-digitec-ch.json",
     sampleFormat: "json",
+    enabled: false,
   },
   {
     provider: "GALAXUS",
@@ -61,6 +80,7 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     envVar: "GALAXUS_FEED_URL_CH_GALAXUS",
     sampleFile: "sample-galaxus-galaxus-ch.json",
     sampleFormat: "json",
+    enabled: false,
   },
   {
     provider: "AWIN",
@@ -70,6 +90,7 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     envVar: "AWIN_FEED_URL_CH_MEDIAMARKT",
     sampleFile: "sample-awin-mediamarkt-ch.csv",
     sampleFormat: "csv",
+    enabled: false,
   },
   {
     provider: "AWIN",
@@ -79,6 +100,7 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     envVar: "AWIN_FEED_URL_CH_INTERDISCOUNT",
     sampleFile: "sample-awin-interdiscount-ch.csv",
     sampleFormat: "csv",
+    enabled: false,
   },
   {
     provider: "AWIN",
@@ -88,6 +110,7 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     envVar: "AWIN_FEED_URL_CH_FUST",
     sampleFile: "sample-awin-fust-ch.csv",
     sampleFormat: "csv",
+    enabled: false,
   },
   {
     provider: "TWO_PERFORMANT",
@@ -139,7 +162,7 @@ export function getFeedMode(feed: FeedConfig): FeedMode {
 }
 
 export function getMerchantFeedStatuses(): MerchantFeedStatus[] {
-  return MERCHANT_FEEDS.map((feed) => {
+  return getEnabledMerchantFeeds().map((feed) => {
     const mode = getFeedMode(feed);
     return {
       merchantId: feed.merchantId,
@@ -169,7 +192,7 @@ export function getAmazonConfig() {
 export function getConfiguredFeedUrls(): Record<string, string> {
   const urls: Record<string, string> = {};
 
-  for (const feed of MERCHANT_FEEDS) {
+  for (const feed of getEnabledMerchantFeeds()) {
     const url = resolveFeedRemoteUrl(feed);
     if (url) {
       urls[feed.merchantId] = url;
@@ -181,14 +204,14 @@ export function getConfiguredFeedUrls(): Record<string, string> {
 
 export function isUsingSampleFeed(merchantId: string): boolean {
   const feed = getFeedConfig(merchantId);
-  if (!feed) return false;
+  if (!feed || !isFeedEnabled(feed)) return false;
   return getFeedMode(feed) === "sample";
 }
 
 export function getFeedMerchantIds(): string[] {
-  return MERCHANT_FEEDS.filter((feed) => getFeedMode(feed) !== "unconfigured").map(
-    (feed) => feed.merchantId
-  );
+  return getEnabledMerchantFeeds()
+    .filter((feed) => getFeedMode(feed) !== "unconfigured")
+    .map((feed) => feed.merchantId);
 }
 
 export function getIntegrationSummary() {
