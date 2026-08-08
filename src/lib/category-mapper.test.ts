@@ -150,6 +150,20 @@ describe('Category Mapper Functions', () => {
       title: "Dispozitiv Taiat Gresie/Faianta Cu Perforator 450 mm Evotools",
     });
     expect(tileCutter.categoryId).toBe("diy-power-tools");
+
+    // Kitchen / garden wording must still stay inside Bricolaj (diy-tools).
+    const pots = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-scule365",
+      title: "Set Oale cu Tigaie Capace Sticla 7 buc Totakila",
+    });
+    expect(pots.categoryId.startsWith("diy-")).toBe(true);
+
+    const mower = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-scule365",
+      title: "Masina Tuns Iarba 1200W INGCO LM321",
+    });
+    expect(mower.categoryId).toBe("diy-power-tools");
+    expect(mower.categoryId.startsWith("garden-")).toBe(false);
   });
 
   it("Rowenta maps Romanian feed categories into fine cleaning and grooming leaves", () => {

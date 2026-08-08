@@ -1,4 +1,9 @@
-import { SHOPPING_CATEGORIES, UNMAPPED_CATEGORY_ID, walkSubcategories } from "@/lib/categories";
+import {
+  getParentCategoryId,
+  SHOPPING_CATEGORIES,
+  UNMAPPED_CATEGORY_ID,
+  walkSubcategories,
+} from "@/lib/categories";
 import {
   getGlobalPatternMatch,
   getMerchantDefaultCategory,
@@ -7,6 +12,10 @@ import {
   MAPPING_CONFIDENCE,
   MIN_MAPPING_CONFIDENCE,
 } from "@/lib/merchant-category-rules";
+
+/** Scule365 is a DIY catalogue — every product stays under Bricolaj. */
+const SCULE365_PARENT_ID = "diy-tools";
+const SCULE365_FALLBACK_LEAF = "diy-hand-tools";
 
 /**
  * Maps merchant / affiliate feed categories + product text → BeforeToBuy subcategory id.
@@ -82,6 +91,28 @@ function applyConfidenceThreshold(result: CategoryMappingResult): CategoryMappin
   return result;
 }
 
+/** Force Scule365 into Bricolaj leaves even if a rule/keyword drifts elsewhere. */
+function clampScule365ToDiy(result: CategoryMappingResult): CategoryMappingResult {
+  if (result.categoryId === UNMAPPED_CATEGORY_ID) {
+    return {
+      ...result,
+      categoryId: SCULE365_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+    };
+  }
+  if (getParentCategoryId(result.categoryId) === SCULE365_PARENT_ID) {
+    return result;
+  }
+  return {
+    ...result,
+    categoryId: SCULE365_FALLBACK_LEAF,
+    method: "merchant-default",
+    confidence: MAPPING_CONFIDENCE.combinedPattern,
+    proposedCategoryId: result.categoryId,
+  };
+}
+
 export interface CategoryMappingInput {
   merchantId?: string;
   merchantCategory?: string;
@@ -117,11 +148,15 @@ export function mapToBeforeToBuyCategoryWithMetadata(
   const { merchantId, merchantCategory, title, description, brand } = input;
   const productText = normalizeText([title, description, brand]);
   const combined = normalizeText([merchantCategory, title, description, brand]);
+  const finalize =
+    merchantId === "ro-scule365"
+      ? (result: CategoryMappingResult) => clampScule365ToDiy(applyConfidenceThreshold(result))
+      : applyConfidenceThreshold;
 
   if (merchantCategory) {
     const exactMatch = getMerchantExactMatch(merchantId, merchantCategory);
     if (exactMatch) {
-      return applyConfidenceThreshold({
+      return finalize({
         categoryId: exactMatch,
         method: "merchant-exact",
         confidence: MAPPING_CONFIDENCE.merchantExact,
@@ -131,7 +166,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
 
     const merchantPatternMatch = getMerchantPatternMatch(merchantId, merchantCategory);
     if (merchantPatternMatch) {
-      return applyConfidenceThreshold({
+      return finalize({
         categoryId: merchantPatternMatch,
         method: "merchant-pattern",
         confidence: MAPPING_CONFIDENCE.merchantPattern,
@@ -141,7 +176,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
 
     const globalOnCategory = getGlobalPatternMatch(merchantCategory);
     if (globalOnCategory) {
-      return applyConfidenceThreshold({
+      return finalize({
         categoryId: globalOnCategory,
         method: "merchant-rule",
         confidence: MAPPING_CONFIDENCE.globalPattern,
@@ -154,7 +189,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
   // false positives like "ergonomic" → office when the feed has no category).
   const merchantTextMatch = getMerchantPatternMatch(merchantId, productText || combined);
   if (merchantTextMatch) {
-    return applyConfidenceThreshold({
+    return finalize({
       categoryId: merchantTextMatch,
       method: "merchant-pattern",
       confidence: MAPPING_CONFIDENCE.merchantPattern,
@@ -162,22 +197,19 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     });
   }
 
-  // Specialised DIY catalogue: never leak tools into Fashion via noisy keywords.
+  // Specialised DIY catalogue: never leave Bricolaj via noisy keywords.
   if (merchantId === "ro-scule365") {
-    const diyDefault = getMerchantDefaultCategory(merchantId);
-    if (diyDefault) {
-      return {
-        categoryId: diyDefault,
-        method: "merchant-default",
-        confidence: MAPPING_CONFIDENCE.combinedPattern,
-        rawCategory: merchantCategory,
-      };
-    }
+    return {
+      categoryId: SCULE365_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: merchantCategory,
+    };
   }
 
   const fromKeywords = inferFromKeywords(combined);
   if (fromKeywords) {
-    const keywordMapped = applyConfidenceThreshold({
+    const keywordMapped = finalize({
       categoryId: fromKeywords.subcategoryId,
       method: "keyword",
       confidence: Math.min(
@@ -193,7 +225,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
 
   const globalOnCombined = getGlobalPatternMatch(combined);
   if (globalOnCombined) {
-    const combinedMapped = applyConfidenceThreshold({
+    const combinedMapped = finalize({
       categoryId: globalOnCombined,
       method: "combined-rule",
       confidence: MAPPING_CONFIDENCE.combinedPattern,
@@ -206,16 +238,16 @@ export function mapToBeforeToBuyCategoryWithMetadata(
 
   const merchantDefault = getMerchantDefaultCategory(merchantId);
   if (merchantDefault) {
-    return {
+    return finalize({
       categoryId: merchantDefault,
       method: "merchant-default",
       confidence: MAPPING_CONFIDENCE.combinedPattern,
       rawCategory: merchantCategory,
-    };
+    });
   }
 
   if (fromKeywords) {
-    return applyConfidenceThreshold({
+    return finalize({
       categoryId: fromKeywords.subcategoryId,
       method: "keyword",
       confidence: Math.min(

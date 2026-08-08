@@ -1,4 +1,9 @@
-import { SHOPPING_CATEGORIES, UNMAPPED_CATEGORY_ID, walkSubcategories } from "@/lib/categories";
+import {
+  getParentCategoryId,
+  SHOPPING_CATEGORIES,
+  UNMAPPED_CATEGORY_ID,
+  walkSubcategories,
+} from "@/lib/categories";
 
 /** Merchants with dedicated category mapping rule sets (C2). */
 export const MAPPING_MERCHANT_IDS = [
@@ -220,9 +225,10 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "scule de mana": "diy-hand-tools",
       "scule de mână": "diy-hand-tools",
       "echipamente de lucru": "diy-hand-tools",
-      "pompe de apa": "garden-equipment",
-      "pompe de apă": "garden-equipment",
-      "pompe de stropit": "garden-equipment",
+      // Stay inside Bricolaj (diy-tools) — never Garden / Kitchen / Fashion.
+      "pompe de apa": "diy-electrical",
+      "pompe de apă": "diy-electrical",
+      "pompe de stropit": "diy-electrical",
       drujbe: "diy-power-tools",
       generatoare: "diy-electrical",
       acumulatoare: "diy-batteries-chargers",
@@ -248,8 +254,8 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       },
       {
         patterns:
-          /\b(pompa|pompă|pompe|stropit|gradina|grădin|motocoas|cositoare|tuns\s+iarb|masina\s+tuns\s+iarb|mașină\s+tuns\s+iarb|submersibil|hidrofor|aspirator\s+umed|moara\s+de\s+cereale|batoza)\b/i,
-        subcategoryId: "garden-equipment",
+          /\b(pompa|pompă|pompe|stropit|gradina|grădin\w*|motocoas\w*|cositoare|tuns\s+iarb\w*|masina\s+tuns\s+iarb\w*|mașină\s+tuns\s+iarb\w*|submersibil|hidrofor|aspirator\s+umed|moara\s+de\s+cereale|batoz\w*)\b/i,
+        subcategoryId: "diy-power-tools",
       },
       {
         patterns: /\b(generator|generatoare|invertor|compresor|stabilizator|redresor)\b/i,
@@ -275,11 +281,6 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
         patterns:
           /\b(chei[ei]?|surubelnit\w*|șurubelniț\w*|clește|cleste|trus[aă]|patent|sfic|set\s+scule|hand\s+tool|extractor|port\s+tarod|port\s+filiera|menghin[aă]|foarfec\w*|dalt[aă]|dorn|presa\s+tip|presa\s+fixare|capsator|gresor|ventuz[aă]|capre\s+suport)\b/i,
         subcategoryId: "diy-hand-tools",
-      },
-      {
-        patterns:
-          /\b(oale|tigaie|tocat\s+carne|carnati|cârnați|masina\s+(?:de\s+)?(?:tocat|carnati)|mașină\s+(?:de\s+)?(?:tocat|cârnați))\b/i,
-        subcategoryId: "kitchen-cooking-appliances",
       },
       {
         patterns:
@@ -470,6 +471,20 @@ export function validateMerchantCategoryRules(): string[] {
         errors.push(
           `${merchantId}: pattern → non-leaf or unknown category "${rule.subcategoryId}"`
         );
+      }
+    }
+
+    if (merchantId === "ro-scule365") {
+      const targets = [
+        ...Object.values(ruleSet.exact),
+        ...ruleSet.patterns.map((rule) => rule.subcategoryId),
+      ];
+      for (const subcategoryId of targets) {
+        if (getParentCategoryId(subcategoryId) !== "diy-tools") {
+          errors.push(
+            `${merchantId}: "${subcategoryId}" must stay under diy-tools (Bricolaj)`
+          );
+        }
       }
     }
   }
