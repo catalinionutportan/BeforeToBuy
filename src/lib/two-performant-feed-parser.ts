@@ -75,6 +75,7 @@ export function firstImage(imageUrls?: string): string {
 function storeNameForMerchant(feedMerchantId: string): string {
   if (feedMerchantId === "ro-rowenta") return "Rowenta.ro";
   if (feedMerchantId === "ro-scule365") return "Scule365.ro";
+  if (feedMerchantId === "ro-evomag") return "evoMAG.ro";
   return "2Performant Merchant";
 }
 

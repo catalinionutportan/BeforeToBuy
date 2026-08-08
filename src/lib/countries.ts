@@ -374,10 +374,10 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     affiliateNetwork: "2Performant Romania",
     category: "Electronics + General",
     hasClickAndCollect: true,
-    status: "Live Affiliate Redirect",
-    badge: "2Performant affiliate 🇷🇴",
+    status: "Live Feed",
+    badge: "2Performant + product feed 🇷🇴",
     description:
-      "Romanian electronics retailer (evoMAG). Live 2Performant homepage affiliate link. Product catalogue will be added with a small specialty feed — not the full 100k dump.",
+      "Romanian electronics retailer (evoMAG). Live 2Performant product feed (Category-rich My Feeds CSV), soft-capped for serverless; homepage affiliate quicklink remains active.",
   },
   // --- United Kingdom (GB) ---
   {

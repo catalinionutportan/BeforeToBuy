@@ -41,7 +41,7 @@ const BRACK_SAMPLE_ROWS = [
 describe('Category Mapper Functions', () => {
   it("merchant category rules validate without conflicts", () => {
     expect(validateMerchantCategoryRules()).toEqual([]);
-    expect(MAPPING_MERCHANT_IDS.length).toBe(9);
+    expect(MAPPING_MERCHANT_IDS.length).toBe(10);
   });
 
   it("Brack sample feed rows map with merchant-exact rules", () => {
@@ -307,4 +307,47 @@ describe('Category Mapper Functions', () => {
     ).toBe("notebooks-laptops");
   });
 
+  it("evoMAG does not map networking gear to smartphones via description", () => {
+    const extender = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-evomag",
+      merchantCategory: "Extendere Wi-Fi",
+      title: "Range Extender Wireless TP-LINK RE305",
+      description: "Gestioneaza reteaua din aplicatia de pe smartphone",
+    });
+    expect(extender.categoryId).toBe("networking-routers");
+    expect(extender.method).toBe("merchant-exact");
+
+    const camera = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-evomag",
+      merchantCategory: "Camere supraveghere video pentru interior",
+      title: "Camera Supraveghere Video Lanberg",
+      description: "securitate si supraveghere prin smartphone 24/7",
+    });
+    expect(camera.categoryId).toBe("smart-home-security");
+
+    const phone = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-evomag",
+      merchantCategory: "Telefoane",
+      title: "Telefon mobil Panasonic KX-TU110EXC",
+    });
+    expect(phone.categoryId).toBe("mobile-smartphones");
+    expect(phone.method).toBe("merchant-exact");
+  });
+
+  it("evoMAG skips keyword invention when aisle is unknown", () => {
+    const robot = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-evomag",
+      merchantCategory: "Mystery aisle xyz",
+      title: "Aspirator Robot Xiaomi Wi-Fi",
+      description: "controleaza de pe smartphone",
+    });
+    expect(robot.categoryId).toBe(UNMAPPED_CATEGORY_ID);
+
+    const husa = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-evomag",
+      merchantCategory: "Telefoane, Tablete & Accesorii",
+      title: "Husa Book Cover OEM pentru Samsung Galaxy A5 (2017)",
+    });
+    expect(husa.categoryId).toBe("mobile-accessories");
+  });
 });

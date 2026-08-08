@@ -140,6 +140,17 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     sampleFormat: "csv",
   },
   {
+    provider: "TWO_PERFORMANT",
+    country: "RO",
+    merchantId: "ro-evomag",
+    merchantName: "evoMAG.ro",
+    envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG",
+    // My Feeds CSV with Category (~104k). Soft-capped + diversified at ingest.
+    defaultRemoteUrl: "https://api.2performant.com/feed/9519e6c41.csv",
+    sampleFile: "sample-2performant-evomag-ro.csv",
+    sampleFormat: "csv",
+  },
+  {
     provider: "AWIN",
     country: "GB",
     merchantId: "gb-seentat",

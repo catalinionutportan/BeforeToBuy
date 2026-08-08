@@ -85,10 +85,23 @@ describe("2Performant Scule365 CSV feed", () => {
     expect(parsed.products[0]?.offers[0]?.source).toBe("production-live");
   });
 
-  it("getFeedProducts loads RO Scule365 sample feed", async () => {
+  it("getFeedProducts loads RO Scule365 and evoMAG sample feeds", async () => {
     clearFeedCacheForTests();
     const result = await getFeedProducts("RO");
     expect(result.merchantProductCounts["ro-scule365"]).toBeGreaterThanOrEqual(3);
-    expect(result.merchantProductCounts["ro-evomag"]).toBeUndefined();
+    expect(result.merchantProductCounts["ro-evomag"]).toBeGreaterThanOrEqual(3);
+  });
+
+  it("configured feed loader includes evoMAG TWO_PERFORMANT with Category CSV", async () => {
+    const feed = MERCHANT_FEEDS.find((item) => item.merchantId === "ro-evomag");
+    expect(feed?.defaultRemoteUrl).toContain("9519e6c41.csv");
+    const csv = fs.readFileSync(
+      path.join(process.cwd(), "src/data/sample-2performant-evomag-ro.csv"),
+      "utf8"
+    );
+    const parsed = await parseConfiguredFeed(feed!, csv, "RO", "production-live");
+    expect(parsed.products.length).toBeGreaterThanOrEqual(3);
+    expect(parsed.products[0]?.offers[0]?.storeName).toBe("evoMAG.ro");
+    expect(parsed.products[0]?.image).toMatch(/evomag\.ro/);
   });
 });
