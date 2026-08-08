@@ -461,8 +461,7 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     supportedStores: ["rowenta.ro", "scule365.ro", "evomag.ro"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "RO"),
     affiliateNetworks: [
-      "2Performant Romania (Rowenta + Scule365) — live product feeds",
-      "2Performant Romania (evoMAG) — live homepage affiliate",
+      "2Performant Romania (Rowenta + Scule365 + evoMAG) — live product feeds",
       "Additional RO merchants — specialty feeds one-by-one when ready",
     ],
   },

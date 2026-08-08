@@ -96,9 +96,24 @@ async function checkProductsMerge() {
 export async function GET(request: Request) {
   const authorized = isInternalApiAuthorized(request);
   const startedAt = Date.now();
+  const integrations = getIntegrationSummary();
+
+  // Public health must stay cheap for smoke/monitoring — skip full catalog merge.
+  // Internal callers still run the expensive productsMerge probe.
   const [sampleFeed, productsMerge, priceHistoryStats] = await Promise.all([
     checkSampleFeedFiles(),
-    checkProductsMerge(),
+    authorized
+      ? checkProductsMerge()
+      : Promise.resolve({
+          status: (integrations.hasProductionFeed && getEnabledMerchantFeeds().length > 0
+            ? "ok"
+            : "error") as "ok" | "error",
+          productCount: 0,
+          productionOfferCount: 0,
+          sampleOfferCount: 0,
+          probedCountry: undefined as string | undefined,
+          skippedFullMerge: true,
+        }),
     getPriceHistoryStats().catch(() => ({
       trackedOffers: 0,
       totalPoints: 0,
@@ -107,7 +122,6 @@ export async function GET(request: Request) {
     })),
   ]);
 
-  const integrations = getIntegrationSummary();
   const hasError = sampleFeed.status === "error" || productsMerge.status === "error";
   const overallStatus = hasError
     ? "unhealthy"

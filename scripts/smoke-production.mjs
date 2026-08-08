@@ -16,8 +16,8 @@ const endpoints = [
     expectOneOf: ["healthy", "degraded"],
   },
   {
-    name: "Products API",
-    path: "/api/products?country=CH",
+    name: "Products API (RO live feeds)",
+    path: "/api/products?country=RO",
     json: true,
     expectKey: "meta.feedProductCount",
     min: 1,

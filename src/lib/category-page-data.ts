@@ -1,5 +1,6 @@
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import { getPrimaryLiveBrowseCountry } from "@/lib/live-browse-market";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
 
 export function getBrowseLocationForCountry(countryCode: CountryCode): UserLocation {
@@ -15,7 +16,7 @@ export function getBrowseLocationForCountry(countryCode: CountryCode): UserLocat
 }
 
 export function getDefaultBrowseLocation(): UserLocation {
-  return getBrowseLocationForCountry(DEFAULT_COUNTRY);
+  return getBrowseLocationForCountry(getPrimaryLiveBrowseCountry());
 }
 
 export async function fetchCatalogForCountry(countryCode: CountryCode, category?: string) {
@@ -26,6 +27,7 @@ export async function fetchCatalogForCountry(countryCode: CountryCode, category?
   );
 }
 
+/** Sitemap / fallbacks — use primary live market (RO), not empty CH default. */
 export async function fetchDefaultCatalog(category?: string) {
-  return fetchCatalogForCountry(DEFAULT_COUNTRY, category);
+  return fetchCatalogForCountry(getPrimaryLiveBrowseCountry(), category);
 }

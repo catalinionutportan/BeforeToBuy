@@ -11,6 +11,7 @@ import {
   readStoredMarketCountry,
   writeStoredMarketCountry,
 } from "@/lib/market-preference";
+import { getPrimaryLiveBrowseCountry } from "@/lib/live-browse-market";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 
@@ -39,9 +40,13 @@ function locationFromCountry(
 }
 
 export function useUserLocation(): UseUserLocationResult {
-  const [userLocation, setUserLocation] = useState<UserLocation>(() =>
-    locationFromCountry(DEFAULT_COUNTRY, "default")
-  );
+  const [userLocation, setUserLocation] = useState<UserLocation>(() => {
+    // Prefer saved market; otherwise primary live catalogue (RO) — not empty CH.
+    const initial =
+      (typeof window !== "undefined" && readStoredMarketCountry()) ||
+      getPrimaryLiveBrowseCountry();
+    return locationFromCountry(initial, "default");
+  });
 
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

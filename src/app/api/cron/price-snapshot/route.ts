@@ -37,7 +37,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const result = await runPriceSnapshotJob(["CH"]);
+    // Snapshot live catalogue markets (RO + GB). CH stays empty until Swiss feeds launch.
+    const result = await runPriceSnapshotJob(["RO", "GB"]);
     return NextResponse.json(result, {
       headers: { "Cache-Control": "no-store" },
     });

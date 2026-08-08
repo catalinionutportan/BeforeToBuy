@@ -51,8 +51,8 @@ describe('Price Snapshot Job', () => {
     await clearPriceHistoryForTests();
   });
 
-  it("runPriceSnapshotJob records CH feed offers", async () => {
-    const result = await runPriceSnapshotJob(["CH"]);
+  it("runPriceSnapshotJob records RO feed offers", async () => {
+    const result = await runPriceSnapshotJob(["RO"]);
 
     expect(result.ok).toBe(true);
     expect(result.productCount).toBeGreaterThan(0);

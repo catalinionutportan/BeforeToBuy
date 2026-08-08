@@ -1,14 +1,18 @@
 import { cookies, headers } from "next/headers";
 import type { CountryCode } from "@/types";
-import { DEFAULT_COUNTRY } from "@/lib/countries";
+import {
+  countryHasLiveFeeds,
+  getPrimaryLiveBrowseCountry,
+} from "@/lib/live-browse-market";
 import {
   isCountryCode,
   MARKET_COUNTRY_COOKIE,
 } from "@/lib/market-preference";
 
 /**
- * Resolve the browse market for SSR category/compare pages.
- * Preference order: explicit cookie (synced from client) → edge geo → default.
+ * Resolve the browse market for SSR category/compare/home pages.
+ * Preference: explicit cookie → geo (only if that market has live feeds) →
+ * primary live feed country (RO today). Avoids empty CH SSR for new visitors.
  */
 export async function getRequestMarketCountry(): Promise<CountryCode> {
   const cookieStore = await cookies();
@@ -17,7 +21,7 @@ export async function getRequestMarketCountry(): Promise<CountryCode> {
 
   const headerStore = await headers();
   const fromGeo = headerStore.get("x-vercel-ip-country");
-  if (isCountryCode(fromGeo)) return fromGeo;
+  if (isCountryCode(fromGeo) && countryHasLiveFeeds(fromGeo)) return fromGeo;
 
-  return DEFAULT_COUNTRY;
+  return getPrimaryLiveBrowseCountry();
 }

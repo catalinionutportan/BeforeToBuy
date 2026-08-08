@@ -140,14 +140,18 @@ export default function HomePageClient({
     window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
   }, [debouncedSearchQuery]);
 
-  // Fetch products when location, debounced search, category, or browse locale changes
+  // Fetch products when location, debounced search, or browse locale changes.
+  // AbortController prevents a stale CH response from wiping a later RO catalog.
   useEffect(() => {
+    const controller = new AbortController();
+    const requestCountry = userLocation.countryCode;
+
     async function loadProductsAndCoupons() {
       setIsLoadingProducts(true);
 
       try {
         const params = new URLSearchParams({
-          country: userLocation.countryCode,
+          country: requestCountry,
           lat: String(userLocation.latitude),
           lng: String(userLocation.longitude),
           locale: browseLocale,
@@ -158,7 +162,11 @@ export default function HomePageClient({
         }
 
         // Fetch full market catalog; hub/department tabs filter client-side.
-        const response = await fetch(`/api/products?${params.toString()}`);
+        const response = await fetch(`/api/products?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        if (controller.signal.aborted) return;
+
         if (!response.ok) {
           // Keep any SSR/catalog products on transient 429/5xx instead of blanking the page.
           if (response.status === 429) {
@@ -172,21 +180,28 @@ export default function HomePageClient({
           products: Product[];
           meta: ProductFetchMeta;
         };
+        if (controller.signal.aborted) return;
 
         setProducts(data.products || []);
         setCatalogMeta(data.meta || null);
         setProductFetchFailed(false);
       } catch (error) {
+        if (controller.signal.aborted) return;
         console.error("Failed to load products:", error);
         setProductFetchFailed(true);
       } finally {
-        setIsLoadingProducts(false);
+        if (!controller.signal.aborted) {
+          setIsLoadingProducts(false);
+        }
       }
 
-      const activeCoupons = getActiveCouponsForCountry(userLocation.countryCode);
-      setCoupons(activeCoupons);
+      if (!controller.signal.aborted) {
+        setCoupons(getActiveCouponsForCountry(requestCountry));
+      }
     }
-    loadProductsAndCoupons();
+
+    void loadProductsAndCoupons();
+    return () => controller.abort();
   }, [userLocation, debouncedSearchQuery, browseLocale, setProducts, setCatalogMeta, setCoupons]);
 
   const syncBrowseUrl = useCallback(
