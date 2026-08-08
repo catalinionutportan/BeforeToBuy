@@ -16,6 +16,7 @@ import { buildProductJsonLd } from "@/lib/seo/json-ld";
 import { productPagePath, safeReturnPath } from "@/lib/seo/site-url";
 import { getMarketHubIdForLeaf } from "@/lib/market-hubs";
 import { ALL_CATEGORIES_ID, getParentCategoryId } from "@/lib/categories";
+import { shouldBypassImageOptimization } from "@/lib/utils/product-image";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +107,7 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
                 className="object-contain p-6"
                 sizes="(max-width: 768px) 100vw, 40vw"
                 priority
+                unoptimized={shouldBypassImageOptimization(product.image)}
               />
             ) : null}
           </div>

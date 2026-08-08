@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Product } from "@/types";
 import { HOME_UI } from "@/lib/i18n/ui";
 import type { SiteLocale } from "@/lib/i18n/locales";
+import { shouldBypassImageOptimization } from "@/lib/utils/product-image";
 import { Sparkles } from "lucide-react";
 
 interface ProductCardImageProps {
@@ -25,6 +26,7 @@ export function ProductCardImage({
         fill
         sizes="(max-width: 768px) 50vw, 33vw"
         className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
+        unoptimized={shouldBypassImageOptimization(product.image)}
       />
 
       <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-1.5 items-start max-w-[90%]">
