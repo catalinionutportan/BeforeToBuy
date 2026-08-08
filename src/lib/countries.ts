@@ -365,6 +365,20 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Romanian tools and DIY retailer. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
   },
+  {
+    id: "ro-evomag",
+    name: "evoMAG.ro",
+    domain: "evomag.ro",
+    websiteUrl: AFFILIATE_LINKS.evomag2Performant,
+    countryCode: "RO",
+    affiliateNetwork: "2Performant Romania",
+    category: "Electronics + General",
+    hasClickAndCollect: true,
+    status: "Live Affiliate Redirect",
+    badge: "2Performant affiliate 🇷🇴",
+    description:
+      "Romanian electronics retailer (evoMAG). Live 2Performant homepage affiliate link. Product catalogue will be added with a small specialty feed — not the full 100k dump.",
+  },
   // --- United Kingdom (GB) ---
   {
     id: "gb-seentat",
@@ -444,12 +458,12 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: 26.1063,
       city: "București",
     },
-    supportedStores: ["rowenta.ro", "scule365.ro"],
+    supportedStores: ["rowenta.ro", "scule365.ro", "evomag.ro"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "RO"),
     affiliateNetworks: [
-      "2Performant Romania (Rowenta + Scule365) — live",
-      "Rowenta + Scule365 2Performant product feeds — live",
-      "Additional RO merchants — added when affiliate + feed are ready",
+      "2Performant Romania (Rowenta + Scule365) — live product feeds",
+      "2Performant Romania (evoMAG) — live homepage affiliate",
+      "Additional RO merchants — specialty feeds one-by-one when ready",
     ],
   },
   GB: {

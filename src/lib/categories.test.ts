@@ -227,9 +227,10 @@ describe('Category and Collection Logic', () => {
     expect(MERCHANT_ID_ALIASES["ch-microspot"]).toBe("ch-interdiscount");
   });
 
-  it("public registry exposes live RO merchants and Seentat UK affiliate", () => {
+  it("public registry exposes live RO merchants and Seentat UK", () => {
     expect(ALL_MERCHANT_DOMAINS.map((m) => m.id).sort()).toEqual([
       "gb-seentat",
+      "ro-evomag",
       "ro-rowenta",
       "ro-scule365",
     ]);
