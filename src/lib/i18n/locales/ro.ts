@@ -343,7 +343,7 @@ export const roUi = {
     categoryPriceComparisonMetaDescription: "Comparați prețurile și ofertele {label} în Elveția pe BeforeToBuy.com.",
     productsComparedInSwitzerland: "{count} produse comparate în Elveția",
     subcategories: "Subcategorii",
-    noOffersAvailableInCategory: "Nu sunt disponibile oferte în această categorie pentru Elveția încă.",
+    noOffersAvailableInCategory: "Nu sunt disponibile oferte în această categorie pentru {countryName} încă.",
     collectionNotFoundMetaTitle: "Colecție negăsită | BeforeToBuy.com",
     collectionNotFoundMetaDescription: "Colecția de comparație solicitată nu a putut fi găsită.",
     collectionMetaTitle: "{label} | BeforeToBuy.com",

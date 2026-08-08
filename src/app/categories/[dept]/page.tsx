@@ -9,18 +9,16 @@ import {
   subcategoryCategoryPath,
   validateDepartmentRoute,
 } from "@/lib/category-routes";
-import { fetchDefaultCatalog } from "@/lib/category-page-data";
+import { fetchCatalogForCountry } from "@/lib/category-page-data";
 import { createCategoryMetadata } from "@/lib/metadata";
 import { getDepartmentLabel, getSubcategoryLabel, localeFromCountry } from "@/lib/category-i18n";
 import { getCategoryById } from "@/lib/categories";
-import { DEFAULT_COUNTRY } from "@/lib/countries";
+import { COUNTRIES } from "@/lib/countries";
+import { getRequestMarketCountry } from "@/lib/request-market";
 import { ChevronRight } from "lucide-react";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
-import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 
 export const dynamic = "force-dynamic";
-
-const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 interface DepartmentPageProps {
   params: Promise<{ dept: string }>;
@@ -29,6 +27,10 @@ interface DepartmentPageProps {
 export async function generateMetadata({ params }: DepartmentPageProps): Promise<Metadata> {
   const { dept } = await params;
   const route = validateDepartmentRoute(dept);
+  const countryCode = await getRequestMarketCountry();
+  const locale = localeFromCountry(countryCode);
+  const homeUi = HOME_UI[locale];
+
   if (!route) {
     return createCategoryMetadata({
       title: homeUi.categoryNotFoundMetaTitle,
@@ -38,9 +40,8 @@ export async function generateMetadata({ params }: DepartmentPageProps): Promise
     });
   }
 
-  const locale = localeFromCountry(DEFAULT_COUNTRY);
   const label = getDepartmentLabel(route.deptId, locale);
-  const catalog = await fetchDefaultCatalog(route.deptId);
+  const catalog = await fetchCatalogForCountry(countryCode, route.deptId);
 
   return createCategoryMetadata({
     title: formatUi(homeUi.categoryPriceComparisonMetaTitle, { label }),
@@ -63,8 +64,11 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
   const category = getCategoryById(route.deptId);
   if (!category) notFound();
 
-  const locale = localeFromCountry(DEFAULT_COUNTRY);
-  const catalog = await fetchDefaultCatalog(route.deptId);
+  const countryCode = await getRequestMarketCountry();
+  const country = COUNTRIES[countryCode];
+  const locale = localeFromCountry(countryCode);
+  const homeUi = HOME_UI[locale];
+  const catalog = await fetchCatalogForCountry(countryCode, route.deptId);
   const visibleSubs = category.subcategories.filter(
     (sub) => (catalog.meta.categoryCounts[sub.id] ?? 0) > 0
   );
@@ -76,7 +80,7 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
         <CategoryBreadcrumbs
           items={[
             { label: "Home", href: "/" },
-            { label: "Categories", href: "/categories" },
+            { label: homeUi.categories, href: "/categories" },
             { label: departmentLabel },
           ]}
         />
@@ -88,7 +92,10 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
           <p className="max-w-3xl text-sm leading-relaxed text-slate-600">{category.description}</p>
           {catalog.products.length > 0 ? (
             <p className="text-xs text-slate-500">
-              {formatUi(homeUi.productsComparedInSwitzerland, { count: catalog.products.length })}
+              {formatUi(homeUi.productsComparedIn, {
+                count: catalog.products.length,
+                countryName: country.name,
+              })}
             </p>
           ) : null}
         </header>
@@ -117,9 +124,11 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
         )}
 
         {catalog.products.length > 0 ? (
-          <CategoryProductGrid products={catalog.products} countryCode={DEFAULT_COUNTRY} />
+          <CategoryProductGrid products={catalog.products} countryCode={countryCode} />
         ) : (
-          <p className="text-sm text-slate-500">{homeUi.noOffersAvailableInCategory}</p>
+          <p className="text-sm text-slate-500">
+            {formatUi(homeUi.noOffersAvailableInCategory, { countryName: country.name })}
+          </p>
         )}
       </div>
     </PageShell>

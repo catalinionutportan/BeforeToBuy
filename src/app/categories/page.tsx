@@ -18,25 +18,30 @@ import { PageShell } from "@/components/PageShell";
 import { CategoryProductGrid } from "@/components/CategoryProductGrid";
 import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
 import { createPageMetadata } from "@/lib/metadata";
-import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
-import { fetchDefaultCatalog } from "@/lib/category-page-data";
-import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { COUNTRIES } from "@/lib/countries";
+import { fetchCatalogForCountry } from "@/lib/category-page-data";
+import { getRequestMarketCountry } from "@/lib/request-market";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
-
-const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = createPageMetadata({
-  title: HOME_UI.en.categoriesMetaTitle,
-  description: HOME_UI.en.categoriesMetaDescription,
-  path: "/categories",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const countryCode = await getRequestMarketCountry();
+  const locale = localeFromCountry(countryCode);
+  const homeUi = HOME_UI[locale];
+  return createPageMetadata({
+    title: homeUi.categoriesMetaTitle,
+    description: homeUi.categoriesMetaDescription,
+    path: "/categories",
+  });
+}
 
 export default async function CategoriesPage() {
-  const country = COUNTRIES[DEFAULT_COUNTRY];
-  const locale = localeFromCountry(country.code);
-  const catalog = await fetchDefaultCatalog();
+  const countryCode = await getRequestMarketCountry();
+  const country = COUNTRIES[countryCode];
+  const locale = localeFromCountry(countryCode);
+  const homeUi = HOME_UI[locale];
+  const catalog = await fetchCatalogForCountry(countryCode);
   const visibleCategories = SHOPPING_CATEGORIES.filter(
     (category) => (catalog.meta.categoryCounts[category.id] ?? 0) > 0
   );
@@ -47,7 +52,12 @@ export default async function CategoriesPage() {
   return (
     <PageShell maxWidthClass="max-w-7xl">
       <div className="space-y-8">
-        <CategoryBreadcrumbs items={[{ label: "Home", href: "/" }, { label: homeUi.allProducts }]} />
+        <CategoryBreadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: homeUi.allProducts },
+          ]}
+        />
 
         <header className="space-y-1.5">
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
@@ -111,7 +121,7 @@ export default async function CategoriesPage() {
         )}
 
         {catalog.products.length > 0 ? (
-          <CategoryProductGrid products={catalog.products} countryCode={DEFAULT_COUNTRY} />
+          <CategoryProductGrid products={catalog.products} countryCode={countryCode} />
         ) : (
           <p className="text-sm text-slate-500">{homeUi.noOffersAvailable}</p>
         )}

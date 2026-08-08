@@ -343,7 +343,7 @@ export const itUi = {
     categoryPriceComparisonMetaDescription: "Confronta i prezzi e le offerte di {label} in Svizzera su BeforeToBuy.com.",
     productsComparedInSwitzerland: "{count} prodotti confrontati in Svizzera",
     subcategories: "Sottocategorie",
-    noOffersAvailableInCategory: "Nessuna offerta disponibile in questa categoria per la Svizzera.",
+    noOffersAvailableInCategory: "Nessuna offerta disponibile in questa categoria per {countryName}.",
     collectionNotFoundMetaTitle: "Collezione non trovata | BeforeToBuy.com",
     collectionNotFoundMetaDescription: "La collezione di confronto richiesta non è stata trovata.",
     collectionMetaTitle: "{label} | BeforeToBuy.com",

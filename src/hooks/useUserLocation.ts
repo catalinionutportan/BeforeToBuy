@@ -76,6 +76,8 @@ export function useUserLocation(): UseUserLocationResult {
     const stored = readStoredMarketCountry();
     if (stored) {
       marketLockedRef.current = true;
+      // Refresh cookie so SSR category pages see the same market as localStorage.
+      writeStoredMarketCountry(stored);
       setUserLocation(locationFromCountry(stored, "manual"));
     }
 

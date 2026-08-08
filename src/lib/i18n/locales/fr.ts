@@ -333,7 +333,7 @@ export const frUi = {
     categoryPriceComparisonMetaDescription: "Comparez les prix et les offres de {label} en Suisse sur BeforeToBuy.com.",
     productsComparedInSwitzerland: "{count} produits comparés en Suisse",
     subcategories: "Sous-catégories",
-    noOffersAvailableInCategory: "Aucune offre n'est disponible dans cette catégorie pour la Suisse.",
+    noOffersAvailableInCategory: "Aucune offre n'est disponible dans cette catégorie pour {countryName}.",
     collectionNotFoundMetaTitle: "Collection introuvable | BeforeToBuy.com",
     collectionNotFoundMetaDescription: "La collection de comparaison demandée n'a pas pu être trouvée.",
     collectionMetaTitle: "{label} | BeforeToBuy.com",

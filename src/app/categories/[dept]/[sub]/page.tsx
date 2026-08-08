@@ -9,7 +9,7 @@ import {
   subcategoryCategoryPath,
   validateSubcategoryRoute,
 } from "@/lib/category-routes";
-import { fetchDefaultCatalog } from "@/lib/category-page-data";
+import { fetchCatalogForCountry } from "@/lib/category-page-data";
 import { createCategoryMetadata } from "@/lib/metadata";
 import {
   getDepartmentLabel,
@@ -17,7 +17,9 @@ import {
   localeFromCountry,
 } from "@/lib/category-i18n";
 import { getCategoryById, getSubcategoryById } from "@/lib/categories";
-import { DEFAULT_COUNTRY } from "@/lib/countries";
+import { COUNTRIES } from "@/lib/countries";
+import { getRequestMarketCountry } from "@/lib/request-market";
+import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 
 export const dynamic = "force-dynamic";
 
@@ -28,22 +30,27 @@ interface SubcategoryPageProps {
 export async function generateMetadata({ params }: SubcategoryPageProps): Promise<Metadata> {
   const { dept, sub } = await params;
   const route = validateSubcategoryRoute(dept, sub);
+  const countryCode = await getRequestMarketCountry();
+  const locale = localeFromCountry(countryCode);
+  const homeUi = HOME_UI[locale];
+
   if (!route?.subId) {
     return createCategoryMetadata({
-      title: "Category Not Found | BeforeToBuy.com",
-      description: "The requested category could not be found.",
+      title: homeUi.categoryNotFoundMetaTitle,
+      description: homeUi.categoryNotFoundMetaDescription,
       path: `/categories/${dept}/${sub}`,
       index: false,
     });
   }
 
-  const locale = localeFromCountry(DEFAULT_COUNTRY);
   const label = getSubcategoryLabel(route.subId, locale);
-  const catalog = await fetchDefaultCatalog(route.subId);
+  const catalog = await fetchCatalogForCountry(countryCode, route.subId);
 
   return createCategoryMetadata({
-    title: `${label} Price Comparison | BeforeToBuy.com`,
-    description: `Compare ${label.toLowerCase()} prices and offers in Switzerland on BeforeToBuy.com.`,
+    title: formatUi(homeUi.categoryPriceComparisonMetaTitle, { label }),
+    description: formatUi(homeUi.categoryPriceComparisonMetaDescription, {
+      label: label.toLowerCase(),
+    }),
     path: subcategoryCategoryPath(route.deptId, route.subId),
     index: catalog.products.length > 0,
   });
@@ -61,8 +68,11 @@ export default async function SubcategoryCategoryPage({ params }: SubcategoryPag
   const subcategory = getSubcategoryById(route.subId);
   if (!department || !subcategory) notFound();
 
-  const locale = localeFromCountry(DEFAULT_COUNTRY);
-  const catalog = await fetchDefaultCatalog(route.subId);
+  const countryCode = await getRequestMarketCountry();
+  const country = COUNTRIES[countryCode];
+  const locale = localeFromCountry(countryCode);
+  const homeUi = HOME_UI[locale];
+  const catalog = await fetchCatalogForCountry(countryCode, route.subId);
   const departmentLabel = getDepartmentLabel(route.deptId, locale);
   const subcategoryLabel = getSubcategoryLabel(route.subId, locale);
 
@@ -72,7 +82,7 @@ export default async function SubcategoryCategoryPage({ params }: SubcategoryPag
         <CategoryBreadcrumbs
           items={[
             { label: "Home", href: "/" },
-            { label: "Categories", href: "/categories" },
+            { label: homeUi.categories, href: "/categories" },
             { label: departmentLabel, href: departmentCategoryPath(route.deptId) },
             { label: subcategoryLabel },
           ]}
@@ -87,16 +97,19 @@ export default async function SubcategoryCategoryPage({ params }: SubcategoryPag
           </h1>
           {catalog.products.length > 0 ? (
             <p className="text-xs text-slate-500">
-              {catalog.products.length} products compared in Switzerland
+              {formatUi(homeUi.productsComparedIn, {
+                count: catalog.products.length,
+                countryName: country.name,
+              })}
             </p>
           ) : null}
         </header>
 
         {catalog.products.length > 0 ? (
-          <CategoryProductGrid products={catalog.products} countryCode={DEFAULT_COUNTRY} />
+          <CategoryProductGrid products={catalog.products} countryCode={countryCode} />
         ) : (
           <p className="text-sm text-slate-500">
-            No offers are available in this category for Switzerland yet.
+            {formatUi(homeUi.noOffersAvailableInCategory, { countryName: country.name })}
           </p>
         )}
       </div>
