@@ -375,10 +375,10 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     affiliateNetwork: "AWIN UK",
     category: "Consumer Electronics",
     hasClickAndCollect: false,
-    status: "Live Affiliate Redirect",
-    badge: "AWIN affiliate 🇬🇧",
+    status: "Live Feed",
+    badge: "AWIN + product feed 🇬🇧",
     description:
-      "UK online electronics retailer (Seentat). Live AWIN homepage affiliate link; product catalogue will be added when an AWIN product feed is available.",
+      "UK online electronics retailer (Seentat). Live AWIN product feed with affiliate deep links; homepage quicklink available on Magazines.",
   },
 ];
 
@@ -467,8 +467,7 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     supportedStores: ["seentat.com"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "GB"),
     affiliateNetworks: [
-      "AWIN UK (Seentat) — live homepage affiliate",
-      "Seentat product feed — when AWIN datafeed is available",
+      "AWIN UK (Seentat) — live product feed + homepage affiliate",
     ],
   },
   US: {

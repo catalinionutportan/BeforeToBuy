@@ -139,6 +139,17 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     sampleFile: "sample-2performant-scule365-ro.csv",
     sampleFormat: "csv",
   },
+  {
+    provider: "AWIN",
+    country: "GB",
+    merchantId: "gb-seentat",
+    merchantName: "Seentat UK",
+    envVar: "AWIN_FEED_URL_GB_SEENTAT",
+    defaultRemoteUrl:
+      "https://productdata.awin.com/datafeed/download/apikey/6a69e3351e01683913dc498a00c5d5b1/language/en/fid/115553/rid/0/hasEnhancedFeeds/0/columns/aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id/format/csv/delimiter/%2C/compression/gzip/",
+    sampleFile: "sample-awin-seentat-gb.csv",
+    sampleFormat: "csv",
+  },
 ];
 
 export function getFeedConfig(merchantId: string): FeedConfig | undefined {

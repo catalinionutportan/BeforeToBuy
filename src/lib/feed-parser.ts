@@ -22,9 +22,12 @@ export interface RawAwinFeedItem {
   currency: string;
   aw_deep_link: string; // Affiliate link
   merchant_image_url: string;
+  aw_image_url?: string;
+  /** Merchant aisle (Seentat etc.) — prefer over AWIN taxonomy `category_name`. */
+  merchant_category?: string;
   category_name: string;
-  brand_name: string;
-  in_stock: string; // "1" or "0"
+  brand_name?: string;
+  in_stock?: string; // "1" or "0" — often omitted; treat missing as in stock
   delivery_cost?: string;
   promo_code?: string;
   ean?: string;
@@ -114,6 +117,10 @@ function buildAwinOfferFromRow(
       ? Math.round(((originalPrice - price) / originalPrice) * 100)
       : undefined;
 
+  const stockRaw = (row.in_stock ?? "").trim().toLowerCase();
+  const inStock =
+    stockRaw === "" || stockRaw === "1" || stockRaw === "true" || stockRaw === "yes";
+
   return enrichOfferPricing({
     id: `awin-${row.aw_product_id}`,
     storeName: row.merchant_name || "AWIN Merchant",
@@ -121,7 +128,7 @@ function buildAwinOfferFromRow(
     originalPrice,
     discountPercentage,
     currency: row.currency || "CHF",
-    inStock: row.in_stock === "1" || row.in_stock === "true",
+    inStock,
     deliveryTime: "1-2 Work Days",
     deliveryCost: parseFloat(row.delivery_cost || "0"),
     purchaseUrl: row.aw_deep_link || "#",
@@ -161,9 +168,12 @@ function ingestAwinRow(
     return;
   }
 
+  const rawCategory =
+    (row.merchant_category || "").trim() || (row.category_name || "").trim() || undefined;
+
   const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
     merchantId: feedMerchantId,
-    merchantCategory: row.category_name,
+    merchantCategory: rawCategory,
     title: row.product_name,
     description: row.description,
     brand: row.brand_name,
@@ -174,7 +184,7 @@ function ingestAwinRow(
       productId,
       merchantId: feedMerchantId,
       title: row.product_name,
-      rawCategory: row.category_name,
+      rawCategory,
       mapping: categoryMapping,
     })
   );
@@ -192,7 +202,10 @@ function ingestAwinRow(
       proposedCategoryId: categoryMapping.proposedCategoryId,
     },
     brand: row.brand_name || "Generic",
-    image: row.merchant_image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
+    image:
+      row.merchant_image_url ||
+      row.aw_image_url ||
+      "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
     targetCountries: [targetCountry],
     isFlashDeal: isProduction && offer.discountPercentage ? offer.discountPercentage >= 15 : false,
     catalogSource: source,

@@ -15,6 +15,7 @@ export const MAPPING_MERCHANT_IDS = [
   "ch-fust",
   "ro-scule365",
   "ro-rowenta",
+  "gb-seentat",
 ] as const;
 
 export type MappingMerchantId = (typeof MAPPING_MERCHANT_IDS)[number];
@@ -403,6 +404,65 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
         patterns: /\b(purificator|filtrare aer|humidifier|dehumidifier|intense pure)\b/i,
         subcategoryId: "climate-air-care",
       },
+    ],
+  },
+  /**
+   * Seentat UK — small AWIN catalogue (~800 SKUs). Prefer merchant_category aisles;
+   * also accept AWIN taxonomy category_name strings from the same feed.
+   */
+  "gb-seentat": {
+    exact: exactRules({
+      // merchant_category
+      camera: "photo-compact",
+      lens: "photo-lenses",
+      "camera accessories": "photo-bags",
+      "action camera": "photo-action",
+      mobile: "mobile-smartphones",
+      "mobile others": "mobile-accessories",
+      tablet: "mobile-tablets",
+      smartwatch: "wearables-smartwatch",
+      watch: "wearables-smartwatch",
+      laptop: "notebooks-laptops",
+      computer: "notebooks-desktops",
+      headphone: "audio-headphones",
+      earbuds: "audio-headphones",
+      speaker: "audio-speakers",
+      audio: "audio-speakers",
+      player: "audio-portable",
+      gaming: "gaming-accessories",
+      oculus: "gaming-vr",
+      steam: "gaming-games",
+      accessory: "mobile-accessories",
+      apple: "mobile-accessories",
+      "personal care": "care-hair-styling",
+      dji: "drones-quadcopters",
+      insta360: "photo-action",
+      // AWIN category_name
+      cameras: "photo-compact",
+      "optical devices": "photo-lenses",
+      "mobile phones": "mobile-smartphones",
+      laptops: "notebooks-laptops",
+      computers: "notebooks-desktops",
+      "electronic gadgets": "wearables-smartwatch",
+      "men's watches": "wearables-smartwatch",
+      "bodycare appliances": "care-hair-styling",
+      console: "gaming-consoles",
+      accessories: "mobile-accessories",
+      headphones: "audio-headphones",
+      "audio equipment": "audio-speakers",
+      "mobile phone accessories": "mobile-accessories",
+      "portable audio": "audio-portable",
+      "mp3 players": "audio-portable",
+    }),
+    patterns: [
+      { patterns: /\b(iphone|galaxy\s+[asmz]\d|pixel\s*\d|smartphone)\b/i, subcategoryId: "mobile-smartphones" },
+      { patterns: /\b(ipad|galaxy\s+tab|tablet)\b/i, subcategoryId: "mobile-tablets" },
+      { patterns: /\b(macbook|laptop|notebook)\b/i, subcategoryId: "notebooks-laptops" },
+      { patterns: /\b(airpods|headphone|earbuds?|headset)\b/i, subcategoryId: "audio-headphones" },
+      { patterns: /\b(lens|objektiv|\d+mm)\b/i, subcategoryId: "photo-lenses" },
+      { patterns: /\b(camera|pixpro|mirrorless|dslr)\b/i, subcategoryId: "photo-compact" },
+      { patterns: /\b(gopro|action\s+cam|insta360)\b/i, subcategoryId: "photo-action" },
+      { patterns: /\b(playstation|xbox|nintendo|steam\s+deck)\b/i, subcategoryId: "gaming-consoles" },
     ],
   },
 };

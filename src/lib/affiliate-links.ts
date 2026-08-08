@@ -7,7 +7,7 @@ export const AFFILIATE_LINKS = {
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=d19151f4f&redirect_to=https%3A%2F%2Fwww.rowenta.ro%2F",
   scule3652Performant:
     "https://event.2performant.com/events/click?ad_type=quicklink&aff_code=244836372&unique=8e59c17b0&redirect_to=https%3A%2F%2Fwww.scule365.ro",
-  /** Seentat UK homepage — AWIN advertiser 125014 / publisher 3024371. Product feed TBD. */
+  /** Seentat UK homepage — AWIN advertiser 125014 / publisher 3024371. */
   seentatAwin:
     "https://www.awin1.com/cread.php?awinmid=125014&awinaffid=3024371&ued=https%3A%2F%2Fwww.seentat.com",
 } as const;

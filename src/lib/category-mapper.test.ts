@@ -41,7 +41,7 @@ const BRACK_SAMPLE_ROWS = [
 describe('Category Mapper Functions', () => {
   it("merchant category rules validate without conflicts", () => {
     expect(validateMerchantCategoryRules()).toEqual([]);
-    expect(MAPPING_MERCHANT_IDS.length).toBe(8);
+    expect(MAPPING_MERCHANT_IDS.length).toBe(9);
   });
 
   it("Brack sample feed rows map with merchant-exact rules", () => {
@@ -266,6 +266,30 @@ describe('Category Mapper Functions', () => {
     expect(report.summary.unmapped).toBe(1);
     expect(report.reviewQueue.length).toBe(1);
     expect(report.reviewQueue[0]?.productId).toBe("feed-2");
+  });
+
+  it("Seentat UK merchant aisles map to electronics leaves", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Mobile",
+        title: "Apple iPhone 15 128GB",
+      })
+    ).toBe("mobile-smartphones");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Lens",
+        title: "Canon RF 24-70mm",
+      })
+    ).toBe("photo-lenses");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Camera",
+        title: "Kodak PIXPRO FZ55",
+      })
+    ).toBe("photo-compact");
   });
 
   it("legacy global patterns still work without merchant id", () => {

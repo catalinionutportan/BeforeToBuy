@@ -1,6 +1,7 @@
 import { createReadStream } from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { createGunzip } from "node:zlib";
 import { CountryCode, OfferSource, Product } from "@/types";
 import {
   getEnabledMerchantFeeds,
@@ -34,7 +35,7 @@ function memoryCacheKey(feed: FeedConfig): string {
 function redisCacheKey(feed: FeedConfig): string {
   // Bump when mapping/parser changes so Redis does not serve stale category ids.
   const slice = feed.feedKey ? `:${feed.feedKey}` : "";
-  return `feed:v12:${feed.merchantId}${slice}:${feed.country}`;
+  return `feed:v13:${feed.merchantId}${slice}:${feed.country}`;
 }
 
 async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {
@@ -51,10 +52,10 @@ async function fetchRemoteFeed(
       ? "application/json, text/plain, */*"
       : provider === "GOOGLE_MERCHANT"
         ? "application/xml, text/xml, */*"
-        : "text/csv, text/plain, */*";
+        : "text/csv, text/plain, application/gzip, */*";
 
-  const timeoutMs = provider === "TWO_PERFORMANT" ? 30_000 : 15_000;
-  const retries = provider === "TWO_PERFORMANT" ? 2 : 2;
+  const timeoutMs = provider === "TWO_PERFORMANT" || provider === "AWIN" ? 30_000 : 15_000;
+  const retries = 2;
 
   const response = await fetchWithTimeout(
     url,
@@ -74,7 +75,23 @@ async function fetchRemoteFeed(
   }
 
   // Node fetch returns a Web ReadableStream; csv-parser needs a Node stream.
-  return Readable.fromWeb(response.body as import("node:stream/web").ReadableStream);
+  const nodeStream = Readable.fromWeb(
+    response.body as import("node:stream/web").ReadableStream
+  );
+
+  const contentEncoding = (response.headers.get("content-encoding") || "").toLowerCase();
+  const contentType = (response.headers.get("content-type") || "").toLowerCase();
+  const urlLooksGzip = /compression\/gzip/i.test(url);
+  if (
+    contentEncoding.includes("gzip") ||
+    contentType.includes("gzip") ||
+    contentType.includes("application/x-gzip") ||
+    urlLooksGzip
+  ) {
+    return nodeStream.pipe(createGunzip());
+  }
+
+  return nodeStream;
 }
 
 function filterFeedProducts(

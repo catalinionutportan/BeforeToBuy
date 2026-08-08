@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "cdnmpro.com" },
       { protocol: "https", hostname: "www.rowenta.ro" },
       { protocol: "https", hostname: "rowenta.ro" },
+      // Seentat UK (AWIN) product images
+      { protocol: "https", hostname: "www.seentat.com" },
+      { protocol: "https", hostname: "seentat.com" },
+      { protocol: "https", hostname: "images2.productserve.com" },
     ],
   },
   async headers() {
