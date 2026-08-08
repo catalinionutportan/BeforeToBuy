@@ -11,13 +11,12 @@ function fakeProduct(id: string, rawCategory: string, category = "unmapped"): Pr
     category,
     description: id,
     categoryAssignment: {
-      categoryId: category,
       method: "merchant-exact",
       confidence: 0.98,
       rawCategory,
-      mappedAt: new Date().toISOString(),
     },
     offers: [],
+    targetCountries: ["RO"],
   };
 }
 
