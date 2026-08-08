@@ -52,7 +52,20 @@ export function isFeedEnabled(feed: FeedConfig): boolean {
   return feed.enabled !== false;
 }
 
+/**
+ * Feeds loaded on the request path.
+ * Production: only `enabled !== false`.
+ * Playwright (`FORCE_SAMPLE_FEEDS=1`): also include disabled RO samples so e2e
+ * can assert UI without downloading remote CSVs.
+ */
 export function getEnabledMerchantFeeds(): FeedConfig[] {
+  if (process.env.FORCE_SAMPLE_FEEDS === "1") {
+    return MERCHANT_FEEDS.filter(
+      (feed) =>
+        isFeedEnabled(feed) ||
+        (feed.country === "RO" && Boolean(feed.sampleFile) && feed.provider === "TWO_PERFORMANT")
+    );
+  }
   return MERCHANT_FEEDS.filter(isFeedEnabled);
 }
 
@@ -70,7 +83,9 @@ export interface MerchantFeedStatus {
 /**
  * Merchant feed registry.
  * CH sample retailers stay listed but disabled until partnership approval.
- * RO Rowenta / Scule365 remain live.
+ * RO 2Performant catalogues (Rowenta / Scule365 / evoMAG) are disabled on the
+ * request path — import offline into Supabase via `npm run feeds:import`.
+ * GB Seentat remains available via AWIN when configured.
  */
 export const MERCHANT_FEEDS: FeedConfig[] = [
   {
@@ -143,6 +158,10 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     defaultRemoteUrl: "https://api.2performant.com/feed/c55b99d30.csv",
     sampleFile: "sample-2performant-rowenta-ro.csv",
     sampleFormat: "csv",
+    // Offline Supabase import only — never fetch CSV on visitor requests.
+    enabled: false,
+    heavy: true,
+    cacheOnly: true,
   },
   {
     provider: "TWO_PERFORMANT",
@@ -153,6 +172,9 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     defaultRemoteUrl: "https://api.2performant.com/feed/fcdbb3e99.csv",
     sampleFile: "sample-2performant-scule365-ro.csv",
     sampleFormat: "csv",
+    enabled: false,
+    heavy: true,
+    cacheOnly: true,
   },
   {
     provider: "TWO_PERFORMANT",
@@ -160,11 +182,11 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     merchantId: "ro-evomag",
     merchantName: "evoMAG.ro",
     envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG",
-    // My Feeds CSV with Category (~104k / ~200MB). Soft-capped at ingest.
-    // Request path is cache-only — warm via /api/cron/feeds-warm or npm run feeds:warm.
+    // ~104k / ~200MB — import via npm run feeds:import (local), never on Vercel request path.
     defaultRemoteUrl: "https://api.2performant.com/feed/9519e6c41.csv",
     sampleFile: "sample-2performant-evomag-ro.csv",
     sampleFormat: "csv",
+    enabled: false,
     heavy: true,
     cacheOnly: true,
   },

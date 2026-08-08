@@ -90,40 +90,8 @@ export function LocationBanner({
               </h2>
 
               <p className="text-sm text-slate-300 max-w-2xl break-words">
-                {productionOfferCount > 0 || sampleOfferCount > 0 ? (
-                  <>
-                    {formatUi(ui.hybridCatalogFor, {
-                      countryName: userLocation.countryName,
-                      currency: currentCountryInfo.currency,
-                    })}
-                    .{" "}
-                    {productionOfferCount > 0 && (
-                      <>
-                        <strong className="text-emerald-300">
-                          {formatUi(ui.productionFeedOffers, { productionOfferCount })}
-                        </strong>
-                        .{" "}
-                      </>
-                    )}
-                    {sampleOfferCount > 0 && (
-                      <>
-                        <strong className="text-amber-300">
-                          {formatUi(ui.sampleOffersIllustrative, { sampleOfferCount })}
-                        </strong>
-                        .{" "}
-                      </>
-                    )}
-                    {ui.otherMerchantsRemainDemoCatalog}
-                  </>
-                ) : (
-                  <>
-                    {formatUi(ui.showingDemoCatalogOffers, {
-                      countryName: userLocation.countryName,
-                      currency: currentCountryInfo.currency,
-                    })}
-                    . {ui.pricesIllustrativeUntilLive}
-                  </>
-                )}
+                {/* Text explicativ eliminat pentru a nu mai arăta "Demo Catalog" */}
+                {ui.pricesIllustrativeUntilLive}
               </p>
             </div>
 

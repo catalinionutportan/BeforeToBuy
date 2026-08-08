@@ -1,7 +1,8 @@
 import { Product, UserLocation } from "@/types";
 import { fetchProductsForLocation } from "@/lib/api-aggregator";
-import { getFeedProducts } from "@/lib/merchant-feeds";
 import { buildMappingReport } from "@/lib/mapping-log";
+import { getProductsFromDb } from "@/lib/db-service";
+import { getFeedProducts } from "@/lib/merchant-feeds";
 import {
   attachOfferTimestamps,
   mergeFeedAndDemoProducts,
@@ -58,6 +59,10 @@ function compactProductsForList(products: Product[]): Product[] {
 
 export { mergeFeedAndDemoProducts } from "@/lib/product-identity/merge-products";
 
+/**
+ * Prefer Supabase catalogue when it has rows for the market.
+ * Fall back to enabled merchant-feeds (currently GB etc.) — RO CSV remotes are disabled.
+ */
 export async function fetchMergedProductsForLocation(
   userLocation: UserLocation,
   query?: string,
@@ -73,6 +78,104 @@ export async function fetchMergedProductsForLocation(
   const includePriceHistory = listOptions.includePriceHistory === true;
   const compact = listOptions.compact ?? limit != null;
 
+  let usedDb = false;
+  try {
+    const dbResult = await getProductsFromDb(
+      userLocation.countryCode,
+      query,
+      category,
+      limit,
+      offset
+    );
+    if (dbResult.totalMatched > 0) {
+      usedDb = true;
+      const fetchedAt = new Date().toISOString();
+      const timestampedProducts = attachOfferTimestamps(dbResult.products, fetchedAt);
+
+      const visibleProducts = timestampedProducts.filter(
+        (product) => resolveCategoryAlias(product.category) !== UNMAPPED_CATEGORY_ID
+      );
+
+      const categoryCounts = visibleProducts.reduce<Record<string, number>>((counts, product) => {
+        const categoryId = resolveCategoryAlias(product.category);
+        counts[categoryId] = (counts[categoryId] ?? 0) + 1;
+        const parentId = getParentCategoryId(categoryId);
+        if (parentId) counts[parentId] = (counts[parentId] ?? 0) + 1;
+        return counts;
+      }, {});
+      const collectionCounts = COMPARISON_COLLECTION_FILTERS.reduce<Record<string, number>>(
+        (counts, collection) => {
+          counts[collection.id] = visibleProducts.filter((product) =>
+            productMatchesCategoryFilter(product, collection.id)
+          ).length;
+          return counts;
+        },
+        {}
+      );
+
+      const matchedProducts = applyCrossBorderVisibility(visibleProducts, category);
+      const totalMatched = dbResult.totalMatched;
+      const pageSlice = matchedProducts;
+
+      const productsWithHistory = includePriceHistory
+        ? await attachPriceHistory(pageSlice)
+        : pageSlice;
+      const products = compact ? compactProductsForList(productsWithHistory) : productsWithHistory;
+
+      const productionOfferCount = matchedProducts.reduce(
+        (count, product) =>
+          count + product.offers.filter((offer) => offer.source === "production-live").length,
+        0
+      );
+      const sampleOfferCount = matchedProducts.reduce(
+        (count, product) =>
+          count + product.offers.filter((offer) => offer.source === "sample").length,
+        0
+      );
+      const priceHistoryStats = await getPriceHistoryStats();
+      const gtinLinkedProductCount = countGtinLinkedProducts(matchedProducts);
+
+      return {
+        products,
+        meta: {
+          productionOfferCount,
+          sampleOfferCount,
+          productionProductCount: products.length,
+          feedProductCount: dbResult.totalMatched,
+          unmappedProductCount: 0,
+          categoryCounts,
+          collectionCounts,
+          feedSources: ["remote"] as Array<"remote" | "sample">,
+          hasProductionFeed: true,
+          hasSampleFeed: false,
+          mappingSummary: "Data from Supabase",
+          feedMerchants: {},
+          gtinLinkedProductCount,
+          totalMatched,
+          limit: limit ?? null,
+          offset,
+          hasMore: limit == null ? false : offset + products.length < totalMatched,
+          priceHistory: {
+            enabled: true,
+            backend: getPriceHistoryBackend(),
+            trackedOffers: priceHistoryStats.trackedOffers,
+            totalPoints: priceHistoryStats.totalPoints,
+            productsWithTrend: 0,
+            lastSnapshotAt: priceHistoryStats.lastSnapshotAt ?? fetchedAt,
+            snapshotAt: fetchedAt,
+          },
+        },
+      };
+    }
+  } catch (error) {
+    console.warn(
+      "[product-service] Supabase read failed; falling back to merchant-feeds:",
+      error instanceof Error ? error.message : error
+    );
+  }
+
+  // Fallback: enabled feeds only (RO 2Performant remotes are disabled → no CSV cost).
+  void usedDb;
   const [demoProducts, feedResult] = await Promise.all([
     fetchProductsForLocation(userLocation, query, undefined, locale),
     getFeedProducts(userLocation.countryCode, query),
@@ -105,8 +208,6 @@ export async function fetchMergedProductsForLocation(
   const categoryMatched = category
     ? visibleProducts.filter((product) => productMatchesCategoryFilter(product, category))
     : visibleProducts;
-  // Collection counts use the full offer set; the returned list hides cross-border
-  // unless the Cross-border collection is selected (CH default = Swiss offers only).
   const matchedProducts = applyCrossBorderVisibility(categoryMatched, category);
   const totalMatched = matchedProducts.length;
   const pageSlice =

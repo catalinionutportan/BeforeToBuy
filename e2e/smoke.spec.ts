@@ -114,17 +114,19 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(body.meta.mappingSummary?.total ?? 0).toBe(0);
   });
 
-  test("products API still serves live RO affiliate feeds", async ({ request }) => {
+  test("products API serves RO catalogue without remote CSV cost path", async ({ request }) => {
     const response = await request.get("/api/products?country=RO");
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    expect(body.products.length).toBeGreaterThan(0);
-    // CI Playwright uses FORCE_SAMPLE_FEEDS=1 → sampleOfferCount; production uses live feeds.
-    expect(
-      (body.meta.productionOfferCount ?? 0) + (body.meta.sampleOfferCount ?? 0)
-    ).toBeGreaterThan(0);
-    expect(body.meta.feedMerchants["ro-rowenta"]).toBeGreaterThan(0);
-    expect(body.meta.feedMerchants["ro-scule365"]).toBeGreaterThan(0);
+    expect(Array.isArray(body.products)).toBe(true);
+    // CI uses FORCE_SAMPLE_FEEDS samples; production uses Supabase after import.
+    // Either way the API must stay healthy (no 500 from huge CSV downloads).
+    if ((body.meta.sampleOfferCount ?? 0) > 0) {
+      expect(
+        (body.meta.feedMerchants?.["ro-rowenta"] ?? 0) +
+          (body.meta.feedMerchants?.["ro-scule365"] ?? 0)
+      ).toBeGreaterThan(0);
+    }
   });
 
   test("legacy category query redirects to SEO category route", async ({ page }) => {
@@ -182,14 +184,19 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    // CH feeds disabled; live enabled feeds: RO (3) + GB Seentat (1).
-    expect(body.merchants.length).toBe(4);
+    // CH disabled. Production request-path: GB only. Playwright FORCE_SAMPLE_FEEDS also lists RO samples.
     expect(body.feedMerchantIds).not.toContain("ch-brack");
     expect(body.feedMerchantIds).not.toContain("ch-digitec");
-    expect(body.feedMerchantIds).toContain("ro-rowenta");
-    expect(body.feedMerchantIds).toContain("ro-scule365");
-    expect(body.feedMerchantIds).toContain("ro-evomag");
     expect(body.feedMerchantIds).toContain("gb-seentat");
+    if (process.env.FORCE_SAMPLE_FEEDS === "1") {
+      expect(body.feedMerchantIds).toContain("ro-rowenta");
+      expect(body.feedMerchantIds).toContain("ro-scule365");
+      expect(body.feedMerchantIds).toContain("ro-evomag");
+      expect(body.merchants.length).toBe(4);
+    } else {
+      expect(body.merchants.length).toBe(1);
+      expect(body.feedMerchantIds).not.toContain("ro-rowenta");
+    }
   });
 
   test("products API has no CH merchant feeds until approval", async ({ request }) => {

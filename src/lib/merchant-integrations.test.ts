@@ -98,22 +98,40 @@ describe('Merchant Integrations', () => {
   });
 
   it("integration summary exposes only enabled merchant feed status", () => {
-    const enabled = getEnabledMerchantFeeds();
-    const summary = getIntegrationSummary();
-    expect(summary.merchants.length).toBe(enabled.length);
-    expect(summary.hasFeedData).toBe(true);
-    expect(summary.sampleFeeds.length).toBe(enabled.length);
-    expect(getMerchantFeedStatuses().every((merchant) => merchant.sampleAvailable)).toBe(true);
-    expect(summary.feedMerchantIds).toEqual(
-      expect.arrayContaining(["ro-rowenta", "ro-scule365", "ro-evomag"])
-    );
-    expect(summary.feedMerchantIds.some((id) => id.startsWith("ch-"))).toBe(false);
+    const previousForce = process.env.FORCE_SAMPLE_FEEDS;
+    delete process.env.FORCE_SAMPLE_FEEDS;
+    try {
+      const enabled = getEnabledMerchantFeeds();
+      const summary = getIntegrationSummary();
+      expect(summary.merchants.length).toBe(enabled.length);
+      expect(summary.hasFeedData).toBe(enabled.length > 0);
+      expect(summary.sampleFeeds.length).toBe(enabled.length);
+      expect(getMerchantFeedStatuses().every((merchant) => merchant.sampleAvailable)).toBe(true);
+      // RO 2Performant catalogues are offline-imported (Supabase), not request-path feeds.
+      expect(summary.feedMerchantIds).not.toEqual(
+        expect.arrayContaining(["ro-rowenta", "ro-scule365", "ro-evomag"])
+      );
+      expect(summary.feedMerchantIds).toEqual(expect.arrayContaining(["gb-seentat"]));
+      expect(summary.feedMerchantIds.some((id) => id.startsWith("ch-"))).toBe(false);
+    } finally {
+      if (previousForce === undefined) delete process.env.FORCE_SAMPLE_FEEDS;
+      else process.env.FORCE_SAMPLE_FEEDS = previousForce;
+    }
   });
 
-  it("evoMAG is flagged cache-only / heavy", () => {
-    const evomag = MERCHANT_FEEDS.find((feed) => feed.merchantId === "ro-evomag");
-    expect(evomag?.cacheOnly).toBe(true);
-    expect(evomag?.heavy).toBe(true);
-    expect(isCacheOnlyFeed(evomag!)).toBe(true);
+  it("RO 2Performant feeds stay registered but disabled (Supabase import path)", () => {
+    const previousForce = process.env.FORCE_SAMPLE_FEEDS;
+    delete process.env.FORCE_SAMPLE_FEEDS;
+    try {
+      for (const id of ["ro-rowenta", "ro-scule365", "ro-evomag"] as const) {
+        const feed = MERCHANT_FEEDS.find((item) => item.merchantId === id);
+        expect(feed?.enabled).toBe(false);
+        expect(isCacheOnlyFeed(feed!)).toBe(true);
+      }
+      expect(getEnabledMerchantFeeds().some((feed) => feed.country === "RO")).toBe(false);
+    } finally {
+      if (previousForce === undefined) delete process.env.FORCE_SAMPLE_FEEDS;
+      else process.env.FORCE_SAMPLE_FEEDS = previousForce;
+    }
   });
 });

@@ -18,6 +18,24 @@ export async function GET(request: Request) {
     );
   }
 
+  // 1. Vercel Native Geolocation Headers (100% free, instant, no rate limit)
+  const vercelCountry = request.headers.get("x-vercel-ip-country");
+  if (vercelCountry) {
+    const validCode = resolveGeoCountryCode(vercelCountry);
+    const lat = Number(request.headers.get("x-vercel-ip-latitude"));
+    const lng = Number(request.headers.get("x-vercel-ip-longitude"));
+    const city = request.headers.get("x-vercel-ip-city");
+
+    return NextResponse.json({
+      latitude: !isNaN(lat) && lat !== 0 ? lat : COUNTRIES[validCode].defaultCoordinates.lat,
+      longitude: !isNaN(lng) && lng !== 0 ? lng : COUNTRIES[validCode].defaultCoordinates.lng,
+      countryCode: validCode,
+      countryName: COUNTRIES[validCode].name,
+      city: city || COUNTRIES[validCode].defaultCoordinates.city,
+      isGps: false,
+    });
+  }
+
   const clientIp = getClientIp(request);
   const rateLimit = await checkRateLimit(`location:${clientIp}`, 15, 60_000);
 

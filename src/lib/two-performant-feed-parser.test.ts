@@ -48,11 +48,10 @@ describe("2Performant Rowenta CSV feed", () => {
     expect(parsed.products[0]?.offers[0]?.source).toBe("production-live");
   });
 
-  it("getFeedProducts loads RO Rowenta sample feed", async () => {
+  it("getFeedProducts does not load disabled RO Rowenta on request path", async () => {
     clearFeedCacheForTests();
     const result = await getFeedProducts("RO");
-    expect(result.merchantProductCounts["ro-rowenta"]).toBeGreaterThanOrEqual(3);
-    expect(result.sources.includes("sample")).toBe(true);
+    expect(result.merchantProductCounts["ro-rowenta"] ?? 0).toBe(0);
   });
 });
 
@@ -85,11 +84,11 @@ describe("2Performant Scule365 CSV feed", () => {
     expect(parsed.products[0]?.offers[0]?.source).toBe("production-live");
   });
 
-  it("getFeedProducts loads RO Scule365 and evoMAG sample feeds", async () => {
+  it("getFeedProducts does not load disabled RO Scule365/evoMAG on request path", async () => {
     clearFeedCacheForTests();
     const result = await getFeedProducts("RO");
-    expect(result.merchantProductCounts["ro-scule365"]).toBeGreaterThanOrEqual(3);
-    expect(result.merchantProductCounts["ro-evomag"]).toBeGreaterThanOrEqual(3);
+    expect(result.merchantProductCounts["ro-scule365"] ?? 0).toBe(0);
+    expect(result.merchantProductCounts["ro-evomag"] ?? 0).toBe(0);
   });
 
   it("configured feed loader includes evoMAG TWO_PERFORMANT with Category CSV", async () => {

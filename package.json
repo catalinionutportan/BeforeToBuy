@@ -4,26 +4,28 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "postinstall": "patch-package",
+    "build": "prisma generate && next build",
+    "postinstall": "patch-package && prisma generate",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest --run",
     "test:e2e": "playwright test e2e/smoke.spec.ts",
     "smoke:prod": "node scripts/smoke-production.mjs",
-    "feeds:warm": "node scripts/warm-feeds.mjs"
+    "feeds:warm": "node scripts/warm-feeds.mjs",
+    "feeds:import": "node --env-file=.env.local --import tsx src/scripts/run-import.ts",
+    "db:push": "node --env-file=.env.local ./node_modules/prisma/build/index.js db push"
   },
   "dependencies": {
     "@datadog/browser-rum": "^7.7.0",
     "@datadog/browser-rum-nextjs": "^7.7.0",
-    "@prisma/client": "^7.9.1",
+    "@prisma/client": "^5.22.0",
     "@upstash/redis": "^1.38.2",
     "clsx": "^2.1.1",
     "csv-parser": "^3.2.1",
     "lucide-react": "^0.475.0",
     "next": "^16.3.0",
-    "prisma": "^7.9.1",
+    "prisma": "^5.22.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "stream-chain": "^4.2.5",
@@ -48,6 +50,7 @@
     "postcss": "^8.5.2",
     "postinstall-postinstall": "^2.1.0",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.23.11",
     "typescript": "^5.7.3",
     "vitest": "^4.1.10"
   }

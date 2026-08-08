@@ -1,0 +1,58 @@
+// BeforeToBuy — Supabase PostgreSQL catalogue (offline feed import).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Product {
+  id              String   @id
+  title           String
+  description     String?
+  gtin            String?
+  brand           String?
+  category        String
+  image           String?
+  catalogSource   String
+  targetCountries String[]
+  basePrice       Float?
+
+  offers Offer[] @relation("ProductOffers")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([gtin])
+  @@index([category])
+}
+
+model Offer {
+  id                 String  @id
+  productId          String
+  product            Product @relation("ProductOffers", fields: [productId], references: [id], onDelete: Cascade)
+
+  storeName          String
+  price              Float
+  originalPrice      Float?
+  discountPercentage Float?
+  currency           String
+  inStock            Boolean
+  deliveryTime       String?
+  deliveryCost       Float?
+  totalPrice         Float?
+  purchaseUrl        String
+  affiliateNetwork   String?
+  source             String
+  feedMerchantId     String?
+  merchantProductId  String?
+
+  fetchedAt String
+
+  @@index([productId])
+  @@index([feedMerchantId])
+}
