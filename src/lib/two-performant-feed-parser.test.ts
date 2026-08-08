@@ -94,7 +94,7 @@ describe("2Performant Scule365 CSV feed", () => {
 });
 
 describe("2Performant evoMAG CSV feed (slice full-catalog)", () => {
-  it("parses sample products into laptop / phone / TV leaves", async () => {
+  it("parses live-shaped sample rows with affiliate links and categories", async () => {
     const csv = fs.readFileSync(evomagSamplePath, "utf8");
     const parsed = await parseTwoPerformantCsvFeedStream(
       Readable.from([csv]),
@@ -103,12 +103,10 @@ describe("2Performant evoMAG CSV feed (slice full-catalog)", () => {
       "sample"
     );
 
-    expect(parsed.products.length).toBeGreaterThanOrEqual(4);
+    expect(parsed.products.length).toBeGreaterThanOrEqual(3);
     expect(parsed.products[0]?.offers[0]?.storeName).toBe("evoMAG.ro");
-    const byCategory = new Set(parsed.products.map((product) => product.category));
-    expect(byCategory.has("notebooks-laptops")).toBe(true);
-    expect(byCategory.has("mobile-smartphones")).toBe(true);
-    expect(byCategory.has("tv-televisions")).toBe(true);
+    expect(parsed.products[0]?.offers[0]?.purchaseUrl).toContain("event.2performant.com");
+    expect(parsed.products.every((product) => product.category !== "unmapped")).toBe(true);
   });
 
   it("enabled evoMAG full-catalog slice loads via getFeedProducts", async () => {

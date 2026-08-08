@@ -151,6 +151,7 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
       feedKey: slice.key,
       categoryHint: slice.categoryHint,
       enabled: slice.enabled,
+      defaultRemoteUrl: slice.defaultRemoteUrl,
       sampleFile:
         slice.key === "full-catalog" ? "sample-2performant-evomag-ro.csv" : undefined,
       sampleFormat: slice.key === "full-catalog" ? "csv" : undefined,

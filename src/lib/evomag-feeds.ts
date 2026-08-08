@@ -19,6 +19,8 @@ export type EvomagFeedSlice = {
   categoryHint?: string;
   /** Approx size from 2P UI (documentation only) */
   approxProducts?: number;
+  /** Production My Feeds CSV URL (overridable via envVar). */
+  defaultRemoteUrl?: string;
   /**
    * When false, feed is registered but not loaded until we turn it on.
    * Only the first slice starts enabled (needs sample or production URL).
@@ -29,8 +31,9 @@ export type EvomagFeedSlice = {
 export const EVOMAG_FEED_SLICES: readonly EvomagFeedSlice[] = [
   {
     key: "full-catalog",
-    label: "evoMAG (catalog principal)",
+    label: "evoMAG - BeforeToBuy",
     envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG_FULL",
+    defaultRemoteUrl: "https://api.2performant.com/feed/9519e6c41.csv",
     approxProducts: 104_828,
     enabled: true,
   },
