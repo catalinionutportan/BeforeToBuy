@@ -43,7 +43,8 @@ function buildUserLocation(
 
 export async function GET(request: Request) {
   const clientIp = getClientIp(request);
-  const rateLimit = await checkRateLimit(`products:${clientIp}`, 60, 60_000);
+  // Homepage SSR + client refetch + navigation can burn a low budget quickly.
+  const rateLimit = await checkRateLimit(`products:${clientIp}`, 300, 60_000);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(

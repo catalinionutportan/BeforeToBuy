@@ -14,13 +14,18 @@ export function SiteFooter() {
 
   return (
     <footer className="mt-auto w-full border-t border-slate-200 bg-[#fafafa]">
-      <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/*
-          Explicit left / right split on desktop.
-          Do not use items-center / text-center on this row — that was stacking everything in the middle.
-        */}
-        <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2 sm:items-start sm:gap-10">
-          <section className="justify-self-start text-left" aria-label="Company">
+      <div className="w-full px-4 py-8 sm:px-8 lg:px-12">
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "24px",
+            width: "100%",
+          }}
+        >
+          <section style={{ textAlign: "left", minWidth: "220px", flex: "1 1 280px" }} aria-label="Company">
             <div className="mb-3 flex items-center gap-3">
               <span className="relative block h-8 w-8 shrink-0">
                 <Image
@@ -63,7 +68,13 @@ export function SiteFooter() {
 
           <nav
             aria-label="Legal"
-            className="flex flex-wrap items-center gap-3 justify-self-start sm:justify-self-end sm:justify-end"
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: "12px",
+              marginLeft: "auto",
+            }}
           >
             <Link
               href="/legal"

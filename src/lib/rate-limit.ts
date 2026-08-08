@@ -56,7 +56,14 @@ export function getClientIp(request: Request): string {
   }
 
   if (process.env.VERCEL) {
-    return request.headers.get("x-real-ip") || "unknown";
+    // Prefer platform headers; also accept x-forwarded-for on Vercel (first hop).
+    const realIp = request.headers.get("x-real-ip")?.trim();
+    if (realIp) return realIp;
+    const forwarded = request.headers.get("x-forwarded-for");
+    if (forwarded) {
+      return forwarded.split(",")[0]?.trim() || "unknown";
+    }
+    return "unknown";
   }
 
   // Only trust generic forwarded headers behind an explicit trusted proxy.

@@ -42,7 +42,7 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 shadow-xs backdrop-blur-md">
-      <div className="mx-auto w-full max-w-7xl min-w-0 px-3 pt-1.5 pb-2 sm:px-6 lg:px-8">
+      <div className="w-full min-w-0 px-3 pt-1.5 pb-2 sm:px-8 lg:px-12">
         <div className="flex items-start justify-between gap-2 min-w-0">
           <Link href="/" locale={locale} className="min-w-0 pt-0.5">
             <h1 className="truncate text-[16px] font-extrabold leading-none tracking-tight text-slate-900">

@@ -25,7 +25,7 @@ export function BetaDemoBanner() {
 
   return (
     <div className="bg-amber-500 text-amber-950 text-[11px] sm:text-sm py-1.5 sm:py-2.5 px-3 sm:px-4 border-b border-amber-600/30">
-      <div className="max-w-7xl mx-auto flex items-center gap-2 min-w-0">
+      <div className="mx-auto flex w-full min-w-0 items-center gap-2 px-3 sm:px-8 lg:px-12">
         <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" aria-hidden="true" />
         <p className="min-w-0 flex-1 truncate sm:whitespace-normal sm:break-words font-semibold">
           <strong className="uppercase tracking-wide">Beta</strong>

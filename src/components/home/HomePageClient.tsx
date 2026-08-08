@@ -161,6 +161,11 @@ export default function HomePageClient({
         // Fetch full market catalog; hub/department tabs filter client-side.
         const response = await fetch(`/api/products?${params.toString()}`);
         if (!response.ok) {
+          // Keep any SSR/catalog products on transient 429/5xx instead of blanking the page.
+          if (response.status === 429) {
+            setProductFetchFailed(false);
+            return;
+          }
           throw new Error("Product API request failed");
         }
 
@@ -174,8 +179,6 @@ export default function HomePageClient({
         setProductFetchFailed(false);
       } catch (error) {
         console.error("Failed to load products:", error);
-        setProducts([]);
-        setCatalogMeta(null);
         setProductFetchFailed(true);
       } finally {
         setIsLoadingProducts(false);
@@ -337,8 +340,8 @@ export default function HomePageClient({
         locale={browseLocale}
       />
 
-      {/* Mobile-first catalog; desktop uses a normal wide content column */}
-      <main className="mx-auto flex w-full max-w-7xl min-w-0 flex-1 flex-col gap-4 px-3 py-4 sm:px-6 lg:px-8">
+      {/* Full-width desktop content — no phone-shell max-width */}
+      <main className="flex w-full min-w-0 flex-1 flex-col gap-4 px-3 py-4 sm:px-8 lg:px-12">
         <div className="space-y-3">
           <div
             id="browse-offers"
