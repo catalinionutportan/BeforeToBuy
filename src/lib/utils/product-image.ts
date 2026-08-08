@@ -1,7 +1,6 @@
 /**
- * evoMAG CDN hosts that historically needed special handling.
- * Direct browser fetches to static2.evomag.ro often time out / fail;
- * Next/Image (`/_next/image`) proxies them successfully in production.
+ * evoMAG CDN hosts — signed query URLs that Next/Image sometimes rejects
+ * (INVALID_IMAGE_OPTIMIZE_REQUEST). Prefer native <img> with no-referrer.
  */
 export function shouldBypassImageOptimization(src: string | undefined): boolean {
   if (!src) return false;
@@ -19,10 +18,9 @@ export function shouldBypassImageOptimization(src: string | undefined): boolean 
 }
 
 /**
- * Always prefer Next/Image so merchant CDNs go through the optimizer proxy.
- * Native <img> to evoMAG was the production "no product photos" failure mode:
- * the CDN times out in-browser while `/_next/image` returns a valid JPEG.
+ * Prefer native <img> for signed evoMAG CDN URLs so cards do not fall back to
+ * blank brand placeholders when the image optimizer rejects the source.
  */
-export function shouldUseNativeProductImage(_src: string | undefined): boolean {
-  return false;
+export function shouldUseNativeProductImage(src: string | undefined): boolean {
+  return shouldBypassImageOptimization(src);
 }

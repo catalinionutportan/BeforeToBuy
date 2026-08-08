@@ -2,7 +2,7 @@ import { createReadStream } from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { createGunzip } from "node:zlib";
-import { CountryCode, OfferSource, Product } from "@/types";
+import { CountryCode, Offer, OfferSource, Product } from "@/types";
 import {
   getEnabledMerchantFeeds,
   resolveFeedRemoteUrl,
@@ -26,6 +26,8 @@ type FeedCacheEntry = {
 
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const CACHE_TTL_SECONDS = 60 * 60;
+/** Upstash max request is 10MB — stay under 8MB so SET reliably succeeds. */
+const REDIS_SOFT_MAX_BYTES = 8 * 1024 * 1024;
 const feedCache = new Map<string, FeedCacheEntry>();
 
 function memoryCacheKey(feed: FeedConfig): string {
@@ -34,18 +36,106 @@ function memoryCacheKey(feed: FeedConfig): string {
 }
 
 function redisCacheKey(feed: FeedConfig): string {
-  // Bump when mapping/parser changes so Redis does not serve stale category ids.
+  // v19: compact Redis shape (stripped descriptions) after Upstash 10MB SET failures on v18.
   const slice = feed.feedKey ? `:${feed.feedKey}` : "";
-  return `feed:v18:${feed.merchantId}${slice}:${feed.country}`;
+  return `feed:v19:${feed.merchantId}${slice}:${feed.country}`;
 }
 
 /** Soft cap for huge catalogues (evoMAG ~100k) so Vercel serverless can finish. */
 function maxProductsForFeed(feed: FeedConfig): number | null {
   if (feed.merchantId !== "ro-evomag") return null;
   const raw = process.env.EVOMAG_MAX_PRODUCTS?.trim();
-  // Headroom for full Telefoane aisle (~717) plus other priority departments.
+  // Compact Redis cache keeps ~5k under 8MB; env can override.
   const parsed = raw ? Number.parseInt(raw, 10) : 5_000;
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 5_000;
+}
+
+function estimateJsonBytes(value: unknown): number {
+  return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
+
+function compactOfferForRedis(offer: Offer): Offer {
+  return {
+    id: offer.id,
+    storeName: offer.storeName,
+    price: offer.price,
+    originalPrice: offer.originalPrice,
+    discountPercentage: offer.discountPercentage,
+    currency: offer.currency,
+    inStock: offer.inStock,
+    deliveryTime: offer.deliveryTime ? offer.deliveryTime.slice(0, 48) : "",
+    deliveryCost: offer.deliveryCost,
+    totalPrice: offer.totalPrice,
+    purchaseUrl: offer.purchaseUrl,
+    affiliateNetwork: offer.affiliateNetwork,
+    type: offer.type,
+    source: offer.source,
+    feedMerchantId: offer.feedMerchantId,
+    merchantProductId: offer.merchantProductId,
+    badge: offer.badge,
+    fetchedAt: offer.fetchedAt,
+  };
+}
+
+function compactProductForRedis(product: Product): Product {
+  return {
+    id: product.id,
+    title: product.title,
+    // Descriptions dominate evoMAG JSON (~14MB at 5k SKUs) and are unused on browse cards.
+    description: "",
+    gtin: product.gtin,
+    variantKey: product.variantKey,
+    category: product.category,
+    categoryAssignment: product.categoryAssignment
+      ? {
+          method: product.categoryAssignment.method,
+          confidence: product.categoryAssignment.confidence,
+        }
+      : undefined,
+    image: product.image,
+    brand: product.brand,
+    offers: product.offers.map(compactOfferForRedis),
+    targetCountries: product.targetCountries,
+    isFlashDeal: product.isFlashDeal,
+    basePrice: product.basePrice,
+    catalogSource: product.catalogSource,
+  };
+}
+
+/**
+ * Slim feed entry for Upstash Redis (10MB request limit).
+ * In-memory cache keeps the fuller parse; Redis only needs browse fields.
+ */
+export function compactFeedCacheForRedis(entry: FeedCacheEntry): FeedCacheEntry {
+  return {
+    fetchedAt: entry.fetchedAt,
+    source: entry.source,
+    mappingLog: [],
+    products: entry.products.map(compactProductForRedis),
+  };
+}
+
+/**
+ * Ensure Redis payload stays under soft max by trimming product count if needed.
+ * Memory cache is unaffected — callers keep the full `entry` in the Map.
+ */
+export function fitFeedCacheForRedis(
+  entry: FeedCacheEntry,
+  softMaxBytes = REDIS_SOFT_MAX_BYTES
+): { payload: FeedCacheEntry; bytes: number; trimmed: boolean } {
+  let payload = compactFeedCacheForRedis(entry);
+  let bytes = estimateJsonBytes(payload);
+  let trimmed = false;
+
+  while (bytes > softMaxBytes && payload.products.length > 1) {
+    const ratio = Math.min(0.9, (softMaxBytes / bytes) * 0.92);
+    const keep = Math.max(1, Math.min(payload.products.length - 1, Math.floor(payload.products.length * ratio)));
+    payload = { ...payload, products: payload.products.slice(0, keep) };
+    bytes = estimateJsonBytes(payload);
+    trimmed = true;
+  }
+
+  return { payload, bytes, trimmed };
 }
 
 async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {
@@ -124,6 +214,25 @@ function filterFeedProducts(
   return filtered;
 }
 
+async function persistFeedToRedis(feed: FeedConfig, entry: FeedCacheEntry): Promise<void> {
+  const label = `${feed.merchantId}${feed.feedKey ? `:${feed.feedKey}` : ""}`;
+  const { payload, bytes, trimmed } = fitFeedCacheForRedis(entry);
+
+  if (trimmed) {
+    console.warn(
+      `[merchant-feeds] redis cache trimmed ${label} to ${payload.products.length} products (~${bytes} bytes) to fit Upstash limit`
+    );
+  }
+
+  const ok = await redisSetJson(redisCacheKey(feed), payload, CACHE_TTL_SECONDS);
+  if (!ok) {
+    // Fail-soft: memory cache already holds the full entry for this instance.
+    console.warn(
+      `[merchant-feeds] redis set failed for ${label} (payload≈${bytes} bytes); serving from in-memory cache until warm Redis works`
+    );
+  }
+}
+
 async function loadFeedForMerchant(
   feed: FeedConfig
 ): Promise<{ products: Product[]; mappingLog: MappingLogEntry[]; source: "remote" | "sample" }> {
@@ -184,6 +293,8 @@ async function loadFeedForMerchant(
 
   const products = limitedProducts.map((product) => ({
     ...product,
+    // Browse/cache path never needs long HTML descriptions (Redis 10MB limit).
+    description: "",
     catalogSource: offerSource,
     offers: product.offers.map((offer) => ({
       ...offer,
@@ -196,15 +307,16 @@ async function loadFeedForMerchant(
   const entry: FeedCacheEntry = {
     fetchedAt: Date.now(),
     products,
-    // Omit bulky mapping logs from Redis payload (products are enough to serve the site).
+    // Omit bulky mapping logs from cache payloads (products are enough to serve the site).
     mappingLog: source === "remote" ? [] : parsed.mappingLog,
     source,
   };
 
   feedCache.set(memKey, entry);
   // Only persist successful remote catalogues — never cache empty/error fallbacks.
+  // Fail-soft: Redis SET errors must not break the response (memory already warm).
   if (source === "remote" && products.length > 0) {
-    void redisSetJson(redisCacheKey(feed), entry, CACHE_TTL_SECONDS);
+    void persistFeedToRedis(feed, entry);
   }
 
   return { products, mappingLog: parsed.mappingLog, source };

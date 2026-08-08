@@ -4,7 +4,13 @@ import path from "node:path";
 import { parseGalaxusJsonFeed } from "./feed-parser";
 import { parseConfiguredFeed } from "./feed-loader";
 import { MERCHANT_FEEDS } from "./merchant-integrations";
-import { clearFeedCacheForTests, getFeedProducts } from "./merchant-feeds";
+import {
+  clearFeedCacheForTests,
+  compactFeedCacheForRedis,
+  fitFeedCacheForRedis,
+  getFeedProducts,
+} from "./merchant-feeds";
+import type { Product } from "@/types";
 
 function sampleStream(filename: string) {
   return createReadStream(path.join(process.cwd(), "src", "data", filename), {
@@ -64,5 +70,117 @@ describe("Merchant Feed Processing", () => {
     expect(result.products.length).toBe(0);
     expect(result.sources).toEqual([]);
     expect(result.merchantProductCounts).toEqual({});
+  });
+
+  it("compacts Redis feed cache by stripping descriptions and bulky fields", () => {
+    const bulky: Product = {
+      id: "feed-ro-evomag-1",
+      title: "Sample SSD",
+      description: "x".repeat(4_000),
+      brand: "Samsung",
+      image: "https://static2.evomag.ro/img?file=x.jpg&sign=abc",
+      category: "peripherals-storage",
+      canonicalKey: "brand:samsung:title:" + "y".repeat(200),
+      categoryAssignment: {
+        method: "merchant-exact",
+        confidence: 0.98,
+        rawCategory: "Hard Disk-uri / SSD-uri " + "z".repeat(80),
+      },
+      targetCountries: ["RO"],
+      catalogSource: "production-live",
+      offers: [
+        {
+          id: "o1",
+          storeName: "evoMAG.ro",
+          price: 199,
+          currency: "RON",
+          inStock: true,
+          deliveryTime: "2-5 zile lucrătoare cu detalii foarte lungi despre curier",
+          deliveryCost: 15,
+          purchaseUrl: "https://example.com/p/1",
+          affiliateNetwork: "2Performant Romania",
+          type: "online",
+          source: "production-live",
+          feedMerchantId: "ro-evomag",
+          merchantProductId: "1",
+          badge: "Production feed",
+        },
+      ],
+    };
+
+    const entry = {
+      fetchedAt: Date.now(),
+      source: "remote" as const,
+      mappingLog: [
+        {
+          merchantId: "ro-evomag",
+          productId: "1",
+          title: "Sample",
+          rawCategory: "SSD",
+          method: "merchant-exact" as const,
+          confidence: 0.9,
+          categoryId: "peripherals-storage",
+          mappedAt: "2026-08-08T00:00:00.000Z",
+        },
+      ],
+      products: [bulky],
+    };
+
+    const compact = compactFeedCacheForRedis(entry);
+    expect(compact.mappingLog).toEqual([]);
+    expect(compact.products[0]?.description).toBe("");
+    expect(compact.products[0]?.canonicalKey).toBeUndefined();
+    expect(compact.products[0]?.categoryAssignment?.rawCategory).toBeUndefined();
+    expect(compact.products[0]?.offers[0]?.purchaseUrl).toBe("https://example.com/p/1");
+    expect(Object.prototype.hasOwnProperty.call(compact.products[0]?.offers[0] ?? {}, "storeLogo")).toBe(
+      false
+    );
+
+    const before = Buffer.byteLength(JSON.stringify(entry), "utf8");
+    const after = Buffer.byteLength(JSON.stringify(compact), "utf8");
+    expect(after).toBeLessThan(before * 0.35);
+  });
+
+  it("fits oversized Redis payloads under the soft Upstash budget", () => {
+    const products: Product[] = Array.from({ length: 200 }, (_, i) => ({
+      id: `p-${i}`,
+      title: `Product ${i} ${"title ".repeat(20)}`,
+      description: "desc ".repeat(400),
+      brand: "Brand",
+      image: `https://static2.evomag.ro/img?file=${i}.jpg&sign=abc`,
+      category: "mobile-smartphones",
+      targetCountries: ["RO"] as const,
+      catalogSource: "production-live" as const,
+      offers: [
+        {
+          id: `o-${i}`,
+          storeName: "evoMAG.ro",
+          price: 100 + i,
+          currency: "RON",
+          inStock: true,
+          deliveryTime: "2-5 zile",
+          deliveryCost: 0,
+          purchaseUrl: `https://example.com/${i}`,
+          affiliateNetwork: "2Performant Romania",
+          type: "online" as const,
+          source: "production-live" as const,
+        },
+      ],
+    }));
+
+    const entry = {
+      fetchedAt: Date.now(),
+      source: "remote" as const,
+      mappingLog: [],
+      products,
+    };
+
+    const softMax = 80_000;
+    const { payload, bytes, trimmed } = fitFeedCacheForRedis(entry, softMax);
+    expect(trimmed).toBe(true);
+    expect(bytes).toBeLessThanOrEqual(softMax);
+    expect(payload.products.length).toBeGreaterThan(0);
+    expect(payload.products.length).toBeLessThan(products.length);
+    expect(payload.products.every((p) => p.description === "")).toBe(true);
   });
 });
