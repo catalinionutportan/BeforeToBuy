@@ -365,6 +365,21 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Romanian tools and DIY retailer. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
   },
+  // --- United Kingdom (GB) ---
+  {
+    id: "gb-seentat",
+    name: "Seentat UK",
+    domain: "seentat.com",
+    websiteUrl: AFFILIATE_LINKS.seentatAwin,
+    countryCode: "GB",
+    affiliateNetwork: "AWIN UK",
+    category: "Consumer Electronics",
+    hasClickAndCollect: false,
+    status: "Live Affiliate Redirect",
+    badge: "AWIN affiliate 🇬🇧",
+    description:
+      "UK online electronics retailer (Seentat). Live AWIN homepage affiliate link; product catalogue will be added when an AWIN product feed is available.",
+  },
 ];
 
 export const COUNTRIES: Record<CountryCode, CountryInfo> = {
@@ -449,9 +464,12 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: -0.1278,
       city: "London",
     },
-    supportedStores: [],
+    supportedStores: ["seentat.com"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "GB"),
-    affiliateNetworks: [],
+    affiliateNetworks: [
+      "AWIN UK (Seentat) — live homepage affiliate",
+      "Seentat product feed — when AWIN datafeed is available",
+    ],
   },
   US: {
     code: "US",
