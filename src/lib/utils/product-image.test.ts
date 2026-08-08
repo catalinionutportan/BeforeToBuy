@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { shouldBypassImageOptimization } from "@/lib/utils/product-image";
+import {
+  shouldBypassImageOptimization,
+  shouldUseNativeProductImage,
+} from "@/lib/utils/product-image";
 
 describe("shouldBypassImageOptimization", () => {
-  it("bypasses signed evoMAG CDN URLs with query strings", () => {
+  it("flags evoMAG CDN hosts for native image rendering", () => {
     expect(
       shouldBypassImageOptimization(
         "https://static2.evomag.ro/img?extend=white&file=products%2F74%2F74187%2FCC-HDMI4-6.jpg&type=auto&width=500&sign=abc"
+      )
+    ).toBe(true);
+    expect(
+      shouldUseNativeProductImage(
+        "https://static2.evomag.ro/img?extend=white&file=x.jpg&sign=abc"
       )
     ).toBe(true);
   });

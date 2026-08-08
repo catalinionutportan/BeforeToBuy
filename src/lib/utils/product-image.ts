@@ -7,7 +7,6 @@ export function shouldBypassImageOptimization(src: string | undefined): boolean 
   if (!src) return false;
   try {
     const url = new URL(src);
-    if (!url.search) return false;
     return (
       url.hostname === "static2.evomag.ro" ||
       url.hostname === "static.evomag.ro" ||
@@ -17,4 +16,12 @@ export function shouldBypassImageOptimization(src: string | undefined): boolean 
   } catch {
     return false;
   }
+}
+
+/**
+ * Prefer native <img> for signed merchant CDNs.
+ * Next/Image still flakes on many static2.evomag.ro URLs even with unoptimized.
+ */
+export function shouldUseNativeProductImage(src: string | undefined): boolean {
+  return shouldBypassImageOptimization(src);
 }
