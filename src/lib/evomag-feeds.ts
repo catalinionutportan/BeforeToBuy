@@ -32,14 +32,15 @@ export const EVOMAG_FEED_SLICES: readonly EvomagFeedSlice[] = [
     label: "Catalog evoMAG (toate produsele)",
     envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG_FULL",
     approxProducts: 104_828,
-    enabled: true,
+    // Start with in-store stock feed first (smaller, cleaner); enable full later.
+    enabled: false,
   },
   {
     key: "stock-store",
     label: "Produse in stoc magazin",
     envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG_STOCK",
     approxProducts: 8_541,
-    enabled: false,
+    enabled: true,
   },
   {
     key: "mobile",
