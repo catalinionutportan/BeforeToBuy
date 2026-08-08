@@ -26,21 +26,39 @@ function normalizeText(parts: (string | undefined)[]): string {
   return parts.filter(Boolean).join(" ").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+/**
+ * Keyword hit with word boundaries for single tokens.
+ * Prevents "men" matching inside "Segmentata" / "cap" inside "Capac".
+ */
+function keywordMatches(text: string, keyword: string): boolean {
+  const kw = keyword.toLowerCase().trim();
+  if (!kw) return false;
+  if (kw.includes(" ")) return text.includes(kw);
+  const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?:^|[^\\p{L}\\p{N}])${escaped}(?:[^\\p{L}\\p{N}]|$)`, "iu").test(text);
+}
+
 /** Score subcategory by keyword hits in combined product text */
 function inferFromKeywords(text: string): { subcategoryId: string; score: number } | null {
   let bestId: string | null = null;
   let bestScore = 0;
+  let bestIsLeaf = false;
 
   for (const categoryModule of SHOPPING_CATEGORIES) {
     for (const sub of walkSubcategories(categoryModule.subcategories)) {
       let score = 0;
       for (const kw of sub.searchKeywords) {
-        if (text.includes(kw.toLowerCase())) score += kw.length > 6 ? 2 : 1;
+        if (keywordMatches(text, kw)) score += kw.length > 6 ? 2 : 1;
       }
-      // Prefer leaf types over mid-level parents when scores tie.
-      if (score > bestScore || (score === bestScore && score > 0 && !sub.children?.length)) {
+      const isLeaf = !sub.children?.length;
+      // Prefer stronger scores; on ties prefer a leaf over a mid-level parent (keep first leaf).
+      if (
+        score > bestScore ||
+        (score === bestScore && score > 0 && isLeaf && !bestIsLeaf)
+      ) {
         bestScore = score;
         bestId = sub.id;
+        bestIsLeaf = isLeaf;
       }
     }
   }
@@ -142,6 +160,19 @@ export function mapToBeforeToBuyCategoryWithMetadata(
       confidence: MAPPING_CONFIDENCE.merchantPattern,
       rawCategory: merchantCategory,
     });
+  }
+
+  // Specialised DIY catalogue: never leak tools into Fashion via noisy keywords.
+  if (merchantId === "ro-scule365") {
+    const diyDefault = getMerchantDefaultCategory(merchantId);
+    if (diyDefault) {
+      return {
+        categoryId: diyDefault,
+        method: "merchant-default",
+        confidence: MAPPING_CONFIDENCE.combinedPattern,
+        rawCategory: merchantCategory,
+      };
+    }
   }
 
   const fromKeywords = inferFromKeywords(combined);

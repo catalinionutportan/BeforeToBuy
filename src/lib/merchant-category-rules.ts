@@ -282,6 +282,11 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
           /(?<!cu\s)(?<!fara\s)(?<!fără\s)\b(acumulatori?|baterie|baterii)\b(?:\s+\d+\s*v|\s+\d+\s*ah|\s+li-?ion)?|\b(incarcator|încărcător|incarcatoare|încărcătoare)\b(?:\s+\d+\s*v)?/i,
         subcategoryId: "diy-batteries-chargers",
       },
+      {
+        patterns:
+          /\b(scara|scară|troliu|electropalan|macara|cutie\s+(?:de\s+)?(?:depozitare|postala|poștală|scule)|drisca|drișcă|centura\s+pentru\s+scule|presa\s+rulmenti|antrenor|carota|spit\s+sds|tava\s+trafalet|butelie\s+gaz|aragaz\s+exterior)\b/i,
+        subcategoryId: "diy-hand-tools",
+      },
     ],
   },
   "ro-rowenta": {

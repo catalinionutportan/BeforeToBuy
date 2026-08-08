@@ -54,7 +54,7 @@ describe('Category and Collection Logic', () => {
     expect(resolveCategoryAlias("books-games-media")).toBe("office-stationery");
     expect(getParentCategoryId("vehicle-accessories")).toBe("auto-parts");
     expect(getParentCategoryId("software-os")).toBe("electronics");
-    expect(getParentCategoryId("care-shaving-hair-removal")).toBe("fashion-lifestyle");
+    expect(getParentCategoryId("care-shaving-hair-removal")).toBe("appliances");
 
     const leafIds = SHOPPING_CATEGORIES.flatMap((category) =>
       walkSubcategories(category.subcategories).map((subcategory) => subcategory.id)
@@ -128,7 +128,7 @@ describe('Category and Collection Logic', () => {
     // Coarse legacy leaves must not collide with the old parent filter id.
     expect(resolveCategoryAlias("home-kitchen")).toBe("kitchen-coffee-machines");
     expect(resolveCategoryAlias("home-appliances")).toBe("cleaning-vacuums");
-    expect(getParentCategoryId("care-shaving-hair-removal")).toBe("fashion-lifestyle");
+    expect(getParentCategoryId("care-shaving-hair-removal")).toBe("appliances");
     expect(
       productMatchesCategoryFilter(
         { ...baseProduct, category: "care-shaving-hair-removal" },

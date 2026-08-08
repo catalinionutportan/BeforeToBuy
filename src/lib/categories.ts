@@ -466,7 +466,7 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
         "fashion-men",
         "Men's Clothing",
         "Herrenmode",
-        ["men", "mens", "barbati", "bărbați"],
+        ["men's", "menswear", "barbati", "bărbați", "for men", "herren"],
         [
           subcategory("fashion-men-shirts", "Shirts & Polos", "Hemden + Polos", ["shirt men", "polo", "cămașă", "camasa"]),
           subcategory("fashion-men-pants", "Trousers & Jeans", "Hosen + Jeans", ["jeans", "trousers men", "pantaloni bărbați"]),
@@ -538,11 +538,16 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
       subcategory("fashion-socks", "Socks & Hosiery", "Socken + Strümpfe", ["sock", "socks", "tights", "ciorapi", "șosete", "sosete"]),
       subcategory("fashion-underwear", "Underwear", "Unterwäsche", ["underwear", "boxers", "briefs", "boxeri", "lenjerie intimă"]),
       subcategory("fashion-bags", "Bags", "Taschen", ["bag", "backpack", "handbag", "tote", "geantă"]),
-      subcategory("fashion-accessories", "Fashion Accessories", "Fashion-Accessoires", ["belt", "scarf", "cap", "wallet", "curea", "fular"]),
-      // Personal care — after apparel, not at the top of Fashion
-      subcategory("care-shaving-hair-removal", "Shaving & Hair Removal", "Rasieren + Haarentfernung", ["shaver", "epilator", "hair removal", "rasierer"]),
-      subcategory("care-hair-styling", "Hair Styling", "Haarstyling", ["hair dryer", "hair styler", "straightener", "haartrockner"]),
-      subcategory("care-oral", "Oral Care", "Zahnpflege", ["electric toothbrush", "oral care", "zahnbürste"]),
+      subcategory("fashion-accessories", "Fashion Accessories", "Fashion-Accessoires", [
+        "belt",
+        "scarf",
+        "wallet",
+        "curea",
+        "fular",
+        "fashion cap",
+        "șapcă",
+        "sapca",
+      ]),
       subcategory("health-monitors-scales", "Health Monitors & Scales", "Gesundheitsmessgeräte + Waagen", ["blood pressure", "thermometer", "scale", "blutdruck"]),
       subcategory("health-massage-recovery", "Massage & Recovery", "Massage + Regeneration", ["massager", "massage gun", "recovery"]),
       subcategory("baby-monitoring-feeding", "Baby Monitoring & Feeding Tech", "Babyüberwachung + Fütterung", ["baby monitor", "breast pump", "bottle warmer", "sterilizer"]),
@@ -613,6 +618,25 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
       subcategory("climate-heating", "Heating", "Heizen", ["heater", "radiator", "heizlüfter"]),
       subcategory("climate-air-care", "Humidifiers & Dehumidifiers", "Luftbe- + Entfeuchter", ["humidifier", "dehumidifier", "air purifier"]),
       subcategory("laundry-ironing-sewing", "Ironing & Sewing", "Bügeln + Nähen", ["iron", "ironing", "sewing machine", "bügeleisen", "nähmaschine"]),
+      // Personal care appliances (Rowenta etc.) — under Electrocasnice, not Fashion/clothes.
+      subcategory("care-shaving-hair-removal", "Shaving & Hair Removal", "Rasieren + Haarentfernung", [
+        "shaver",
+        "epilator",
+        "hair removal",
+        "rasierer",
+        "aparat de tuns",
+        "epilator",
+      ]),
+      subcategory("care-hair-styling", "Hair Styling", "Haarstyling", [
+        "hair dryer",
+        "hair styler",
+        "straightener",
+        "haartrockner",
+        "uscător de păr",
+        "uscator de par",
+        "placă de păr",
+      ]),
+      subcategory("care-oral", "Oral Care", "Zahnpflege", ["electric toothbrush", "oral care", "zahnbürste"]),
     ],
   },
   {
@@ -1117,7 +1141,7 @@ const LEGACY_PARENT_ALIASES: Record<string, string> = {
   "diy-garden-power": "diy-tools",
   software: "electronics",
   "software-digital": "electronics",
-  "personal-care-health-baby": "fashion-lifestyle",
+  "personal-care-health-baby": "appliances",
   "books-games-media": "office-stationery",
 };
 
@@ -1252,7 +1276,7 @@ export function getLegacyMultiParentPrimaryDepartment(categoryId: string): strin
     return "appliances";
   }
   if (categoryId === "diy-garden-power") return "diy-tools";
-  if (categoryId === "personal-care-health-baby") return "fashion-lifestyle";
+  if (categoryId === "personal-care-health-baby") return "appliances";
   if (categoryId === "books-games-media") return "office-stationery";
   return null;
 }
