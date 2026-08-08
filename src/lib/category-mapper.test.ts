@@ -282,4 +282,31 @@ describe('Category Mapper Functions', () => {
       })
     ).toBe("notebooks-laptops");
   });
+
+  it("evoMAG does not map networking gear to smartphones via description", () => {
+    const extender = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-evomag",
+      merchantCategory: "Extendere Wi-Fi",
+      title: "Range Extender Wireless TP-LINK RE305",
+      description: "Gestioneaza reteaua din aplicatia de pe smartphone",
+    });
+    expect(extender.categoryId).toBe("networking-routers");
+    expect(extender.method).toBe("merchant-exact");
+
+    const camera = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-evomag",
+      merchantCategory: "Camere supraveghere video pentru interior",
+      title: "Camera Supraveghere Video Lanberg",
+      description: "securitate si supraveghere prin smartphone 24/7",
+    });
+    expect(camera.categoryId).toBe("smart-home-security");
+
+    const phone = mapToBeforeToBuyCategoryWithMetadata({
+      merchantId: "ro-evomag",
+      merchantCategory: "Telefoane",
+      title: "Telefon mobil Panasonic KX-TU110EXC",
+    });
+    expect(phone.categoryId).toBe("mobile-smartphones");
+    expect(phone.method).toBe("merchant-exact");
+  });
 });

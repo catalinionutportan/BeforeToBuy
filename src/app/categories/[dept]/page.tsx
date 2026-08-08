@@ -123,13 +123,19 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
           </section>
         )}
 
-        {catalog.products.length > 0 ? (
-          <CategoryProductGrid products={catalog.products} countryCode={countryCode} />
-        ) : (
+        {/* Department pages list subcategories only — avoid dumping every leaf
+            (routers + hubs + phones) into one chaotic 2000+ product grid. */}
+        {visibleSubs.length === 0 && catalog.products.length > 0 ? (
+          <CategoryProductGrid
+            products={catalog.products.slice(0, 24)}
+            countryCode={countryCode}
+          />
+        ) : null}
+        {visibleSubs.length === 0 && catalog.products.length === 0 ? (
           <p className="text-sm text-slate-500">
             {formatUi(homeUi.noOffersAvailableInCategory, { countryName: country.name })}
           </p>
-        )}
+        ) : null}
       </div>
     </PageShell>
   );

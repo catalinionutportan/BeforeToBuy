@@ -208,9 +208,13 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     }
   }
 
-  // Prefer merchant title/description patterns before generic keywords (avoids
-  // false positives like "ergonomic" → office when the feed has no category).
-  const merchantTextMatch = getMerchantPatternMatch(merchantId, productText || combined);
+  // Title + brand only — never descriptions. Marketing copy often says
+  // "control from your smartphone" and would misfile routers/cameras as phones.
+  const titleBrandText = normalizeText([title, brand]);
+  const merchantTextMatch = getMerchantPatternMatch(
+    merchantId,
+    titleBrandText || productText || combined
+  );
   if (merchantTextMatch) {
     return finalize({
       categoryId: merchantTextMatch,
