@@ -1,9 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { createReadStream } from "node:fs";
 import path from "node:path";
 import { parseGalaxusJsonFeed } from "./feed-parser";
 import { parseConfiguredFeed } from "./feed-loader";
-import { MERCHANT_FEEDS } from "./merchant-integrations";
+import { isCacheOnlyFeed, MERCHANT_FEEDS } from "./merchant-integrations";
 import {
   clearFeedCacheForTests,
   compactFeedCacheForRedis,
@@ -19,6 +19,12 @@ function sampleStream(filename: string) {
 }
 
 describe("Merchant Feed Processing", () => {
+  afterEach(() => {
+    clearFeedCacheForTests();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
   it("Galaxus JSON sample parses products with pickup offers", () => {
     const sample = `[{
       "gtin":"123",
@@ -70,6 +76,47 @@ describe("Merchant Feed Processing", () => {
     expect(result.products.length).toBe(0);
     expect(result.sources).toEqual([]);
     expect(result.merchantProductCounts).toEqual({});
+  });
+
+  it("marks evoMAG as heavy/cache-only", () => {
+    const evomag = MERCHANT_FEEDS.find((feed) => feed.merchantId === "ro-evomag");
+    expect(evomag).toBeDefined();
+    expect(isCacheOnlyFeed(evomag!)).toBe(true);
+    expect(evomag!.heavy).toBe(true);
+    expect(evomag!.cacheOnly).toBe(true);
+  });
+
+  it("request path never fetches remote evoMAG CSV on cache miss", async () => {
+    clearFeedCacheForTests();
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => {
+      return new Response("Product Name\n", { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const previousVitest = process.env.VITEST;
+    const previousForce = process.env.FORCE_SAMPLE_FEEDS;
+    const previousUrl = process.env.TWO_PERFORMANT_FEED_URL_RO_EVOMAG;
+
+    // Simulate production request path: remote URL configured, no Vitest sample shortcut.
+    delete process.env.VITEST;
+    delete process.env.FORCE_SAMPLE_FEEDS;
+    process.env.TWO_PERFORMANT_FEED_URL_RO_EVOMAG = "https://example.com/evomag-huge.csv";
+
+    try {
+      const result = await getFeedProducts("RO");
+      const fetchedUrls = fetchMock.mock.calls.map((call) => String(call[0] ?? ""));
+      expect(fetchedUrls.some((url) => url.includes("evomag-huge") || url.includes("9519e6c41"))).toBe(
+        false
+      );
+      expect(result.merchantProductCounts["ro-evomag"] ?? 0).toBe(0);
+    } finally {
+      if (previousVitest === undefined) delete process.env.VITEST;
+      else process.env.VITEST = previousVitest;
+      if (previousForce === undefined) delete process.env.FORCE_SAMPLE_FEEDS;
+      else process.env.FORCE_SAMPLE_FEEDS = previousForce;
+      if (previousUrl === undefined) delete process.env.TWO_PERFORMANT_FEED_URL_RO_EVOMAG;
+      else process.env.TWO_PERFORMANT_FEED_URL_RO_EVOMAG = previousUrl;
+    }
   });
 
   it("compacts Redis feed cache by stripping descriptions and bulky fields", () => {

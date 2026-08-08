@@ -34,6 +34,18 @@ export interface FeedConfig {
   feedKey?: string;
   /** Fallback BeforeToBuy leaf when the CSV category cell is empty. */
   categoryHint?: string;
+  /**
+   * Large remote catalogues (e.g. evoMAG ~200MB CSV). Request/SSR/API paths
+   * must never download these — only Redis + memory. Warm via feeds:warm / cron.
+   */
+  heavy?: boolean;
+  /** Alias of heavy: request path is Redis/memory only (no remote CSV). */
+  cacheOnly?: boolean;
+}
+
+/** True when HTTP/SSR must not download this feed's remote file. */
+export function isCacheOnlyFeed(feed: FeedConfig): boolean {
+  return feed.cacheOnly === true || feed.heavy === true;
 }
 
 export function isFeedEnabled(feed: FeedConfig): boolean {
@@ -148,10 +160,13 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     merchantId: "ro-evomag",
     merchantName: "evoMAG.ro",
     envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG",
-    // My Feeds CSV with Category (~104k). Soft-capped + diversified at ingest.
+    // My Feeds CSV with Category (~104k / ~200MB). Soft-capped at ingest.
+    // Request path is cache-only — warm via /api/cron/feeds-warm or npm run feeds:warm.
     defaultRemoteUrl: "https://api.2performant.com/feed/9519e6c41.csv",
     sampleFile: "sample-2performant-evomag-ro.csv",
     sampleFormat: "csv",
+    heavy: true,
+    cacheOnly: true,
   },
   {
     provider: "AWIN",

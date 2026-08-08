@@ -3,7 +3,7 @@
 const BASE_URL = process.env.SMOKE_BASE_URL || "https://www.beforetobuy.com";
 
 const endpoints = [
-  { name: "Homepage", path: "/", expectText: "Beta" },
+  { name: "Homepage", path: "/", expectText: "BeforeToBuy" },
   { name: "Legal hub", path: "/legal", expectText: "Legal hub" },
   { name: "Help", path: "/help", expectText: "Help" },
   { name: "Privacy", path: "/privacy", expectText: "Privacy" },

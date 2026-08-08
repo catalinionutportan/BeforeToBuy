@@ -12,6 +12,7 @@ import { ScrollToTopOnNavigate } from "@/components/ScrollToTopOnNavigate";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { localeFromCountry } from "@/lib/category-i18n";
 import { getRequestMarketCountry } from "@/lib/request-market";
+import { isBetaBannerEnabled } from "@/lib/site-config";
 
 export async function generateMetadata(): Promise<Metadata> {
   const marketCountry = await getRequestMarketCountry();
@@ -48,6 +49,7 @@ export default async function RootLayout({
 }>) {
   const marketCountry = await getRequestMarketCountry();
   const locale: SiteLocale = localeFromCountry(marketCountry);
+  const showBetaBanner = isBetaBannerEnabled();
 
   return (
     <html lang={locale}>
@@ -56,7 +58,7 @@ export default async function RootLayout({
           <ScrollToTopOnNavigate />
           <SiteJsonLd />
           <DatadogRum />
-          <BetaDemoBanner />
+          {showBetaBanner ? <BetaDemoBanner /> : null}
           {children}
           <SiteFooter />
           <CookieConsentBanner />

@@ -6,6 +6,7 @@ import {
   getFeedMode,
   getIntegrationSummary,
   getMerchantFeedStatuses,
+  isCacheOnlyFeed,
   resolveFeedRemoteUrl,
 } from './merchant-integrations';
 
@@ -104,8 +105,15 @@ describe('Merchant Integrations', () => {
     expect(summary.sampleFeeds.length).toBe(enabled.length);
     expect(getMerchantFeedStatuses().every((merchant) => merchant.sampleAvailable)).toBe(true);
     expect(summary.feedMerchantIds).toEqual(
-      expect.arrayContaining(["ro-rowenta", "ro-scule365"])
+      expect.arrayContaining(["ro-rowenta", "ro-scule365", "ro-evomag"])
     );
     expect(summary.feedMerchantIds.some((id) => id.startsWith("ch-"))).toBe(false);
+  });
+
+  it("evoMAG is flagged cache-only / heavy", () => {
+    const evomag = MERCHANT_FEEDS.find((feed) => feed.merchantId === "ro-evomag");
+    expect(evomag?.cacheOnly).toBe(true);
+    expect(evomag?.heavy).toBe(true);
+    expect(isCacheOnlyFeed(evomag!)).toBe(true);
   });
 });

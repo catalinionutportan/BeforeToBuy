@@ -5,12 +5,19 @@
     },
     "src/app/api/cron/price-snapshot/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/cron/feeds-warm/route.ts": {
+      "maxDuration": 300
     }
   },
   "crons": [
     {
       "path": "/api/cron/price-snapshot",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/feeds-warm",
+      "schedule": "20 */6 * * *"
     }
   ]
 }

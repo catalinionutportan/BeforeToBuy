@@ -1,0 +1,27 @@
+name: Warm merchant feeds
+on:
+  schedule:
+    # Every 6 hours — keeps evoMAG Redis warm without user-request downloads
+    - cron: "15 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger Vercel feeds-warm cron
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          FEEDS_WARM_URL: ${{ vars.FEEDS_WARM_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET secret is required"
+            exit 1
+          fi
+          URL="${FEEDS_WARM_URL:-https://www.beforetobuy.com/api/cron/feeds-warm}"
+          echo "Warming via $URL"
+          curl -fsS --max-time 290 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Accept: application/json" \
+            "$URL"

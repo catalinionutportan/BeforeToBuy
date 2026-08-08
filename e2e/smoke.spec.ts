@@ -26,11 +26,10 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
   });
 
-  test("homepage loads with beta banner and product grid", async ({ page }) => {
+  test("homepage loads with brand and product grid", async ({ page }) => {
     test.setTimeout(90_000);
     await page.goto("/");
     await dismissCookieBannerIfPresent(page);
-    await expect(page.getByText(/Beta\s*\/?\s*Demo/i).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "BeforeToBuy", exact: true })).toBeVisible({
       timeout: 15_000,
     });

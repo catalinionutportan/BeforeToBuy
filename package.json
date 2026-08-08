@@ -11,16 +11,19 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest --run",
     "test:e2e": "playwright test e2e/smoke.spec.ts",
-    "smoke:prod": "node scripts/smoke-production.mjs"
+    "smoke:prod": "node scripts/smoke-production.mjs",
+    "feeds:warm": "node scripts/warm-feeds.mjs"
   },
   "dependencies": {
     "@datadog/browser-rum": "^7.7.0",
     "@datadog/browser-rum-nextjs": "^7.7.0",
+    "@prisma/client": "^7.9.1",
     "@upstash/redis": "^1.38.2",
     "clsx": "^2.1.1",
     "csv-parser": "^3.2.1",
     "lucide-react": "^0.475.0",
     "next": "^16.3.0",
+    "prisma": "^7.9.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "stream-chain": "^4.2.5",

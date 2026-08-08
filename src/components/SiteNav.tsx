@@ -6,10 +6,12 @@ import { Mail, LifeBuoy, Scale, HelpCircle, Layers, Store } from "lucide-react";
 import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 import { HOME_UI } from "@/lib/i18n/ui";
+import { isBetaBannerEnabled } from "@/lib/site-config";
 
 export function SiteNav() {
   const { locale: browseLocale } = useBrowseLocale(DEFAULT_COUNTRY);
   const homeUi = HOME_UI[browseLocale];
+  const showBetaLabel = isBetaBannerEnabled();
 
   const navLinks = [
     { href: "/about", label: homeUi.about, icon: HelpCircle },
@@ -38,7 +40,9 @@ export function SiteNav() {
             <span className="text-base font-extrabold text-slate-900 block leading-tight">
               BeforeToBuy
             </span>
-            <span className="text-[10px] text-slate-500 font-medium">{homeUi.betaDemo}</span>
+            {showBetaLabel ? (
+              <span className="text-[10px] text-slate-500 font-medium">{homeUi.betaDemo}</span>
+            ) : null}
           </div>
         </Link>
 
