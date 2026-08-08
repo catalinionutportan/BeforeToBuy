@@ -46,7 +46,7 @@ describe("diversifyProductCap", () => {
       (p) => p.categoryAssignment?.rawCategory === "Huse Telefoane"
     ).length;
 
-    expect(phones).toBeGreaterThanOrEqual(200);
+    expect(phones).toBe(717);
     expect(phones).toBeGreaterThan(cases);
   });
 });

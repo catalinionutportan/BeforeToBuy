@@ -36,15 +36,16 @@ function memoryCacheKey(feed: FeedConfig): string {
 function redisCacheKey(feed: FeedConfig): string {
   // Bump when mapping/parser changes so Redis does not serve stale category ids.
   const slice = feed.feedKey ? `:${feed.feedKey}` : "";
-  return `feed:v15:${feed.merchantId}${slice}:${feed.country}`;
+  return `feed:v16:${feed.merchantId}${slice}:${feed.country}`;
 }
 
 /** Soft cap for huge catalogues (evoMAG ~100k) so Vercel serverless can finish. */
 function maxProductsForFeed(feed: FeedConfig): number | null {
   if (feed.merchantId !== "ro-evomag") return null;
   const raw = process.env.EVOMAG_MAX_PRODUCTS?.trim();
-  const parsed = raw ? Number.parseInt(raw, 10) : 4_000;
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 4_000;
+  // Headroom for full Telefoane aisle (~717) plus other priority departments.
+  const parsed = raw ? Number.parseInt(raw, 10) : 5_000;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 5_000;
 }
 
 async function readSampleFeed(filename: string): Promise<NodeJS.ReadableStream> {
