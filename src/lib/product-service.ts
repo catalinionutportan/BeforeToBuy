@@ -80,8 +80,9 @@ export async function fetchMergedProductsForLocation(
   const includePriceHistory = listOptions.includePriceHistory === true;
   const compact = listOptions.compact ?? limit != null;
 
-  try {
-    const dbResult = await getProductsFromDb(
+  if (process.env.FORCE_SAMPLE_FEEDS !== "1") {
+    try {
+      const dbResult = await getProductsFromDb(
       userLocation.countryCode,
       query,
       category,
@@ -90,9 +91,9 @@ export async function fetchMergedProductsForLocation(
       listOptions.sort,
       listOptions.filters
     );
-    // If Supabase has catalogue rows for this market, stay on DB even when the
-    // active hub/filter matches zero products (do not fall back to empty feeds).
-    if (dbResult.countryProductCount > 0) {
+      // If Supabase has catalogue rows for this market, stay on DB even when the
+      // active hub/filter matches zero products (do not fall back to empty feeds).
+      if (dbResult.countryProductCount > 0) {
       const fetchedAt = new Date().toISOString();
       const timestampedProducts = attachOfferTimestamps(dbResult.products, fetchedAt);
 
@@ -172,12 +173,13 @@ export async function fetchMergedProductsForLocation(
           },
         },
       };
+      }
+    } catch (error) {
+      console.error(
+        "[product-service] Supabase read failed; falling back to merchant-feeds:",
+        error instanceof Error ? error.message : error
+      );
     }
-  } catch (error) {
-    console.error(
-      "[product-service] Supabase read failed; falling back to merchant-feeds:",
-      error instanceof Error ? error.message : error
-    );
   }
 
   // Fallback: enabled feeds only (RO 2Performant remotes are disabled → no CSV cost).

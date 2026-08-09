@@ -17,6 +17,8 @@ export function inferCountryFromProductId(productId: string): CountryCode | unde
 
 /** Fast path: single indexed primary-key lookup in Supabase. */
 async function findInDb(decodedId: string): Promise<Product | null> {
+  if (process.env.FORCE_SAMPLE_FEEDS === "1") return null;
+
   try {
     const row = await prisma.product.findUnique({
       where: { id: decodedId },
@@ -69,18 +71,20 @@ export const getProductById = cache(async (id: string): Promise<Product | null> 
 
 export async function listProductIdsForSitemap(limit = 200): Promise<string[]> {
   // Fast path: ids straight from the DB (no offers, no counts).
-  try {
-    const rows = await prisma.product.findMany({
-      select: { id: true },
-      orderBy: { updatedAt: "desc" },
-      take: limit,
-    });
-    if (rows.length > 0) return rows.map((row) => row.id);
-  } catch (error) {
-    console.error(
-      "[product-lookup] DB sitemap listing failed; falling back to catalog scan:",
-      error instanceof Error ? error.message : error
-    );
+  if (process.env.FORCE_SAMPLE_FEEDS !== "1") {
+    try {
+      const rows = await prisma.product.findMany({
+        select: { id: true },
+        orderBy: { updatedAt: "desc" },
+        take: limit,
+      });
+      if (rows.length > 0) return rows.map((row) => row.id);
+    } catch (error) {
+      console.error(
+        "[product-lookup] DB sitemap listing failed; falling back to catalog scan:",
+        error instanceof Error ? error.message : error
+      );
+    }
   }
 
   const ids: string[] = [];

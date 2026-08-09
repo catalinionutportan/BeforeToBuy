@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
+const OFFER_LINK_NAME = /View offer|Search store|Open store/i;
+
 async function dismissCookieBanner(page: Page) {
   const essential = page.getByRole("button", { name: "Essential Only", exact: true });
   if (await essential.isVisible({ timeout: 2_000 }).catch(() => false)) {
@@ -71,7 +73,7 @@ test.describe("Search, filters and product handoff", () => {
     await expect(page).toHaveURL(/\/p\/[^/?]+/);
     const productDialog = page.getByRole("dialog", { name: /Store offer/i });
     await expect(productDialog).toBeVisible();
-    const blockedLink = productDialog.getByRole("link", { name: /View offer|Search store/i }).first();
+    const blockedLink = productDialog.getByRole("link", { name: OFFER_LINK_NAME }).first();
     await blockedLink.click();
 
     const acceptAll = page.getByRole("button", { name: "Accept All", exact: true });
@@ -79,7 +81,7 @@ test.describe("Search, filters and product handoff", () => {
     await acceptAll.click();
     await expect(acceptAll).toHaveCount(0);
 
-    const merchantLink = page.getByRole("link", { name: /View offer|Search store/i }).first();
+    const merchantLink = page.getByRole("link", { name: OFFER_LINK_NAME }).first();
     const [popup] = await Promise.all([
       context.waitForEvent("page"),
       merchantLink.click(),
