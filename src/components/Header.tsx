@@ -6,7 +6,8 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import type { SiteLocale } from "@/lib/i18n/locales";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
+import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 
 interface HeaderProps {
   userLocation: UserLocation;
@@ -112,25 +113,13 @@ export function Header({
             </div>
 
             <div className="flex min-w-0 flex-1 items-center">
-              <div className="relative w-full max-w-none">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="search"
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange(stripUnsafeQueryChars(e.target.value))}
-                  aria-label={searchPlaceholder}
-                  placeholder={searchPlaceholder}
-                  className="w-full rounded-lg border border-transparent bg-slate-100 py-2.5 pl-10 pr-3 text-[clamp(0.875rem,0.35vw+0.75rem,1rem)] font-medium outline-none transition-all placeholder:text-slate-400 hover:bg-slate-100/80 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => onSearchChange("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full bg-slate-200 px-1.5 py-0.5 text-[10px] text-slate-400 hover:text-slate-600"
-                  >
-                    {ui.clear}
-                  </button>
-                )}
-              </div>
+              <SearchAutocomplete 
+                initialQuery={searchQuery}
+                placeholder={searchPlaceholder}
+                onSearchSubmit={(q) => onSearchChange(stripUnsafeQueryChars(q))}
+                countryCode={userLocation.countryCode}
+                locale={locale}
+              />
             </div>
           </div>
         </div>

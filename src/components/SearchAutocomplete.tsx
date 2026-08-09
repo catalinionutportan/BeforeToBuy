@@ -1,0 +1,186 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Search, Loader2 } from "lucide-react";
+import { Product } from "@/types";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { productPagePathWithReturn } from "@/lib/seo/site-url";
+import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
+import { computeTotalPrice } from "@/lib/pricing/total-price";
+import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+
+interface SearchAutocompleteProps {
+  initialQuery?: string;
+  placeholder?: string;
+  onSearchSubmit?: (query: string) => void;
+  countryCode?: string;
+  locale?: string;
+}
+
+export function SearchAutocomplete({
+  initialQuery = "",
+  placeholder = "Caută produse...",
+  onSearchSubmit,
+  countryCode = DEFAULT_COUNTRY,
+  locale = "ro",
+}: SearchAutocompleteProps) {
+  const [query, setQuery] = useState(initialQuery);
+  const debouncedQuery = useDebouncedValue(query, 300);
+  
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [results, setResults] = useState<Product[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const country = COUNTRIES[countryCode as keyof typeof COUNTRIES] || COUNTRIES[DEFAULT_COUNTRY];
+
+  // Handle outside click to close
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch results when debounced query changes
+  useEffect(() => {
+    if (!debouncedQuery || debouncedQuery.trim().length < 2) {
+      setResults([]);
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoading(true);
+
+    const fetchSuggestions = async () => {
+      try {
+        const res = await fetch(`/api/products?q=${encodeURIComponent(debouncedQuery)}&limit=5&country=${countryCode}&locale=${locale}`);
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
+        
+        if (isMounted) {
+          setResults(data.products || []);
+          setIsLoading(false);
+          setIsOpen(true);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setResults([]);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchSuggestions();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [debouncedQuery, countryCode, locale]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsOpen(false);
+    if (onSearchSubmit) {
+      onSearchSubmit(query);
+    }
+  };
+
+  return (
+    <div className="relative w-full max-w-none" ref={containerRef}>
+      <form onSubmit={handleSubmit} className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (e.target.value.trim().length > 1) setIsOpen(true);
+          }}
+          onFocus={() => {
+            if (query.trim().length > 1) setIsOpen(true);
+          }}
+          aria-label={placeholder}
+          placeholder={placeholder}
+          className="w-full rounded-lg border border-transparent bg-slate-100 py-2.5 pl-10 pr-3 text-[clamp(0.875rem,0.35vw+0.75rem,1rem)] font-medium outline-none transition-all placeholder:text-slate-400 hover:bg-slate-100/80 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20"
+          autoComplete="off"
+        />
+        {isLoading && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            <Loader2 className="h-4 w-4 text-emerald-500 animate-spin" />
+          </div>
+        )}
+      </form>
+
+      {/* Dropdown Results */}
+      {isOpen && debouncedQuery.trim().length >= 2 && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden z-[100] max-h-[80vh] overflow-y-auto">
+          {!isLoading && results.length === 0 ? (
+            <div className="p-4 text-center text-sm text-slate-500 font-medium">
+              Niciun produs găsit pentru &quot;{debouncedQuery}&quot;
+            </div>
+          ) : (
+            <ul className="py-2">
+              {results.map((product) => {
+                const bestOffer = product.offers.sort((a, b) => 
+                  (a.totalPrice ?? computeTotalPrice(a)) - (b.totalPrice ?? computeTotalPrice(b))
+                )[0];
+                
+                const lowestTotal = bestOffer ? (bestOffer.totalPrice ?? computeTotalPrice(bestOffer)) : null;
+
+                return (
+                  <li key={product.id}>
+                    <Link
+                      href={productPagePathWithReturn(product.id, "/", locale)}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center gap-4 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
+                    >
+                      <div className="relative w-12 h-12 shrink-0 bg-slate-100 rounded-md overflow-hidden p-1 border border-slate-200">
+                        {product.image ? (
+                          shouldUseNativeProductImage(product.image) ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={product.image} alt={product.title} className="w-full h-full object-contain" />
+                          ) : (
+                            <Image src={product.image} alt={product.title} fill className="object-contain p-1" />
+                          )
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[8px] text-slate-400 font-bold uppercase">
+                            No Img
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-0.5">{product.brand}</p>
+                        <p className="text-sm font-semibold text-slate-900 truncate leading-tight">{product.title}</p>
+                        {lowestTotal != null && (
+                          <p className="text-xs font-bold text-slate-700 mt-1">
+                            de la {country.currencySymbol}{lowestTotal.toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+              
+              <li className="bg-slate-50 border-t border-slate-200 p-2">
+                <button 
+                  onClick={handleSubmit}
+                  className="w-full text-center text-xs font-bold text-emerald-700 hover:text-emerald-800 p-2 rounded-lg hover:bg-emerald-100/50 transition-colors"
+                >
+                  Vezi toate rezultatele pentru &quot;{debouncedQuery}&quot; →
+                </button>
+              </li>
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

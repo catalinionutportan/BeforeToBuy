@@ -2,7 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, LifeBuoy, Scale, HelpCircle, Layers, Store } from "lucide-react";
+import { Menu, Mail, LifeBuoy, Scale, HelpCircle, Layers, Store } from "lucide-react";
+import { SearchAutocomplete } from "@/components/SearchAutocomplete";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 import { HOME_UI } from "@/lib/i18n/ui";
@@ -12,6 +15,7 @@ export function SiteNav() {
   const { locale: browseLocale } = useBrowseLocale(DEFAULT_COUNTRY);
   const homeUi = HOME_UI[browseLocale];
   const showBetaLabel = isBetaBannerEnabled();
+  const router = useRouter();
 
   const navLinks = [
     { href: "/about", label: homeUi.about, icon: HelpCircle },
@@ -45,6 +49,17 @@ export function SiteNav() {
             ) : null}
           </div>
         </Link>
+
+        <div className="flex-1 w-full sm:max-w-md mx-4 order-3 sm:order-none mt-3 sm:mt-0">
+          <SearchAutocomplete 
+            placeholder={homeUi.searchPlaceholder.replace('{country}', 'România')}
+            onSearchSubmit={(q) => {
+              router.push(`/?q=${encodeURIComponent(q)}`);
+            }}
+            countryCode={DEFAULT_COUNTRY}
+            locale={browseLocale}
+          />
+        </div>
 
         <nav aria-label={homeUi.language} className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           {navLinks.map(({ href, label, icon: Icon }) => (
