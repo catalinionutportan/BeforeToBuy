@@ -74,9 +74,9 @@ function memoryCacheKey(feed: FeedConfig): string {
 }
 
 function redisCacheKey(feed: FeedConfig): string {
-  // v19: compact Redis shape (stripped descriptions) after Upstash 10MB SET failures on v18.
+  // v20: keep short truncated descriptions for compare/detail (v19 stripped them to "").
   const slice = feed.feedKey ? `:${feed.feedKey}` : "";
-  return `feed:v19:${feed.merchantId}${slice}:${feed.country}`;
+  return `feed:v20:${feed.merchantId}${slice}:${feed.country}`;
 }
 
 function feedLabel(feed: FeedConfig): string {
