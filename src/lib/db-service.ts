@@ -115,11 +115,19 @@ export async function getProductsFromDb(
   query?: string,
   category?: string,
   limit?: number,
-  offset?: number
+  offset?: number,
+  sort?: string
 ) {
   const whereClause = buildWhere(countryCode, query, category);
   const take = limit == null ? 100 : Math.max(0, Math.floor(limit));
   const skip = Math.max(0, Math.floor(offset || 0));
+
+  let orderBy: any = { updatedAt: "desc" };
+  if (sort === "price-asc") {
+    orderBy = { basePrice: "asc" };
+  } else if (sort === "price-desc") {
+    orderBy = { basePrice: "desc" };
+  }
 
   const [products, total, countMaps, countryTotal] = await Promise.all([
     prisma.product.findMany({
@@ -127,7 +135,7 @@ export async function getProductsFromDb(
       include: { offers: true },
       take,
       skip,
-      orderBy: { updatedAt: "desc" },
+      orderBy,
     }),
     prisma.product.count({ where: whereClause }),
     getCategoryCountsFromDb(countryCode),

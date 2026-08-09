@@ -84,7 +84,8 @@ export async function fetchMergedProductsForLocation(
       query,
       category,
       limit,
-      offset
+      offset,
+      listOptions.sort
     );
     // If Supabase has catalogue rows for this market, stay on DB even when the
     // active hub/filter matches zero products (do not fall back to empty feeds).
@@ -209,6 +210,13 @@ export async function fetchMergedProductsForLocation(
     ? visibleProducts.filter((product) => productMatchesCategoryFilter(product, category))
     : visibleProducts;
   const matchedProducts = applyCrossBorderVisibility(categoryMatched, category);
+  
+  if (listOptions.sort === "price-asc") {
+    matchedProducts.sort((a, b) => (a.basePrice || Infinity) - (b.basePrice || Infinity));
+  } else if (listOptions.sort === "price-desc") {
+    matchedProducts.sort((a, b) => (b.basePrice || 0) - (a.basePrice || 0));
+  }
+  
   const totalMatched = matchedProducts.length;
   const pageSlice =
     limit == null ? matchedProducts.slice(offset) : matchedProducts.slice(offset, offset + limit);

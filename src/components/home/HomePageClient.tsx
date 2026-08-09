@@ -28,14 +28,8 @@ import {
 } from "@/lib/category-i18n";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
-import {
-  applyOfferFilters,
-  hasActiveOfferFilters,
-  parseOfferFiltersFromSearchParams,
-  writeOfferFiltersToSearchParams,
-  type OfferFilterCriteria,
-} from "@/lib/offers/offer-filters";
-import { sortProductsForBrowse } from "@/lib/browse-product-order";
+import { applyOfferFilters, hasActiveOfferFilters, parseOfferFiltersFromSearchParams, writeOfferFiltersToSearchParams, type OfferFilterCriteria } from "@/lib/offers/offer-filters";
+import { sortProductsForBrowse, type SortOption } from "@/lib/browse-product-order";
 import { DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import {
@@ -72,6 +66,7 @@ export default function HomePageClient({
   const [selectedDomain, setSelectedDomain] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORIES_ID);
   const [visibleCount, setVisibleCount] = useState(12);
+  const [sortOrder, setSortOrder] = useState<SortOption>("default");
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [offerFilters, setOfferFilters] = useState<OfferFilterCriteria>({});
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -442,9 +437,10 @@ export default function HomePageClient({
   const displayedProducts = useMemo(
     () =>
       sortProductsForBrowse(
-        applyOfferFilters(categoryFilteredProducts, activeOfferFilters)
+        applyOfferFilters(categoryFilteredProducts, activeOfferFilters),
+        sortOrder
       ),
-    [categoryFilteredProducts, activeOfferFilters]
+    [categoryFilteredProducts, activeOfferFilters, sortOrder]
   );
   const filtersActiveBeyondCategory = useMemo(() => hasActiveOfferFilters(activeOfferFilters), [activeOfferFilters]);
   const visibleProducts = useMemo(
@@ -554,6 +550,19 @@ export default function HomePageClient({
               locale={browseLocale}
               onChange={handleOfferFiltersChange}
             />
+
+            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1.5 shadow-xs shrink-0 ml-auto w-full sm:w-auto mt-2 sm:mt-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 pl-2">Sortează:</span>
+              <select 
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as SortOption)}
+                className="text-sm font-semibold text-slate-700 bg-transparent border-none outline-none focus:ring-0 cursor-pointer pr-4 w-full"
+              >
+                <option value="default">Relevanță</option>
+                <option value="price-asc">Cel mai mic preț (↑)</option>
+                <option value="price-desc">Cel mai mare preț (↓)</option>
+              </select>
+            </div>
           </div>
 
           {errorMessage && !isLoadingProducts && (

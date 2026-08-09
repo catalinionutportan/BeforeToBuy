@@ -12,6 +12,8 @@ export const BROWSE_LIST_OPTIONS = {
   includePriceHistory: false,
 } as const;
 
+export type ProductSortOption = "price-asc" | "price-desc" | "newest";
+
 export type ProductListOptions = {
   /** Max products in the response body. Omit for uncapped (sitemap counts / product lookup). */
   limit?: number;
@@ -20,6 +22,7 @@ export type ProductListOptions = {
   includePriceHistory?: boolean;
   /** Strip long descriptions from products/offers. Default true for capped lists. */
   compact?: boolean;
+  sort?: ProductSortOption;
 };
 
 export function clampProductListLimit(raw: number | undefined, fallback: number): number {
