@@ -26,15 +26,22 @@ type FeedSpec = {
 };
 
 /**
- * Add RO merchants one at a time. Rowenta first (~380 SKUs, clean columns).
- * Import:
- *   ALLOW_RO_IMPORT=1 npm run feeds:import -- --merchant=ro-rowenta
+ * Add RO merchants one at a time (checked feeds only).
+ * Import one merchant:
+ *   ALLOW_RO_IMPORT=1 npm run feeds:import -- --merchant=ro-scule365
  */
 const FEEDS: FeedSpec[] = [
   {
     url: "https://api.2performant.com/feed/c55b99d30.csv",
     merchantId: "ro-rowenta",
     storeName: "Rowenta.ro",
+    countryCode: "RO",
+    currency: "RON",
+  },
+  {
+    url: "https://api.2performant.com/feed/fcdbb3e99.csv",
+    merchantId: "ro-scule365",
+    storeName: "Scule365.ro",
     countryCode: "RO",
     currency: "RON",
   },

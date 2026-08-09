@@ -231,6 +231,7 @@ describe('Category and Collection Logic', () => {
     expect(ALL_MERCHANT_DOMAINS.map((m) => m.id).sort()).toEqual([
       "gb-seentat",
       "ro-rowenta",
+      "ro-scule365",
     ]);
     expect(
       CH_MERCHANTS_PENDING_APPROVAL.some((merchant) => merchant.domain === "amazon.de")
