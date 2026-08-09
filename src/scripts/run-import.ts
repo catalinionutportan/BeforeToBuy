@@ -2,12 +2,11 @@
  * Offline catalogue import into Supabase.
  *
  * Usage:
- *   npm run feeds:import -- --merchant=ro-rowenta
  *   npm run feeds:import -- --merchant=ro-scule365
  *   npm run feeds:import -- --merchant=ro-evomag
  *   npm run feeds:import -- --all
  *
- * Default (no flags): imports only the next small merchant (Rowenta).
+ * Default (no flags): imports only the first feed in FEEDS.
  */
 import { sync2PerformantFeed } from "./sync-feeds";
 import { prisma } from "../lib/db";
@@ -22,13 +21,6 @@ type FeedSpec = {
 
 /** Known RO 2Performant feeds — add new merchants here one by one. */
 const FEEDS: FeedSpec[] = [
-  {
-    url: "https://api.2performant.com/feed/c55b99d30.csv",
-    merchantId: "ro-rowenta",
-    storeName: "Rowenta.ro",
-    countryCode: "RO",
-    currency: "RON",
-  },
   {
     url: "https://api.2performant.com/feed/fcdbb3e99.csv",
     merchantId: "ro-scule365",
@@ -116,8 +108,7 @@ async function main() {
       process.exit(1);
     }
   } else {
-    // Safest default: smallest feed first.
-    selected = FEEDS.filter((feed) => feed.merchantId === "ro-rowenta");
+    selected = FEEDS.slice(0, 1);
   }
 
   console.log(
