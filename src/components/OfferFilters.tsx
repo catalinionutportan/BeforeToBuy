@@ -105,32 +105,6 @@ export function OfferFilters({
           <PackageCheck className="h-3.5 w-3.5" />
           {ui.inStock}
         </button>
-
-        <button
-          type="button"
-          onClick={() => patch({ freeDeliveryOnly: !criteria.freeDeliveryOnly })}
-          className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold transition-all cursor-pointer ${
-            criteria.freeDeliveryOnly
-              ? "border-emerald-500 bg-emerald-600 text-white"
-              : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-          }`}
-        >
-          <Truck className="h-3.5 w-3.5" />
-          {ui.freeDelivery}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => patch({ hasGtinOnly: !criteria.hasGtinOnly })}
-          className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold transition-all cursor-pointer ${
-            criteria.hasGtinOnly
-              ? "border-emerald-500 bg-emerald-600 text-white"
-              : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-          }`}
-          title="EAN / GTIN"
-        >
-          {ui.withEan}
-        </button>
       </div>
     </div>
   );
