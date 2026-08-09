@@ -64,6 +64,13 @@ const FEEDS: FeedSpec[] = [
     countryCode: "RO",
     currency: "RON",
   },
+  {
+    url: "https://api.2performant.com/feed/22c615c7e.csv",
+    merchantId: "ro-automobilus",
+    storeName: "automobilus.ro",
+    countryCode: "RO",
+    currency: "RON",
+  },
 ];
 
 function parseArgs(argv: string[]) {
