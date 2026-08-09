@@ -10,22 +10,26 @@ import { productPagePathWithReturn } from "@/lib/seo/site-url";
 import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 import { computeTotalPrice } from "@/lib/pricing/total-price";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import type { SiteLocale } from "@/lib/i18n/locales";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 
 interface SearchAutocompleteProps {
   initialQuery?: string;
   placeholder?: string;
   onSearchSubmit?: (query: string) => void;
   countryCode?: string;
-  locale?: string;
+  locale?: SiteLocale;
 }
 
 export function SearchAutocomplete({
   initialQuery = "",
-  placeholder = "Caută produse...",
+  placeholder,
   onSearchSubmit,
   countryCode = DEFAULT_COUNTRY,
-  locale = "ro",
+  locale = "en",
 }: SearchAutocompleteProps) {
+  const ui = HOME_UI[locale];
+  const resolvedPlaceholder = placeholder ?? ui.searchPlaceholder.replace("{country}", "");
   const [query, setQuery] = useState(initialQuery);
   const debouncedQuery = useDebouncedValue(query, 300);
   
@@ -105,8 +109,8 @@ export function SearchAutocomplete({
           onFocus={() => {
             if (query.trim().length > 1) setIsOpen(true);
           }}
-          aria-label={placeholder}
-          placeholder={placeholder}
+          aria-label={resolvedPlaceholder}
+          placeholder={resolvedPlaceholder}
           className="w-full rounded-lg border border-transparent bg-slate-100 py-2.5 pl-10 pr-3 text-[clamp(0.875rem,0.35vw+0.75rem,1rem)] font-medium outline-none transition-all placeholder:text-slate-400 hover:bg-slate-100/80 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20"
           autoComplete="off"
         />
@@ -122,7 +126,7 @@ export function SearchAutocomplete({
         <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden z-[100] max-h-[80vh] overflow-y-auto">
           {!isLoading && results.length === 0 ? (
             <div className="p-4 text-center text-sm text-slate-500 font-medium">
-              Niciun produs găsit pentru &quot;{debouncedQuery}&quot;
+              {formatUi(ui.searchNoProductsFor, { query: debouncedQuery })}
             </div>
           ) : (
             <ul className="py-2">

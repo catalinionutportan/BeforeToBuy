@@ -5,7 +5,8 @@ import { CountryCode, Product } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { ProductCard } from "@/components/ProductCard";
 import { sortProductsForBrowse, SortOption } from "@/lib/browse-product-order";
-import { ArrowDownAZ, ArrowUpAZ, ArrowDown, ArrowUp } from "lucide-react";
+import { useBrowseLocale } from "@/hooks/useBrowseLocale";
+import { HOME_UI } from "@/lib/i18n/ui";
 
 interface CategoryProductGridProps {
   products: Product[];
@@ -19,6 +20,8 @@ export function CategoryProductGrid({
   products,
   countryCode = DEFAULT_COUNTRY,
 }: CategoryProductGridProps) {
+  const { locale } = useBrowseLocale(countryCode);
+  const ui = HOME_UI[locale];
   const country = COUNTRIES[countryCode] || COUNTRIES[DEFAULT_COUNTRY];
   const userLocation = {
     latitude: country.defaultCoordinates.lat,
@@ -61,15 +64,15 @@ export function CategoryProductGrid({
     <div className="space-y-4">
       <div className="flex items-center justify-end mb-6">
         <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 pl-2">Sortează:</span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 pl-2">{ui.sortLabel}</span>
           <select 
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as SortOption)}
             className="text-sm font-semibold text-slate-700 bg-transparent border-none outline-none focus:ring-0 cursor-pointer pr-4"
           >
-            <option value="default">Relevanță</option>
-            <option value="price-asc">Cel mai mic preț (↑)</option>
-            <option value="price-desc">Cel mai mare preț (↓)</option>
+            <option value="default">{ui.sortRelevance}</option>
+            <option value="price-asc">{ui.sortPriceAsc}</option>
+            <option value="price-desc">{ui.sortPriceDesc}</option>
           </select>
         </div>
       </div>

@@ -553,15 +553,15 @@ export default function HomePageClient({
             />
 
             <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1.5 shadow-xs shrink-0 ml-auto w-full sm:w-auto mt-2 sm:mt-0">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 pl-2">Sortează:</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 pl-2">{homeUi.sortLabel}</span>
               <select 
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as SortOption)}
                 className="text-sm font-semibold text-slate-700 bg-transparent border-none outline-none focus:ring-0 cursor-pointer pr-4 w-full"
               >
-                <option value="default">Relevanță</option>
-                <option value="price-asc">Cel mai mic preț (↑)</option>
-                <option value="price-desc">Cel mai mare preț (↓)</option>
+                <option value="default">{homeUi.sortRelevance}</option>
+                <option value="price-asc">{homeUi.sortPriceAsc}</option>
+                <option value="price-desc">{homeUi.sortPriceDesc}</option>
               </select>
             </div>
           </div>
