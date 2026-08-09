@@ -59,32 +59,19 @@ export default async function CompareProductsPage({ searchParams }: PageProps) {
     bestOfferLabel: "Cea mai bună ofertă",
     buyNowLabel: "Cumpără Acum",
     specsLabel: "Specificații / Descriere",
-    noDescriptionLabel: "Fără descriere disponibilă.",
     expandImageLabel: "Vezi poza",
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-28">
+    <div className="min-h-screen bg-slate-50 pb-10">
       <div className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center gap-4">
           <CloseCompareControls />
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-8 mt-6 sm:mt-8">
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 mb-6 sm:mb-8 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-orange-500" />
-            Despre această comparație
-          </h2>
-          <p className="text-sm text-slate-600 leading-relaxed">
-            {ui.marketHeroSubline} Această pagină te ajută să pui în oglindă specificațiile și cele
-            mai bune oferte pentru produsele selectate, pentru a lua decizia corectă.{" "}
-            {ui.priceDisclaimer}
-          </p>
-        </div>
-
-        {/* Symmetric 2-column compare — equal gaps, equal card structure */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 mt-4 sm:mt-6">
+        {/* Products first — no intro block above the fold */}
         <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:gap-8 items-stretch">
           <CompareProductColumn
             product={product1}
@@ -105,6 +92,10 @@ export default async function CompareProductsPage({ searchParams }: PageProps) {
             {...columnLabels}
           />
         </div>
+
+        <p className="mt-6 mb-2 text-xs text-slate-500 leading-relaxed text-center max-w-2xl mx-auto">
+          {ui.priceDisclaimer}
+        </p>
       </div>
     </div>
   );

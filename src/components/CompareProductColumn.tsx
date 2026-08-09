@@ -18,13 +18,12 @@ type Props = {
   bestOfferLabel: string;
   buyNowLabel: string;
   specsLabel: string;
-  noDescriptionLabel: string;
   expandImageLabel: string;
 };
 
 /**
- * One column in the 2-up compare grid. Image is intentionally shorter than a
- * full square so description fits without breaking the side-by-side symmetry.
+ * Compare column — presentation first (image + identity), price second.
+ * Mirrors the product modal hierarchy people already like.
  */
 export function CompareProductColumn({
   product,
@@ -37,11 +36,13 @@ export function CompareProductColumn({
   bestOfferLabel,
   buyNowLabel,
   specsLabel,
-  noDescriptionLabel,
   expandImageLabel,
 }: Props) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const description = (product.description || "").trim();
+  const showDescription =
+    description.length > 0 &&
+    description.toLowerCase() !== product.title.trim().toLowerCase();
 
   return (
     <div className="bg-white rounded-3xl border border-slate-200 p-4 sm:p-6 shadow-sm flex flex-col relative h-full min-w-0">
@@ -51,16 +52,18 @@ export function CompareProductColumn({
         </div>
       )}
 
-      {/* Compact image — same aspect on both columns keeps symmetry */}
-      <div className="relative w-full aspect-[4/3] sm:aspect-[5/4] bg-slate-50 rounded-2xl mb-4 border border-slate-100 overflow-hidden">
+      {/* 1. Product presentation — first thing you see */}
+      <div className="relative w-full aspect-square bg-slate-50 rounded-2xl mb-4 border border-slate-100 overflow-hidden">
         {product.image ? (
-          <div className="absolute inset-3">
+          <div className="absolute inset-4 sm:inset-6">
             {shouldUseNativeProductImage(product.image) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={product.image}
                 alt={product.title}
                 className="h-full w-full object-contain object-center"
+                referrerPolicy="no-referrer"
+                decoding="async"
               />
             ) : (
               <Image
@@ -69,6 +72,7 @@ export function CompareProductColumn({
                 fill
                 className="object-contain object-center"
                 sizes="(max-width: 768px) 50vw, 40vw"
+                priority
               />
             )}
           </div>
@@ -88,13 +92,17 @@ export function CompareProductColumn({
         ) : null}
       </div>
 
-      <p className="text-xs font-bold uppercase tracking-wider text-emerald-700 mb-1.5">
-        {product.brand}
-      </p>
-      <h2 className="text-sm sm:text-lg font-bold text-slate-900 mb-3 leading-snug min-h-[2.75rem] sm:min-h-[3.25rem]">
+      {/* 2. Identity */}
+      {product.brand ? (
+        <p className="text-xs font-bold uppercase tracking-wider text-emerald-700 mb-1.5">
+          {product.brand}
+        </p>
+      ) : null}
+      <h2 className="text-sm sm:text-lg font-bold text-slate-900 mb-4 leading-snug">
         {product.title}
       </h2>
 
+      {/* 3. Price + CTA — after you know what the product is */}
       <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 sm:p-4 text-center mb-3">
         <p className="text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">
           {bestOfferLabel}
@@ -117,8 +125,7 @@ export function CompareProductColumn({
         </ConsentAwareAffiliateLink>
       ) : null}
 
-      {/* Description only when the feed actually has one — no empty placeholder. */}
-      {description ? (
+      {showDescription ? (
         <div className="mt-auto border-t border-slate-100 pt-3 flex-1 flex flex-col">
           <h3 className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
             {specsLabel}
@@ -155,6 +162,7 @@ export function CompareProductColumn({
                 src={product.image}
                 alt={product.title}
                 className="h-full w-full object-contain"
+                referrerPolicy="no-referrer"
               />
             ) : (
               <Image

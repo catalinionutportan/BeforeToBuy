@@ -7,13 +7,16 @@ export function isBrowsePath(pathname: string): boolean {
   return pathname === "/" || pathname === "";
 }
 
+export function isProductPath(pathname: string): boolean {
+  return pathname === "/p" || pathname.startsWith("/p/");
+}
+
+export function isComparePath(pathname: string): boolean {
+  return pathname === "/compare-products" || pathname.startsWith("/compare-products/");
+}
+
 export function isTransientPath(pathname: string): boolean {
-  return (
-    pathname === "/p" ||
-    pathname.startsWith("/p/") ||
-    pathname === "/compare-products" ||
-    pathname.startsWith("/compare-products/")
-  );
+  return isProductPath(pathname) || isComparePath(pathname);
 }
 
 export function saveBrowseScrollY(y = typeof window !== "undefined" ? window.scrollY : 0): void {

@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import {
   isBrowsePath,
+  isComparePath,
+  isProductPath,
   isTransientPath,
   restoreBrowseScrollY,
 } from "@/lib/browse-scroll";
@@ -11,9 +13,10 @@ import {
 /**
  * Scroll policy for infinite-scroll browse:
  * - Scroll position is saved on product/compare click (not here)
- * - Coming back from modal / compare → restore that position
- * - Other page changes (categories, legal, …) → scroll to top
- * - Explicit "go to top" is the shopping-bag mark in the header
+ * - Product modal overlays the grid → keep browse scroll under it
+ * - Compare is a full page → always start at top (product presentation first)
+ * - Coming back from modal / compare → restore browse position
+ * - Other page changes → scroll to top
  */
 export function ScrollToTopOnNavigate() {
   const pathname = usePathname();
@@ -25,10 +28,14 @@ export function ScrollToTopOnNavigate() {
 
     if (prev === pathname) return;
 
-    // Leaving browse → do NOT re-save scrollY here. Card/compare click already
-    // saved the real position; by this effect window.scrollY is often the page
-    // bottom (focus jumped to the modal node at the end of the DOM).
-    if (isBrowsePath(prev) && isTransientPath(pathname)) {
+    // Product modal: leave browse scroll alone (grid stays under the overlay).
+    if (isBrowsePath(prev) && isProductPath(pathname)) {
+      return;
+    }
+
+    // Compare is a full page — start at top so the product image is first.
+    if (isComparePath(pathname)) {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       return;
     }
 
@@ -38,7 +45,6 @@ export function ScrollToTopOnNavigate() {
       const attempt = () => {
         const ok = restoreBrowseScrollY();
         tries += 1;
-        // Cards may mount a moment after navigation (infinite scroll hydrate).
         if (!ok && tries < 8) {
           window.setTimeout(attempt, 50 * tries);
         }
@@ -47,8 +53,8 @@ export function ScrollToTopOnNavigate() {
       return;
     }
 
-    // Staying inside product/compare (or opening them from non-browse) — keep scroll.
-    if (isTransientPath(pathname) || isTransientPath(prev)) {
+    // Staying inside product routes — keep scroll.
+    if (isProductPath(pathname) || isProductPath(prev)) {
       return;
     }
 

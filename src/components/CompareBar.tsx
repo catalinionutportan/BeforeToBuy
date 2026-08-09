@@ -4,12 +4,20 @@ import { useCompare } from "./CompareContext";
 import { X, Scale } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
-import { saveBrowseScrollAnchor, saveBrowseScrollY } from "@/lib/browse-scroll";
+import {
+  isComparePath,
+  saveBrowseScrollAnchor,
+  saveBrowseScrollY,
+} from "@/lib/browse-scroll";
 
 export function CompareBar() {
+  const pathname = usePathname();
   const { compareList, removeFromCompare, clearCompare } = useCompare();
 
+  // Already on the compare page — don't cover the product presentation.
+  if (isComparePath(pathname)) return null;
   if (compareList.length === 0) return null;
 
   const compareUrl = `/compare-products?ids=${compareList.map(p => p.id).join(",")}`;
