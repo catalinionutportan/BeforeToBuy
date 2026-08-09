@@ -2,17 +2,19 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-
-function isProductPath(pathname: string): boolean {
-  return pathname === "/p" || pathname.startsWith("/p/");
-}
+import {
+  isBrowsePath,
+  isTransientPath,
+  restoreBrowseScrollY,
+  saveBrowseScrollY,
+} from "@/lib/browse-scroll";
 
 /**
- * Next client navigations can keep the previous scroll offset. Category pages
- * are shorter than the homepage, so users land at the footer instead of the top.
- *
- * Product modal intercepts (`/p/...`) must NOT reset scroll — otherwise the
- * grid jumps to the top behind the modal and snaps back on close.
+ * Scroll policy for infinite-scroll browse:
+ * - Leaving home for product modal / compare → remember scrollY
+ * - Coming back → restore that position (do NOT jump to top)
+ * - Other page changes (categories, legal, …) → scroll to top
+ * - Explicit "go to top" is the shopping-bag mark in the header
  */
 export function ScrollToTopOnNavigate() {
   const pathname = usePathname();
@@ -22,7 +24,25 @@ export function ScrollToTopOnNavigate() {
     const prev = prevPathname.current;
     prevPathname.current = pathname;
 
-    if (isProductPath(pathname) || isProductPath(prev)) {
+    if (prev === pathname) return;
+
+    // Leaving the browse grid → snapshot position for later restore.
+    if (isBrowsePath(prev) && isTransientPath(pathname)) {
+      saveBrowseScrollY();
+      return;
+    }
+
+    // Returning to browse from modal / compare → put the user back where they were.
+    if (isTransientPath(prev) && isBrowsePath(pathname)) {
+      // Wait a frame so the home grid is painted before restoring.
+      requestAnimationFrame(() => {
+        restoreBrowseScrollY();
+      });
+      return;
+    }
+
+    // Staying inside product/compare (or opening them from non-browse) — keep scroll.
+    if (isTransientPath(pathname) || isTransientPath(prev)) {
       return;
     }
 

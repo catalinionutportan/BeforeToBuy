@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { MouseEvent } from "react";
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -8,6 +12,7 @@ import type { SiteLocale } from "@/lib/i18n/locales";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 import { Menu } from "lucide-react";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
+import { clearBrowseScrollY, isBrowsePath } from "@/lib/browse-scroll";
 
 interface HeaderProps {
   userLocation: UserLocation;
@@ -35,11 +40,21 @@ export function Header({
   availableLocales,
   onOpenCategoryMenu,
 }: HeaderProps) {
+  const pathname = usePathname();
   const ui = HOME_UI[locale];
   const searchPlaceholder =
     selectedDomain && selectedDomain !== "all"
       ? formatUi(ui.searchPlaceholderDomain, { domain: selectedDomain })
       : formatUi(ui.searchPlaceholder, { country: userLocation.countryName });
+
+  function goToBrowseTop(event: MouseEvent<HTMLAnchorElement>) {
+    // Shopping bag / brand mark = explicit jump to the top of infinite scroll.
+    if (isBrowsePath(pathname)) {
+      event.preventDefault();
+      clearBrowseScrollY();
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }
+  }
 
   return (
     <>
@@ -47,7 +62,7 @@ export function Header({
       <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 shadow-xs backdrop-blur-md">
         <div className="w-full min-w-0 px-3 pt-1.5 pb-2 sm:px-8 lg:px-12">
           <div className="flex items-start justify-between gap-2 min-w-0">
-            <Link href="/" locale={locale} className="min-w-0 pt-0.5">
+            <Link href="/" locale={locale} className="min-w-0 pt-0.5" onClick={goToBrowseTop}>
               <h1 className="truncate text-[clamp(1rem,0.4vw+0.9rem,1.125rem)] font-extrabold leading-none tracking-tight text-slate-900">
                 BeforeToBuy
               </h1>
@@ -85,7 +100,9 @@ export function Header({
                 href="/"
                 locale={locale}
                 className="relative block h-11 w-11 sm:h-12 sm:w-12"
-                aria-label="BeforeToBuy"
+                aria-label="BeforeToBuy — top of page"
+                title="Top of page"
+                onClick={goToBrowseTop}
               >
                 <Image
                   src="/beforetobuy-mark.png"

@@ -2,13 +2,14 @@ import { getProductById } from "@/lib/product-lookup";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Check, X, ArrowLeft } from "lucide-react";
+import { ExternalLink, Check, X } from "lucide-react";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { defaultLocaleFromCountry } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
+import { CloseCompareControls } from "@/components/CloseCompareControls";
 
 type PageProps = {
   searchParams: Promise<{ ids?: string }>;
@@ -21,7 +22,7 @@ export default async function CompareProductsPage({ searchParams }: PageProps) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6">
         <h1 className="text-2xl font-bold text-slate-900 mb-4">Niciun produs selectat</h1>
-        <Link href="/" className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800">
+        <Link href="/" scroll={false} className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800">
           Înapoi la magazin
         </Link>
       </div>
@@ -56,16 +57,8 @@ export default async function CompareProductsPage({ searchParams }: PageProps) {
     <div className="min-h-screen bg-slate-50 pb-20">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-              <ArrowLeft className="w-5 h-5 text-slate-600" />
-            </Link>
-            <h1 className="text-lg font-bold text-slate-900">Comparație Produse</h1>
-          </div>
-          <Link href="/" className="text-sm font-semibold text-slate-500 hover:text-slate-900">
-            Închide
-          </Link>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center gap-4">
+          <CloseCompareControls />
         </div>
       </div>
 

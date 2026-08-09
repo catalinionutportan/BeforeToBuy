@@ -5,6 +5,7 @@ import { X, Scale } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
+import { saveBrowseScrollY } from "@/lib/browse-scroll";
 
 export function CompareBar() {
   const { compareList, removeFromCompare, clearCompare } = useCompare();
@@ -78,13 +79,18 @@ export function CompareBar() {
         <div className="md:w-1/4 flex justify-end w-full">
           <Link 
             href={compareUrl}
+            scroll={false}
             className={`w-full md:w-auto px-8 py-3 rounded-xl font-bold text-sm text-center transition-all ${
               compareList.length === 2 
                 ? "bg-slate-900 text-white hover:bg-slate-800 shadow-md hover:shadow-lg"
                 : "bg-slate-200 text-slate-400 pointer-events-none"
             }`}
             onClick={(e) => {
-              if (compareList.length < 2) e.preventDefault();
+              if (compareList.length < 2) {
+                e.preventDefault();
+                return;
+              }
+              saveBrowseScrollY();
             }}
           >
             Compară Acum

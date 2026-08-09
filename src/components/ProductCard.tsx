@@ -13,6 +13,7 @@ import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-p
 import { formatOfferFreshness, getFreshestOfferTimestamp } from "@/lib/offers/freshness";
 import { productPagePathWithReturn } from "@/lib/seo/site-url";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { saveBrowseScrollY } from "@/lib/browse-scroll";
 
 interface ProductCardProps {
   product: Product;
@@ -54,15 +55,16 @@ export function ProductCard({
   );
 
   const href = productPagePathWithReturn(product.id, returnTo, resolvedLocale);
+  const rememberScroll = () => saveBrowseScrollY();
 
   return (
     <article className="bg-white rounded-xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group h-full min-w-0">
-      <Link href={href} scroll={false} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+      <Link href={href} scroll={false} onClick={rememberScroll} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
         <ProductCardImage product={product} locale={resolvedLocale} verifiedBadgeOffer={verifiedBadgeOffer} />
       </Link>
 
       <div className="p-2.5 flex-1 flex flex-col justify-between gap-2 min-w-0">
-        <Link href={href} scroll={false} className="block min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg">
+        <Link href={href} scroll={false} onClick={rememberScroll} className="block min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg">
           <ProductCardDetails product={product} locale={resolvedLocale} freshestLabel={freshestLabel} />
         </Link>
 
@@ -70,6 +72,7 @@ export function ProductCard({
           <Link
             href={href}
             scroll={false}
+            onClick={rememberScroll}
             className="mt-auto rounded-lg bg-emerald-50 border border-emerald-200/80 px-2 py-1.5 min-w-0"
           >
             <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-800/80">
