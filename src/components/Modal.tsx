@@ -9,7 +9,16 @@ import { readBrowseScrollY, restoreBrowseScrollY } from "@/lib/browse-scroll";
  * Product overlay. No body position:fixed (that flashes the page on close).
  * No fade-out delay before router.back() (that feels like a reload).
  */
-export function Modal({ children }: { children: React.ReactNode }) {
+export function Modal({
+  children,
+  /** Instant preview overlay — server modal owns scroll lock/handoff. */
+  lockScroll = true,
+  onClose,
+}: {
+  children: React.ReactNode;
+  lockScroll?: boolean;
+  onClose?: () => void;
+}) {
   const router = useRouter();
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -26,16 +35,16 @@ export function Modal({ children }: { children: React.ReactNode }) {
     const prevHtmlOverflow = documentElement.style.overflow;
     const prevBodyPaddingRight = body.style.paddingRight;
 
-    // Lock scroll without taking the body out of flow (avoids close flash).
-    const scrollbar = window.innerWidth - documentElement.clientWidth;
-    if (scrollbar > 0) {
-      body.style.paddingRight = `${scrollbar}px`;
+    if (lockScroll) {
+      const scrollbar = window.innerWidth - documentElement.clientWidth;
+      if (scrollbar > 0) {
+        body.style.paddingRight = `${scrollbar}px`;
+      }
+      body.style.overflow = "hidden";
+      documentElement.style.overflow = "hidden";
+      window.scrollTo({ top: scrollYRef.current, left: 0, behavior: "auto" });
     }
-    body.style.overflow = "hidden";
-    documentElement.style.overflow = "hidden";
 
-    // Keep the saved browse offset if focus already jumped the document.
-    window.scrollTo({ top: scrollYRef.current, left: 0, behavior: "auto" });
     panelRef.current?.focus({ preventScroll: true });
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -48,25 +57,29 @@ export function Modal({ children }: { children: React.ReactNode }) {
 
     return () => {
       window.removeEventListener("keydown", onKeyDown);
-      body.style.overflow = prevBodyOverflow;
-      documentElement.style.overflow = prevHtmlOverflow;
-      body.style.paddingRight = prevBodyPaddingRight;
-      window.scrollTo({ top: scrollYRef.current, left: 0, behavior: "auto" });
-      restoreBrowseScrollY();
+      if (lockScroll) {
+        body.style.overflow = prevBodyOverflow;
+        documentElement.style.overflow = prevHtmlOverflow;
+        body.style.paddingRight = prevBodyPaddingRight;
+        window.scrollTo({ top: scrollYRef.current, left: 0, behavior: "auto" });
+        restoreBrowseScrollY();
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- dismiss closes via router
-  }, []);
+  }, [lockScroll]);
 
   function onDismiss() {
     if (closedRef.current) return;
     closedRef.current = true;
+    onClose?.();
 
-    // Unlock + pin scroll before navigation so Next soft-nav cannot flash top/bottom.
-    const { body, documentElement } = document;
-    body.style.overflow = "";
-    documentElement.style.overflow = "";
-    body.style.paddingRight = "";
-    window.scrollTo({ top: scrollYRef.current, left: 0, behavior: "auto" });
+    if (lockScroll) {
+      const { body, documentElement } = document;
+      body.style.overflow = "";
+      documentElement.style.overflow = "";
+      body.style.paddingRight = "";
+      window.scrollTo({ top: scrollYRef.current, left: 0, behavior: "auto" });
+    }
 
     router.back();
   }

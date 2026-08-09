@@ -12,6 +12,7 @@ import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
 import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { Modal } from "@/components/Modal";
+import { ProductModalReady } from "@/components/ProductModalReady";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -42,6 +43,7 @@ export default async function ProductModal({ params, searchParams }: PageProps) 
 
   return (
     <Modal>
+      <ProductModalReady />
       <div className="space-y-6 sm:space-y-8 p-4 sm:p-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
           <div className="relative aspect-square bg-slate-50 rounded-2xl overflow-hidden border border-slate-100">

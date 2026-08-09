@@ -14,6 +14,7 @@ import { formatOfferFreshness, getFreshestOfferTimestamp } from "@/lib/offers/fr
 import { productPagePathWithReturn } from "@/lib/seo/site-url";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import { saveBrowseScrollAnchor, saveBrowseScrollY } from "@/lib/browse-scroll";
+import { saveProductPreview } from "@/lib/product-preview";
 
 /** How many store prices to show on the browse card before "+N more". */
 const VISIBLE_OFFERS = 3;
@@ -57,9 +58,23 @@ export function ProductCard({
   );
 
   const href = productPagePathWithReturn(product.id, returnTo, resolvedLocale);
-  const rememberScroll = () => {
+  const bestOffer = sortedOffers[0];
+  const bestTotal = bestOffer
+    ? (bestOffer.totalPrice ?? computeTotalPrice(bestOffer))
+    : undefined;
+  const openProduct = () => {
     saveBrowseScrollY();
     saveBrowseScrollAnchor(product.id);
+    // Paint the presentation card on this click — don't wait for RSC.
+    saveProductPreview({
+      id: product.id,
+      title: product.title,
+      brand: product.brand,
+      image: product.image,
+      price: bestTotal,
+      currencySymbol,
+      storeName: bestOffer?.storeName,
+    });
   };
 
   return (
@@ -70,7 +85,7 @@ export function ProductCard({
       <Link
         href={href}
         scroll={false}
-        onClick={rememberScroll}
+        onClick={openProduct}
         className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
       >
         <ProductCardImage
@@ -84,7 +99,7 @@ export function ProductCard({
         <Link
           href={href}
           scroll={false}
-          onClick={rememberScroll}
+          onClick={openProduct}
           className="block min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg"
         >
           <ProductCardDetails
@@ -98,7 +113,7 @@ export function ProductCard({
           <Link
             href={href}
             scroll={false}
-            onClick={rememberScroll}
+            onClick={openProduct}
             className="mt-auto rounded-lg bg-emerald-50 border border-emerald-200/80 px-2 py-1.5 min-w-0 space-y-1"
           >
             <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-800/80">

@@ -9,6 +9,7 @@ import { defaultOpenGraph } from "@/lib/metadata";
 import { type SiteLocale } from "@/lib/i18n/locales";
 import { ClientLocalizationProvider } from "@/components/ClientLocalizationProvider";
 import { ScrollToTopOnNavigate } from "@/components/ScrollToTopOnNavigate";
+import { InstantProductModalHost } from "@/components/InstantProductModalHost";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { localeFromCountry } from "@/lib/category-i18n";
 import { getRequestMarketCountry } from "@/lib/request-market";
@@ -66,6 +67,7 @@ export default async function RootLayout({
             {showBetaBanner ? <BetaDemoBanner /> : null}
             {children}
             {modal}
+            <InstantProductModalHost />
             <SiteFooter />
             <CookieConsentBanner />
             <CompareBar />
