@@ -43,6 +43,13 @@ const FEEDS: FeedSpec[] = [
     countryCode: "RO",
     currency: "RON",
   },
+  {
+    url: "https://api.2performant.com/feed/f8f8ae236.csv",
+    merchantId: "ro-gsmnet",
+    storeName: "gsmnet.ro",
+    countryCode: "RO",
+    currency: "RON",
+  },
 ];
 
 function parseArgs(argv: string[]) {
