@@ -15,7 +15,7 @@ export const enUi = {
     marketHeroTrustRedirectBody: "Checkout stays on the merchant’s site — never on BeforeToBuy.",
     marketHeroCtaCompare: "Browse offers",
     marketHeroCtaLegal: "Legal & company info",
-    marketHeroPartnerNote: "Live merchants: Rowenta, Scule365 (2Performant RO) and Seentat (AWIN UK). More stores after acceptance + feed.",
+    marketHeroPartnerNote: "Live merchants: Seentat (AWIN UK) and Rowenta.ro (2Performant RO). More stores one-by-one after feed checks.",
     allDomains: "All Domains",
     searchPlaceholder: "Search products, electronics, stores in {country}...",
     searchPlaceholderDomain: "Search products on {domain}...",

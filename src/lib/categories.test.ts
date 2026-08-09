@@ -230,9 +230,7 @@ describe('Category and Collection Logic', () => {
   it("public registry exposes live RO merchants and Seentat UK", () => {
     expect(ALL_MERCHANT_DOMAINS.map((m) => m.id).sort()).toEqual([
       "gb-seentat",
-      "ro-evomag",
       "ro-rowenta",
-      "ro-scule365",
     ]);
     expect(
       CH_MERCHANTS_PENDING_APPROVAL.some((merchant) => merchant.domain === "amazon.de")

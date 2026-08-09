@@ -17,7 +17,7 @@ export const roUi = {
     marketHeroTrustRedirectBody: "Checkout-ul rămâne pe site-ul magazinului — niciodată pe BeforeToBuy.",
     marketHeroCtaCompare: "Vezi ofertele",
     marketHeroCtaLegal: "Legal & firmă",
-    marketHeroPartnerNote: "Merchant live: Seentat (AWIN UK). Magazine RO planificate.",
+    marketHeroPartnerNote: "Merchant live: Seentat (AWIN UK) + Rowenta.ro (2Performant RO). Alte magazine RO pe rând.",
     allDomains: "Toate domeniile",
     searchPlaceholder: "Caută produse, electronice, magazine în {country}...",
     searchPlaceholderDomain: "Caută produse pe {domain}...",

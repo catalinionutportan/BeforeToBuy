@@ -336,7 +336,6 @@ export const DEMO_MERCHANTS_PENDING_APPROVAL: MerchantDomainInfo[] = [
 export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
   // Live public merchants only. Restore others from *_PENDING_APPROVAL after agreements.
   // --- Romania (RO) ---
-  // Only merchants with live affiliate + product feed. Add others one-by-one when ready.
   {
     id: "ro-rowenta",
     name: "Rowenta.ro",
@@ -349,35 +348,7 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     status: "Live Feed",
     badge: "2Performant + product feed 🇷🇴",
     description:
-      "Rowenta home appliances for Romania. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
-  },
-  {
-    id: "ro-scule365",
-    name: "Scule365.ro",
-    domain: "scule365.ro",
-    websiteUrl: AFFILIATE_LINKS.scule3652Performant,
-    countryCode: "RO",
-    affiliateNetwork: "2Performant Romania",
-    category: "DIY + Tools",
-    hasClickAndCollect: false,
-    status: "Live Feed",
-    badge: "2Performant + product feed 🇷🇴",
-    description:
-      "Romanian tools and DIY retailer. Live 2Performant product feed with affiliate deep links; catalog prices update from the merchant feed.",
-  },
-  {
-    id: "ro-evomag",
-    name: "evoMAG.ro",
-    domain: "evomag.ro",
-    websiteUrl: AFFILIATE_LINKS.evomag2Performant,
-    countryCode: "RO",
-    affiliateNetwork: "2Performant Romania",
-    category: "Electronics + General",
-    hasClickAndCollect: true,
-    status: "Live Feed",
-    badge: "2Performant 🇷🇴",
-    description:
-      "Romanian electronics retailer (evoMAG). Homepage affiliate quicklink remains active.",
+      "Rowenta Romania — live 2Performant product feed (vacuums, care, kitchen appliances) with affiliate deep links.",
   },
   // --- United Kingdom (GB) ---
   {
@@ -458,10 +429,10 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
       lng: 26.1063,
       city: "București",
     },
-    supportedStores: ["rowenta.ro", "scule365.ro", "evomag.ro"],
+    supportedStores: ["rowenta.ro"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "RO"),
     affiliateNetworks: [
-      "2Performant Romania (Rowenta + Scule365) — live product feeds",
+      "2Performant Romania — live: Rowenta.ro",
       "Additional RO merchants — specialty feeds one-by-one when ready",
     ],
   },
