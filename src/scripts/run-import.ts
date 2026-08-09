@@ -97,6 +97,20 @@ function parseArgs(argv: string[]) {
 async function main() {
   const { all, merchantId } = parseArgs(process.argv.slice(2));
 
+  // Catalogue focus is GB Seentat for now — RO bulk import is opt-in only.
+  // Use: src/scripts/import-gb-seentat.ts for UK.
+  // To force RO again: ALLOW_RO_IMPORT=1 npm run feeds:import -- --merchant=ro-gsmnet
+  if (process.env.ALLOW_RO_IMPORT !== "1") {
+    console.error(
+      [
+        "RO feed import is disabled (catalogue is GB-only right now).",
+        "Import UK with: npx tsx src/scripts/import-gb-seentat.ts",
+        "Or set ALLOW_RO_IMPORT=1 to override for a specific RO merchant.",
+      ].join("\n")
+    );
+    process.exit(1);
+  }
+
   let selected: FeedSpec[];
   if (all) {
     selected = FEEDS;
