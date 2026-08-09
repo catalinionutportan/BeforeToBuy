@@ -85,6 +85,13 @@ const FEEDS: FeedSpec[] = [
     countryCode: "RO",
     currency: "RON",
   },
+  {
+    url: "https://api.2performant.com/feed/b70e1e08e.csv",
+    merchantId: "ro-aquiline",
+    storeName: "aquiline.ro",
+    countryCode: "RO",
+    currency: "RON",
+  },
 ];
 
 function parseArgs(argv: string[]) {
