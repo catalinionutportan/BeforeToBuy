@@ -2,6 +2,7 @@
  * Offline catalogue import into Supabase.
  *
  * Usage:
+ *   npm run feeds:import -- --merchant=ro-rowenta
  *   npm run feeds:import -- --merchant=ro-scule365
  *   npm run feeds:import -- --merchant=ro-evomag
  *   npm run feeds:import -- --all
@@ -21,6 +22,13 @@ type FeedSpec = {
 
 /** Known RO 2Performant feeds — add new merchants here one by one. */
 const FEEDS: FeedSpec[] = [
+  {
+    url: "https://api.2performant.com/feed/c55b99d30.csv",
+    merchantId: "ro-rowenta",
+    storeName: "Rowenta.ro",
+    countryCode: "RO",
+    currency: "RON",
+  },
   {
     url: "https://api.2performant.com/feed/fcdbb3e99.csv",
     merchantId: "ro-scule365",
