@@ -135,15 +135,18 @@ export default async function ProductModal({ params, searchParams }: PageProps) 
                     </ConsentAwareAffiliateLink>
                   </div>
                   
-                  {/* Price History Chart (dacă există date) */}
-                  {offer.priceHistory && offer.priceHistory.length > 1 && (
-                    <div className="w-full mt-4">
-                      <PriceHistoryChart 
-                        data={offer.priceHistory.map(p => ({ date: p.recordedAt, price: p.totalPrice ?? p.price }))}
+                  {/* Chart stays inside the scroll area of a fixed-height modal shell. */}
+                  {offer.priceHistory && offer.priceHistory.length > 1 ? (
+                    <div className="w-full mt-4 min-h-[140px]">
+                      <PriceHistoryChart
+                        data={offer.priceHistory.map((p) => ({
+                          date: p.recordedAt,
+                          price: p.totalPrice ?? p.price,
+                        }))}
                         currencySymbol={country.currencySymbol}
                       />
                     </div>
-                  )}
+                  ) : null}
 
                 </li>
               );

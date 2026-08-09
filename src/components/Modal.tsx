@@ -101,7 +101,7 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative w-full sm:w-[90vw] md:w-[80vw] lg:w-[1000px] sm:max-h-[90vh] bg-white sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden outline-none"
+        className="relative w-full sm:w-[90vw] md:w-[80vw] lg:w-[1000px] h-[min(92dvh,880px)] max-h-[92dvh] bg-white sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden outline-none"
       >
         <span id={titleId} className="sr-only">
           Product details
@@ -114,7 +114,8 @@ export function Modal({
           <X className="w-5 h-5" />
         </button>
 
-        <div className="overflow-y-auto w-full h-full sm:max-h-[90vh] pb-10 sm:pb-0">
+        {/* Fixed shell height — extra offers / charts scroll inside, no bottom jump. */}
+        <div className="overflow-y-auto w-full flex-1 min-h-0 pb-10 sm:pb-0">
           {children}
         </div>
       </div>
