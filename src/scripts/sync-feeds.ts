@@ -212,7 +212,7 @@ export async function sync2PerformantFeed(
   let written = 0;
   let skipped = 0;
   let batch: BatchItem[] = [];
-  const BATCH_SIZE = 100; // Micsoram batch-ul pentru planul Supabase gratuit
+  const BATCH_SIZE = 1000; // Viteza maxima pentru planul Pro Supabase
 
   for await (const row of parser as AsyncIterable<RawRow>) {
     const item = rowToBatchItem(row, merchantId, storeName, countryCode, currency, count);
@@ -226,9 +226,7 @@ export async function sync2PerformantFeed(
     if (batch.length >= BATCH_SIZE) {
       written += await processBatchWithDeduplication(batch);
       batch = [];
-      // Pauza mica intre batch-uri pentru a nu lovi rate limitul bazei de date (100ms)
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      if (count % 1000 === 0) {
+      if (count % 2000 === 0) {
         console.log(`… ${count} rows parsed, ${written} offers upserted`);
       }
     }
@@ -316,11 +314,6 @@ async function processBatchWithDeduplication(batch: BatchItem[]): Promise<number
         `DB error for "${item.productData.title.slice(0, 80)}":`,
         dbError?.message || dbError
       );
-      // Daca primim prea multe conexiuni, luam o pauza de forta majora de 2 secunde
-      if (dbError?.message?.includes("connection_limit") || dbError?.message?.includes("pool")) {
-         console.log("Supabase connection pool full! Sleeping 2 seconds...");
-         await new Promise((resolve) => setTimeout(resolve, 2000));
-      }
     }
   }
   return ok;
