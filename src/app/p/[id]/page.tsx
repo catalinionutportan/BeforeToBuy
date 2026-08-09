@@ -6,11 +6,14 @@ import { ExternalLink } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { JsonLd } from "@/components/JsonLd";
 import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
+import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { defaultLocaleFromCountry } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { createPageMetadata } from "@/lib/metadata";
 import { getProductById, inferCountryFromProductId, listProductIdsForSitemap } from "@/lib/product-lookup";
+import { getOffersPriceHistoryBatch } from "@/lib/pricing/price-history";
+import { buildPriceHistoryKey } from "@/lib/pricing/price-history-keys";
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import { buildProductJsonLd } from "@/lib/seo/json-ld";
 import { productPagePath, safeReturnPath } from "@/lib/seo/site-url";
@@ -69,6 +72,14 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
   const { from } = await searchParams;
   const product = await getProductById(id);
   if (!product) notFound();
+
+  // Attach price history for the full page view
+  const batchedHistories = await getOffersPriceHistoryBatch([product]);
+  product.offers = product.offers.map((offer) => {
+    if (offer.source === "demo") return offer;
+    const history = batchedHistories.get(buildPriceHistoryKey(product, offer));
+    return { ...offer, priceHistory: history ?? [] };
+  });
 
   const countryCode =
     product.targetCountries[0] ||
@@ -153,23 +164,25 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
               return (
                 <li
                   key={offer.id}
-                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                  className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
                 >
-                  <div className="min-w-0">
-                    <p className="font-bold text-slate-900">{offer.storeName}</p>
-                    <p className="text-[11px] text-slate-500">
-                      {offer.source === "production-live"
-                        ? ui.liveOfferLabel
-                        : offer.source === "sample"
-                          ? ui.sampleOfferLabel
-                          : ui.demoOfferLabel}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <p className="font-black text-slate-900">
-                      {country.currencySymbol}
-                      {total.toLocaleString()}
-                    </p>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-900">{offer.storeName}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {offer.source === "production-live"
+                          ? ui.liveOfferLabel
+                          : offer.source === "sample"
+                            ? ui.sampleOfferLabel
+                            : ui.demoOfferLabel}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <p className="font-black text-slate-900">
+                        {country.currencySymbol}
+                        {total.toLocaleString()}
+                      </p>
+                    </div>
                     <ConsentAwareAffiliateLink
                       href={offer.purchaseUrl}
                       className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition-colors"
@@ -187,6 +200,17 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
                       <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                     </ConsentAwareAffiliateLink>
                   </div>
+
+                  {/* Price History Chart */}
+                  {offer.priceHistory && offer.priceHistory.length > 1 && (
+                    <div className="w-full mt-4">
+                      <PriceHistoryChart 
+                        data={offer.priceHistory.map(p => ({ date: p.recordedAt, price: p.totalPrice ?? p.price }))}
+                        currencySymbol={country.currencySymbol}
+                      />
+                    </div>
+                  )}
+
                 </li>
               );
             })}
