@@ -4,6 +4,8 @@
  */
 import https from "node:https";
 import http from "node:http";
+import fs from "node:fs";
+import { pipeline } from "node:stream/promises";
 import type { Readable } from "node:stream";
 import csv from "csv-parser";
 import { prisma } from "../lib/db";
@@ -192,14 +194,25 @@ export async function sync2PerformantFeed(
   console.log(`Starting sync for ${storeName} (${merchantId}) from ${countryCode}...`);
   console.log(`URL: ${csvUrl}`);
 
-  const stream = await openCsvStream(csvUrl);
-  const parser = stream.pipe(csv());
+  const tmpFile = `./.tmp-${merchantId}.csv`;
+  try {
+    console.log(`[1/3] Downloading ${merchantId} to disk (prevents network timeouts)...`);
+    const stream = await openCsvStream(csvUrl);
+    await pipeline(stream, fs.createWriteStream(tmpFile));
+    console.log(`[1/3] Download complete!`);
+  } catch (err) {
+    console.error(`Download failed:`, err);
+    return 0;
+  }
+
+  console.log(`[2/3] Parsing and inserting to database...`);
+  const parser = fs.createReadStream(tmpFile).pipe(csv());
 
   let count = 0;
   let written = 0;
   let skipped = 0;
   let batch: BatchItem[] = [];
-  const BATCH_SIZE = 50;
+  const BATCH_SIZE = 100; // Micsoram batch-ul pentru planul Supabase gratuit
 
   for await (const row of parser as AsyncIterable<RawRow>) {
     const item = rowToBatchItem(row, merchantId, storeName, countryCode, currency, count);
@@ -213,7 +226,9 @@ export async function sync2PerformantFeed(
     if (batch.length >= BATCH_SIZE) {
       written += await processBatchWithDeduplication(batch);
       batch = [];
-      if (count % 500 === 0) {
+      // Pauza mica intre batch-uri pentru a nu lovi rate limitul bazei de date (100ms)
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      if (count % 1000 === 0) {
         console.log(`… ${count} rows parsed, ${written} offers upserted`);
       }
     }
@@ -223,23 +238,32 @@ export async function sync2PerformantFeed(
     written += await processBatchWithDeduplication(batch);
   }
 
+  try {
+    fs.unlinkSync(tmpFile);
+  } catch (e) {
+    // ignore
+  }
+
   console.log(
-    `Sync complete for ${storeName}: ${count} rows parsed, ${written} offers upserted, ${skipped} skipped.`
+    `[3/3] Sync complete for ${storeName}: ${count} rows parsed, ${written} offers upserted, ${skipped} skipped.`
   );
   return written;
 }
 
 async function processBatchWithDeduplication(batch: BatchItem[]): Promise<number> {
+  if (batch.length === 0) return 0;
   let ok = 0;
-  for (const item of batch) {
-    try {
-      let existingProduct = null;
+  
+  const gtins = batch.map((b) => b.gtin).filter((g) => g && g.length > 4) as string[];
+  const existingByGtin = gtins.length > 0 
+    ? await prisma.product.findMany({ where: { gtin: { in: gtins } }, select: { id: true, gtin: true, targetCountries: true } })
+    : [];
+  const gtinMap = new Map(existingByGtin.map(p => [p.gtin!, p]));
 
-      if (item.gtin && item.gtin.length > 4) {
-        existingProduct = await prisma.product.findFirst({
-          where: { gtin: item.gtin },
-        });
-      }
+  for (let i = 0; i < batch.length; i++) {
+    const item = batch[i];
+    try {
+      let existingProduct = item.gtin ? gtinMap.get(item.gtin) : null;
 
       if (!existingProduct) {
         existingProduct = await prisma.product.findFirst({
@@ -287,11 +311,16 @@ async function processBatchWithDeduplication(batch: BatchItem[]): Promise<number
         create: { ...item.offerData, productId: productIdToUse },
       });
       ok += 1;
-    } catch (dbError) {
+    } catch (dbError: any) {
       console.error(
         `DB error for "${item.productData.title.slice(0, 80)}":`,
-        dbError instanceof Error ? dbError.message : dbError
+        dbError?.message || dbError
       );
+      // Daca primim prea multe conexiuni, luam o pauza de forta majora de 2 secunde
+      if (dbError?.message?.includes("connection_limit") || dbError?.message?.includes("pool")) {
+         console.log("Supabase connection pool full! Sleeping 2 seconds...");
+         await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
     }
   }
   return ok;
