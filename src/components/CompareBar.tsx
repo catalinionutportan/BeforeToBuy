@@ -14,6 +14,19 @@ import {
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 import { HOME_UI } from "@/lib/i18n/ui";
 
+function pinScrollWhile(update: () => void) {
+  const y = typeof window !== "undefined" ? window.scrollY : 0;
+  update();
+  if (typeof window === "undefined") return;
+  // Removing the bar changes layout — hold the user's place.
+  requestAnimationFrame(() => {
+    window.scrollTo({ top: y, left: 0, behavior: "auto" });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: y, left: 0, behavior: "auto" });
+    });
+  });
+}
+
 export function CompareBar() {
   const pathname = usePathname();
   const { locale } = useBrowseLocale();
@@ -36,7 +49,8 @@ export function CompareBar() {
           <div>
             <h3 className="font-bold text-slate-900 leading-tight">{ui.compareBarTitle}</h3>
             <button
-              onClick={clearCompare}
+              type="button"
+              onClick={() => pinScrollWhile(clearCompare)}
               className="text-xs text-slate-500 hover:text-slate-800 underline mt-0.5"
             >
               {ui.compareBarClear}
@@ -54,7 +68,8 @@ export function CompareBar() {
                 className="relative flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl p-2 w-[240px] shrink-0"
               >
                 <button
-                  onClick={() => removeFromCompare(product.id)}
+                  type="button"
+                  onClick={() => pinScrollWhile(() => removeFromCompare(product.id))}
                   className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-slate-200 text-slate-500 hover:text-red-500 hover:border-red-200 rounded-full flex items-center justify-center shadow-sm"
                 >
                   <X className="w-3 h-3" />

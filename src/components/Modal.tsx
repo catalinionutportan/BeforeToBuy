@@ -1,51 +1,41 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef } from "react";
 import { X } from "lucide-react";
-import { readBrowseScrollY } from "@/lib/browse-scroll";
+import { readBrowseScrollY, restoreBrowseScrollY } from "@/lib/browse-scroll";
 
 /**
- * Product overlay. Avoids native <dialog>.showModal() because focusing a
- * late-in-DOM dialog scrolls the document to the page bottom under Next's
- * @modal slot.
+ * Product overlay. No body position:fixed (that flashes the page on close).
+ * No fade-out delay before router.back() (that feels like a reload).
  */
 export function Modal({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
-  const [isOpen, setIsOpen] = useState(true);
   const scrollYRef = useRef(0);
+  const closedRef = useRef(false);
 
   useEffect(() => {
-    // Prefer the scroll saved on card click — window.scrollY is often already
-    // wrong here (focus on the modal node at the end of the DOM → page bottom).
     const saved = readBrowseScrollY();
     scrollYRef.current =
       saved != null ? saved : Math.max(0, Math.floor(window.scrollY));
 
     const { body, documentElement } = document;
-    const previous = {
-      bodyPosition: body.style.position,
-      bodyTop: body.style.top,
-      bodyLeft: body.style.left,
-      bodyRight: body.style.right,
-      bodyWidth: body.style.width,
-      bodyOverflow: body.style.overflow,
-      htmlOverflow: documentElement.style.overflow,
-    };
+    const prevBodyOverflow = body.style.overflow;
+    const prevHtmlOverflow = documentElement.style.overflow;
+    const prevBodyPaddingRight = body.style.paddingRight;
 
-    body.style.position = "fixed";
-    body.style.top = `-${scrollYRef.current}px`;
-    body.style.left = "0";
-    body.style.right = "0";
-    body.style.width = "100%";
+    // Lock scroll without taking the body out of flow (avoids close flash).
+    const scrollbar = window.innerWidth - documentElement.clientWidth;
+    if (scrollbar > 0) {
+      body.style.paddingRight = `${scrollbar}px`;
+    }
     body.style.overflow = "hidden";
     documentElement.style.overflow = "hidden";
 
-    // Undo any focus-driven jump that happened before this effect ran.
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-
+    // Keep the saved browse offset if focus already jumped the document.
+    window.scrollTo({ top: scrollYRef.current, left: 0, behavior: "auto" });
     panelRef.current?.focus({ preventScroll: true });
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -58,23 +48,27 @@ export function Modal({ children }: { children: React.ReactNode }) {
 
     return () => {
       window.removeEventListener("keydown", onKeyDown);
-      body.style.position = previous.bodyPosition;
-      body.style.top = previous.bodyTop;
-      body.style.left = previous.bodyLeft;
-      body.style.right = previous.bodyRight;
-      body.style.width = previous.bodyWidth;
-      body.style.overflow = previous.bodyOverflow;
-      documentElement.style.overflow = previous.htmlOverflow;
+      body.style.overflow = prevBodyOverflow;
+      documentElement.style.overflow = prevHtmlOverflow;
+      body.style.paddingRight = prevBodyPaddingRight;
       window.scrollTo({ top: scrollYRef.current, left: 0, behavior: "auto" });
+      restoreBrowseScrollY();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- dismiss closes via router
   }, []);
 
   function onDismiss() {
-    setIsOpen(false);
-    setTimeout(() => {
-      router.back();
-    }, 160);
+    if (closedRef.current) return;
+    closedRef.current = true;
+
+    // Unlock + pin scroll before navigation so Next soft-nav cannot flash top/bottom.
+    const { body, documentElement } = document;
+    body.style.overflow = "";
+    documentElement.style.overflow = "";
+    body.style.paddingRight = "";
+    window.scrollTo({ top: scrollYRef.current, left: 0, behavior: "auto" });
+
+    router.back();
   }
 
   return (
@@ -83,9 +77,7 @@ export function Modal({ children }: { children: React.ReactNode }) {
       role="presentation"
     >
       <div
-        className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-200 ease-out ${
-          isOpen ? "opacity-100" : "opacity-0"
-        }`}
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
         onClick={onDismiss}
         aria-hidden="true"
       />
@@ -96,9 +88,7 @@ export function Modal({ children }: { children: React.ReactNode }) {
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className={`relative w-full sm:w-[90vw] md:w-[80vw] lg:w-[1000px] sm:max-h-[90vh] bg-white sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden outline-none transition-opacity duration-200 ease-out
-          ${isOpen ? "opacity-100" : "opacity-0"}
-        `}
+        className="relative w-full sm:w-[90vw] md:w-[80vw] lg:w-[1000px] sm:max-h-[90vh] bg-white sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden outline-none"
       >
         <span id={titleId} className="sr-only">
           Product details
