@@ -78,7 +78,6 @@ export async function fetchMergedProductsForLocation(
   const includePriceHistory = listOptions.includePriceHistory === true;
   const compact = listOptions.compact ?? limit != null;
 
-  let usedDb = false;
   try {
     const dbResult = await getProductsFromDb(
       userLocation.countryCode,
@@ -87,8 +86,9 @@ export async function fetchMergedProductsForLocation(
       limit,
       offset
     );
-    if (dbResult.totalMatched > 0) {
-      usedDb = true;
+    // If Supabase has catalogue rows for this market, stay on DB even when the
+    // active hub/filter matches zero products (do not fall back to empty feeds).
+    if (dbResult.countryProductCount > 0) {
       const fetchedAt = new Date().toISOString();
       const timestampedProducts = attachOfferTimestamps(dbResult.products, fetchedAt);
 
@@ -96,18 +96,19 @@ export async function fetchMergedProductsForLocation(
         (product) => resolveCategoryAlias(product.category) !== UNMAPPED_CATEGORY_ID
       );
 
-      const categoryCounts = visibleProducts.reduce<Record<string, number>>((counts, product) => {
-        const categoryId = resolveCategoryAlias(product.category);
-        counts[categoryId] = (counts[categoryId] ?? 0) + 1;
-        const parentId = getParentCategoryId(categoryId);
-        if (parentId) counts[parentId] = (counts[parentId] ?? 0) + 1;
-        return counts;
-      }, {});
+      const categoryCounts = dbResult.categoryCounts;
       const collectionCounts = COMPARISON_COLLECTION_FILTERS.reduce<Record<string, number>>(
         (counts, collection) => {
-          counts[collection.id] = visibleProducts.filter((product) =>
-            productMatchesCategoryFilter(product, collection.id)
-          ).length;
+          counts[collection.id] = Object.entries(dbResult.leafCounts).reduce(
+            (sum, [id, n]) =>
+              productMatchesCategoryFilter(
+                { title: "", description: "", brand: "", category: id },
+                collection.id
+              )
+                ? sum + n
+                : sum,
+            0
+          );
           return counts;
         },
         {}
@@ -141,7 +142,7 @@ export async function fetchMergedProductsForLocation(
           productionOfferCount,
           sampleOfferCount,
           productionProductCount: products.length,
-          feedProductCount: dbResult.totalMatched,
+          feedProductCount: dbResult.countryProductCount,
           unmappedProductCount: 0,
           categoryCounts,
           collectionCounts,
@@ -175,7 +176,6 @@ export async function fetchMergedProductsForLocation(
   }
 
   // Fallback: enabled feeds only (RO 2Performant remotes are disabled → no CSV cost).
-  void usedDb;
   const [demoProducts, feedResult] = await Promise.all([
     fetchProductsForLocation(userLocation, query, undefined, locale),
     getFeedProducts(userLocation.countryCode, query),

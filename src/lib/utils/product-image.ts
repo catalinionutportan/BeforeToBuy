@@ -10,7 +10,10 @@ export function shouldBypassImageOptimization(src: string | undefined): boolean 
       url.hostname === "static2.evomag.ro" ||
       url.hostname === "static.evomag.ro" ||
       url.hostname === "www.evomag.ro" ||
-      url.hostname === "evomag.ro"
+      url.hostname === "evomag.ro" ||
+      url.hostname === "c.cdnmp.net" ||
+      url.hostname === "cdnmpro.com" ||
+      url.hostname.endsWith(".evomag.ro")
     );
   } catch {
     return false;

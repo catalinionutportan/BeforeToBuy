@@ -1,0 +1,23 @@
+import { describe, expect, it } from "vitest";
+import { expandCategoryFilterToDbIds } from "@/lib/db-category-filter";
+
+describe("expandCategoryFilterToDbIds", () => {
+  it("returns null for all / empty", () => {
+    expect(expandCategoryFilterToDbIds(undefined)).toBeNull();
+    expect(expandCategoryFilterToDbIds("all")).toBeNull();
+  });
+
+  it("expands electronics hub to leaf ids including networking and notebooks", () => {
+    const ids = expandCategoryFilterToDbIds("hub-electronics");
+    expect(ids).toContain("networking-cables");
+    expect(ids).toContain("notebooks-monitors");
+    expect(ids).toContain("peripherals-storage");
+    expect(ids).not.toContain("hub-electronics");
+  });
+
+  it("expands DIY hub to hand-tool leaves", () => {
+    const ids = expandCategoryFilterToDbIds("hub-diy");
+    expect(ids).toContain("diy-hand-tools");
+    expect(ids).toContain("diy-power-tools");
+  });
+});
