@@ -71,6 +71,17 @@ export default async function CompareProductsPage({ searchParams }: PageProps) {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-8 mt-8">
         
+        {/* Legal & Informational Disclaimer */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-8 shadow-sm">
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+            Despre această comparație
+          </h2>
+          <p className="text-sm text-slate-600 leading-relaxed">
+            {ui.marketHeroSubline} Această pagină te ajută să pui în oglindă specificațiile și cele mai bune oferte pentru produsele selectate, pentru a lua decizia corectă. {ui.priceDisclaimer}
+          </p>
+        </div>
+        
         {/* Main Grid */}
         <div className="grid grid-cols-2 gap-4 sm:gap-8">
           
