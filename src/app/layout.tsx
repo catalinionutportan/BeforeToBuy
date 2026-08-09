@@ -13,6 +13,8 @@ import { HOME_UI } from "@/lib/i18n/ui";
 import { localeFromCountry } from "@/lib/category-i18n";
 import { getRequestMarketCountry } from "@/lib/request-market";
 import { isBetaBannerEnabled } from "@/lib/site-config";
+import { Providers } from "@/components/Providers";
+import { CompareBar } from "@/components/CompareBar";
 
 export async function generateMetadata(): Promise<Metadata> {
   const marketCountry = await getRequestMarketCountry();
@@ -44,8 +46,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   const marketCountry = await getRequestMarketCountry();
   const locale: SiteLocale = localeFromCountry(marketCountry);
@@ -54,15 +58,19 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <body className="antialiased font-sans bg-slate-50 text-slate-900">
-        <ClientLocalizationProvider currentLocale={locale}>
-          <ScrollToTopOnNavigate />
-          <SiteJsonLd />
-          <DatadogRum />
-          {showBetaBanner ? <BetaDemoBanner /> : null}
-          {children}
-          <SiteFooter />
-          <CookieConsentBanner />
-        </ClientLocalizationProvider>
+        <Providers>
+          <ClientLocalizationProvider currentLocale={locale}>
+            <ScrollToTopOnNavigate />
+            <SiteJsonLd />
+            <DatadogRum />
+            {showBetaBanner ? <BetaDemoBanner /> : null}
+            {children}
+            {modal}
+            <SiteFooter />
+            <CookieConsentBanner />
+            <CompareBar />
+          </ClientLocalizationProvider>
+        </Providers>
       </body>
     </html>
   );

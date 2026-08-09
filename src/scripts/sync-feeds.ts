@@ -134,7 +134,7 @@ function rowToBatchItem(
         ? "diy-hand-tools"
         : merchantId === "ro-rowenta"
           ? "cleaning-vacuums"
-          : "electronics"
+          : "electronics" // Fallback sigur ca să nu pice
       : mapping.categoryId;
 
   const originalPrice = parsePrice(row.old_price) ?? null;

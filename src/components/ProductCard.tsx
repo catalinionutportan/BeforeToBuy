@@ -57,18 +57,19 @@ export function ProductCard({
 
   return (
     <article className="bg-white rounded-xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group h-full min-w-0">
-      <Link href={href} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+      <Link href={href} scroll={false} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
         <ProductCardImage product={product} locale={resolvedLocale} verifiedBadgeOffer={verifiedBadgeOffer} />
       </Link>
 
       <div className="p-2.5 flex-1 flex flex-col justify-between gap-2 min-w-0">
-        <Link href={href} className="block min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg">
+        <Link href={href} scroll={false} className="block min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg">
           <ProductCardDetails product={product} locale={resolvedLocale} freshestLabel={freshestLabel} />
         </Link>
 
         {lowestTotal != null && (
           <Link
             href={href}
+            scroll={false}
             className="mt-auto rounded-lg bg-emerald-50 border border-emerald-200/80 px-2 py-1.5 min-w-0"
           >
             <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-800/80">
