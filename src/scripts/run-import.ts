@@ -37,13 +37,6 @@ const FEEDS: FeedSpec[] = [
     currency: "RON",
   },
   {
-    url: "https://api.2performant.com/feed/9519e6c41.csv",
-    merchantId: "ro-evomag",
-    storeName: "evoMAG.ro",
-    countryCode: "RO",
-    currency: "RON",
-  },
-  {
     url: "https://api.2performant.com/feed/f8f8ae236.csv",
     merchantId: "ro-gsmnet",
     storeName: "gsmnet.ro",
