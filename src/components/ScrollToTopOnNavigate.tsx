@@ -6,13 +6,12 @@ import {
   isBrowsePath,
   isTransientPath,
   restoreBrowseScrollY,
-  saveBrowseScrollY,
 } from "@/lib/browse-scroll";
 
 /**
  * Scroll policy for infinite-scroll browse:
- * - Leaving home for product modal / compare → remember scrollY
- * - Coming back → restore that position (do NOT jump to top)
+ * - Scroll position is saved on product/compare click (not here)
+ * - Coming back from modal / compare → restore that position
  * - Other page changes (categories, legal, …) → scroll to top
  * - Explicit "go to top" is the shopping-bag mark in the header
  */
@@ -26,9 +25,10 @@ export function ScrollToTopOnNavigate() {
 
     if (prev === pathname) return;
 
-    // Leaving the browse grid → snapshot position for later restore.
+    // Leaving browse → do NOT re-save scrollY here. Card/compare click already
+    // saved the real position; by this effect window.scrollY is often the page
+    // bottom (focus jumped to the modal node at the end of the DOM).
     if (isBrowsePath(prev) && isTransientPath(pathname)) {
-      saveBrowseScrollY();
       return;
     }
 

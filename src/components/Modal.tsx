@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { readBrowseScrollY } from "@/lib/browse-scroll";
 
 /**
  * Product overlay. Avoids native <dialog>.showModal() because focusing a
@@ -17,24 +18,33 @@ export function Modal({ children }: { children: React.ReactNode }) {
   const scrollYRef = useRef(0);
 
   useEffect(() => {
-    scrollYRef.current = window.scrollY;
+    // Prefer the scroll saved on card click — window.scrollY is often already
+    // wrong here (focus on the modal node at the end of the DOM → page bottom).
+    const saved = readBrowseScrollY();
+    scrollYRef.current =
+      saved != null ? saved : Math.max(0, Math.floor(window.scrollY));
 
-    // Freeze background exactly where the user was (no jump to top/bottom).
-    const { body } = document;
+    const { body, documentElement } = document;
     const previous = {
-      position: body.style.position,
-      top: body.style.top,
-      left: body.style.left,
-      right: body.style.right,
-      width: body.style.width,
-      overflow: body.style.overflow,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyLeft: body.style.left,
+      bodyRight: body.style.right,
+      bodyWidth: body.style.width,
+      bodyOverflow: body.style.overflow,
+      htmlOverflow: documentElement.style.overflow,
     };
+
     body.style.position = "fixed";
     body.style.top = `-${scrollYRef.current}px`;
     body.style.left = "0";
     body.style.right = "0";
     body.style.width = "100%";
     body.style.overflow = "hidden";
+    documentElement.style.overflow = "hidden";
+
+    // Undo any focus-driven jump that happened before this effect ran.
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 
     panelRef.current?.focus({ preventScroll: true });
 
@@ -48,12 +58,13 @@ export function Modal({ children }: { children: React.ReactNode }) {
 
     return () => {
       window.removeEventListener("keydown", onKeyDown);
-      body.style.position = previous.position;
-      body.style.top = previous.top;
-      body.style.left = previous.left;
-      body.style.right = previous.right;
-      body.style.width = previous.width;
-      body.style.overflow = previous.overflow;
+      body.style.position = previous.bodyPosition;
+      body.style.top = previous.bodyTop;
+      body.style.left = previous.bodyLeft;
+      body.style.right = previous.bodyRight;
+      body.style.width = previous.bodyWidth;
+      body.style.overflow = previous.bodyOverflow;
+      documentElement.style.overflow = previous.htmlOverflow;
       window.scrollTo({ top: scrollYRef.current, left: 0, behavior: "auto" });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- dismiss closes via router

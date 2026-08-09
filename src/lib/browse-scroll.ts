@@ -19,7 +19,15 @@ export function isTransientPath(pathname: string): boolean {
 export function saveBrowseScrollY(y = typeof window !== "undefined" ? window.scrollY : 0): void {
   if (typeof window === "undefined") return;
   try {
-    sessionStorage.setItem(STORAGE_KEY, String(Math.max(0, Math.floor(y))));
+    // Never persist a junk value after the modal focus jump (near page end).
+    const maxSane =
+      Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) -
+      window.innerHeight;
+    const next = Math.max(0, Math.floor(y));
+    if (maxSane > 400 && next > maxSane - 80) {
+      return;
+    }
+    sessionStorage.setItem(STORAGE_KEY, String(next));
   } catch {
     // private mode / quota — ignore
   }
