@@ -56,3 +56,19 @@ model Offer {
   @@index([productId])
   @@index([feedMerchantId])
 }
+
+model PriceAlert {
+  id          String   @id @default(uuid())
+  email       String
+  productId   String
+  targetPrice Float
+  currency    String
+  countryCode String
+  locale      String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([productId])
+  @@index([email])
+}

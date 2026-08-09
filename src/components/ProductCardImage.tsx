@@ -9,6 +9,7 @@ import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 import { Sparkles } from "lucide-react";
 
 import { CompareButton } from "./CompareButton";
+import { PriceAlertButton } from "./PriceAlertButton";
 
 interface ProductCardImageProps {
   product: Product;
@@ -28,6 +29,7 @@ export function ProductCardImage({
   return (
     <div className="relative bg-slate-100/60 aspect-square w-full overflow-hidden">
       <CompareButton product={product} />
+      <PriceAlertButton product={product} />
       {/* Padding on the frame only — padding on fill Image crops tall appliances. */}
       <div className="absolute inset-2 sm:inset-3">
         {!broken && product.image ? (
