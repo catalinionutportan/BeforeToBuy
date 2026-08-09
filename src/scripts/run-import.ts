@@ -50,6 +50,13 @@ const FEEDS: FeedSpec[] = [
     countryCode: "RO",
     currency: "RON",
   },
+  {
+    url: "https://api.2performant.com/feed/6111d323a.csv",
+    merchantId: "ro-paa-home",
+    storeName: "paa-home.ro",
+    countryCode: "RO",
+    currency: "RON",
+  },
 ];
 
 function parseArgs(argv: string[]) {
