@@ -6,6 +6,7 @@ export interface OfferFilterCriteria {
   brand?: string;
   inStockOnly?: boolean;
   freeDeliveryOnly?: boolean;
+  minTotalPrice?: number;
   maxTotalPrice?: number;
   hasGtinOnly?: boolean;
   maxPickupDistance?: number;
@@ -29,6 +30,10 @@ function offerMatchesCriteria(offer: Offer, criteria: OfferFilterCriteria): bool
   }
   if (criteria.inStockOnly && !offer.inStock) return false;
   if (criteria.freeDeliveryOnly && (offer.deliveryCost ?? 0) > 0) return false;
+  if (criteria.minTotalPrice != null) {
+    const total = offer.totalPrice ?? computeTotalPrice(offer);
+    if (total < criteria.minTotalPrice) return false;
+  }
   if (criteria.maxTotalPrice != null) {
     const total = offer.totalPrice ?? computeTotalPrice(offer);
     if (total > criteria.maxTotalPrice) return false;
@@ -51,6 +56,7 @@ export function hasActiveOfferFilters(criteria: OfferFilterCriteria): boolean {
       criteria.brand ||
       criteria.inStockOnly ||
       criteria.freeDeliveryOnly ||
+      criteria.minTotalPrice != null ||
       criteria.maxTotalPrice != null ||
       criteria.hasGtinOnly ||
       criteria.maxPickupDistance != null
@@ -91,6 +97,8 @@ export function parseOfferFiltersFromSearchParams(
 ): OfferFilterCriteria {
   const domain = params.get("domain") || undefined;
   const brand = params.get("brand") || undefined;
+  const minTotalRaw = params.get("minTotal");
+  const minTotalPrice = minTotalRaw ? Number(minTotalRaw) : undefined;
   const maxTotalRaw = params.get("maxTotal");
   const maxTotalPrice = maxTotalRaw ? Number(maxTotalRaw) : undefined;
   const maxDistanceRaw = params.get("maxDistance");
@@ -101,6 +109,10 @@ export function parseOfferFiltersFromSearchParams(
     brand: brand || undefined,
     inStockOnly: params.get("inStock") === "1",
     freeDeliveryOnly: params.get("freeDelivery") === "1",
+    minTotalPrice:
+      minTotalPrice != null && Number.isFinite(minTotalPrice) && minTotalPrice > 0
+        ? minTotalPrice
+        : undefined,
     maxTotalPrice:
       maxTotalPrice != null && Number.isFinite(maxTotalPrice) && maxTotalPrice > 0
         ? maxTotalPrice
@@ -133,6 +145,12 @@ export function writeOfferFiltersToSearchParams(
 
   if (criteria.freeDeliveryOnly) searchParams.set("freeDelivery", "1");
   else searchParams.delete("freeDelivery");
+
+  if (criteria.minTotalPrice != null) {
+    searchParams.set("minTotal", String(criteria.minTotalPrice));
+  } else {
+    searchParams.delete("minTotal");
+  }
 
   if (criteria.maxTotalPrice != null) {
     searchParams.set("maxTotal", String(criteria.maxTotalPrice));

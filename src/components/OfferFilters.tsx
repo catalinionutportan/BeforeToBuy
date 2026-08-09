@@ -58,8 +58,29 @@ export function OfferFilters({
         </label>
 
         <label className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">
-          <span className="text-slate-500">{ui.maxTotal}</span>
-          <select
+          <span className="text-slate-500">De la:</span>
+          <input
+            type="number"
+            min="0"
+            placeholder="Min"
+            value={criteria.minTotalPrice ?? ""}
+            onChange={(event) => {
+              const value = event.target.value;
+              patch({
+                minTotalPrice: value ? Number(value) : undefined,
+              });
+            }}
+            className="w-16 bg-transparent text-[11px] font-bold text-slate-800 outline-none"
+          />
+          <span className="text-slate-500 font-normal">{currencySymbol}</span>
+        </label>
+
+        <label className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">
+          <span className="text-slate-500">Până la:</span>
+          <input
+            type="number"
+            min="0"
+            placeholder="Max"
             value={criteria.maxTotalPrice ?? ""}
             onChange={(event) => {
               const value = event.target.value;
@@ -67,15 +88,9 @@ export function OfferFilters({
                 maxTotalPrice: value ? Number(value) : undefined,
               });
             }}
-            className="bg-transparent text-[11px] font-bold text-slate-800 outline-none"
-          >
-            <option value="">{ui.anyPrice}</option>
-            {MAX_TOTAL_PRICE_OPTIONS.map((amount) => (
-              <option key={amount} value={amount}>
-                ≤ {amount} {currencySymbol}
-              </option>
-            ))}
-          </select>
+            className="w-16 bg-transparent text-[11px] font-bold text-slate-800 outline-none"
+          />
+          <span className="text-slate-500 font-normal">{currencySymbol}</span>
         </label>
 
         <button

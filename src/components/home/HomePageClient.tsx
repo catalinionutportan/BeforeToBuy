@@ -133,6 +133,7 @@ export default function HomePageClient({
         brand: parsed.brand,
         inStockOnly: parsed.inStockOnly,
         freeDeliveryOnly: parsed.freeDeliveryOnly,
+        minTotalPrice: parsed.minTotalPrice,
         maxTotalPrice: parsed.maxTotalPrice,
         hasGtinOnly: parsed.hasGtinOnly,
       });
