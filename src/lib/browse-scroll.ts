@@ -57,16 +57,7 @@ export function readBrowseScrollAnchor(): string | null {
 }
 
 export function restoreBrowseScrollY(): boolean {
-  const anchor = readBrowseScrollAnchor();
-  if (anchor) {
-    const el = document.querySelector<HTMLElement>(`[data-product-id="${CSS.escape(anchor)}"]`);
-    if (el) {
-      // Keep the card in view without jumping a full row above it.
-      el.scrollIntoView({ block: "center", inline: "nearest", behavior: "auto" });
-      return true;
-    }
-  }
-
+  // Only restore the numeric offset — scrollIntoView can jump the page.
   const y = readBrowseScrollY();
   if (y == null) return false;
   window.scrollTo({ top: y, left: 0, behavior: "auto" });

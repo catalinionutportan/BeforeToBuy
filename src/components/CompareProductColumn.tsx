@@ -117,19 +117,17 @@ export function CompareProductColumn({
         </ConsentAwareAffiliateLink>
       ) : null}
 
-      {/* Specs / description — equal min-height keeps columns aligned */}
-      <div className="mt-auto border-t border-slate-100 pt-3 flex-1 flex flex-col min-h-[8.5rem]">
-        <h3 className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-          {specsLabel}
-        </h3>
-        <div className="text-xs sm:text-sm text-slate-600 leading-relaxed max-h-40 sm:max-h-48 overflow-y-auto custom-scrollbar pr-1">
-          {description ? (
-            description
-          ) : (
-            <span className="text-slate-400 italic">{noDescriptionLabel}</span>
-          )}
+      {/* Description only when the feed actually has one — no empty placeholder. */}
+      {description ? (
+        <div className="mt-auto border-t border-slate-100 pt-3 flex-1 flex flex-col">
+          <h3 className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+            {specsLabel}
+          </h3>
+          <div className="text-xs sm:text-sm text-slate-600 leading-relaxed max-h-40 sm:max-h-48 overflow-y-auto custom-scrollbar pr-1">
+            {description}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {lightboxOpen && product.image ? (
         <div
