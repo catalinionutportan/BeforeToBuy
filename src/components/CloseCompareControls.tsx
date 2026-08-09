@@ -3,8 +3,14 @@
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
+type Props = {
+  title: string;
+  closeLabel: string;
+  backLabel: string;
+};
+
 /** Back / close for compare page — return to previous browse scroll via history. */
-export function CloseCompareControls() {
+export function CloseCompareControls({ title, closeLabel, backLabel }: Props) {
   const router = useRouter();
 
   function goBack() {
@@ -21,17 +27,17 @@ export function CloseCompareControls() {
         type="button"
         onClick={goBack}
         className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-        aria-label="Back"
+        aria-label={backLabel}
       >
         <ArrowLeft className="w-5 h-5 text-slate-600" />
       </button>
-      <h1 className="text-lg font-bold text-slate-900">Comparație Produse</h1>
+      <h1 className="text-lg font-bold text-slate-900">{title}</h1>
       <button
         type="button"
         onClick={goBack}
         className="ml-auto text-sm font-semibold text-slate-500 hover:text-slate-900"
       >
-        Închide
+        {closeLabel}
       </button>
     </>
   );

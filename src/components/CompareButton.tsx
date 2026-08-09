@@ -3,17 +3,22 @@
 import { useCompare } from "./CompareContext";
 import { Product } from "@/types";
 import { Scale } from "lucide-react";
+import { useBrowseLocale } from "@/hooks/useBrowseLocale";
+import { HOME_UI } from "@/lib/i18n/ui";
 
 export function CompareButton({ product }: { product: Product }) {
+  const { locale } = useBrowseLocale();
+  const ui = HOME_UI[locale];
   const { compareList, addToCompare, removeFromCompare } = useCompare();
 
   const isSelected = compareList.some((p) => p.id === product.id);
   const isFull = compareList.length >= 2 && !isSelected;
+  const label = isSelected ? ui.compareRemove : ui.compareAdd;
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (isSelected) {
       removeFromCompare(product.id);
     } else {
@@ -32,8 +37,8 @@ export function CompareButton({ product }: { product: Product }) {
             ? "bg-white/80 border-slate-200 text-slate-300 cursor-not-allowed" 
             : "bg-white/90 border-slate-200 text-slate-500 hover:text-orange-500 hover:border-orange-200 hover:bg-white"
         }`}
-      title={isSelected ? "Elimină din comparare" : "Adaugă la comparare"}
-      aria-label={isSelected ? "Elimină din comparare" : "Adaugă la comparare"}
+      title={label}
+      aria-label={label}
     >
       <Scale className="w-4 h-4" />
     </button>

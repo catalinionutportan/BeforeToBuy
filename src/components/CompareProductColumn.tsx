@@ -11,7 +11,7 @@ type Props = {
   product: Product;
   currencySymbol: string;
   total: number;
-  storeName?: string;
+  storeLine?: string;
   purchaseUrl?: string;
   isCheapest: boolean;
   cheapestLabel: string;
@@ -29,7 +29,7 @@ export function CompareProductColumn({
   product,
   currencySymbol,
   total,
-  storeName,
+  storeLine,
   purchaseUrl,
   isCheapest,
   cheapestLabel,
@@ -111,8 +111,8 @@ export function CompareProductColumn({
           {currencySymbol}
           {total.toLocaleString()}
         </p>
-        {storeName ? (
-          <p className="text-xs text-slate-600 mt-1">la {storeName}</p>
+        {storeLine ? (
+          <p className="text-xs text-slate-600 mt-1">{storeLine}</p>
         ) : null}
       </div>
 
