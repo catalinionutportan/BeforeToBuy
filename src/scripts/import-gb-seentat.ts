@@ -1,14 +1,14 @@
 /**
- * One-off import of the live Seentat UK (AWIN) catalogue into Supabase.
+ * Import Seentat UK (AWIN) catalogue into Supabase — with short descriptions.
  *
- * Sources the products from the production API (which serves the warmed AWIN
- * feed from Redis), so product ids, categories and affiliate deep links match
- * exactly what the site already renders. Idempotent: re-running replaces the
- * gb-seentat rows.
+ * Prefers a direct feed download (needs AWIN_API_KEY or AWIN_FEED_URL_GB_SEENTAT
+ * in .env.local). Falls back to the live API catalogue (descriptions may be empty
+ * until the feed is warmed with the new truncate-description path).
  *
  * Usage: node --env-file=.env.local --import tsx src/scripts/import-gb-seentat.ts
  */
 import { prisma } from "../lib/db";
+import { loadMerchantFeedForImport } from "../lib/merchant-feeds";
 
 const API_BASE = process.env.IMPORT_SOURCE_BASE || "https://www.beforetobuy.com";
 const PAGE_SIZE = 200;
@@ -47,44 +47,68 @@ type ApiProduct = {
   offers: ApiOffer[];
 };
 
-async function fetchPage(offset: number): Promise<{ products: ApiProduct[]; total: number }> {
-  const url = `${API_BASE}/api/products?country=GB&limit=${PAGE_SIZE}&offset=${offset}`;
-  const res = await fetch(url, { headers: { "User-Agent": "btb-import/1.0" } });
-  if (!res.ok) throw new Error(`API ${res.status} for ${url}`);
-  const data = (await res.json()) as {
-    products: ApiProduct[];
-    meta: { totalMatched: number };
-  };
-  return { products: data.products, total: data.meta.totalMatched };
-}
-
-async function main() {
-  console.log(`Fetching Seentat UK catalogue from ${API_BASE} ...`);
+async function fetchFromApi(): Promise<ApiProduct[]> {
   const all: ApiProduct[] = [];
   let offset = 0;
   let total = Infinity;
 
   while (offset < total) {
-    const { products, total: t } = await fetchPage(offset);
-    total = t;
-    all.push(...products);
-    console.log(`  fetched ${all.length}/${total}`);
-    if (products.length === 0) break;
+    const url = `${API_BASE}/api/products?country=GB&limit=${PAGE_SIZE}&offset=${offset}`;
+    const res = await fetch(url, { headers: { "User-Agent": "btb-import/1.0" } });
+    if (!res.ok) throw new Error(`API ${res.status} for ${url}`);
+    const data = (await res.json()) as {
+      products: ApiProduct[];
+      meta: { totalMatched: number };
+    };
+    total = data.meta.totalMatched;
+    all.push(...data.products);
+    console.log(`  API fetched ${all.length}/${total}`);
+    if (data.products.length === 0) break;
     offset += PAGE_SIZE;
   }
 
-  // De-dupe by id (API pagination can shift between pages).
-  const byId = new Map(all.map((p) => [p.id, p]));
-  const products = [...byId.values()];
-  console.log(`Total unique products: ${products.length}`);
-  if (products.length === 0) throw new Error("No products fetched — aborting, DB untouched.");
+  return [...new Map(all.map((p) => [p.id, p])).values()];
+}
 
+async function fetchFromFeed(): Promise<ApiProduct[] | null> {
+  try {
+    const { products, source } = await loadMerchantFeedForImport(MERCHANT_ID);
+    if (source !== "remote" || products.length < 50) {
+      console.warn(
+        `Feed path returned source=${source}, count=${products.length} — refusing to replace catalogue with sample/partial data.`
+      );
+      return null;
+    }
+    console.log(`Feed download OK: ${products.length} products (with descriptions).`);
+    return products.map((p) => ({
+      id: p.id,
+      title: p.title,
+      description: p.description || "",
+      gtin: p.gtin,
+      brand: p.brand,
+      category: p.category,
+      image: p.image,
+      catalogSource: p.catalogSource,
+      targetCountries: p.targetCountries,
+      basePrice: p.basePrice,
+      offers: p.offers,
+    }));
+  } catch (error) {
+    console.warn(
+      "Direct AWIN feed unavailable (set AWIN_API_KEY or AWIN_FEED_URL_GB_SEENTAT):",
+      error instanceof Error ? error.message : error
+    );
+    return null;
+  }
+}
+
+async function writeCatalogue(products: ApiProduct[]) {
   const fetchedAt = new Date().toISOString();
 
   const productRows = products.map((p) => ({
     id: p.id,
     title: p.title,
-    description: p.description || "",
+    description: (p.description || "").slice(0, 1000),
     gtin: p.gtin || null,
     brand: p.brand || null,
     category: p.category,
@@ -116,9 +140,8 @@ async function main() {
     }))
   );
 
-  console.log(`Replacing ${MERCHANT_ID} rows: ${productRows.length} products, ${offerRows.length} offers ...`);
+  console.log(`Writing ${productRows.length} products, ${offerRows.length} offers...`);
 
-  // Replace this merchant's slice only — never touches other data.
   await prisma.offer.deleteMany({ where: { feedMerchantId: MERCHANT_ID } });
   await prisma.product.deleteMany({ where: { id: { in: productRows.map((r) => r.id) } } });
 
@@ -130,11 +153,30 @@ async function main() {
     await prisma.offer.createMany({ data: offerRows.slice(i, i + CHUNK), skipDuplicates: true });
   }
 
+  const withDesc = await prisma.product.count({
+    where: {
+      targetCountries: { has: "GB" },
+      description: { not: "" },
+    },
+  });
   const [pc, oc] = await Promise.all([
     prisma.product.count({ where: { targetCountries: { has: "GB" } } }),
     prisma.offer.count({ where: { feedMerchantId: MERCHANT_ID } }),
   ]);
-  console.log(`Done. DB now has ${pc} GB products, ${oc} Seentat offers.`);
+  console.log(`Done. GB products=${pc}, Seentat offers=${oc}, with description=${withDesc}`);
+}
+
+async function main() {
+  console.log("Importing Seentat UK into Supabase...");
+  const fromFeed = await fetchFromFeed();
+  const products = fromFeed ?? (await fetchFromApi());
+  if (products.length === 0) throw new Error("No products — aborting.");
+  if (!fromFeed) {
+    console.warn(
+      "Using API fallback (descriptions likely empty). After deploy, set AWIN_API_KEY in .env.local and re-run, or warm feeds on Vercel then re-run."
+    );
+  }
+  await writeCatalogue(products);
   await prisma.$disconnect();
 }
 

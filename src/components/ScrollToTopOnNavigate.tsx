@@ -34,10 +34,16 @@ export function ScrollToTopOnNavigate() {
 
     // Returning to browse from modal / compare → put the user back where they were.
     if (isTransientPath(prev) && isBrowsePath(pathname)) {
-      // Wait a frame so the home grid is painted before restoring.
-      requestAnimationFrame(() => {
-        restoreBrowseScrollY();
-      });
+      let tries = 0;
+      const attempt = () => {
+        const ok = restoreBrowseScrollY();
+        tries += 1;
+        // Cards may mount a moment after navigation (infinite scroll hydrate).
+        if (!ok && tries < 8) {
+          window.setTimeout(attempt, 50 * tries);
+        }
+      };
+      requestAnimationFrame(attempt);
       return;
     }
 

@@ -5,7 +5,7 @@ import { X, Scale } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
-import { saveBrowseScrollY } from "@/lib/browse-scroll";
+import { saveBrowseScrollAnchor, saveBrowseScrollY } from "@/lib/browse-scroll";
 
 export function CompareBar() {
   const { compareList, removeFromCompare, clearCompare } = useCompare();
@@ -91,6 +91,7 @@ export function CompareBar() {
                 return;
               }
               saveBrowseScrollY();
+              saveBrowseScrollAnchor(compareList[0]?.id);
             }}
           >
             Compară Acum

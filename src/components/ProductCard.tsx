@@ -13,7 +13,7 @@ import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-p
 import { formatOfferFreshness, getFreshestOfferTimestamp } from "@/lib/offers/freshness";
 import { productPagePathWithReturn } from "@/lib/seo/site-url";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
-import { saveBrowseScrollY } from "@/lib/browse-scroll";
+import { saveBrowseScrollAnchor, saveBrowseScrollY } from "@/lib/browse-scroll";
 
 /** How many store prices to show on the browse card before "+N more". */
 const VISIBLE_OFFERS = 3;
@@ -57,10 +57,16 @@ export function ProductCard({
   );
 
   const href = productPagePathWithReturn(product.id, returnTo, resolvedLocale);
-  const rememberScroll = () => saveBrowseScrollY();
+  const rememberScroll = () => {
+    saveBrowseScrollY();
+    saveBrowseScrollAnchor(product.id);
+  };
 
   return (
-    <article className="bg-white rounded-xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group h-full min-w-0">
+    <article
+      data-product-id={product.id}
+      className="bg-white rounded-xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col overflow-hidden group h-full min-w-0"
+    >
       <Link
         href={href}
         scroll={false}

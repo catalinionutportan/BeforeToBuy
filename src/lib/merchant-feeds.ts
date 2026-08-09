@@ -25,6 +25,9 @@ type FeedCacheEntry = {
   source: "remote" | "sample";
 };
 
+/** Max description length kept in Redis/API (Upstash 10MB budget). */
+const REDIS_DESCRIPTION_MAX_CHARS = 480;
+
 export type LoadFeedOptions = {
   /**
    * Allow remote CSV/XML download. Request/SSR/API must leave this false for
@@ -33,6 +36,11 @@ export type LoadFeedOptions = {
   allowRemoteFetch?: boolean;
   /** Skip memory + Redis and re-download (warm path). */
   forceRefresh?: boolean;
+  /**
+   * Keep a short product description for compare/detail pages.
+   * Default true (truncated). Set false only for extreme size pressure.
+   */
+  keepDescriptions?: boolean;
 };
 
 export type WarmFeedsResult = {
@@ -122,12 +130,19 @@ function compactOfferForRedis(offer: Offer): Offer {
   };
 }
 
+function truncateDescription(value: string | undefined, max = REDIS_DESCRIPTION_MAX_CHARS): string {
+  const text = (value || "").replace(/\s+/g, " ").trim();
+  if (!text) return "";
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 1).trimEnd()}…`;
+}
+
 function compactProductForRedis(product: Product): Product {
   return {
     id: product.id,
     title: product.title,
-    // Descriptions dominate evoMAG JSON (~14MB at 5k SKUs) and are unused on browse cards.
-    description: "",
+    // Keep a short blurb for compare/detail; full HTML stays out of Redis.
+    description: truncateDescription(product.description),
     gtin: product.gtin,
     variantKey: product.variantKey,
     category: product.category,
@@ -314,6 +329,23 @@ async function persistFeedToRedis(feed: FeedConfig, entry: FeedCacheEntry): Prom
   }
 }
 
+/** Offline import / CLI: download a merchant feed with short descriptions kept. */
+export async function loadMerchantFeedForImport(merchantId: string): Promise<{
+  products: Product[];
+  mappingLog: MappingLogEntry[];
+  source: "remote" | "sample";
+}> {
+  const feed = getEnabledMerchantFeeds().find((item) => item.merchantId === merchantId);
+  if (!feed) {
+    throw new Error(`No enabled feed for merchant "${merchantId}"`);
+  }
+  return loadFeedForMerchant(feed, {
+    allowRemoteFetch: true,
+    forceRefresh: true,
+    keepDescriptions: true,
+  });
+}
+
 async function loadFeedForMerchant(
   feed: FeedConfig,
   options: LoadFeedOptions = {}
@@ -416,10 +448,10 @@ async function loadFeedForMerchant(
     );
   }
 
+  const keepDescriptions = options.keepDescriptions !== false;
   const products = limitedProducts.map((product) => ({
     ...product,
-    // Browse/cache path never needs long HTML descriptions (Redis 10MB limit).
-    description: "",
+    description: keepDescriptions ? truncateDescription(product.description) : "",
     catalogSource: offerSource,
     offers: product.offers.map((offer) => ({
       ...offer,

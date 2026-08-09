@@ -121,7 +121,7 @@ describe("Merchant Feed Processing", () => {
     }
   });
 
-  it("compacts Redis feed cache by stripping descriptions and bulky fields", () => {
+  it("compacts Redis feed cache by truncating descriptions and bulky fields", () => {
     const bulky: Product = {
       id: "feed-ro-evomag-1",
       title: "Sample SSD",
@@ -177,7 +177,9 @@ describe("Merchant Feed Processing", () => {
 
     const compact = compactFeedCacheForRedis(entry);
     expect(compact.mappingLog).toEqual([]);
-    expect(compact.products[0]?.description).toBe("");
+    expect(compact.products[0]?.description.length).toBeGreaterThan(0);
+    expect(compact.products[0]?.description.length).toBeLessThanOrEqual(480);
+    expect(compact.products[0]?.description.endsWith("…")).toBe(true);
     expect(compact.products[0]?.canonicalKey).toBeUndefined();
     expect(compact.products[0]?.categoryAssignment?.rawCategory).toBeUndefined();
     expect(compact.products[0]?.offers[0]?.purchaseUrl).toBe("https://example.com/p/1");
@@ -230,6 +232,6 @@ describe("Merchant Feed Processing", () => {
     expect(bytes).toBeLessThanOrEqual(softMax);
     expect(payload.products.length).toBeGreaterThan(0);
     expect(payload.products.length).toBeLessThan(products.length);
-    expect(payload.products.every((p) => p.description === "")).toBe(true);
+    expect(payload.products.every((p) => p.description.length <= 480)).toBe(true);
   });
 });

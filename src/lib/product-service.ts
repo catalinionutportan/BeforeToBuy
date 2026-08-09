@@ -48,7 +48,8 @@ function countGtinLinkedProducts(products: Product[]): number {
 function compactProductsForList(products: Product[]): Product[] {
   return products.map((product) => ({
     ...product,
-    description: "",
+    // Keep a short blurb for compare/import; strip only very long HTML.
+    description: (product.description || "").replace(/\s+/g, " ").trim().slice(0, 480),
     offers: product.offers.map((offer) => ({
       ...offer,
       // Keep browse cards light; detail pages load richer data separately.
