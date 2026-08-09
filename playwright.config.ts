@@ -36,7 +36,7 @@ export default defineConfig({
       INTERNAL_API_SECRET: E2E_INTERNAL_SECRET,
       // Ensure CI `next start` (NODE_ENV=production) without Vercel KV stays usable.
       RATE_LIMIT_FAIL_OPEN: "1",
-      // Avoid 120s evoMAG remote pulls during smoke — use checked-in sample feeds.
+      // Avoid 120s heavy remote pulls during smoke — use checked-in sample feeds.
       FORCE_SAMPLE_FEEDS: "1",
     },
   },

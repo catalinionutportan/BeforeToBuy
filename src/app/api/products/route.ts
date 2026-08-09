@@ -14,7 +14,7 @@ import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n/locales";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 
-/** Cache-only catalogue path — heavy evoMAG CSV is never fetched here. */
+/** Cache-only catalogue path — heavy CSV is never fetched here. */
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 

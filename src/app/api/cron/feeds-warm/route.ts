@@ -7,11 +7,11 @@ import { HOME_UI } from "@/lib/i18n/ui";
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const dynamic = "force-dynamic";
-/** Heavy evoMAG CSV warm needs headroom (outside user requests). */
+/** Heavy CSV warm needs headroom (outside user requests). */
 export const maxDuration = 300;
 
 /**
- * Offline feed warm — downloads heavy catalogues (evoMAG) and writes Redis.
+ * Offline feed warm — downloads heavy catalogues and writes Redis.
  * Secured by CRON_SECRET / INTERNAL_API_SECRET Bearer token.
  * Vercel Cron: Authorization: Bearer $CRON_SECRET
  */

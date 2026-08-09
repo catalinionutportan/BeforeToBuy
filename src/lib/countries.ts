@@ -375,9 +375,9 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     category: "Electronics + General",
     hasClickAndCollect: true,
     status: "Live Feed",
-    badge: "2Performant + product feed 🇷🇴",
+    badge: "2Performant 🇷🇴",
     description:
-      "Romanian electronics retailer (evoMAG). Live 2Performant product feed (Category-rich My Feeds CSV), soft-capped for serverless; homepage affiliate quicklink remains active.",
+      "Romanian electronics retailer (evoMAG). Homepage affiliate quicklink remains active.",
   },
   // --- United Kingdom (GB) ---
   {
@@ -461,7 +461,7 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     supportedStores: ["rowenta.ro", "scule365.ro", "evomag.ro"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "RO"),
     affiliateNetworks: [
-      "2Performant Romania (Rowenta + Scule365 + evoMAG) — live product feeds",
+      "2Performant Romania (Rowenta + Scule365) — live product feeds",
       "Additional RO merchants — specialty feeds one-by-one when ready",
     ],
   },
