@@ -1,13 +1,18 @@
 /**
- * Offline catalogue import into Supabase.
+ * Offline catalogue import into Supabase (2Performant CSV → Product/Offer).
  *
- * Usage:
- *   npm run feeds:import -- --merchant=ro-rowenta
- *   npm run feeds:import -- --merchant=ro-scule365
- *   npm run feeds:import -- --merchant=ro-evomag
- *   npm run feeds:import -- --all
+ * Catalogue focus today: GB Seentat via `src/scripts/import-gb-seentat.ts`.
  *
- * Default (no flags): imports only the first feed in FEEDS.
+ * Add RO (or other) merchants ONE AT A TIME to FEEDS below, then:
+ *   ALLOW_RO_IMPORT=1 npm run feeds:import -- --merchant=<merchantId>
+ *
+ * Do NOT restore a bulk 9-feed list and `--all` until the site is stable.
+ *
+ * Why evoMAG (~100k SKUs) was painful:
+ * - CSV is ~200MB; Vercel request/SSR cannot download/parse it live
+ * - image hosts must be allowlisted (or use native <img>) or cards look empty
+ * - soft caps / Redis warm path still struggle at that size without dedicated infra
+ * Re-add evoMAG only after a capped/import-offline plan — never on the request path.
  */
 import { sync2PerformantFeed } from "./sync-feeds";
 import { prisma } from "../lib/db";
@@ -20,72 +25,18 @@ type FeedSpec = {
   currency: string;
 };
 
-/** Known RO 2Performant feeds — add new merchants here one by one. */
-const FEEDS: FeedSpec[] = [
-  {
-    url: "https://api.2performant.com/feed/c55b99d30.csv",
-    merchantId: "ro-rowenta",
-    storeName: "Rowenta.ro",
-    countryCode: "RO",
-    currency: "RON",
-  },
-  {
-    url: "https://api.2performant.com/feed/fcdbb3e99.csv",
-    merchantId: "ro-scule365",
-    storeName: "Scule365.ro",
-    countryCode: "RO",
-    currency: "RON",
-  },
-  {
-    url: "https://api.2performant.com/feed/f8f8ae236.csv",
-    merchantId: "ro-gsmnet",
-    storeName: "gsmnet.ro",
-    countryCode: "RO",
-    currency: "RON",
-  },
-  {
-    url: "https://api.2performant.com/feed/6111d323a.csv",
-    merchantId: "ro-paa-home",
-    storeName: "paa-home.ro",
-    countryCode: "RO",
-    currency: "RON",
-  },
-  {
-    url: "https://api.2performant.com/feed/86d0f944f.csv",
-    merchantId: "ro-micul-meserias",
-    storeName: "Micul Meserias",
-    countryCode: "RO",
-    currency: "RON",
-  },
-  {
-    url: "https://api.2performant.com/feed/22c615c7e.csv",
-    merchantId: "ro-automobilus",
-    storeName: "automobilus.ro",
-    countryCode: "RO",
-    currency: "RON",
-  },
-  {
-    url: "https://api.2performant.com/feed/b1d791b60.csv",
-    merchantId: "ro-autoeco",
-    storeName: "autoeco.ro",
-    countryCode: "RO",
-    currency: "RON",
-  },
-  {
-    url: "https://api.2performant.com/feed/e90d7744f.csv",
-    merchantId: "ro-autobob",
-    storeName: "autobob.ro",
-    countryCode: "RO",
-    currency: "RON",
-  },
-  {
-    url: "https://api.2performant.com/feed/b70e1e08e.csv",
-    merchantId: "ro-aquiline",
-    storeName: "aquiline.ro",
-    countryCode: "RO",
-    currency: "RON",
-  },
-];
+/**
+ * Empty on purpose. Add the next merchant here when you are ready, e.g.:
+ *
+ * {
+ *   url: "https://api.2performant.com/feed/….csv",
+ *   merchantId: "ro-example",
+ *   storeName: "example.ro",
+ *   countryCode: "RO",
+ *   currency: "RON",
+ * },
+ */
+const FEEDS: FeedSpec[] = [];
 
 function parseArgs(argv: string[]) {
   const all = argv.includes("--all");
@@ -97,15 +48,25 @@ function parseArgs(argv: string[]) {
 async function main() {
   const { all, merchantId } = parseArgs(process.argv.slice(2));
 
-  // Catalogue focus is GB Seentat for now — RO bulk import is opt-in only.
-  // Use: src/scripts/import-gb-seentat.ts for UK.
-  // To force RO again: ALLOW_RO_IMPORT=1 npm run feeds:import -- --merchant=ro-gsmnet
+  if (FEEDS.length === 0) {
+    console.error(
+      [
+        "FEEDS is empty — no RO merchants queued for import.",
+        "UK catalogue: npx tsx src/scripts/import-gb-seentat.ts",
+        "When adding a RO merchant: put one entry in FEEDS, then",
+        "  ALLOW_RO_IMPORT=1 npm run feeds:import -- --merchant=<id>",
+      ].join("\n")
+    );
+    process.exit(1);
+  }
+
+  // Extra guard while catalogue stays GB-first.
   if (process.env.ALLOW_RO_IMPORT !== "1") {
     console.error(
       [
         "RO feed import is disabled (catalogue is GB-only right now).",
         "Import UK with: npx tsx src/scripts/import-gb-seentat.ts",
-        "Or set ALLOW_RO_IMPORT=1 to override for a specific RO merchant.",
+        "Or set ALLOW_RO_IMPORT=1 after adding one merchant to FEEDS.",
       ].join("\n")
     );
     process.exit(1);
@@ -118,7 +79,7 @@ async function main() {
     selected = FEEDS.filter((feed) => feed.merchantId === merchantId);
     if (selected.length === 0) {
       console.error(
-        `Unknown merchant "${merchantId}". Known: ${FEEDS.map((f) => f.merchantId).join(", ")}`
+        `Unknown merchant "${merchantId}". Known: ${FEEDS.map((f) => f.merchantId).join(", ") || "(none)"}`
       );
       process.exit(1);
     }
