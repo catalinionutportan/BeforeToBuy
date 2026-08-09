@@ -10,16 +10,14 @@ import {
   getConsentPreferences,
   saveConsentPreferences,
 } from "@/lib/consent";
-import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 import { HOME_UI } from "@/lib/i18n/ui";
 
 export function CookieConsentBanner() {
-  const { locale: browseLocale } = useBrowseLocale(DEFAULT_COUNTRY);
+  const { locale: browseLocale } = useBrowseLocale();
   const homeUi = HOME_UI[browseLocale];
 
   const [isVisible, setIsVisible] = useState(false);
-  const [locationConsent, setLocationConsent] = useState(false);
   const [affiliateConsent, setAffiliateConsent] = useState(false);
   const [analyticsConsent, setAnalyticsConsent] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -31,7 +29,6 @@ export function CookieConsentBanner() {
   useEffect(() => {
     const syncVisibility = () => {
       const preferences = getConsentPreferences();
-      setLocationConsent(preferences?.location ?? false);
       setAffiliateConsent(preferences?.affiliate ?? false);
       setAnalyticsConsent(preferences?.analytics ?? false);
       setIsVisible(!preferences);
@@ -43,7 +40,6 @@ export function CookieConsentBanner() {
 
     const openHandler = () => {
       const preferences = getConsentPreferences();
-      setLocationConsent(preferences?.location ?? false);
       setAffiliateConsent(preferences?.affiliate ?? false);
       setAnalyticsConsent(preferences?.analytics ?? false);
       setSaveError(null);
@@ -83,7 +79,6 @@ export function CookieConsentBanner() {
   const handleSavePreferences = () =>
     saveAndClose(() =>
       saveConsentPreferences({
-        location: locationConsent,
         affiliate: affiliateConsent,
         analytics: analyticsConsent,
       })
@@ -183,18 +178,6 @@ export function CookieConsentBanner() {
             <label className="rounded-lg border border-slate-200 bg-white p-2.5 flex items-start gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={locationConsent}
-                onChange={(event) => setLocationConsent(event.target.checked)}
-                className="mt-0.5 accent-slate-800"
-              />
-              <span>
-                <strong className="text-slate-800">{homeUi.location}</strong>
-                <span className="text-slate-500">{homeUi.locationDescription}</span>
-              </span>
-            </label>
-            <label className="rounded-lg border border-slate-200 bg-white p-2.5 flex items-start gap-2 cursor-pointer">
-              <input
-                type="checkbox"
                 checked={affiliateConsent}
                 onChange={(event) => setAffiliateConsent(event.target.checked)}
                 className="mt-0.5 accent-slate-800"
@@ -273,7 +256,7 @@ export function CookieConsentBanner() {
           <Link href="/privacy" className="hover:text-slate-800 underline break-words">
             {homeUi.privacyPolicy}
           </Link>
-          <span className="shrink-0">{homeUi.consentVersion} 3</span>
+          <span className="shrink-0">{homeUi.consentVersion} 4</span>
         </div>
       </div>
     </div>

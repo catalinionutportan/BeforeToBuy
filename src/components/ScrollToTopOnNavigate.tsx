@@ -7,23 +7,10 @@ import {
   isComparePath,
   isProductPath,
   isTransientPath,
-  readBrowseScrollY,
+  notifyBrowseScrollRestored,
+  pinBrowseScrollY,
   restoreBrowseScrollY,
 } from "@/lib/browse-scroll";
-
-function pinBrowseScroll() {
-  const y = readBrowseScrollY();
-  if (y == null) return false;
-  window.scrollTo({ top: y, left: 0, behavior: "auto" });
-  // Next soft-nav can reset scroll a frame later — re-pin twice.
-  requestAnimationFrame(() => {
-    window.scrollTo({ top: y, left: 0, behavior: "auto" });
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: y, left: 0, behavior: "auto" });
-    });
-  });
-  return true;
-}
 
 /**
  * Scroll policy for infinite-scroll browse:
@@ -52,13 +39,15 @@ export function ScrollToTopOnNavigate() {
       return;
     }
 
-    // Back to browse from product / compare — restore and hold position.
+    // Back to browse from product / compare — expand lazy rows, then pin Y.
     if (isTransientPath(prev) && isBrowsePath(pathname)) {
-      if (!pinBrowseScroll()) {
+      notifyBrowseScrollRestored();
+      if (!pinBrowseScrollY()) {
         let tries = 0;
         const attempt = () => {
           if (restoreBrowseScrollY()) {
-            pinBrowseScroll();
+            notifyBrowseScrollRestored();
+            pinBrowseScrollY();
             return;
           }
           tries += 1;

@@ -2,34 +2,32 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, Mail, LifeBuoy, Scale, HelpCircle, Layers, Store } from "lucide-react";
+import { Mail, LifeBuoy, Scale, HelpCircle, Layers, Store } from "lucide-react";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 import { HOME_UI } from "@/lib/i18n/ui";
-import { isBetaBannerEnabled } from "@/lib/site-config";
+import { withLangParam } from "@/lib/seo/site-url";
 
 export function SiteNav() {
-  const { locale: browseLocale } = useBrowseLocale(DEFAULT_COUNTRY);
+  const { countryCode, locale: browseLocale } = useBrowseLocale();
   const homeUi = HOME_UI[browseLocale];
-  const showBetaLabel = isBetaBannerEnabled();
   const router = useRouter();
+  const homeHref = withLangParam("/", browseLocale);
 
   const navLinks = [
-    { href: "/about", label: homeUi.about, icon: HelpCircle },
-    { href: "/categories", label: homeUi.categories, icon: Layers },
-    { href: "/stores", label: homeUi.stores, icon: Store },
-    { href: "/help", label: homeUi.helpFAQ, icon: LifeBuoy },
-    { href: "/contact", label: homeUi.contact, icon: Mail },
-    { href: "/legal", label: homeUi.legalHub, icon: Scale },
+    { href: withLangParam("/about", browseLocale), label: homeUi.about, icon: HelpCircle },
+    { href: withLangParam("/categories", browseLocale), label: homeUi.categories, icon: Layers },
+    { href: withLangParam("/stores", browseLocale), label: homeUi.stores, icon: Store },
+    { href: withLangParam("/help", browseLocale), label: homeUi.helpFAQ, icon: LifeBuoy },
+    { href: withLangParam("/contact", browseLocale), label: homeUi.contact, icon: Mail },
+    { href: withLangParam("/legal", browseLocale), label: homeUi.legalHub, icon: Scale },
   ] as const;
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <Link href="/" className="flex items-center gap-2.5 shrink-0">
+        <Link href={homeHref} className="flex items-center gap-2.5 shrink-0">
           <span className="relative block h-9 w-9">
             <Image
               src="/beforetobuy-mark.png"
@@ -40,23 +38,17 @@ export function SiteNav() {
               priority
             />
           </span>
-          <div>
-            <span className="text-base font-extrabold text-slate-900 block leading-tight">
-              BeforeToBuy
-            </span>
-            {showBetaLabel ? (
-              <span className="text-[10px] text-slate-500 font-medium">{homeUi.betaDemo}</span>
-            ) : null}
-          </div>
+          <span className="text-base font-extrabold text-slate-900 block leading-tight">
+            BeforeToBuy
+          </span>
         </Link>
 
         <div className="flex-1 w-full sm:max-w-md mx-4 order-3 sm:order-none mt-3 sm:mt-0">
           <SearchAutocomplete 
-            placeholder={homeUi.searchPlaceholder.replace('{country}', 'România')}
             onSearchSubmit={(q) => {
-              router.push(`/?q=${encodeURIComponent(q)}`);
+              router.push(withLangParam(`/?q=${encodeURIComponent(q)}`, browseLocale));
             }}
-            countryCode={DEFAULT_COUNTRY}
+            countryCode={countryCode}
             locale={browseLocale}
           />
         </div>

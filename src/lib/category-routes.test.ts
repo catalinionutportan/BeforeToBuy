@@ -17,6 +17,16 @@ describe('Category Routes', () => {
     expect(collectionBrowsePath("sale")).toBe("/compare/sale");
   });
 
+  it("preserves an explicit UI language without changing taxonomy paths", () => {
+    expect(departmentCategoryPath("electronics", "ro")).toBe(
+      "/categories/electronics?lang=ro"
+    );
+    expect(subcategoryCategoryPath("electronics", "audio-headphones", "de")).toBe(
+      "/categories/electronics/audio-headphones?lang=de"
+    );
+    expect(collectionBrowsePath("sale", "fr")).toBe("/compare/sale?lang=fr");
+  });
+
   it("categoryBrowsePath resolves departments, subcategories and collections", () => {
     expect(categoryBrowsePath("electronics")).toBe("/categories/electronics");
     expect(categoryBrowsePath("audio-headphones")).toBe("/categories/electronics/audio-headphones");

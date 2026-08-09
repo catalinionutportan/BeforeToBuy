@@ -13,9 +13,16 @@ export function DatadogRum() {
   useEffect(() => {
     let started = false;
 
-    const tryInit = () => {
+    const syncConsent = () => {
       const prefs = getConsentPreferences();
-      if (!prefs?.analytics) {
+      const granted = prefs?.analytics === true;
+
+      if (started) {
+        datadogRum.setTrackingConsent(granted ? "granted" : "not-granted");
+        return;
+      }
+
+      if (!granted) {
         return;
       }
 
@@ -45,6 +52,7 @@ export function DatadogRum() {
         trackLongTasks: true,
         trackUserInteractions: true,
         defaultPrivacyLevel: "mask-user-input",
+        trackingConsent: "granted",
         allowedTracingUrls: [
           { match: "https://www.beforetobuy.com", propagatorTypes: ["datadog"] },
         ],
@@ -53,9 +61,9 @@ export function DatadogRum() {
       started = true;
     };
 
-    tryInit();
-    window.addEventListener(CONSENT_UPDATED_EVENT, tryInit);
-    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, tryInit);
+    syncConsent();
+    window.addEventListener(CONSENT_UPDATED_EVENT, syncConsent);
+    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, syncConsent);
   }, []);
 
   return null;

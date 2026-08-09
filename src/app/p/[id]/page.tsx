@@ -8,7 +8,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
 import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
-import { defaultLocaleFromCountry } from "@/lib/i18n/locales";
+import { isSiteLocale, type SiteLocale } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { createPageMetadata } from "@/lib/metadata";
 import { getProductById, inferCountryFromProductId, listProductIdsForSitemap } from "@/lib/product-lookup";
@@ -20,12 +20,13 @@ import { productPagePath, safeReturnPath } from "@/lib/seo/site-url";
 import { getMarketHubIdForLeaf } from "@/lib/market-hubs";
 import { ALL_CATEGORIES_ID, getParentCategoryId } from "@/lib/categories";
 import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
+import { resolvePageLocale } from "@/lib/server-page-locale";
 
 export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ from?: string }>;
+  searchParams: Promise<{ from?: string; lang?: string }>;
 };
 
 export async function generateStaticParams() {
@@ -33,10 +34,11 @@ export async function generateStaticParams() {
   return ids.map((id) => ({ id }));
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { id } = await params;
+  const locale = await resolvePageLocale(searchParams);
   const product = await getProductById(id);
-  const ui = HOME_UI.en;
+  const ui = HOME_UI[locale];
 
   if (!product) {
     return createPageMetadata({
@@ -44,6 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: "The requested product could not be found.",
       path: productPagePath(id),
       index: false,
+      locale,
     });
   }
 
@@ -53,6 +56,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       product.description ||
       `Compare ${product.title} prices and offers on BeforeToBuy.com.`,
     path: productPagePath(product.id),
+    locale,
   });
 }
 
@@ -69,7 +73,7 @@ function browseBackHref(productCategory: string, from?: string): string {
 
 export default async function ProductPage({ params, searchParams }: PageProps) {
   const { id } = await params;
-  const { from } = await searchParams;
+  const { from, lang } = await searchParams;
   const product = await getProductById(id);
   if (!product) notFound();
 
@@ -86,7 +90,9 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
     inferCountryFromProductId(product.id) ||
     DEFAULT_COUNTRY;
   const country = COUNTRIES[countryCode] || COUNTRIES[DEFAULT_COUNTRY];
-  const locale = defaultLocaleFromCountry(countryCode);
+  const locale: SiteLocale = isSiteLocale(lang)
+    ? lang
+    : await resolvePageLocale(searchParams);
   const ui = HOME_UI[locale];
   const sortedOffers = sortOffersByTotalPrice(product.offers);
   const backHref = browseBackHref(product.category, from);
@@ -155,9 +161,12 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
         </div>
 
         <section className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
-          <h2 className="text-lg font-bold text-slate-900">
-            {ui.compareProductPrices} — {country.name}
-          </h2>
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold text-slate-900">
+              {ui.productOfferHeading} — {country.name}
+            </h2>
+            <p className="text-xs text-slate-500 leading-relaxed">{ui.compareViaBalanceTip}</p>
+          </div>
           <ul className="space-y-3">
             {sortedOffers.map((offer) => {
               const total = offer.totalPrice ?? computeTotalPrice(offer);

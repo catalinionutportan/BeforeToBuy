@@ -24,12 +24,8 @@ export function CategoryProductGrid({
   const ui = HOME_UI[locale];
   const country = COUNTRIES[countryCode] || COUNTRIES[DEFAULT_COUNTRY];
   const userLocation = {
-    latitude: country.defaultCoordinates.lat,
-    longitude: country.defaultCoordinates.lng,
     countryCode: country.code,
     countryName: country.name,
-    city: country.defaultCoordinates.city,
-    isGps: false,
   };
 
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);

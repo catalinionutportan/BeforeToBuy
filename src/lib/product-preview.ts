@@ -1,13 +1,32 @@
 /** Instant product-modal preview from the browse card (before RSC arrives). */
 
+export type ProductPreviewOffer = {
+  id: string;
+  storeName: string;
+  priceLabel: string;
+  sourceLabel: string;
+  purchaseUrl: string;
+  isLive: boolean;
+  ctaLabel: string;
+};
+
 export type ProductPreview = {
   id: string;
   title: string;
   brand: string;
+  description?: string;
   image?: string;
   price?: number;
   currencySymbol: string;
   storeName?: string;
+  compareHeading?: string;
+  compareTip?: string;
+  sourceLabel?: string;
+  ctaLabel?: string;
+  gtinLabel?: string;
+  gtin?: string;
+  offers?: ProductPreviewOffer[];
+  serverReady?: boolean;
 };
 
 const STORAGE_KEY = "btb:product-preview";
@@ -16,9 +35,11 @@ type Listener = () => void;
 const listeners = new Set<Listener>();
 
 let memoryPreview: ProductPreview | null = null;
-/** True from card click until the server modal mounts. */
-let pendingInstant = false;
-let serverModalMounted = false;
+/** True from card click until close — show modal before `/p/:id` URL settles. */
+let openPending = false;
+/** True only after image decode (+ rAF) so the eye sees one complete frame. */
+let paintReady = false;
+let prepareToken = 0;
 
 function emit() {
   listeners.forEach((listener) => listener());
@@ -33,24 +54,72 @@ export function getProductPreview(): ProductPreview | null {
   return memoryPreview;
 }
 
-export function isProductPreviewPending(): boolean {
-  return pendingInstant;
+export function isProductPreviewPaintReady(): boolean {
+  return Boolean(memoryPreview && openPending && paintReady);
 }
 
-export function isServerProductModalMounted(): boolean {
-  return serverModalMounted;
+/** Warm browser image cache on card hover — open becomes a same-frame paint. */
+export function warmProductPreviewImage(src: string | undefined): void {
+  if (!src || typeof window === "undefined") return;
+  const img = new Image();
+  img.decoding = "async";
+  img.src = src;
+  void img.decode?.().catch(() => {});
 }
 
+function decodeImage(src: string): Promise<void> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.src = src;
+    const done = () => resolve();
+    if (typeof img.decode === "function") {
+      img.decode().then(done, done);
+    } else {
+      img.onload = done;
+      img.onerror = done;
+    }
+    // Never block the click more than a blink.
+    window.setTimeout(done, 100);
+  });
+}
+
+function markPaintReady(token: number): void {
+  if (token !== prepareToken) return;
+  // Two frames: commit DOM with decoded bitmap, then reveal together.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (token !== prepareToken) return;
+      paintReady = true;
+      emit();
+    });
+  });
+}
+
+/**
+ * Store preview and open only after the image is decoded so the modal never
+ * appears as: empty shell → photo → title → description.
+ */
 export function saveProductPreview(preview: ProductPreview): void {
-  memoryPreview = preview;
-  pendingInstant = true;
-  serverModalMounted = false;
+  const token = ++prepareToken;
+  memoryPreview = { ...preview, serverReady: false };
+  openPending = true;
+  paintReady = false;
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(preview));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(memoryPreview));
   } catch {
     // ignore
   }
   emit();
+
+  if (typeof window === "undefined") {
+    paintReady = true;
+    emit();
+    return;
+  }
+
+  const start = preview.image ? decodeImage(preview.image) : Promise.resolve();
+  void start.then(() => markPaintReady(token));
 }
 
 export function readStoredProductPreview(productId?: string): ProductPreview | null {
@@ -71,16 +140,73 @@ export function readStoredProductPreview(productId?: string): ProductPreview | n
   }
 }
 
-export function markServerProductModalMounted(): void {
-  serverModalMounted = true;
-  pendingInstant = false;
+/**
+ * Silent server merge: never change pixels the user already saw.
+ * Only wire live purchase URLs onto the painted offer row.
+ */
+export function enrichProductPreview(patch: Partial<ProductPreview> & { id: string }): void {
+  if (!memoryPreview || memoryPreview.id !== patch.id) {
+    const token = ++prepareToken;
+    memoryPreview = {
+      id: patch.id,
+      title: patch.title || "",
+      brand: patch.brand || "",
+      description: patch.description,
+      image: patch.image,
+      price: patch.price,
+      currencySymbol: patch.currencySymbol || "",
+      storeName: patch.storeName,
+      compareHeading: patch.compareHeading,
+      compareTip: patch.compareTip,
+      sourceLabel: patch.sourceLabel,
+      ctaLabel: patch.ctaLabel,
+      gtinLabel: patch.gtinLabel,
+      gtin: patch.gtin,
+      offers: patch.offers,
+      serverReady: true,
+    };
+    openPending = true;
+    paintReady = false;
+    emit();
+    const start = patch.image ? decodeImage(patch.image) : Promise.resolve();
+    void start.then(() => markPaintReady(token));
+    return;
+  }
+
+  const painted = memoryPreview;
+  const nextOffers = (painted.offers || []).map((offer) => {
+    const live = patch.offers?.find(
+      (item) => item.id === offer.id || item.storeName === offer.storeName
+    );
+    if (!live) return offer;
+    return {
+      ...offer,
+      purchaseUrl: live.purchaseUrl || offer.purchaseUrl,
+    };
+  });
+
+  if (patch.offers && patch.offers.length > nextOffers.length) {
+    const seen = new Set(nextOffers.map((o) => o.id));
+    for (const extra of patch.offers) {
+      if (!seen.has(extra.id)) nextOffers.push(extra);
+    }
+  }
+
+  memoryPreview = {
+    ...painted,
+    offers: nextOffers.length ? nextOffers : painted.offers,
+    gtin: painted.gtin || patch.gtin,
+    gtinLabel: painted.gtinLabel || patch.gtinLabel,
+    serverReady: true,
+  };
   emit();
 }
 
 export function clearProductPreview(): void {
+  prepareToken += 1;
   memoryPreview = null;
-  pendingInstant = false;
-  serverModalMounted = false;
+  openPending = false;
+  paintReady = false;
   try {
     sessionStorage.removeItem(STORAGE_KEY);
   } catch {
@@ -89,16 +215,30 @@ export function clearProductPreview(): void {
   emit();
 }
 
-/** Show the instant overlay until the real RSC modal takes over. */
+function matchesProductPath(pathname: string, productId: string): boolean {
+  const encoded = encodeURIComponent(productId);
+  return (
+    pathname === `/p/${encoded}` ||
+    pathname === `/p/${productId}` ||
+    pathname.startsWith(`/p/${productId}?`) ||
+    pathname.startsWith(`/p/${encoded}?`) ||
+    pathname.startsWith(`/p/${productId}/`) ||
+    pathname.startsWith(`/p/${encoded}/`)
+  );
+}
+
 export function shouldShowInstantProductModal(pathname: string): boolean {
   if (!memoryPreview && typeof window !== "undefined") {
     readStoredProductPreview();
   }
-  if (!memoryPreview) return false;
-  if (serverModalMounted) return false;
-  if (pendingInstant) return true;
-  return pathname === `/p/${encodeURIComponent(memoryPreview.id)}` ||
-    pathname === `/p/${memoryPreview.id}` ||
-    pathname.startsWith(`/p/${memoryPreview.id}`) ||
-    pathname.startsWith(`/p/${encodeURIComponent(memoryPreview.id)}`);
+  if (!memoryPreview || !paintReady) return false;
+  if (openPending) return true;
+  return matchesProductPath(pathname, memoryPreview.id);
+}
+
+export function hasClientProductShell(productId: string): boolean {
+  if (!memoryPreview && typeof window !== "undefined") {
+    readStoredProductPreview(productId);
+  }
+  return memoryPreview?.id === productId;
 }

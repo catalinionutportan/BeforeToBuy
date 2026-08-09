@@ -13,16 +13,15 @@ import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 import { Menu } from "lucide-react";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
 import { clearBrowseScrollY, isBrowsePath } from "@/lib/browse-scroll";
+import { withLangParam } from "@/lib/seo/site-url";
 
 interface HeaderProps {
   userLocation: UserLocation;
   onCountryChange: (countryCode: CountryCode) => void;
-  onRefreshGps: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   selectedDomain?: string;
   onDomainChange?: (domain: string) => void;
-  isLocating: boolean;
   locale: SiteLocale;
   onLocaleChange: (locale: SiteLocale) => void;
   availableLocales: readonly SiteLocale[];
@@ -42,6 +41,7 @@ export function Header({
 }: HeaderProps) {
   const pathname = usePathname();
   const ui = HOME_UI[locale];
+  const homeHref = withLangParam("/", locale);
   const searchPlaceholder =
     selectedDomain && selectedDomain !== "all"
       ? formatUi(ui.searchPlaceholderDomain, { domain: selectedDomain })
@@ -62,7 +62,7 @@ export function Header({
       <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 shadow-xs backdrop-blur-md">
         <div className="w-full min-w-0 px-3 pt-1.5 pb-2 sm:px-8 lg:px-12">
           <div className="flex items-start justify-between gap-2 min-w-0">
-            <Link href="/" locale={locale} className="min-w-0 pt-0.5" onClick={goToBrowseTop}>
+            <Link href={homeHref} className="min-w-0 pt-0.5" onClick={goToBrowseTop}>
               <h1 className="truncate text-[clamp(1rem,0.4vw+0.9rem,1.125rem)] font-extrabold leading-none tracking-tight text-slate-900">
                 BeforeToBuy
               </h1>
@@ -97,8 +97,7 @@ export function Header({
           <div className="mt-1.5 flex items-stretch gap-3 sm:gap-4 min-w-0">
             <div className="flex shrink-0 flex-col items-center gap-0.5">
               <Link
-                href="/"
-                locale={locale}
+                href={homeHref}
                 className="relative block h-11 w-11 sm:h-12 sm:w-12"
                 aria-label="BeforeToBuy — top of page"
                 title="Top of page"

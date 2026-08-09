@@ -3,22 +3,35 @@ import Link from "next/link";
 import { HelpCircle, ChevronDown } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { JsonLd } from "@/components/JsonLd";
+import { getLegalCopy } from "@/lib/legal-copy";
 import { createPageMetadata } from "@/lib/metadata";
-import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
-import { HOME_UI } from "@/lib/i18n/ui";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { withLangParam } from "@/lib/seo/site-url";
+import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
 import { buildFaqPageJsonLd } from "@/lib/seo/json-ld";
 import { flattenFaqItems, getFaqCatalog } from "@/lib/seo/faq-catalog";
 
-const homeUi = HOME_UI[DEFAULT_LOCALE];
-const faqSections = getFaqCatalog(DEFAULT_LOCALE);
+type Props = {
+  searchParams: LocaleSearchParams;
+};
 
-export const metadata: Metadata = createPageMetadata({
-  title: HOME_UI.en.helpMetaTitle,
-  description: HOME_UI.en.helpMetaDescription,
-  path: "/help",
-});
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const locale = await resolvePageLocale(searchParams);
+  const homeUi = HOME_UI[locale];
 
-export default function HelpPage() {
+  return createPageMetadata({
+    title: homeUi.helpMetaTitle,
+    description: homeUi.helpMetaDescription,
+    path: "/help",
+    locale,
+  });
+}
+
+export default async function HelpPage({ searchParams }: Props) {
+  const locale = await resolvePageLocale(searchParams);
+  const homeUi = HOME_UI[locale];
+  const legalCopy = getLegalCopy(locale);
+  const faqSections = getFaqCatalog(locale);
   const faqItems = flattenFaqItems(faqSections);
   const faqJsonLd = buildFaqPageJsonLd(faqItems.map((item) => ({ q: item.q, a: item.a })));
 
@@ -34,8 +47,7 @@ export default function HelpPage() {
           <h1 className="text-3xl font-extrabold">{homeUi.helpAndFAQ}</h1>
           <p className="text-sm text-slate-300">{homeUi.helpIntro}</p>
           <p className="text-xs text-slate-400">
-            {faqItems.length} questions covering lowest-price comparison, feeds, affiliate honesty, and shopping tips —
-            structured for search discovery.
+            {formatUi(legalCopy.help.summary, { count: faqItems.length })}
           </p>
         </div>
 
@@ -70,19 +82,19 @@ export default function HelpPage() {
           <p className="font-bold">{homeUi.stillNeedHelp}</p>
           <p>
             {homeUi.visitOur}{" "}
-            <Link href="/contact" className="font-semibold underline">
+            <Link href={withLangParam("/contact", locale)} className="font-semibold underline">
               {homeUi.contactPage}
             </Link>
             ,{" "}
-            <Link href="/complaints" className="font-semibold underline">
+            <Link href={withLangParam("/complaints", locale)} className="font-semibold underline">
               {homeUi.complaintsProcedure}
             </Link>
             ,{" "}
-            <Link href="/transparency" className="font-semibold underline">
+            <Link href={withLangParam("/transparency", locale)} className="font-semibold underline">
               {homeUi.platformNotices}
             </Link>
             , {homeUi.or}{" "}
-            <Link href="/legal" className="font-semibold underline">
+            <Link href={withLangParam("/legal", locale)} className="font-semibold underline">
               {homeUi.legalHub}
             </Link>
             {homeUi.dot}

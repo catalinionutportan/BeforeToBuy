@@ -1,22 +1,32 @@
 import { prisma } from "@/lib/db";
+import type { Offer as PrismaOffer, Prisma } from "@prisma/client";
 import type { CountryCode, Product, Offer } from "@/types";
 import { getParentCategoryId, resolveCategoryAlias } from "@/lib/categories";
 import { expandCategoryFilterToDbIds } from "@/lib/db-category-filter";
+import type { OfferFilterCriteria } from "@/lib/offers/offer-filters";
+
+type PrismaProductWithOffers = Prisma.ProductGetPayload<{ include: { offers: true } }>;
+
+function lowestOfferTotal(product: PrismaProductWithOffers): number {
+  return product.offers.reduce(
+    (lowest, offer) => Math.min(lowest, offer.totalPrice ?? offer.price + (offer.deliveryCost ?? 0)),
+    Number.POSITIVE_INFINITY
+  );
+}
 
 /** Convert Prisma Offer to Application Offer */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapPrismaOffer(o: any): Offer {
+function mapPrismaOffer(o: PrismaOffer): Offer {
   return {
     id: o.id,
     storeName: o.storeName,
     price: o.price,
-    originalPrice: o.originalPrice || undefined,
-    discountPercentage: o.discountPercentage || undefined,
+    originalPrice: o.originalPrice ?? undefined,
+    discountPercentage: o.discountPercentage ?? undefined,
     currency: o.currency,
     inStock: o.inStock,
     deliveryTime: o.deliveryTime || undefined,
-    deliveryCost: o.deliveryCost || undefined,
-    totalPrice: o.totalPrice || undefined,
+    deliveryCost: o.deliveryCost ?? undefined,
+    totalPrice: o.totalPrice ?? undefined,
     purchaseUrl: o.purchaseUrl,
     affiliateNetwork: o.affiliateNetwork || undefined,
     source: o.source as Offer["source"],
@@ -46,25 +56,69 @@ export function normalizeProductImageUrl(
 }
 
 /** Convert Prisma Product to Application Product */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mapPrismaProduct(p: any): Product {
+export function mapPrismaProduct(p: PrismaProductWithOffers): Product {
   return {
     id: p.id,
     title: p.title,
     description: p.description || "",
     gtin: p.gtin || undefined,
-    brand: p.brand || undefined,
+    brand: p.brand || "",
     category: resolveCategoryAlias(p.category),
-    image: normalizeProductImageUrl(p.image) || p.image || undefined,
+    image: normalizeProductImageUrl(p.image) || p.image || "",
     catalogSource: p.catalogSource as Product["catalogSource"],
     targetCountries: (p.targetCountries || []) as CountryCode[],
     offers: p.offers ? p.offers.map(mapPrismaOffer) : [],
-    basePrice: p.basePrice || undefined,
+    basePrice: p.basePrice ?? undefined,
   };
 }
 
-function buildWhere(countryCode: string, query?: string, category?: string) {
-  const where: Record<string, unknown> = {
+function buildOfferWhere(filters: OfferFilterCriteria = {}): Prisma.OfferWhereInput | undefined {
+  const and: Prisma.OfferWhereInput[] = [];
+
+  if (filters.domain && filters.domain !== "all") {
+    const domain = filters.domain.trim();
+    const token = domain.split(".")[0] || domain;
+    and.push({
+      OR: [
+        { storeName: { contains: token, mode: "insensitive" } },
+        { purchaseUrl: { contains: domain, mode: "insensitive" } },
+      ],
+    });
+  }
+  if (filters.inStockOnly) and.push({ inStock: true });
+  if (filters.freeDeliveryOnly) {
+    and.push({ deliveryCost: { lte: 0 } });
+  }
+
+  const totalRange: Prisma.FloatNullableFilter = {};
+  const priceRange: Prisma.FloatFilter = {};
+  if (filters.minTotalPrice != null) {
+    totalRange.gte = filters.minTotalPrice;
+    priceRange.gte = filters.minTotalPrice;
+  }
+  if (filters.maxTotalPrice != null) {
+    totalRange.lte = filters.maxTotalPrice;
+    priceRange.lte = filters.maxTotalPrice;
+  }
+  if (Object.keys(totalRange).length > 0) {
+    and.push({
+      OR: [
+        { totalPrice: totalRange },
+        { totalPrice: null, price: priceRange },
+      ],
+    });
+  }
+
+  return and.length > 0 ? { AND: and } : undefined;
+}
+
+function buildWhere(
+  countryCode: string,
+  query?: string,
+  category?: string,
+  filters: OfferFilterCriteria = {}
+): Prisma.ProductWhereInput {
+  const where: Prisma.ProductWhereInput = {
     targetCountries: { has: countryCode },
   };
 
@@ -74,11 +128,22 @@ function buildWhere(countryCode: string, query?: string, category?: string) {
   }
 
   if (query?.trim()) {
-    where.title = {
-      contains: query.trim(),
-      mode: "insensitive",
-    };
+    const contains = { contains: query.trim(), mode: "insensitive" as const };
+    where.OR = [
+      { title: contains },
+      { brand: contains },
+      { description: contains },
+      { gtin: contains },
+    ];
   }
+
+  if (filters.brand) {
+    where.brand = { equals: filters.brand.trim(), mode: "insensitive" };
+  }
+  if (filters.hasGtinOnly) where.gtin = { not: null };
+
+  const offerWhere = buildOfferWhere(filters);
+  if (offerWhere) where.offers = { some: offerWhere };
 
   return where;
 }
@@ -116,25 +181,23 @@ export async function getProductsFromDb(
   category?: string,
   limit?: number,
   offset?: number,
-  sort?: string
+  sort?: string,
+  filters: OfferFilterCriteria = {}
 ) {
-  const whereClause = buildWhere(countryCode, query, category);
+  const whereClause = buildWhere(countryCode, query, category, filters);
+  const offerWhere = buildOfferWhere(filters);
   const take = limit == null ? 100 : Math.max(0, Math.floor(limit));
   const skip = Math.max(0, Math.floor(offset || 0));
+  const sortByOfferTotal = sort === "price-asc" || sort === "price-desc";
 
-  let orderBy: any = { updatedAt: "desc" };
-  if (sort === "price-asc") {
-    orderBy = { basePrice: "asc" };
-  } else if (sort === "price-desc") {
-    orderBy = { basePrice: "desc" };
-  }
-
-  const [products, total, countMaps, countryTotal] = await Promise.all([
+  const orderBy: Prisma.ProductOrderByWithRelationInput = { updatedAt: "desc" };
+  const brandWhere = buildWhere(countryCode, query, category, { ...filters, brand: undefined });
+  const [products, total, countMaps, countryTotal, brandRows] = await Promise.all([
     prisma.product.findMany({
       where: whereClause,
-      include: { offers: true },
-      take,
-      skip,
+      include: { offers: offerWhere ? { where: offerWhere } : true },
+      take: sortByOfferTotal ? undefined : take,
+      skip: sortByOfferTotal ? undefined : skip,
       orderBy,
     }),
     prisma.product.count({ where: whereClause }),
@@ -142,13 +205,54 @@ export async function getProductsFromDb(
     prisma.product.count({
       where: { targetCountries: { has: countryCode } },
     }),
+    prisma.product.findMany({
+      where: { ...brandWhere, brand: { not: null } },
+      select: { brand: true },
+      distinct: ["brand"],
+      orderBy: { brand: "asc" },
+    }),
   ]);
 
+  const pageProducts = sortByOfferTotal
+    ? products
+        .sort((a, b) => {
+          const difference = lowestOfferTotal(a) - lowestOfferTotal(b);
+          return sort === "price-desc" ? -difference : difference;
+        })
+        .slice(skip, skip + take)
+    : products;
+
   return {
-    products: products.map(mapPrismaProduct),
+    products: pageProducts.map(mapPrismaProduct),
     totalMatched: total,
     categoryCounts: countMaps.categoryCounts,
     leafCounts: countMaps.leafCounts,
     countryProductCount: countryTotal,
+    brandOptions: Array.from(
+      new Map(
+        brandRows
+          .map((row) => row.brand?.trim())
+          .filter((brand): brand is string => Boolean(brand))
+          .map((brand) => [brand.toLocaleLowerCase(), brand] as const)
+      ).values()
+    ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })),
   };
+}
+
+/** Production offers used by the scheduled price-history snapshot. */
+export async function getSnapshotProductsFromDb(countryCode: CountryCode): Promise<Product[]> {
+  const products = await prisma.product.findMany({
+    where: {
+      targetCountries: { has: countryCode },
+      offers: { some: { source: "production-live", inStock: true } },
+    },
+    include: {
+      offers: {
+        where: { source: "production-live", inStock: true },
+      },
+    },
+    orderBy: { id: "asc" },
+  });
+
+  return products.map(mapPrismaProduct);
 }

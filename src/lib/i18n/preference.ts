@@ -6,6 +6,7 @@ import {
 import type { CountryCode } from "@/types";
 
 export const LANG_STORAGE_KEY = "btb-ui-lang";
+export const LANG_COOKIE_KEY = "btb-ui-lang";
 export const LANG_QUERY_PARAM = "lang";
 
 export function readStoredLocale(): SiteLocale | null {
@@ -24,6 +25,7 @@ export function writeStoredLocale(locale: SiteLocale): void {
   } catch {
     // ignore quota / private mode
   }
+  document.cookie = `${LANG_COOKIE_KEY}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`;
 }
 
 export function resolveInitialLocale(countryCode: CountryCode): {
@@ -43,7 +45,10 @@ export function resolveInitialLocale(countryCode: CountryCode): {
   }
 
   const stored = readStoredLocale();
-  if (stored) return { locale: stored, explicit: true };
+  if (stored) {
+    writeStoredLocale(stored);
+    return { locale: stored, explicit: true };
+  }
 
   return { locale: defaultLocaleFromCountry(countryCode), explicit: false };
 }

@@ -433,7 +433,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "casti alergare/sport - wireless si cu fir": "audio-headphones",
       "aspiratoare robot": "cleaning-robots",
       "selfie stick": "mobile-accessories",
-      "navigatie gps": "mobile-navigation-radio",
+      "dispozitiv navigatie": "mobile-navigation-radio",
       "imprimante foto": "photo-compact",
       "telefoane voip": "office-tech",
       "stylus pen": "mobile-accessories",

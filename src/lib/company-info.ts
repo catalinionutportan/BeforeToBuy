@@ -128,8 +128,6 @@ export const AFFILIATE_NETWORKS = [
 export const DATA_PROCESSORS = [
   { name: "Vercel Inc.", purpose: "Hosting, CDN, server logs", region: "USA/EU" },
   { name: "Upstash Redis", purpose: "Optional rate-limit counters and price-history cache (when configured)", region: "USA/EU" },
-  { name: "ipapi.co", purpose: "IP geolocation (with Location consent)", region: "EU" },
-  { name: "OpenStreetMap Nominatim", purpose: "Reverse geocoding (with Location consent)", region: "EU" },
   { name: "Datadog", purpose: "Optional browser RUM / performance monitoring (with Analytics consent)", region: "USA/EU" },
   { name: "Resend", purpose: "Contact form email delivery (when configured)", region: "USA" },
   { name: "AWIN / merchant partners", purpose: "Affiliate tracking on merchant domains when production feeds are configured (with Affiliate consent)", region: "Various" },

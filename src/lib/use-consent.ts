@@ -24,7 +24,6 @@ export function useConsent() {
     isLoaded,
     preferences,
     hasBanner: isLoaded && !preferences,
-    location: preferences?.location ?? false,
     affiliate: preferences?.affiliate ?? false,
     analytics: preferences?.analytics ?? false,
   };

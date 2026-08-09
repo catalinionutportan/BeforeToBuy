@@ -1,27 +1,45 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShieldCheck, Lock, MapPin, Database, Eye, Cookie, Mail, Clock, Globe } from "lucide-react";
+import { ShieldCheck, Lock, Database, Eye, Cookie, Mail, Clock, Globe } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
-import { createPageMetadata } from "@/lib/metadata";
-import { COMPANY, DATA_PROCESSORS, LEGAL_CONTACT } from "@/lib/company-info";
+import { COMPANY, LEGAL_CONTACT } from "@/lib/company-info";
+import { DSAR_RESPONSE_DAYS } from "@/lib/legal-config";
 import {
-  DSAR_RESPONSE_DAYS,
-  PROCESSING_PURPOSES,
-  RETENTION_SCHEDULE,
-} from "@/lib/legal-config";
-import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+  getLegalCopy,
+  getLocalizedDataProcessors,
+  getLocalizedProcessingPurposes,
+  getLocalizedRetentionSchedule,
+} from "@/lib/legal-copy";
+import { createPageMetadata } from "@/lib/metadata";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { withLangParam } from "@/lib/seo/site-url";
+import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
 
-const homeUi = HOME_UI[DEFAULT_LOCALE];
+type Props = {
+  searchParams: LocaleSearchParams;
+};
 
-export const metadata: Metadata = createPageMetadata({
-  title: HOME_UI.en.privacyMetaTitle,
-  description: HOME_UI.en.privacyMetaDescription,
-  path: "/privacy",
-});
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const locale = await resolvePageLocale(searchParams);
+  const homeUi = HOME_UI[locale];
 
-export default function PrivacyPage() {
+  return createPageMetadata({
+    title: homeUi.privacyMetaTitle,
+    description: homeUi.privacyMetaDescription,
+    path: "/privacy",
+    locale,
+  });
+}
+
+export default async function PrivacyPage({ searchParams }: Props) {
+  const locale = await resolvePageLocale(searchParams);
+  const homeUi = HOME_UI[locale];
+  const legalCopy = getLegalCopy(locale);
+  const processors = getLocalizedDataProcessors(locale);
+  const processingPurposes = getLocalizedProcessingPurposes(locale);
+  const retentionSchedule = getLocalizedRetentionSchedule(locale);
+
   return (
     <PageShell>
       <div className="space-y-8">
@@ -30,9 +48,7 @@ export default function PrivacyPage() {
             {homeUi.privacyPolicyDEEN}
           </span>
           <h1 className="text-3xl font-extrabold">{homeUi.privacyPolicyDEENTitle}</h1>
-          <p className="text-slate-300 text-sm">
-            {homeUi.privacyPolicyDEENText}
-          </p>
+          <p className="text-slate-300 text-sm">{homeUi.privacyPolicyDEENText}</p>
         </div>
 
         <LegalDraftNotice />
@@ -44,7 +60,8 @@ export default function PrivacyPage() {
               {homeUi.dataControllerTitle}
             </h2>
             <p className="text-xs text-slate-600">
-              {homeUi.dataControllerIntroPart1}{" "}<strong>{COMPANY.platformName}</strong>{homeUi.dataControllerIntroPart2}
+              {homeUi.dataControllerIntroPart1} <strong>{COMPANY.platformName}</strong>
+              {homeUi.dataControllerIntroPart2}
               <br />
               <strong>{COMPANY.legalName}</strong>
               <br />
@@ -64,7 +81,7 @@ export default function PrivacyPage() {
             </h2>
             <p className="text-xs text-slate-600">
               {homeUi.cookiesAndConsentBodyPart1}{" "}
-              <Link href="/cookies" className="text-emerald-700 underline font-semibold">
+              <Link href={withLangParam("/cookies", locale)} className="text-emerald-700 underline font-semibold">
                 {homeUi.cookiePolicy}
               </Link>{" "}
               {homeUi.cookiesAndConsentBodyPart2}
@@ -73,31 +90,13 @@ export default function PrivacyPage() {
 
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-emerald-600" />
-              {homeUi.locationDataTitle}
-            </h2>
-            <p className="text-xs text-slate-600">
-              {homeUi.locationDataIntro}
-            </p>
-            <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
-              <li>{homeUi.locationDataPoint1}</li>
-              <li>{homeUi.locationDataPoint2}</li>
-              <li>{homeUi.locationDataPoint3}</li>
-              <li>{homeUi.locationDataPoint4}</li>
-            </ul>
-          </section>
-
-          <section className="space-y-2 border-t border-slate-100 pt-4">
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Database className="w-5 h-5 text-emerald-600" />
               {homeUi.affiliateLinksProcessorsTitle}
             </h2>
-            <p className="text-xs text-slate-600">
-              {homeUi.affiliateLinksProcessorsBody1}
-            </p>
+            <p className="text-xs text-slate-600">{homeUi.affiliateLinksProcessorsBody1}</p>
             <p className="text-xs text-slate-600 font-semibold mt-2">{homeUi.subProcessorsRecipients}</p>
             <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
-              {DATA_PROCESSORS.map((processor) => (
+              {processors.map((processor) => (
                 <li key={processor.name}>
                   <strong>{processor.name}</strong> — {processor.purpose} ({processor.region})
                 </li>
@@ -108,14 +107,11 @@ export default function PrivacyPage() {
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Database className="w-5 h-5 text-emerald-600" aria-hidden="true" />
-              Processing purposes &amp; legal bases
+              {legalCopy.privacy.processingTitle}
             </h2>
-            <p className="text-xs text-slate-600">
-              Swiss nDSG applies to our processing as a Swiss controller. Where the EU GDPR applies to visitors in the EU/EEA,
-              you may also exercise GDPR rights. This notice is a draft transparency summary, not a certification.
-            </p>
+            <p className="text-xs text-slate-600">{legalCopy.privacy.processingBody}</p>
             <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
-              {PROCESSING_PURPOSES.map((item) => (
+              {processingPurposes.map((item) => (
                 <li key={item.purpose}>
                   <strong>{item.purpose}</strong> — {item.basis}
                 </li>
@@ -126,14 +122,9 @@ export default function PrivacyPage() {
           <section className="space-y-2 border-t border-slate-100 pt-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Globe className="w-5 h-5 text-emerald-600" aria-hidden="true" />
-              International transfers
+              {legalCopy.privacy.transfersTitle}
             </h2>
-            <p className="text-xs text-slate-600">
-              Some processors (notably Vercel, Datadog, and Resend when configured) may process data in the United States
-              or other countries. We use them for hosting, optional performance monitoring, and contact-form delivery.
-              Optional features that involve these processors require your consent where indicated. Standard contractual
-              / transfer mechanisms used by those providers may apply; details are available from each provider.
-            </p>
+            <p className="text-xs text-slate-600">{legalCopy.privacy.transfersBody}</p>
           </section>
 
           <section className="space-y-2 border-t border-slate-100 pt-4">
@@ -142,7 +133,7 @@ export default function PrivacyPage() {
               {homeUi.retentionTitle}
             </h2>
             <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
-              {RETENTION_SCHEDULE.map((item) => (
+              {retentionSchedule.map((item) => (
                 <li key={item.data}>
                   <strong>{item.data}:</strong> {item.retention}{" "}
                   <span className="text-slate-500">({item.legalBasis})</span>
@@ -156,9 +147,7 @@ export default function PrivacyPage() {
               <Lock className="w-5 h-5 text-emerald-600" aria-hidden="true" />
               {homeUi.serverLogsTitle}
             </h2>
-            <p className="text-xs text-slate-600">
-              {homeUi.serverLogsBody}
-            </p>
+            <p className="text-xs text-slate-600">{homeUi.serverLogsBody}</p>
           </section>
 
           <section className="space-y-2 border-t border-slate-100 pt-4">
@@ -166,9 +155,7 @@ export default function PrivacyPage() {
               <Eye className="w-5 h-5 text-emerald-600" />
               {homeUi.yourRightsTitle}
             </h2>
-            <p className="text-xs text-slate-600">
-              {homeUi.yourRightsBody1}
-            </p>
+            <p className="text-xs text-slate-600">{homeUi.yourRightsBody1}</p>
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs space-y-2 mt-2">
               <p className="font-bold text-slate-900 flex items-center gap-1.5">
                 <Mail className="w-4 h-4 text-emerald-600" />
@@ -181,18 +168,21 @@ export default function PrivacyPage() {
                     {LEGAL_CONTACT.dsar}
                   </a>{" "}
                   {homeUi.howToSubmitDSARStep1Part2}{" "}
-                  <Link href="/contact" className="text-emerald-700 underline font-semibold">
+                  <Link href={withLangParam("/contact", locale)} className="text-emerald-700 underline font-semibold">
                     {homeUi.contactForm}
                   </Link>{" "}
                   {homeUi.howToSubmitDSARStep1Part3}
                 </li>
                 <li>{homeUi.howToSubmitDSARStep2}</li>
                 <li>{homeUi.howToSubmitDSARStep3}</li>
-                <li>{formatUi(homeUi.howToSubmitDSARStep4, { dsarDays: DSAR_RESPONSE_DAYS })}</li>
+                <li
+                  dangerouslySetInnerHTML={{
+                    __html: formatUi(homeUi.howToSubmitDSARStep4, { dsarDays: DSAR_RESPONSE_DAYS }),
+                  }}
+                />
               </ol>
               <p className="text-slate-600 pt-2">
-                You may also lodge a complaint with the Swiss Federal Data Protection and Information Commissioner
-                (FDPIC / EDÖB):{" "}
+                {legalCopy.privacy.complaintBody}{" "}
                 <a
                   href="https://www.edoeb.admin.ch"
                   target="_blank"
@@ -201,9 +191,9 @@ export default function PrivacyPage() {
                 >
                   edoeb.admin.ch
                 </a>
-                . See also our{" "}
-                <Link href="/complaints" className="text-emerald-700 underline font-semibold">
-                  Complaints Procedure
+                .{" "}
+                <Link href={withLangParam("/complaints", locale)} className="text-emerald-700 underline font-semibold">
+                  {homeUi.complaintsProcedure}
                 </Link>
                 .
               </p>

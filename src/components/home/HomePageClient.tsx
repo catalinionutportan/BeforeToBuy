@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense, useCallback, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Product, PromoCoupon } from "@/types";
+import { CountryCode, Product, PromoCoupon } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { getActiveCouponsForCountry } from "@/lib/feed-parser";
 import type { ProductFetchMeta } from "@/lib/product-service";
@@ -28,8 +28,14 @@ import {
 } from "@/lib/category-i18n";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
-import { applyOfferFilters, hasActiveOfferFilters, parseOfferFiltersFromSearchParams, writeOfferFiltersToSearchParams, type OfferFilterCriteria } from "@/lib/offers/offer-filters";
+import { applyOfferFilters, hasActiveOfferFilters, parseOfferFiltersFromSearchParams, writeOfferFiltersToParams, writeOfferFiltersToSearchParams, type OfferFilterCriteria } from "@/lib/offers/offer-filters";
 import { sortProductsForBrowse, type SortOption } from "@/lib/browse-product-order";
+import {
+  pinBrowseScrollY,
+  readBrowseScrollY,
+  subscribeBrowseScrollRestored,
+  visibleCountForBrowseScroll,
+} from "@/lib/browse-scroll";
 import { DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import {
@@ -49,6 +55,7 @@ const AffiliateDisclosureModal = dynamic(
 );
 
 interface HomePageClientProps {
+  initialCountry: CountryCode;
   /** Server-fetched catalog for the default browse location, used for first paint. */
   initialProducts?: Product[];
   initialMeta?: ProductFetchMeta | null;
@@ -57,6 +64,7 @@ interface HomePageClientProps {
 }
 
 export default function HomePageClient({
+  initialCountry,
   initialProducts = [],
   initialMeta = null,
   initialFetchFailed = false,
@@ -78,8 +86,9 @@ export default function HomePageClient({
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [catalogMeta, setCatalogMeta] = useState<ProductFetchMeta | null>(initialMeta);
   const [productFetchFailed, setProductFetchFailed] = useState<boolean>(initialFetchFailed);
+  const skippedInitialCatalogRequest = useRef(false);
 
-  const { userLocation, isLocating, errorMessage, handleCountryChange, handleRefreshGps } = useUserLocation();
+  const { userLocation, handleCountryChange } = useUserLocation(initialCountry);
 
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.RO;
   const {
@@ -99,13 +108,14 @@ export default function HomePageClient({
   );
 
   const brandOptions = useMemo(() => {
+    if (catalogMeta?.brandOptions?.length) return catalogMeta.brandOptions;
     const brands = new Set<string>();
     for (const product of products) {
       const brand = product.brand?.trim();
       if (brand) brands.add(brand);
     }
     return Array.from(brands).sort((a, b) => a.localeCompare(b));
-  }, [products]);
+  }, [catalogMeta?.brandOptions, products]);
 
   const hubCounts = useMemo(() => {
     const leafCounts = catalogMeta?.categoryCounts ?? {};
@@ -171,6 +181,23 @@ export default function HomePageClient({
     const controller = new AbortController();
     const requestCountry = userLocation.countryCode;
 
+    const matchesServerCatalog =
+      !skippedInitialCatalogRequest.current &&
+      requestCountry === initialCountry &&
+      !debouncedSearchQuery.trim() &&
+      selectedCategory === ALL_CATEGORIES_ID &&
+      !hasActiveOfferFilters(activeOfferFilters) &&
+      sortOrder === "default" &&
+      initialMeta !== null;
+
+    if (matchesServerCatalog) {
+      skippedInitialCatalogRequest.current = true;
+      setCoupons(getActiveCouponsForCountry(requestCountry));
+      setIsLoadingProducts(false);
+      return () => controller.abort();
+    }
+    skippedInitialCatalogRequest.current = true;
+
     async function loadProductsAndCoupons() {
       // Keep SSR products visible while refetching the same market.
       const hasSsrCatalog = initialProducts.length > 0;
@@ -179,8 +206,6 @@ export default function HomePageClient({
       try {
         const params = new URLSearchParams({
           country: requestCountry,
-          lat: String(userLocation.latitude),
-          lng: String(userLocation.longitude),
           locale: browseLocale,
           limit: String(DEFAULT_PRODUCT_LIST_LIMIT),
           offset: "0",
@@ -192,6 +217,8 @@ export default function HomePageClient({
         if (selectedCategory && selectedCategory !== ALL_CATEGORIES_ID) {
           params.set("category", selectedCategory);
         }
+        writeOfferFiltersToParams(params, activeOfferFilters);
+        if (sortOrder !== "default") params.set("sort", sortOrder);
 
         const response = await fetch(`/api/products?${params.toString()}`, {
           signal: controller.signal,
@@ -213,21 +240,7 @@ export default function HomePageClient({
         };
         if (controller.signal.aborted) return;
 
-        // Never replace a populated grid with an empty empty-market payload
-        // (stale CH cookie / DEFAULT_COUNTRY race). Real empty category filters
-        // still clear when hasProductionFeed is true.
         const nextProducts = data.products || [];
-        if (
-          nextProducts.length === 0 &&
-          !debouncedSearchQuery.trim() &&
-          data.meta &&
-          !data.meta.hasProductionFeed
-        ) {
-          setCatalogMeta(data.meta);
-          setProductFetchFailed(false);
-          return;
-        }
-
         setProducts(nextProducts);
         setCatalogMeta(data.meta || null);
         setProductFetchFailed(false);
@@ -253,11 +266,27 @@ export default function HomePageClient({
     debouncedSearchQuery,
     browseLocale,
     selectedCategory,
+    activeOfferFilters,
+    sortOrder,
     initialProducts.length,
+    initialCountry,
+    initialMeta,
     setProducts,
     setCatalogMeta,
     setCoupons,
   ]);
+
+  const changeCountry = useCallback(
+    (countryCode: CountryCode) => {
+      // Never display offers from the previous market while the new market loads.
+      setProducts([]);
+      setCatalogMeta(null);
+      setVisibleCount(12);
+      setProductFetchFailed(false);
+      handleCountryChange(countryCode);
+    },
+    [handleCountryChange]
+  );
 
   // Append the next server page when the user scrolls near the end of the loaded set.
   useEffect(() => {
@@ -273,8 +302,6 @@ export default function HomePageClient({
       try {
         const params = new URLSearchParams({
           country: requestCountry,
-          lat: String(userLocation.latitude),
-          lng: String(userLocation.longitude),
           locale: browseLocale,
           limit: String(DEFAULT_PRODUCT_LIST_LIMIT),
           offset: String(nextOffset),
@@ -285,6 +312,8 @@ export default function HomePageClient({
         if (selectedCategory && selectedCategory !== ALL_CATEGORIES_ID) {
           params.set("category", selectedCategory);
         }
+        writeOfferFiltersToParams(params, activeOfferFilters);
+        if (sortOrder !== "default") params.set("sort", sortOrder);
 
         const response = await fetch(`/api/products?${params.toString()}`, {
           signal: controller.signal,
@@ -322,6 +351,8 @@ export default function HomePageClient({
     browseLocale,
     debouncedSearchQuery,
     selectedCategory,
+    activeOfferFilters,
+    sortOrder,
   ]);
 
   const syncBrowseUrl = useCallback(
@@ -465,22 +496,58 @@ export default function HomePageClient({
     setVisibleCount(12);
   }, [selectedCategory, selectedDomain, offerFilters, debouncedSearchQuery, userLocation.countryCode]);
 
+  // After closing a product modal, expand lazy rows BEFORE pinning scroll so
+  // we never land past the short 12-card document end.
+  useEffect(() => {
+    const onRestore = () => {
+      const y = readBrowseScrollY();
+      if (y == null) return;
+      const needed = visibleCountForBrowseScroll(y, displayedProducts.length);
+      setVisibleCount((count) => Math.max(count, needed));
+      requestAnimationFrame(() => {
+        pinBrowseScrollY();
+      });
+    };
+    return subscribeBrowseScrollRestored(onRestore);
+  }, [displayedProducts.length]);
+
   useEffect(() => {
     const node = loadMoreRef.current;
     if (!node) return;
+
+    const grow = () => {
+      setVisibleCount((count) =>
+        count >= displayedProducts.length
+          ? count
+          : Math.min(count + 12, displayedProducts.length)
+      );
+    };
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setVisibleCount((count) =>
-            count >= displayedProducts.length ? count : Math.min(count + 12, displayedProducts.length)
-          );
-        }
+        if (entries.some((entry) => entry.isIntersecting)) grow();
       },
-      { rootMargin: "240px" }
+      { rootMargin: "400px" }
     );
     observer.observe(node);
-    return () => observer.disconnect();
-  }, [displayedProducts.length]);
+
+    // IO often skips if the sentinel is already on-screen after scroll restore.
+    const syncIfVisible = () => {
+      const rect = node.getBoundingClientRect();
+      if (rect.top < window.innerHeight + 400) grow();
+    };
+    syncIfVisible();
+    const raf = requestAnimationFrame(syncIfVisible);
+    const t1 = window.setTimeout(syncIfVisible, 80);
+    const t2 = window.setTimeout(syncIfVisible, 250);
+
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
+  }, [displayedProducts.length, visibleCount]);
 
   const showCategoryEmptyState =
     !isLoadingProducts &&
@@ -495,11 +562,9 @@ export default function HomePageClient({
       {/* Header */}
       <Header
         userLocation={userLocation}
-        onCountryChange={handleCountryChange}
-        onRefreshGps={handleRefreshGps}
+        onCountryChange={changeCountry}
         searchQuery={searchInput}
         onSearchChange={setSearchInput}
-        isLocating={isLocating}
         locale={browseLocale}
         onLocaleChange={setBrowseLocale}
         availableLocales={availableLocales}
@@ -527,7 +592,7 @@ export default function HomePageClient({
       />
 
       {/* Full-width desktop content — no phone-shell max-width */}
-      <main className="flex w-full min-w-0 flex-1 flex-col gap-4 px-3 py-4 sm:px-8 lg:px-12">
+      <main id="main-content" className="flex w-full min-w-0 flex-1 flex-col gap-4 px-3 py-4 sm:px-8 lg:px-12">
         <div className="space-y-3">
           <div
             id="browse-offers"
@@ -577,15 +642,6 @@ export default function HomePageClient({
               </select>
             </div>
           </div>
-
-          {errorMessage && !isLoadingProducts && (
-            <div
-              role="alert"
-              className="bg-amber-50 border border-amber-200 text-amber-950 p-3 rounded-xl text-sm"
-            >
-              <p className="font-semibold break-words">{sanitizeString(errorMessage)}</p>
-            </div>
-          )}
 
           {isLoadingProducts ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
@@ -688,7 +744,7 @@ export default function HomePageClient({
               {homeUi.howCommissions}
             </button>
             <Link href="/disclaimer" className="hover:text-slate-700 hover:underline">
-              Beta / Demo
+              {homeUi.priceServiceDisclaimer}
             </Link>
           </div>
         </div>

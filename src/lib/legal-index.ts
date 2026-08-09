@@ -25,7 +25,7 @@ export const LEGAL_COMPANY_SECTIONS: LegalIndexSection[] = [
       {
         href: "/transparency",
         label: "Platform notices & transparency",
-        description: "Operator notice, GPS privacy summary, affiliate zero-markup, price verification.",
+        description: "Operator notice, affiliate zero-markup, and price verification.",
       },
       {
         href: "/about",
@@ -56,7 +56,7 @@ export const LEGAL_COMPANY_SECTIONS: LegalIndexSection[] = [
       {
         href: "/cookies",
         label: "Cookie Policy",
-        description: "Essential, Location, Affiliate, and Analytics cookie categories.",
+        description: "Essential, Affiliate, and Analytics cookie categories.",
       },
       {
         href: "/accessibility",
@@ -82,7 +82,7 @@ export const LEGAL_COMPANY_SECTIONS: LegalIndexSection[] = [
       {
         href: "/disclaimer",
         label: "Price & service disclaimer",
-        description: "Beta/Demo limits, sample vs production feeds, merchant checkout authority.",
+        description: "Sample/demo limits, sample vs production feeds, merchant checkout authority.",
       },
       {
         href: "/policies/comparison",
@@ -107,7 +107,7 @@ export const LEGAL_COMPANY_SECTIONS: LegalIndexSection[] = [
       {
         href: "/policies/notifications",
         label: "Platform notices policy",
-        description: "How we publish operator and beta notices for users and partners.",
+        description: "How we publish operator and service notices for users and partners.",
       },
     ],
   },

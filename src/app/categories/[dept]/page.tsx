@@ -11,7 +11,7 @@ import {
 } from "@/lib/category-routes";
 import { fetchCatalogForCountry } from "@/lib/category-page-data";
 import { createCategoryMetadata } from "@/lib/metadata";
-import { getDepartmentLabel, getSubcategoryLabel, localeFromCountry } from "@/lib/category-i18n";
+import { getDepartmentLabel, getSubcategoryLabel } from "@/lib/category-i18n";
 import { getCategoryById } from "@/lib/categories";
 import { COUNTRIES } from "@/lib/countries";
 import { getRequestMarketCountry } from "@/lib/request-market";
@@ -21,6 +21,8 @@ import {
 } from "@/lib/product-list-options";
 import { ChevronRight } from "lucide-react";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
+import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
+import { withLangParam } from "@/lib/seo/site-url";
 
 export const dynamic = "force-dynamic";
 
@@ -31,13 +33,14 @@ const PAGE_LIST = {
 
 interface DepartmentPageProps {
   params: Promise<{ dept: string }>;
+  searchParams: LocaleSearchParams;
 }
 
-export async function generateMetadata({ params }: DepartmentPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: DepartmentPageProps): Promise<Metadata> {
   const { dept } = await params;
   const route = validateDepartmentRoute(dept);
   const countryCode = await getRequestMarketCountry();
-  const locale = localeFromCountry(countryCode);
+  const locale = await resolvePageLocale(searchParams);
   const homeUi = HOME_UI[locale];
 
   if (!route) {
@@ -46,6 +49,7 @@ export async function generateMetadata({ params }: DepartmentPageProps): Promise
       description: homeUi.categoryNotFoundMetaDescription,
       path: `/categories/${dept}`,
       index: false,
+      locale,
     });
   }
 
@@ -59,15 +63,17 @@ export async function generateMetadata({ params }: DepartmentPageProps): Promise
     }),
     path: `/categories/${dept}`,
     index: (catalog.meta.totalMatched ?? catalog.products.length) > 0,
+    locale,
   });
 }
 
-export default async function DepartmentCategoryPage({ params }: DepartmentPageProps) {
+export default async function DepartmentCategoryPage({ params, searchParams }: DepartmentPageProps) {
   const { dept } = await params;
   const route = validateDepartmentRoute(dept);
   if (!route) notFound();
 
-  const canonicalPath = canonicalDepartmentPath(dept, route.deptId);
+  const locale = await resolvePageLocale(searchParams);
+  const canonicalPath = canonicalDepartmentPath(dept, route.deptId, locale);
   if (canonicalPath) redirect(canonicalPath);
 
   const category = getCategoryById(route.deptId);
@@ -75,7 +81,6 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
 
   const countryCode = await getRequestMarketCountry();
   const country = COUNTRIES[countryCode];
-  const locale = localeFromCountry(countryCode);
   const homeUi = HOME_UI[locale];
   const catalog = await fetchCatalogForCountry(countryCode, route.deptId, PAGE_LIST);
   const visibleSubs = category.subcategories.filter(
@@ -88,8 +93,8 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
       <div className="space-y-8">
         <CategoryBreadcrumbs
           items={[
-            { label: "Home", href: "/" },
-            { label: homeUi.categories, href: "/categories" },
+            { label: "Home", href: withLangParam("/", locale) },
+            { label: homeUi.categories, href: withLangParam("/categories", locale) },
             { label: departmentLabel },
           ]}
         />
@@ -118,7 +123,7 @@ export default async function DepartmentCategoryPage({ params }: DepartmentPageP
               {visibleSubs.map((sub) => (
                 <Link
                   key={sub.id}
-                  href={subcategoryCategoryPath(route.deptId, sub.id)}
+                  href={subcategoryCategoryPath(route.deptId, sub.id, locale)}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-slate-300 hover:text-slate-900 transition-colors"
                 >
                   {getSubcategoryLabel(sub.id, locale)}

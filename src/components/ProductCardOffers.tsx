@@ -9,7 +9,6 @@ import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import {
   ExternalLink,
   Truck,
-  Store,
   Globe,
   ShoppingBag,
   Info,
@@ -67,7 +66,7 @@ export function ProductCardOffers({
           {formatUi(ui.offersInCountry, { country: currentCountryInfo.name })}
         </span>
         <span>
-          {formatUi(ui.comparePrices, { count: product.offers.length })}
+          {ui.comparePrices}
         </span>
       </div>
 
@@ -88,9 +87,7 @@ export function ProductCardOffers({
               }`}
             >
               <div className="flex items-start gap-2 min-w-0 flex-1">
-                {offer.type === "local_pickup" ? (
-                  <Store className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
-                ) : offer.type === "cross_border" ? (
+                {offer.type === "cross_border" ? (
                   <Globe className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" aria-hidden="true" />
                 ) : (
                   <ShoppingBag className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" aria-hidden="true" />

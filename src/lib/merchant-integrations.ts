@@ -155,7 +155,6 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     merchantId: "ro-rowenta",
     merchantName: "Rowenta.ro",
     envVar: "TWO_PERFORMANT_FEED_URL_RO_ROWENTA",
-    // defaultRemoteUrl: "https://api.2performant.com/feed/c55b99d30.csv",
     sampleFile: "sample-2performant-rowenta-ro.csv",
     sampleFormat: "csv",
     // Offline Supabase import only — never fetch CSV on visitor requests.
@@ -169,7 +168,6 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     merchantId: "ro-scule365",
     merchantName: "Scule365.ro",
     envVar: "TWO_PERFORMANT_FEED_URL_RO_SCULE365",
-    // defaultRemoteUrl: "https://api.2performant.com/feed/fcdbb3e99.csv",
     sampleFile: "sample-2performant-scule365-ro.csv",
     sampleFormat: "csv",
     enabled: false,

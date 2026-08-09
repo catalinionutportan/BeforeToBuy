@@ -10,10 +10,11 @@ import {
   resolveCategoryAlias,
 } from "@/lib/categories";
 import type { SiteLocale } from "./i18n/locales";
+import { withLangParam } from "./seo/site-url";
 
-/** Locale is a client preference — do not invent /de /fr path prefixes without [locale] routes. */
-function addLocalePrefix(path: string, _locale?: SiteLocale): string {
-  return path;
+/** Preserve language as a query parameter; the site has no locale path prefixes. */
+function addLocalePrefix(path: string, locale?: SiteLocale): string {
+  return locale ? withLangParam(path, locale) : path;
 }
 
 export function departmentCategoryPath(deptId: string, locale?: SiteLocale): string {

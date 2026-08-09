@@ -30,26 +30,12 @@ export function getPrimaryLiveBrowseCountry(): CountryCode {
   return DEFAULT_COUNTRY;
 }
 
-/**
- * Use the preferred market when it has a browse catalogue; otherwise primary live.
- * Prevents empty CH/DE catalogues from cookie, IP geo, or stale DEFAULT_COUNTRY.
- * Manual RO selection must stick even with request-path feeds disabled.
- */
+/** Use a supported preferred market, even when its catalogue is currently empty. */
 export function resolveBrowseCountry(
   preferred: CountryCode | null | undefined
 ): CountryCode {
-  if (preferred && countryHasBrowseCatalogue(preferred)) return preferred;
-  return getPrimaryLiveBrowseCountry();
-}
-
-/**
- * Map a raw geo country code onto a live browse market.
- * Unknown / missing codes → primary live market (never silent CH).
- */
-export function resolveGeoCountryCode(raw: string | null | undefined): CountryCode {
-  const code = raw?.trim().toUpperCase();
-  if (code && Object.prototype.hasOwnProperty.call(COUNTRIES, code)) {
-    return resolveBrowseCountry(code as CountryCode);
+  if (preferred && Object.prototype.hasOwnProperty.call(COUNTRIES, preferred)) {
+    return preferred;
   }
   return getPrimaryLiveBrowseCountry();
 }

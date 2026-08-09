@@ -18,7 +18,7 @@ import { sync2PerformantFeed } from "./sync-feeds";
 import { prisma } from "../lib/db";
 
 type FeedSpec = {
-  url: string;
+  envVar: string;
   merchantId: string;
   storeName: string;
   countryCode: string;
@@ -32,14 +32,14 @@ type FeedSpec = {
  */
 const FEEDS: FeedSpec[] = [
   {
-    url: "https://api.2performant.com/feed/c55b99d30.csv",
+    envVar: "TWO_PERFORMANT_FEED_URL_RO_ROWENTA",
     merchantId: "ro-rowenta",
     storeName: "Rowenta.ro",
     countryCode: "RO",
     currency: "RON",
   },
   {
-    url: "https://api.2performant.com/feed/fcdbb3e99.csv",
+    envVar: "TWO_PERFORMANT_FEED_URL_RO_SCULE365",
     merchantId: "ro-scule365",
     storeName: "Scule365.ro",
     countryCode: "RO",
@@ -100,18 +100,26 @@ async function main() {
     `Importing ${selected.length} feed(s): ${selected.map((f) => f.storeName).join(", ")}`
   );
 
+  const failures: string[] = [];
   for (const feed of selected) {
     console.log(`\n=== ${feed.storeName} (${feed.merchantId}) ===`);
     try {
-      await sync2PerformantFeed(
-        feed.url,
+      const feedUrl = process.env[feed.envVar]?.trim();
+      if (!feedUrl) {
+        throw new Error(`Missing required environment variable ${feed.envVar}.`);
+      }
+      const written = await sync2PerformantFeed(
+        feedUrl,
         feed.merchantId,
         feed.storeName,
         feed.countryCode,
         feed.currency
       );
-    } catch (err) {
-      console.error(`Failed import for ${feed.storeName}:`, err);
+      console.log(`${feed.storeName}: ${written} offers synchronized.`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      failures.push(`${feed.storeName}: ${message}`);
+      console.error(`Failed import for ${feed.storeName}:`, message);
     }
   }
 
@@ -120,11 +128,17 @@ async function main() {
     prisma.offer.count(),
   ]);
   console.log(`\nDB totals → Product: ${productCount}, Offer: ${offerCount}`);
-  await prisma.$disconnect();
+
+  if (failures.length > 0) {
+    throw new Error(`Import failed for ${failures.length} feed(s):\n${failures.join("\n")}`);
+  }
 }
 
-main().catch(async (err) => {
-  console.error(err);
-  await prisma.$disconnect();
-  process.exit(1);
-});
+main()
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

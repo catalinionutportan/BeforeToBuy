@@ -8,7 +8,7 @@ import {
 
 function offer(
   id: string,
-  type: "online" | "local_pickup" | "cross_border"
+  type: "online" | "cross_border"
 ): Product["offers"][number] {
   return {
     id,

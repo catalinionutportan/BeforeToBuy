@@ -10,12 +10,12 @@ const product = {
 
 const location = {
   countryCode: "RO",
-  city: "București",
+  countryName: "Romania",
 } as UserLocation;
 
 describe("getRoOffers", () => {
   it("returns no synthetic RO demo offers (catalog comes from live feeds)", async () => {
-    const offers = await getRoOffers(product, location, null, "en");
+    const offers = await getRoOffers(product, location, "en");
     expect(offers).toEqual([]);
   });
 });

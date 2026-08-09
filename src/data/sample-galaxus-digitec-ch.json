@@ -9,15 +9,7 @@
     "stock_status": "in_stock",
     "product_url": "https://www.digitec.ch/en/s1/product/sample-macbook-air-m3",
     "image_url": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&auto=format&fit=crop&q=80",
-    "merchant_category": "Notebooks & Tablets",
-    "branch_availability": [
-      {
-        "store_name": "Digitec Zurich",
-        "city": "Zurich",
-        "lat": 47.3769,
-        "lng": 8.5417
-      }
-    ]
+    "merchant_category": "Notebooks & Tablets"
   },
   {
     "gtin": "7612345678902",

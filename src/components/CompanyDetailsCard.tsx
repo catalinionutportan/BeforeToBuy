@@ -6,6 +6,15 @@ import { COMPANY } from "@/lib/company-info";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 import { pickLocaleString } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
+import { withLangParam } from "@/lib/seo/site-url";
+
+const COMPANY_COUNTRY_LABELS = {
+  en: "Switzerland",
+  de: "Schweiz",
+  fr: "Suisse",
+  it: "Svizzera",
+  ro: "Elveția",
+} as const;
 
 export function CompanyDetailsCard() {
   const { browseLocale } = useBrowseLocale();
@@ -27,14 +36,14 @@ export function CompanyDetailsCard() {
         <div className="space-y-1">
           <div className="font-bold text-slate-900 flex items-center gap-1.5">
             <MapPin className="w-3.5 h-3.5 text-emerald-600" aria-hidden="true" />
-            Address
+            {homeUi.address}
           </div>
           <p className="text-slate-600 leading-relaxed">
             {COMPANY.address.street}
             <br />
             CH-{COMPANY.address.postalCode} {COMPANY.address.city}
             <br />
-            {COMPANY.address.country}
+            {COMPANY_COUNTRY_LABELS[browseLocale]}
           </p>
         </div>
 
@@ -48,7 +57,7 @@ export function CompanyDetailsCard() {
             <br />
             {pickLocaleString(COMPANY.vatStatus, browseLocale, COMPANY.vatStatus.en)}
             <br />
-            HR-Nr: {COMPANY.hrNumber}
+            {homeUi.hrNr} {COMPANY.hrNumber}
             <br />
             {COMPANY.registryPublication.dailyRegisterDisplay}
             <br />
@@ -88,7 +97,7 @@ export function CompanyDetailsCard() {
 
       <p className="text-slate-500 pt-1">
         {homeUi.operatorOf}{" "}
-        <Link href="/" className="text-emerald-700 font-semibold hover:underline">
+        <Link href={withLangParam("/", browseLocale)} className="text-emerald-700 font-semibold hover:underline">
           {COMPANY.platformName}
         </Link>
       </p>

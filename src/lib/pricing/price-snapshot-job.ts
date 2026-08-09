@@ -2,15 +2,13 @@ import type { CountryCode } from "@/types";
 import { fetchProductsForLocation } from "@/lib/api-aggregator";
 import { COUNTRIES } from "@/lib/countries";
 import { getFeedProducts } from "@/lib/merchant-feeds";
-import {
-  attachOfferTimestamps,
-  mergeFeedAndDemoProducts,
-} from "@/lib/product-identity/merge-products";
+import { mergeFeedAndDemoProducts } from "@/lib/product-identity/merge-products";
 import {
   getPriceHistoryStats,
   recordProductPriceHistory,
 } from "@/lib/pricing/price-history";
 import { resolveCategoryAlias, UNMAPPED_CATEGORY_ID } from "@/lib/categories";
+import { getSnapshotProductsFromDb } from "@/lib/db-service";
 
 export interface PriceSnapshotJobResult {
   ok: true;
@@ -25,12 +23,8 @@ export interface PriceSnapshotJobResult {
 function defaultBrowseLocation(countryCode: CountryCode) {
   const country = COUNTRIES[countryCode];
   return {
-    latitude: country.defaultCoordinates.lat,
-    longitude: country.defaultCoordinates.lng,
     countryCode,
     countryName: country.name,
-    city: country.defaultCoordinates.city,
-    isGps: false as const,
   };
 }
 
@@ -43,20 +37,22 @@ export async function runPriceSnapshotJob(
   let appendedPoints = 0;
 
   for (const countryCode of countries) {
-    const [demoProducts, feedResult] = await Promise.all([
-      fetchProductsForLocation(defaultBrowseLocation(countryCode)),
-      getFeedProducts(countryCode),
-    ]);
+    const databaseProducts = await getSnapshotProductsFromDb(countryCode);
+    let mergedProducts = databaseProducts;
 
-    const mergedProducts = mergeFeedAndDemoProducts(demoProducts, feedResult.products);
+    if (databaseProducts.length === 0) {
+      const [demoProducts, feedResult] = await Promise.all([
+        fetchProductsForLocation(defaultBrowseLocation(countryCode)),
+        getFeedProducts(countryCode),
+      ]);
+      mergedProducts = mergeFeedAndDemoProducts(demoProducts, feedResult.products);
+    }
     const visibleProducts = mergedProducts.filter(
       (product) => resolveCategoryAlias(product.category) !== UNMAPPED_CATEGORY_ID
     );
-    const timestampedProducts = attachOfferTimestamps(visibleProducts, fetchedAt);
-
     productCount += visibleProducts.length;
     offerCount += visibleProducts.reduce((count, product) => count + product.offers.length, 0);
-    appendedPoints += await recordProductPriceHistory(timestampedProducts, fetchedAt);
+    appendedPoints += await recordProductPriceHistory(visibleProducts, fetchedAt);
   }
 
   const stats = await getPriceHistoryStats();

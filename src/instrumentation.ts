@@ -10,7 +10,7 @@ export function register() {
       // and we don't want a misconfigured env var to crash the build/boot.
       console.error(
         "[instrumentation] CONSENT_SIGNING_SECRET is missing or shorter than 32 characters. " +
-          "Consent saving and location APIs will fail closed until it is set."
+          "Saving optional consent preferences will fail closed until it is set."
       );
     }
   }

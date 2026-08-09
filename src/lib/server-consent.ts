@@ -9,7 +9,6 @@ import {
 
 export interface ServerConsentPayload {
   version: number;
-  location: boolean;
   affiliate: boolean;
   issuedAt: number;
 }
@@ -28,14 +27,13 @@ function sign(encodedPayload: string, secret: string): string {
 }
 
 export function createConsentToken(
-  preferences: Pick<ServerConsentPayload, "location" | "affiliate">
+  preferences: Pick<ServerConsentPayload, "affiliate">
 ): string | null {
   const secret = getSigningSecret();
   if (!secret) return null;
 
   const payload: ServerConsentPayload = {
     version: CONSENT_VERSION,
-    location: preferences.location,
     affiliate: preferences.affiliate,
     issuedAt: Date.now(),
   };
@@ -69,7 +67,6 @@ export function verifyConsentToken(token: string | undefined): ServerConsentPayl
 
     if (
       payload.version !== CONSENT_VERSION ||
-      typeof payload.location !== "boolean" ||
       typeof payload.affiliate !== "boolean" ||
       typeof payload.issuedAt !== "number" ||
       payload.issuedAt > now + 60_000 ||
@@ -104,7 +101,6 @@ export function hasServerConsent(request: Request, category: ConsentCategory): b
 
   const payload = verifyConsentToken(getCookie(request, CONSENT_COOKIE_NAME));
   if (!payload) return false;
-  if (category === "location") return payload.location === true;
   if (category === "affiliate") return payload.affiliate === true;
   return false;
 }

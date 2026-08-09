@@ -29,13 +29,11 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Build (ignore DB errors during static generation)
+      - name: Build
         run: npm run build
-        continue-on-error: true
 
-      - name: Audit (report only)
-        run: npm audit --audit-level=high
-        continue-on-error: true
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
 
   e2e:
     runs-on: ubuntu-latest
@@ -57,11 +55,10 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Build (ignore DB errors during static generation)
+      - name: Build
         run: npm run build
-        continue-on-error: true
 
-      - name: Run E2E smoke tests
+      - name: Run E2E tests
         run: npm run test:e2e
         env:
           CI: true

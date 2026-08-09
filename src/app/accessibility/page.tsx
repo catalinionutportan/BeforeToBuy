@@ -5,18 +5,30 @@ import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { LEGAL_CONTACT } from "@/lib/company-info";
-import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
+import { getLegalCopy } from "@/lib/legal-copy";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { withLangParam } from "@/lib/seo/site-url";
+import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
 
-const homeUi = HOME_UI[DEFAULT_LOCALE];
+type Props = {
+  searchParams: LocaleSearchParams;
+};
 
-export const metadata: Metadata = createPageMetadata({
-  title: "Accessibility Statement",
-  description: "Accessibility statement for BeforeToBuy.com — conformance goals, known limitations, and feedback contact.",
-  path: "/accessibility",
-});
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const locale = await resolvePageLocale(searchParams);
+  const legalCopy = getLegalCopy(locale);
 
-export default function AccessibilityPage() {
+  return createPageMetadata({
+    title: legalCopy.accessibility.metaTitle,
+    description: legalCopy.accessibility.metaDescription,
+    path: "/accessibility",
+    locale,
+  });
+}
+
+export default async function AccessibilityPage({ searchParams }: Props) {
+  const locale = await resolvePageLocale(searchParams);
+  const homeUi = HOME_UI[locale];
   return (
     <PageShell maxWidthClass="max-w-3xl">
       <div className="space-y-8">
@@ -79,11 +91,11 @@ export default function AccessibilityPage() {
             </p>
             <p className="text-xs text-slate-600">
               {homeUi.seeAlso}{" "}
-              <Link href="/help" locale={DEFAULT_LOCALE} className="text-emerald-700 underline font-semibold">
+              <Link href={withLangParam("/help", locale)} className="text-emerald-700 underline font-semibold">
                 {homeUi.helpFAQ}
               </Link>{" "}
               {homeUi.and}{" "}
-              <Link href="/complaints" locale={DEFAULT_LOCALE} className="text-emerald-700 underline font-semibold">
+              <Link href={withLangParam("/complaints", locale)} className="text-emerald-700 underline font-semibold">
                 {homeUi.complaintsProcedure}
               </Link>
               .

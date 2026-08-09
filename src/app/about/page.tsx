@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  MapPin,
+  Globe2,
   Zap,
   Building2,
   Search,
@@ -19,16 +19,25 @@ import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY, STAGE_ZERO_MONETIZATION } from "@/lib/company-info";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { SITE_PHASE } from "@/lib/site-config";
+import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
+import { withLangParam } from "@/lib/seo/site-url";
 
-const homeUi = HOME_UI.en;
+type PageProps = { searchParams?: LocaleSearchParams };
 
-export const metadata: Metadata = createPageMetadata({
-  title: "About Us & How It Works",
-  description: homeUi.metaDescription,
-  path: "/about",
-});
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const locale = await resolvePageLocale(searchParams);
+  const ui = HOME_UI[locale];
+  return createPageMetadata({
+    title: `${ui.aboutBeforeToBuy} | BeforeToBuy.com`,
+    description: ui.metaDescription,
+    path: "/about",
+    locale,
+  });
+}
 
-export default function AboutPage() {
+export default async function AboutPage({ searchParams }: PageProps) {
+  const locale = await resolvePageLocale(searchParams);
+  const homeUi = HOME_UI[locale];
   return (
     <PageShell>
       <div className="space-y-10">
@@ -108,7 +117,7 @@ export default function AboutPage() {
                 2
               </div>
               <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-emerald-600" />
+                <Globe2 className="w-4 h-4 text-emerald-600" />
                 {homeUi.step2Title}
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed">
@@ -163,7 +172,7 @@ export default function AboutPage() {
 
           <div className="space-y-4 text-sm text-slate-700 leading-relaxed">
             <p className="text-xs sm:text-sm rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-950">
-              {STAGE_ZERO_MONETIZATION.en}
+              {STAGE_ZERO_MONETIZATION[locale]}
             </p>
             <p className="text-xs sm:text-sm">
               {homeUi.freeForConsumers}
@@ -195,7 +204,7 @@ export default function AboutPage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
             <div className="text-xs text-slate-500">
               {homeUi.companyDetailsQuestions}{" "}
-              <Link href="/legal" className="text-emerald-700 font-bold hover:underline">
+              <Link href={withLangParam("/legal", locale)} className="text-emerald-700 font-bold hover:underline">
                 {homeUi.legalHub}
               </Link>{" "}
               ·{" "}
@@ -204,7 +213,7 @@ export default function AboutPage() {
               </a>
             </div>
             <Link
-              href="/contact"
+              href={withLangParam("/contact", locale)}
               className="bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-colors inline-flex items-center gap-1.5"
             >
               <span>{homeUi.contactUs}</span>

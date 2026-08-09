@@ -12,7 +12,7 @@ export function PageShell({
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <SiteNav />
-      <main className={`mx-auto w-full flex-1 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 ${maxWidthClass}`}>
+      <main id="main-content" className={`mx-auto w-full flex-1 px-4 py-10 sm:px-6 sm:py-12 lg:px-8 ${maxWidthClass}`}>
         {children}
       </main>
     </div>

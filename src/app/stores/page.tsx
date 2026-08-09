@@ -9,7 +9,6 @@ import {
   Search,
   ExternalLink,
   ShieldCheck,
-  MapPin,
   CheckCircle2,
   Filter,
   ArrowRight,
@@ -239,12 +238,6 @@ export default function StoresDirectoryPage() {
                       <span className="font-bold text-emerald-800">{merchant.affiliateNetwork}</span>
                     </div>
 
-                    {merchant.hasClickAndCollect && (
-                      <div className="flex items-center gap-1 text-emerald-700 text-[11px] font-bold pt-1">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{homeUi.supportsClickAndCollect}</span>
-                      </div>
-                    )}
                   </div>
 
                 </div>

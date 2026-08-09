@@ -25,7 +25,7 @@ describe("Merchant Feed Processing", () => {
     vi.restoreAllMocks();
   });
 
-  it("Galaxus JSON sample parses products with pickup offers", () => {
+  it("Galaxus JSON sample parses online offers", () => {
     const sample = `[{
       "gtin":"123",
       "title":"Sample Digitec Phone",
@@ -35,15 +35,14 @@ describe("Merchant Feed Processing", () => {
       "stock_status":"in_stock",
       "product_url":"https://www.digitec.ch/en/sample",
       "image_url":"https://example.com/image.jpg",
-      "merchant_category":"Mobile & Smartphones",
-      "branch_availability":[{"store_name":"Digitec Zurich","city":"Zurich","lat":47.37,"lng":8.54}]
+      "merchant_category":"Mobile & Smartphones"
     }]`;
 
     const parsed = parseGalaxusJsonFeed(sample, "CH", "ch-digitec", "sample");
     expect(parsed.products.length).toBe(1);
     expect(parsed.products[0]?.category).toBe("mobile-smartphones");
-    expect(parsed.products[0]?.offers.length).toBe(2);
-    expect(parsed.products[0]?.offers.some((offer) => offer.type === "local_pickup")).toBe(true);
+    expect(parsed.products[0]?.offers.length).toBe(1);
+    expect(parsed.products[0]?.offers.every((offer) => offer.type === "online")).toBe(true);
   });
 
   it("configured feed parser dispatches by provider", async () => {

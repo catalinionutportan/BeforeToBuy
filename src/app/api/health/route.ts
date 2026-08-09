@@ -88,12 +88,8 @@ async function checkProductsMerge() {
     const probeCode = enabledCountries[0] ?? DEFAULT_COUNTRY;
     const country = COUNTRIES[probeCode] || COUNTRIES[DEFAULT_COUNTRY];
     const result = await fetchMergedProductsForLocation({
-      latitude: country.defaultCoordinates.lat,
-      longitude: country.defaultCoordinates.lng,
       countryCode: probeCode,
       countryName: country.name,
-      city: country.defaultCoordinates.city,
-      isGps: false,
     });
 
     const ok = result.products.length > 0;

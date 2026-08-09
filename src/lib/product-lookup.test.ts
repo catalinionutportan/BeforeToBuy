@@ -13,6 +13,9 @@ describe("product lookup helpers", () => {
     expect(
       productPagePathWithReturn("feed-ro-scule365-1", "/?category=hub-diy")
     ).toBe("/p/feed-ro-scule365-1?from=%2F%3Fcategory%3Dhub-diy");
+    expect(
+      productPagePathWithReturn("feed-ro-scule365-1", "/?category=hub-diy", "ro")
+    ).toBe("/p/feed-ro-scule365-1?from=%2F%3Fcategory%3Dhub-diy&lang=ro");
   });
 
   it("rejects unsafe return paths", () => {

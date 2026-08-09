@@ -1,16 +1,37 @@
 "use client";
 
+import { createContext, useContext } from "react";
+import type { CountryCode } from "@/types";
+import { DEFAULT_COUNTRY } from "@/lib/countries";
+import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import type { SiteLocale } from "@/lib/i18n/locales";
 
-/**
- * Pass-through provider for server-rendered locale context.
- * Locale state is owned by useBrowseLocale() in client components.
- */
+type LocalizationContextValue = {
+  currentCountry: CountryCode;
+  currentLocale: SiteLocale;
+};
+
+const LocalizationContext = createContext<LocalizationContextValue>({
+  currentCountry: DEFAULT_COUNTRY,
+  currentLocale: DEFAULT_LOCALE,
+});
+
+export function useServerLocalization(): LocalizationContextValue {
+  return useContext(LocalizationContext);
+}
+
 export function ClientLocalizationProvider({
   children,
+  currentCountry,
+  currentLocale,
 }: {
   children: React.ReactNode;
+  currentCountry: CountryCode;
   currentLocale: SiteLocale;
 }) {
-  return <>{children}</>;
+  return (
+    <LocalizationContext value={{ currentCountry, currentLocale }}>
+      {children}
+    </LocalizationContext>
+  );
 }

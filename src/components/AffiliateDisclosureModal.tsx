@@ -15,7 +15,7 @@ export function AffiliateDisclosureModal({
   onClose,
 }: AffiliateDisclosureModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const { locale: browseLocale } = useBrowseLocale("RO"); // Initial SSR/locale; runtime country comes from location hook
+  const { locale: browseLocale } = useBrowseLocale();
   const homeUi = HOME_UI[browseLocale];
 
   useEffect(() => {
@@ -85,9 +85,6 @@ export function AffiliateDisclosureModal({
             </ul>
           </div>
 
-          <p className="text-xs text-slate-500">
-            {homeUi.locationDataDisclaimer}
-          </p>
         </div>
 
         <div className="mt-6 flex justify-end">

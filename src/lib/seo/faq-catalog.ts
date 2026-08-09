@@ -41,7 +41,7 @@ const FAQ_EN: FaqSection[] = [
     items: [
       {
         q: "What is BeforeToBuy.com?",
-        a: "A free Beta/Demo price comparison helper operated by PortanX - Catalin Portan in Bern, Switzerland. We compare offers and redirect you to merchant websites — we do not sell products ourselves.",
+        a: "A free price comparison service operated by PortanX - Catalin Portan in Bern, Switzerland. We compare offers and redirect you to merchant websites — we do not sell products ourselves.",
       },
       {
         q: "Do you sell products or process payments?",
@@ -52,15 +52,11 @@ const FAQ_EN: FaqSection[] = [
         a: "Yes. Consumers use the service free of charge. Merchants or affiliate networks may pay us a referral commission from their marketing budget — not as an added fee on your price.",
       },
       {
-        q: "What does Click & Collect mean here?",
-        a: "Where store locations are available, we may show distance estimates so you can compare pickup options. Distances are estimates and do not guarantee stock at that branch.",
-      },
-      {
         q: "Which countries can I browse?",
         a: "The platform targets several markets (including Switzerland and Romania). Availability of live merchant feeds varies by country and partnership status.",
       },
       {
-        q: "What should I expect during Beta/Demo?",
+        q: "What should I know about offer sources?",
         a: "Some offers are production-feed, sample, or demo and are labeled accordingly. Confirm price, VAT, shipping, and availability on the merchant checkout page before buying.",
       },
     ],
@@ -109,11 +105,11 @@ const FAQ_EN: FaqSection[] = [
       },
       {
         q: "Where can I change cookie preferences?",
-        a: "Open Cookie Settings from the site footer at any time to update Essential, Location, Affiliate, and Analytics choices.",
+        a: "Open Cookie Settings from the site footer at any time to update Essential, Affiliate, and Analytics choices.",
       },
       {
-        q: "Do you use my GPS location?",
-        a: "Precise GPS and approximate IP location run only with Location consent. Coordinates stay in the browser session for distance estimates; see our Privacy Policy for processors.",
+        q: "How is my shopping market selected?",
+        a: "On the first visit, BeforeToBuy uses the two-letter country code added to the request by its hosting provider. A market you select manually takes priority afterward.",
       },
       {
         q: "Do I need an account?",
@@ -131,7 +127,7 @@ const FAQ_EN: FaqSection[] = [
     items: [
       {
         q: "How should I compare total cost, not just product price?",
-        a: "Add shipping, VAT/customs, and any pickup fees. A slightly higher product price with free shipping can still be cheaper overall.",
+        a: "Add shipping, VAT, and customs costs. A slightly higher product price with free shipping can still be cheaper overall.",
       },
       {
         q: "How do I avoid fake “too good to be true” prices?",
@@ -151,7 +147,7 @@ const FAQ_EN: FaqSection[] = [
       },
       {
         q: "How often are prices updated?",
-        a: "Update frequency depends on each merchant feed. During Beta, treat listed prices as indicative and re-check at checkout.",
+        a: "Update frequency depends on each merchant feed. Treat listed prices as indicative and re-check them at checkout.",
       },
     ],
   },
@@ -224,7 +220,7 @@ const FAQ_RO: FaqSection[] = [
     items: [
       {
         q: "Ce este BeforeToBuy.com?",
-        a: "Un ajutor gratuit Beta/Demo de comparare a prețurilor, operat de PortanX - Catalin Portan în Berna, Elveția. Comparăm oferte și te redirecționăm către magazine — nu vindem noi produse.",
+        a: "Un serviciu gratuit de comparare a prețurilor, operat de PortanX - Catalin Portan în Berna, Elveția. Comparăm oferte și te redirecționăm către magazine — nu vindem noi produse.",
       },
       {
         q: "Vindeți produse sau procesați plăți?",
@@ -235,15 +231,11 @@ const FAQ_RO: FaqSection[] = [
         a: "Da. Consumatorii folosesc serviciul gratuit. Comercianții sau rețelele de afiliere ne pot plăti un comision din bugetul de marketing — nu ca adaos pe prețul tău.",
       },
       {
-        q: "Ce înseamnă Click & Collect aici?",
-        a: "Unde există locații de magazin, putem afișa estimări de distanță pentru ridicare. Distanțele sunt estimări și nu garantează stocul în acea filială.",
-      },
-      {
         q: "Ce țări pot naviga?",
         a: "Platforma țintește mai multe piețe (inclusiv Elveția și România). Disponibilitatea feed-urilor live variază după țară și parteneriate.",
       },
       {
-        q: "La ce să mă aștept în Beta/Demo?",
+        q: "Ce trebuie să știu despre sursele ofertelor?",
         a: "Unele oferte sunt feed de producție, eșantion sau demo și sunt etichetate. Confirmă prețul, TVA, transportul și stocul pe checkout-ul comerciantului înainte de cumpărare.",
       },
     ],
@@ -292,11 +284,11 @@ const FAQ_RO: FaqSection[] = [
       },
       {
         q: "Unde schimb preferințele cookie?",
-        a: "Deschide Setările cookie din subsol oricând pentru Essential, Locație, Afiliat și Analytics.",
+        a: "Deschide Setările cookie din subsol oricând pentru Esențial, Afiliat și Analytics.",
       },
       {
-        q: "Folosiți locația mea GPS?",
-        a: "GPS precis și IP aproximativ rulează doar cu consimțământ Locație. Coordonatele rămân în sesiunea browserului pentru distanțe; vezi Politica de confidențialitate.",
+        q: "Cum este aleasă piața mea de cumpărături?",
+        a: "La prima vizită, BeforeToBuy folosește codul de țară din două litere adăugat cererii de furnizorul de găzduire. Piața aleasă ulterior manual are prioritate.",
       },
       {
         q: "Am nevoie de un cont?",
@@ -334,7 +326,7 @@ const FAQ_RO: FaqSection[] = [
       },
       {
         q: "Cât de des se actualizează prețurile?",
-        a: "Depinde de fiecare feed. În Beta, tratează prețurile listate ca indicative și re-verifică la checkout.",
+        a: "Depinde de fiecare feed. Tratează prețurile listate ca indicative și verifică-le din nou la checkout.",
       },
     ],
   },

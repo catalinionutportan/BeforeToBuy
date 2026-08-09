@@ -1,15 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { Product } from "@/types";
 import { HOME_UI } from "@/lib/i18n/ui";
 import type { SiteLocale } from "@/lib/i18n/locales";
 import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 import { Sparkles } from "lucide-react";
-
-import { CompareButton } from "./CompareButton";
-import { PriceAlertButton } from "./PriceAlertButton";
 
 interface ProductCardImageProps {
   product: Product;
@@ -24,37 +20,24 @@ export function ProductCardImage({
 }: ProductCardImageProps) {
   const ui = HOME_UI[locale];
   const [broken, setBroken] = useState(false);
-  const useNative = shouldUseNativeProductImage(product.image);
 
   return (
     <div className="relative bg-slate-100/60 aspect-square w-full overflow-hidden">
-      <CompareButton product={product} />
-      <PriceAlertButton product={product} />
-      {/* Padding on the frame only — padding on fill Image crops tall appliances. */}
+      {/* Native feed URL — same src as the product modal, so open is cache-hit. */}
       <div className="absolute inset-2 sm:inset-3">
         {!broken && product.image ? (
-          useNative ? (
-            // Native <img>: Next/Image can reject signed evoMAG CDN query URLs.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={product.image}
-              alt={product.title}
-              loading="lazy"
-              decoding="async"
-              referrerPolicy="no-referrer"
-              className="h-full w-full object-contain object-center"
-              onError={() => setBroken(true)}
-            />
-          ) : (
-            <Image
-              src={product.image}
-              alt={product.title}
-              fill
-              sizes="(max-width: 768px) 50vw, 33vw"
-              className="object-contain object-center"
-              onError={() => setBroken(true)}
-            />
-          )
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.image}
+            alt={product.title}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy={
+              shouldUseNativeProductImage(product.image) ? "no-referrer" : undefined
+            }
+            className="h-full w-full object-contain object-center"
+            onError={() => setBroken(true)}
+          />
         ) : (
           <div className="flex h-full w-full items-center justify-center rounded-md bg-slate-100 text-[11px] font-medium text-slate-400">
             {product.brand}

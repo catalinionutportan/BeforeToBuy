@@ -9,7 +9,7 @@ import {
 } from "@/lib/category-routes";
 import { fetchCatalogForCountry } from "@/lib/category-page-data";
 import { createCategoryMetadata } from "@/lib/metadata";
-import { getCollectionLabel, localeFromCountry } from "@/lib/category-i18n";
+import { getCollectionLabel } from "@/lib/category-i18n";
 import { COMPARISON_COLLECTION_FILTERS } from "@/lib/categories";
 import { COUNTRIES } from "@/lib/countries";
 import { getRequestMarketCountry } from "@/lib/request-market";
@@ -18,6 +18,8 @@ import {
   CATEGORY_PAGE_PRODUCT_LIMIT,
 } from "@/lib/product-list-options";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
+import { withLangParam } from "@/lib/seo/site-url";
 
 export const dynamic = "force-dynamic";
 
@@ -28,13 +30,14 @@ const PAGE_LIST = {
 
 interface CollectionPageProps {
   params: Promise<{ collection: string }>;
+  searchParams: LocaleSearchParams;
 }
 
-export async function generateMetadata({ params }: CollectionPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: CollectionPageProps): Promise<Metadata> {
   const { collection } = await params;
   const collectionId = validateCollectionRoute(collection);
   const countryCode = await getRequestMarketCountry();
-  const locale = localeFromCountry(countryCode);
+  const locale = await resolvePageLocale(searchParams);
   const homeUi = HOME_UI[locale];
 
   if (!collectionId) {
@@ -43,6 +46,7 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
       description: homeUi.collectionNotFoundMetaDescription,
       path: `/compare/${collection}`,
       index: false,
+      locale,
     });
   }
 
@@ -56,24 +60,23 @@ export async function generateMetadata({ params }: CollectionPageProps): Promise
     }),
     path: collectionBrowsePath(collectionId),
     index: (catalog.meta.totalMatched ?? catalog.products.length) > 0,
+    locale,
   });
 }
 
-export default async function ComparisonCollectionPage({ params }: CollectionPageProps) {
+export default async function ComparisonCollectionPage({ params, searchParams }: CollectionPageProps) {
   const { collection } = await params;
   const collectionId = validateCollectionRoute(collection);
   if (!collectionId) notFound();
 
-  if (collection !== collectionId) {
-    redirect(collectionBrowsePath(collectionId));
-  }
+  const locale = await resolvePageLocale(searchParams);
+  if (collection !== collectionId) redirect(collectionBrowsePath(collectionId, locale));
 
   const config = COMPARISON_COLLECTION_FILTERS.find((item) => item.id === collectionId);
   if (!config) notFound();
 
   const countryCode = await getRequestMarketCountry();
   const country = COUNTRIES[countryCode];
-  const locale = localeFromCountry(countryCode);
   const homeUi = HOME_UI[locale];
   const catalog = await fetchCatalogForCountry(countryCode, collectionId, PAGE_LIST);
   const label = getCollectionLabel(collectionId, locale);
@@ -83,8 +86,8 @@ export default async function ComparisonCollectionPage({ params }: CollectionPag
       <div className="space-y-8">
         <CategoryBreadcrumbs
           items={[
-            { label: "Home", href: "/" },
-            { label: homeUi.categories, href: "/categories" },
+            { label: "Home", href: withLangParam("/", locale) },
+            { label: homeUi.categories, href: withLangParam("/categories", locale) },
             { label: label },
           ]}
         />

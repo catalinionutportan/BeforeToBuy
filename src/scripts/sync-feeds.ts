@@ -3,10 +3,14 @@
  * Never run this on a Vercel request path — only local CLI / CI with long timeout.
  */
 import https from "node:https";
-import http from "node:http";
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { Readable } from "node:stream";
+import type { Product } from "@prisma/client";
 import csv from "csv-parser";
 import { prisma } from "../lib/db";
 import { mapToBeforeToBuyCategoryWithMetadata } from "../lib/category-mapper";
@@ -46,6 +50,16 @@ type BatchItem = {
   };
 };
 
+type BatchResult = {
+  written: number;
+  productIds: Set<string>;
+};
+
+const MAX_REDIRECTS = 5;
+const MAX_FEED_BYTES = 250 * 1024 * 1024;
+const REQUEST_TIMEOUT_MS = 30_000;
+const PRODUCT_REFRESH_BATCH_SIZE = 500;
+
 function stripHtml(value: string): string {
   return value
     .replace(/&lt;/g, "<")
@@ -84,24 +98,87 @@ function resolveMerchantProductId(row: RawRow, fallback: number): string {
   return String(fallback);
 }
 
-function openCsvStream(csvUrl: string): Promise<Readable> {
+function isAllowedFeedHost(hostname: string): boolean {
+  const configuredHosts = (process.env.FEED_ALLOWED_HOSTS || "")
+    .split(",")
+    .map((host) => host.trim().toLowerCase())
+    .filter(Boolean);
+  const allowedHosts = ["2performant.com", ...configuredHosts];
+  const normalizedHostname = hostname.toLowerCase();
+
+  return allowedHosts.some(
+    (host) => normalizedHostname === host || normalizedHostname.endsWith(`.${host}`)
+  );
+}
+
+function validateFeedUrl(csvUrl: string): URL {
+  const url = new URL(csvUrl);
+  if (url.protocol !== "https:") {
+    throw new Error("Feed URL must use HTTPS.");
+  }
+  if (url.username || url.password) {
+    throw new Error("Feed URL must not contain credentials.");
+  }
+  if (!isAllowedFeedHost(url.hostname)) {
+    throw new Error(`Feed host is not allowed: ${url.hostname}`);
+  }
+  return url;
+}
+
+function openCsvStream(csvUrl: string, redirectCount = 0): Promise<Readable> {
   return new Promise((resolve, reject) => {
-    const client = csvUrl.startsWith("http://") ? http : https;
-    client
-      .get(csvUrl, (res) => {
+    let url: URL;
+    try {
+      url = validateFeedUrl(csvUrl);
+    } catch (error) {
+      reject(error);
+      return;
+    }
+
+    const request = https.get(url, (res) => {
         if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          openCsvStream(res.headers.location).then(resolve, reject);
+          if (redirectCount >= MAX_REDIRECTS) {
+            reject(new Error(`Feed exceeded ${MAX_REDIRECTS} redirects.`));
+            res.resume();
+            return;
+          }
+          const redirectUrl = new URL(res.headers.location, url).toString();
+          openCsvStream(redirectUrl, redirectCount + 1).then(resolve, reject);
           res.resume();
           return;
         }
-        if (!res.statusCode || res.statusCode >= 400) {
-          reject(new Error(`Feed HTTP ${res.statusCode} for ${csvUrl}`));
+        if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
+          reject(new Error(`Feed request failed with HTTP ${res.statusCode ?? "unknown"}.`));
           res.resume();
           return;
         }
-        resolve(res);
-      })
-      .on("error", reject);
+
+        const contentLength = Number(res.headers["content-length"] || 0);
+        if (contentLength > MAX_FEED_BYTES) {
+          reject(new Error(`Feed exceeds the ${MAX_FEED_BYTES / 1024 / 1024} MB limit.`));
+          res.resume();
+          return;
+        }
+
+        let downloadedBytes = 0;
+        const limiter = new Transform({
+          transform(chunk: Buffer, _encoding, callback) {
+            downloadedBytes += chunk.length;
+            if (downloadedBytes > MAX_FEED_BYTES) {
+              callback(new Error(`Feed exceeds the ${MAX_FEED_BYTES / 1024 / 1024} MB limit.`));
+              return;
+            }
+            callback(null, chunk);
+          },
+        });
+        res.pipe(limiter);
+        resolve(limiter);
+      });
+
+    request.setTimeout(REQUEST_TIMEOUT_MS, () => {
+      request.destroy(new Error(`Feed request timed out after ${REQUEST_TIMEOUT_MS / 1000} seconds.`));
+    });
+    request.on("error", reject);
   });
 }
 
@@ -111,7 +188,8 @@ function rowToBatchItem(
   storeName: string,
   countryCode: string,
   currency: string,
-  index: number
+  index: number,
+  fetchedAt: string
 ): BatchItem | null {
   const price = parsePrice(row.price);
   const title = row.title?.trim();
@@ -179,7 +257,7 @@ function rowToBatchItem(
       source: "production-live",
       feedMerchantId: merchantId,
       merchantProductId,
-      fetchedAt: new Date().toISOString(),
+      fetchedAt,
     },
   };
 }
@@ -191,105 +269,145 @@ export async function sync2PerformantFeed(
   countryCode: string,
   currency: string
 ): Promise<number> {
+  const feedUrl = validateFeedUrl(csvUrl);
   console.log(`Starting sync for ${storeName} (${merchantId}) from ${countryCode}...`);
-  console.log(`URL: ${csvUrl}`);
+  console.log(`Feed host: ${feedUrl.hostname}`);
 
-  const tmpFile = `./.tmp-${merchantId}.csv`;
+  const safeMerchantId = merchantId.replace(/[^a-zA-Z0-9_-]/g, "-");
+  const tmpFile = path.join(os.tmpdir(), `beforetobuy-${safeMerchantId}-${randomUUID()}.csv`);
+  const fetchedAt = new Date().toISOString();
   try {
     console.log(`[1/3] Downloading ${merchantId} to disk (prevents network timeouts)...`);
     const stream = await openCsvStream(csvUrl);
     await pipeline(stream, fs.createWriteStream(tmpFile));
     console.log(`[1/3] Download complete!`);
-  } catch (err) {
-    console.error(`Download failed:`, err);
-    return 0;
-  }
 
-  console.log(`[2/3] Parsing and inserting to database...`);
-  const parser = fs.createReadStream(tmpFile).pipe(csv());
+    console.log(`[2/3] Parsing and inserting to database...`);
+    const parser = fs.createReadStream(tmpFile).pipe(csv());
 
-  let count = 0;
-  let written = 0;
-  let skipped = 0;
-  let batch: BatchItem[] = [];
-  const BATCH_SIZE = 1000; // Viteza maxima pentru planul Pro Supabase
+    let rowIndex = 0;
+    let parsed = 0;
+    let written = 0;
+    let skipped = 0;
+    let batch: BatchItem[] = [];
+    const affectedProductIds = new Set<string>();
+    const BATCH_SIZE = 1000;
 
-  for await (const row of parser as AsyncIterable<RawRow>) {
-    const item = rowToBatchItem(row, merchantId, storeName, countryCode, currency, count);
-    if (!item) {
-      skipped += 1;
-      continue;
-    }
-    batch.push(item);
-    count += 1;
+    for await (const row of parser as AsyncIterable<RawRow>) {
+      rowIndex += 1;
+      const item = rowToBatchItem(
+        row,
+        merchantId,
+        storeName,
+        countryCode,
+        currency,
+        rowIndex,
+        fetchedAt
+      );
+      if (!item) {
+        skipped += 1;
+        continue;
+      }
+      batch.push(item);
+      parsed += 1;
 
-    if (batch.length >= BATCH_SIZE) {
-      written += await processBatchWithDeduplication(batch);
-      batch = [];
-      if (count % 2000 === 0) {
-        console.log(`… ${count} rows parsed, ${written} offers upserted`);
+      if (batch.length >= BATCH_SIZE) {
+        const result = await processBatchWithDeduplication(batch);
+        written += result.written;
+        result.productIds.forEach((id) => affectedProductIds.add(id));
+        batch = [];
+        if (parsed % 2000 === 0) {
+          console.log(`... ${parsed} rows parsed, ${written} offers upserted`);
+        }
       }
     }
-  }
 
-  if (batch.length > 0) {
-    written += await processBatchWithDeduplication(batch);
-  }
+    if (batch.length > 0) {
+      const result = await processBatchWithDeduplication(batch);
+      written += result.written;
+      result.productIds.forEach((id) => affectedProductIds.add(id));
+    }
 
-  try {
-    fs.unlinkSync(tmpFile);
-  } catch (e) {
-    // ignore
-  }
+    if (written === 0) {
+      throw new Error(`Feed ${merchantId} produced no valid offers; stale offers were left unchanged.`);
+    }
 
-  console.log(
-    `[3/3] Sync complete for ${storeName}: ${count} rows parsed, ${written} offers upserted, ${skipped} skipped.`
-  );
-  return written;
+    const merchantOffers = await prisma.offer.findMany({
+      where: { feedMerchantId: merchantId },
+      select: { productId: true },
+      distinct: ["productId"],
+    });
+    merchantOffers.forEach(({ productId }) => affectedProductIds.add(productId));
+
+    const staleResult = await prisma.offer.updateMany({
+      where: {
+        feedMerchantId: merchantId,
+        fetchedAt: { not: fetchedAt },
+        inStock: true,
+      },
+      data: { inStock: false },
+    });
+    await refreshProductBasePrices(affectedProductIds);
+
+    console.log(
+      `[3/3] Sync complete for ${storeName}: ${parsed} rows parsed, ${written} offers upserted, ${skipped} skipped, ${staleResult.count} stale offers disabled.`
+    );
+    return written;
+  } finally {
+    await fs.promises.rm(tmpFile, { force: true }).catch(() => undefined);
+  }
 }
 
-async function processBatchWithDeduplication(batch: BatchItem[]): Promise<number> {
-  if (batch.length === 0) return 0;
+async function processBatchWithDeduplication(batch: BatchItem[]): Promise<BatchResult> {
+  if (batch.length === 0) return { written: 0, productIds: new Set() };
   let ok = 0;
-  
+  const productIds = new Set<string>();
+  const failures: string[] = [];
+
   const gtins = batch.map((b) => b.gtin).filter((g) => g && g.length > 4) as string[];
-  const existingByGtin = gtins.length > 0 
-    ? await prisma.product.findMany({ where: { gtin: { in: gtins } }, select: { id: true, gtin: true, targetCountries: true } })
-    : [];
-  const gtinMap = new Map(existingByGtin.map(p => [p.gtin!, p]));
+  const deterministicIds = batch
+    .filter((item) => !item.gtin)
+    .map((item) => `prod-${item.merchantId}-${item.offerData.merchantProductId}`);
+  const [existingByGtin, existingById] = await Promise.all([
+    gtins.length > 0
+      ? prisma.product.findMany({ where: { gtin: { in: gtins } } })
+      : Promise.resolve([] as Product[]),
+    deterministicIds.length > 0
+      ? prisma.product.findMany({ where: { id: { in: deterministicIds } } })
+      : Promise.resolve([] as Product[]),
+  ]);
+  const gtinMap = new Map(existingByGtin.flatMap((product) => product.gtin ? [[product.gtin, product]] : []));
+  const idMap = new Map(existingById.map((product) => [product.id, product]));
 
-  for (let i = 0; i < batch.length; i++) {
-    const item = batch[i];
+  for (const item of batch) {
     try {
-      let existingProduct = item.gtin ? gtinMap.get(item.gtin) : null;
-
-      if (!existingProduct) {
-        existingProduct = await prisma.product.findFirst({
-          where: {
-            title: { equals: item.productData.title, mode: "insensitive" },
-          },
-        });
-      }
-
-      let productIdToUse: string;
+      const deterministicId = item.gtin
+        ? `prod-gtin-${item.gtin}`
+        : `prod-${item.merchantId}-${item.offerData.merchantProductId}`;
+      let existingProduct = item.gtin ? gtinMap.get(item.gtin) : idMap.get(deterministicId);
 
       if (existingProduct) {
-        productIdToUse = existingProduct.id;
         const country = item.productData.targetCountries[0];
-        if (country && !existingProduct.targetCountries.includes(country)) {
-          await prisma.product.update({
-            where: { id: existingProduct.id },
-            data: { targetCountries: { push: country } },
-          });
-        }
-      } else {
-        productIdToUse = item.gtin
-          ? `prod-gtin-${item.gtin}`
-          : `prod-${item.merchantId}-${item.offerData.merchantProductId}`;
-
-        await prisma.product.create({
+        const targetCountries = country && !existingProduct.targetCountries.includes(country)
+          ? [...existingProduct.targetCountries, country]
+          : existingProduct.targetCountries;
+        existingProduct = await prisma.product.update({
+          where: { id: existingProduct.id },
           data: {
-            id: productIdToUse,
+            title: item.productData.title,
+            description: item.productData.description,
+            gtin: item.gtin ?? existingProduct.gtin,
+            brand: item.productData.brand,
+            category: item.productData.category,
+            image: item.productData.image ?? existingProduct.image,
+            catalogSource: item.productData.catalogSource,
+            targetCountries,
+          },
+        });
+      } else {
+        existingProduct = await prisma.product.create({
+          data: {
+            id: deterministicId,
             title: item.productData.title,
             description: item.productData.description,
             gtin: item.productData.gtin,
@@ -303,18 +421,54 @@ async function processBatchWithDeduplication(batch: BatchItem[]): Promise<number
         });
       }
 
+      if (existingProduct.gtin) gtinMap.set(existingProduct.gtin, existingProduct);
+      idMap.set(existingProduct.id, existingProduct);
+      productIds.add(existingProduct.id);
+
       await prisma.offer.upsert({
         where: { id: item.offerData.id },
-        update: { ...item.offerData, productId: productIdToUse },
-        create: { ...item.offerData, productId: productIdToUse },
+        update: { ...item.offerData, productId: existingProduct.id },
+        create: { ...item.offerData, productId: existingProduct.id },
       });
       ok += 1;
-    } catch (dbError: any) {
-      console.error(
-        `DB error for "${item.productData.title.slice(0, 80)}":`,
-        dbError?.message || dbError
-      );
+    } catch (dbError: unknown) {
+      const message = dbError instanceof Error ? dbError.message : String(dbError);
+      failures.push(`"${item.productData.title.slice(0, 80)}": ${message}`);
+      console.error(`DB error for "${item.productData.title.slice(0, 80)}":`, message);
     }
   }
-  return ok;
+
+  if (failures.length > 0) {
+    throw new Error(
+      `${failures.length}/${batch.length} offers failed database import. First error: ${failures[0]}`
+    );
+  }
+  return { written: ok, productIds };
+}
+
+async function refreshProductBasePrices(productIds: Set<string>): Promise<void> {
+  const ids = [...productIds];
+  for (let index = 0; index < ids.length; index += PRODUCT_REFRESH_BATCH_SIZE) {
+    const chunk = ids.slice(index, index + PRODUCT_REFRESH_BATCH_SIZE);
+    const activeOffers = await prisma.offer.findMany({
+      where: { productId: { in: chunk }, inStock: true },
+      select: { productId: true, price: true },
+    });
+    const minimumPrices = new Map<string, number>();
+    for (const offer of activeOffers) {
+      const current = minimumPrices.get(offer.productId);
+      if (current === undefined || offer.price < current) {
+        minimumPrices.set(offer.productId, offer.price);
+      }
+    }
+
+    await prisma.$transaction(
+      chunk.map((productId) =>
+        prisma.product.update({
+          where: { id: productId },
+          data: { basePrice: minimumPrices.get(productId) ?? null },
+        })
+      )
+    );
+  }
 }

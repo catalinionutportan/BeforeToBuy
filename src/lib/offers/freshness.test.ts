@@ -11,6 +11,16 @@ describe('Offer Freshness Utilities', () => {
     expect(formatOfferFreshness(undefined, now)).toBe(null);
   });
 
+  it("localizes freshness without changing the timestamp calculation", () => {
+    const now = Date.parse("2026-08-05T12:00:00.000Z");
+    expect(formatOfferFreshness("2026-08-05T11:40:00.000Z", now, "ro")).toBe(
+      "Verificat acum 20 min"
+    );
+    expect(formatOfferFreshness("2026-08-05T09:00:00.000Z", now, "de")).toBe(
+      "Vor 3 Std. geprüft"
+    );
+  });
+
   it("getFreshestOfferTimestamp ignores demo offers", () => {
     expect(
       getFreshestOfferTimestamp([

@@ -45,12 +45,8 @@ describe("API Aggregator", () => {
   it("does not serve hardcoded demo catalog for any country", async () => {
     for (const countryCode of ["CH", "DE", "FR", "RO", "GB", "US"] as const) {
       const products = await fetchProductsForLocation({
-        latitude: 0,
-        longitude: 0,
         countryCode,
         countryName: countryCode,
-        city: "Test",
-        isGps: false,
       });
       expect(products, countryCode).toEqual([]);
     }
@@ -65,12 +61,8 @@ describe("API Aggregator", () => {
       targetCountries: ["DE"],
     } as Parameters<typeof generateOffersForLocation>[0];
     const mockUserLocation: UserLocation = {
-      latitude: 52.52,
-      longitude: 13.405,
       countryCode: "DE",
       countryName: "Germany",
-      city: "Berlin",
-      isGps: false,
     };
 
     const offers = await generateOffersForLocation(mockProduct, mockUserLocation);
@@ -85,12 +77,8 @@ describe("API Aggregator", () => {
       targetCountries: ["DE"],
     } as Parameters<typeof generateOffersForLocation>[0];
     const mockUserLocation: UserLocation = {
-      latitude: 52.52,
-      longitude: 13.405,
       countryCode: "DE",
       countryName: "Germany",
-      city: "Berlin",
-      isGps: false,
     };
 
     vi.spyOn(deOffers, "getDeOffers").mockResolvedValueOnce([

@@ -292,7 +292,7 @@ export function attachOfferTimestamps(products: Product[], fetchedAt: string): P
   return products.map((product) => ({
     ...product,
     offers: product.offers.map((offer) =>
-      offer.source === "demo" ? offer : { ...offer, fetchedAt }
+      offer.source === "demo" || offer.fetchedAt ? offer : { ...offer, fetchedAt }
     ),
   }));
 }

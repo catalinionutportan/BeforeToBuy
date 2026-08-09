@@ -15,13 +15,47 @@ async function dismissCookieBannerIfPresent(page: Page) {
   }
 }
 
+test("first visit uses the hosting country code without a saved market", async ({ page }) => {
+  await page.setExtraHTTPHeaders({ "x-vercel-ip-country": "CH" });
+  await page.addInitScript(() => {
+    window.localStorage.removeItem("btb-market-country");
+    window.localStorage.removeItem("btb-ui-lang");
+  });
+
+  await page.goto("/");
+
+  const countrySelect = page.getByLabel(/country|market|țară|tara|land|pays|paese/i).first();
+  await expect(countrySelect).toHaveValue("CH");
+  await expect(page.locator("html")).toHaveAttribute("lang", "de");
+});
+
+test("language query controls server HTML, metadata and preference cookie", async ({ page }) => {
+  const response = await page.goto("/legal?lang=ro");
+  await expect(page.locator("html")).toHaveAttribute("lang", "ro");
+  await expect(page).toHaveTitle(/Informații juridice|Legal/i);
+  await expect(page.getByRole("heading", { name: /Informații legale și despre companie/i })).toBeVisible();
+  expect((await response?.headerValue("set-cookie")) || "").toContain("btb-ui-lang=ro");
+});
+
+test("security headers block sensitive browser capabilities", async ({ request }) => {
+  const response = await request.get("/");
+  const headers = response.headers();
+  expect(headers["x-powered-by"]).toBeUndefined();
+  expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+  expect(headers["permissions-policy"]).toContain("geolocation=()");
+});
+
 test.describe("BeforeToBuy smoke E2E", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, context }) => {
     // Force English UI + RO market so assertions stay stable and catalog is non-empty.
+    await context.addCookies([
+      { name: "btb-ui-lang", value: "en", domain: "127.0.0.1", path: "/" },
+      { name: "btb-market-country", value: "RO", domain: "127.0.0.1", path: "/" },
+    ]);
     await page.addInitScript(() => {
       window.localStorage.setItem("btb-ui-lang", "en");
       window.localStorage.setItem("btb-market-country", "RO");
-      window.localStorage.removeItem("b2b_consent_v3");
+      window.localStorage.removeItem("b2b_consent_v4");
       document.cookie = "btb-market-country=RO; Path=/; SameSite=Lax";
     });
   });
@@ -30,6 +64,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     test.setTimeout(90_000);
     await page.goto("/");
     await dismissCookieBannerIfPresent(page);
+    await expect(page).not.toHaveTitle(/beta/i);
     await expect(page.getByRole("heading", { name: "BeforeToBuy", exact: true })).toBeVisible({
       timeout: 15_000,
     });
@@ -64,29 +99,17 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
   });
 
-  test("location APIs require signed server-side consent", async ({ request }) => {
+  test("consent preferences are stored and can be cleared", async ({ request }) => {
     const origin = "http://127.0.0.1:3000";
-    const blocked = await request.get("/api/geocode?lat=46.948&lng=7.4474");
-    expect(blocked.status()).toBe(403);
-
-    const deniedConsent = await request.post("/api/consent", {
+    const savedConsent = await request.post("/api/consent", {
       headers: { Origin: origin },
-      data: { location: false, affiliate: false },
+      data: { affiliate: false, analytics: false },
     });
-    expect(deniedConsent.ok()).toBeTruthy();
-    expect(deniedConsent.headers()["set-cookie"]).toContain("HttpOnly");
-    expect(deniedConsent.headers()["set-cookie"].toLowerCase()).toContain("samesite=strict");
-    expect((await request.get("/api/geocode?lat=46.948&lng=7.4474")).status()).toBe(403);
-
-    const grantedConsent = await request.post("/api/consent", {
-      headers: { Origin: origin },
-      data: { location: true, affiliate: false },
-    });
-    expect(grantedConsent.ok()).toBeTruthy();
-    expect((await request.get("/api/geocode?lat=invalid&lng=7.4474")).status()).toBe(400);
+    expect(savedConsent.ok()).toBeTruthy();
+    expect(savedConsent.headers()["set-cookie"]).toContain("HttpOnly");
+    expect(savedConsent.headers()["set-cookie"].toLowerCase()).toContain("samesite=strict");
 
     expect((await request.delete("/api/consent", { headers: { Origin: origin } })).ok()).toBeTruthy();
-    expect((await request.get("/api/geocode?lat=46.948&lng=7.4474")).status()).toBe(403);
   });
 
   test("health API distinguishes sample-only from production feeds", async ({ request }) => {
@@ -95,6 +118,8 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
+    expect(body.sitePhase).toBe("production");
+    expect(body.legalDocumentVersion).toBe("1.0");
     expect(body.checks.productsMerge.productCount).toBeGreaterThan(0);
     if (body.checks.integrations.hasProductionFeed) {
       expect(body.status).toBe("healthy");
@@ -168,10 +193,10 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page).toHaveURL(/category=audio-headphones/);
 
     await page.goto("/categories");
-    // Primary live market (RO) uses Romanian SSR copy when cookie/geo resolve to RO.
+    // Language preference is independent from the RO shopping market.
     await expect(
       page.getByRole("heading", {
-        name: /Compare Product Prices|Produktpreise vergleichen|Compară Prețurile Produselor/i,
+        name: /Browse offers|Angebote durchsuchen|Parcourir les offres|Sfoglia le offerte|Răsfoiește ofertele/i,
       })
     ).toBeVisible();
   });
@@ -184,15 +209,14 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    // CH disabled. Production request-path: GB only. Playwright FORCE_SAMPLE_FEEDS also lists RO samples.
+    // CH is disabled. Local smoke mode may expose the two checked-in RO sample feeds.
     expect(body.feedMerchantIds).not.toContain("ch-brack");
     expect(body.feedMerchantIds).not.toContain("ch-digitec");
     expect(body.feedMerchantIds).toContain("gb-seentat");
-    if (process.env.FORCE_SAMPLE_FEEDS === "1") {
+    if (body.feedMerchantIds.includes("ro-rowenta")) {
       expect(body.feedMerchantIds).toContain("ro-rowenta");
       expect(body.feedMerchantIds).toContain("ro-scule365");
-      expect(body.feedMerchantIds).toContain("ro-evomag");
-      expect(body.merchants.length).toBe(4);
+      expect(body.merchants.length).toBe(3);
     } else {
       expect(body.merchants.length).toBe(1);
       expect(body.feedMerchantIds).not.toContain("ro-rowenta");

@@ -8,6 +8,7 @@ import {
   isSiteLocale,
 } from './locales';
 import {
+  LANG_COOKIE_KEY,
   LANG_STORAGE_KEY,
   readStoredLocale,
   writeStoredLocale,
@@ -18,6 +19,7 @@ import type { CountryCode } from '@/types';
 describe('Locale Utility Functions', () => {
   beforeEach(() => {
     localStorage.clear();
+    document.cookie = `${LANG_COOKIE_KEY}=; Max-Age=0; Path=/`;
     vi.clearAllMocks();
   });
 
@@ -78,6 +80,7 @@ describe('Locale Utility Functions', () => {
     writeStoredLocale('fr');
     expect(readStoredLocale()).toBe('fr');
     expect(localStorage.getItem(LANG_STORAGE_KEY)).toBe('fr');
+    expect(document.cookie).toContain(`${LANG_COOKIE_KEY}=fr`);
 
     localStorage.removeItem(LANG_STORAGE_KEY);
     expect(readStoredLocale()).toBe(null);

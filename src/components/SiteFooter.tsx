@@ -4,12 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { ManageCookiePreferencesButton } from "@/components/ManageCookiePreferencesButton";
 import { COMPANY } from "@/lib/company-info";
-import { DEFAULT_COUNTRY } from "@/lib/countries";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { withLangParam } from "@/lib/seo/site-url";
 
 export function SiteFooter() {
-  const { locale: browseLocale } = useBrowseLocale(DEFAULT_COUNTRY);
+  const { locale: browseLocale } = useBrowseLocale();
   const homeUi = HOME_UI[browseLocale];
 
   return (
@@ -77,7 +77,7 @@ export function SiteFooter() {
             }}
           >
             <Link
-              href="/legal"
+              href={withLangParam("/legal", browseLocale)}
               className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-2.5 text-[12px] font-semibold text-slate-900 shadow-sm transition-colors hover:border-[#e85d04]/50 hover:text-[#e85d04]"
             >
               {homeUi.legalCompanyLink}

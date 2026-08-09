@@ -3,16 +3,22 @@ import { DEFAULT_LOCALE, SITE_LOCALES, type SiteLocale } from "./i18n/locales";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.beforetobuy.com";
 
-function buildAlternates(path: string, _currentLocale: SiteLocale) {
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  const canonical = `${SITE_URL}${normalized === "/" ? "" : normalized}` || SITE_URL;
+function localizedUrl(path: string, locale: SiteLocale): string {
+  const url = new URL(path, SITE_URL);
+  url.searchParams.set("lang", locale);
+  return url.toString();
+}
 
-  // Locale is client-side; all hreflang entries point to the same real routes.
+function buildAlternates(path: string, currentLocale: SiteLocale) {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  const defaultUrl = new URL(normalized, SITE_URL).toString();
+  const canonical = localizedUrl(normalized, currentLocale);
+
   const languages: Record<string, string> = {
-    "x-default": canonical,
+    "x-default": defaultUrl,
   };
   for (const locale of SITE_LOCALES) {
-    languages[locale] = canonical;
+    languages[locale] = localizedUrl(normalized, locale);
   }
 
   return {
@@ -35,7 +41,7 @@ export function createPageMetadata({
   locale?: SiteLocale;
 }): Metadata {
   const normalized = path.startsWith("/") || path === "" ? path : `/${path}`;
-  const url = `${SITE_URL}${normalized}`;
+  const url = localizedUrl(normalized || "/", currentLocale);
 
   return {
     title,

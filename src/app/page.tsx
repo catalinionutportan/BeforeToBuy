@@ -29,6 +29,7 @@ export default async function Home() {
 
   return (
     <HomePageClient
+      initialCountry={marketCountry}
       initialProducts={initialProducts}
       initialMeta={initialMeta}
       initialFetchFailed={initialFetchFailed}

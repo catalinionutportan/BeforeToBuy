@@ -43,6 +43,10 @@ vi.mock('@/lib/merchant-feeds', () => ({
   })),
 }));
 
+vi.mock('@/lib/db-service', () => ({
+  getSnapshotProductsFromDb: vi.fn(async () => [] as Product[]),
+}));
+
 import { clearPriceHistoryForTests } from './price-history';
 import { runPriceSnapshotJob } from './price-snapshot-job';
 

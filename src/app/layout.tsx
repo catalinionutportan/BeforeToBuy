@@ -1,31 +1,33 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { BetaDemoBanner } from "@/components/BetaDemoBanner";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { DatadogRum } from "@/components/DatadogRum";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteJsonLd } from "@/components/SiteJsonLd";
-import { defaultOpenGraph } from "@/lib/metadata";
-import { type SiteLocale } from "@/lib/i18n/locales";
+import { createPageMetadata, defaultOpenGraph } from "@/lib/metadata";
 import { ClientLocalizationProvider } from "@/components/ClientLocalizationProvider";
 import { ScrollToTopOnNavigate } from "@/components/ScrollToTopOnNavigate";
 import { InstantProductModalHost } from "@/components/InstantProductModalHost";
 import { HOME_UI } from "@/lib/i18n/ui";
-import { localeFromCountry } from "@/lib/category-i18n";
 import { getRequestMarketCountry } from "@/lib/request-market";
-import { isBetaBannerEnabled } from "@/lib/site-config";
+import { resolvePageLocale } from "@/lib/server-page-locale";
 import { Providers } from "@/components/Providers";
 import { CompareBar } from "@/components/CompareBar";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const marketCountry = await getRequestMarketCountry();
-  const locale: SiteLocale = localeFromCountry(marketCountry);
+  const locale = await resolvePageLocale();
   const ui = HOME_UI[locale];
   const keywords = ui.metaKeywords.split(", ");
-  const ogLocale =
-    locale === "en" ? "en_US" : `${locale}_${locale.toUpperCase()}`;
+  const ogLocale = { en: "en_US", de: "de_DE", fr: "fr_FR", it: "it_IT", ro: "ro_RO" }[locale];
+  const localizedMetadata = createPageMetadata({
+    title: ui.metaTitle,
+    description: ui.metaDescription,
+    path: "/",
+    locale,
+  });
 
   return {
+    ...localizedMetadata,
     title: ui.metaTitle,
     description: ui.metaDescription,
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.beforetobuy.com"),
@@ -33,6 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
     authors: [{ name: "PortanX - Catalin Portan", url: "https://portanx.com" }],
     openGraph: {
       ...defaultOpenGraph,
+      ...localizedMetadata.openGraph,
       title: ui.metaTitle,
       description: ui.metaDescription,
       locale: ogLocale,
@@ -53,18 +56,29 @@ export default async function RootLayout({
   modal: React.ReactNode;
 }>) {
   const marketCountry = await getRequestMarketCountry();
-  const locale: SiteLocale = localeFromCountry(marketCountry);
-  const showBetaBanner = isBetaBannerEnabled();
+  const locale = await resolvePageLocale();
+  const skipToContent = {
+    en: "Skip to main content",
+    de: "Zum Hauptinhalt springen",
+    fr: "Aller au contenu principal",
+    it: "Vai al contenuto principale",
+    ro: "Sari la conținutul principal",
+  }[locale];
 
   return (
     <html lang={locale}>
       <body className="antialiased font-sans bg-slate-50 text-slate-900">
+        <a
+          href="#main-content"
+          className="sr-only z-[100] rounded-lg bg-slate-950 px-4 py-3 font-bold text-white focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+        >
+          {skipToContent}
+        </a>
         <Providers>
-          <ClientLocalizationProvider currentLocale={locale}>
+          <ClientLocalizationProvider currentCountry={marketCountry} currentLocale={locale}>
             <ScrollToTopOnNavigate />
             <SiteJsonLd />
             <DatadogRum />
-            {showBetaBanner ? <BetaDemoBanner /> : null}
             {children}
             {modal}
             <InstantProductModalHost />

@@ -16,21 +16,11 @@ describe("live browse market", () => {
     expect(countryHasBrowseCatalogue("CH")).toBe(false);
   });
 
-  it("resolves empty markets to the primary live catalogue", () => {
-    expect(resolveBrowseCountry("CH")).toBe("RO");
-    expect(resolveBrowseCountry("DE")).toBe("RO");
+  it("keeps supported markets and falls back only when missing", () => {
+    expect(resolveBrowseCountry("CH")).toBe("CH");
+    expect(resolveBrowseCountry("DE")).toBe("DE");
     expect(resolveBrowseCountry(null)).toBe("RO");
     expect(resolveBrowseCountry("RO")).toBe("RO");
     expect(resolveBrowseCountry("GB")).toBe("GB");
-  });
-
-  it("maps geo country codes without forcing empty CH", async () => {
-    const { resolveGeoCountryCode } = await import("@/lib/live-browse-market");
-    expect(resolveGeoCountryCode("CH")).toBe("RO");
-    expect(resolveGeoCountryCode("ch")).toBe("RO");
-    expect(resolveGeoCountryCode(null)).toBe("RO");
-    expect(resolveGeoCountryCode("")).toBe("RO");
-    expect(resolveGeoCountryCode("ZZ")).toBe("RO");
-    expect(resolveGeoCountryCode("RO")).toBe("RO");
   });
 });

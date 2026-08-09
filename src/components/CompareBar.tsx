@@ -5,6 +5,7 @@ import { X, Scale } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 import {
   isComparePath,
@@ -13,6 +14,7 @@ import {
 } from "@/lib/browse-scroll";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 import { HOME_UI } from "@/lib/i18n/ui";
+import { withLangParam } from "@/lib/seo/site-url";
 
 function pinScrollWhile(update: () => void) {
   const y = typeof window !== "undefined" ? window.scrollY : 0;
@@ -32,15 +34,42 @@ export function CompareBar() {
   const { locale } = useBrowseLocale();
   const ui = HOME_UI[locale];
   const { compareList, removeFromCompare, clearCompare } = useCompare();
+  const barRef = useRef<HTMLDivElement | null>(null);
+  const shouldShow = !isComparePath(pathname) && compareList.length > 0;
+
+  useEffect(() => {
+    if (!shouldShow) return;
+
+    const { body } = document;
+    const previousPaddingBottom = body.style.paddingBottom;
+
+    const syncPadding = () => {
+      const height = barRef.current?.offsetHeight ?? 0;
+      body.style.paddingBottom = height > 0 ? `${height + 16}px` : previousPaddingBottom;
+    };
+
+    syncPadding();
+    window.addEventListener("resize", syncPadding);
+
+    return () => {
+      window.removeEventListener("resize", syncPadding);
+      body.style.paddingBottom = previousPaddingBottom;
+    };
+  }, [shouldShow, compareList.length]);
 
   // Already on the compare page — don't cover the product presentation.
-  if (isComparePath(pathname)) return null;
-  if (compareList.length === 0) return null;
+  if (!shouldShow) return null;
 
-  const compareUrl = `/compare-products?ids=${compareList.map((p) => p.id).join(",")}`;
+  const compareUrl = withLangParam(
+    `/compare-products?ids=${compareList.map((p) => p.id).join(",")}`,
+    locale
+  );
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-slate-200 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] p-4 sm:p-6 transition-transform translate-y-0">
+    <div
+      ref={barRef}
+      className="fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-slate-200 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] p-4 sm:p-6 transition-transform translate-y-0"
+    >
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4 md:w-1/4">
           <div className="flex items-center justify-center w-10 h-10 bg-orange-100 text-orange-600 rounded-full">

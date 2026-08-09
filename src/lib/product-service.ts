@@ -22,6 +22,7 @@ import {
   UNMAPPED_CATEGORY_ID,
 } from "@/lib/categories";
 import { applyCrossBorderVisibility } from "@/lib/offers/cross-border";
+import { applyOfferFilters, collectBrandOptions } from "@/lib/offers/offer-filters";
 import { DEFAULT_LOCALE, type SiteLocale } from "@/lib/i18n/locales";
 import type { ProductListOptions } from "@/lib/product-list-options";
 
@@ -86,7 +87,8 @@ export async function fetchMergedProductsForLocation(
       category,
       limit,
       offset,
-      listOptions.sort
+      listOptions.sort,
+      listOptions.filters
     );
     // If Supabase has catalogue rows for this market, stay on DB even when the
     // active hub/filter matches zero products (do not fall back to empty feeds).
@@ -153,6 +155,7 @@ export async function fetchMergedProductsForLocation(
           hasSampleFeed: false,
           mappingSummary: "Data from Supabase",
           feedMerchants: {},
+          brandOptions: dbResult.brandOptions,
           gtinLinkedProductCount,
           totalMatched,
           limit: limit ?? null,
@@ -210,7 +213,9 @@ export async function fetchMergedProductsForLocation(
   const categoryMatched = category
     ? visibleProducts.filter((product) => productMatchesCategoryFilter(product, category))
     : visibleProducts;
-  const matchedProducts = applyCrossBorderVisibility(categoryMatched, category);
+  const crossBorderProducts = applyCrossBorderVisibility(categoryMatched, category);
+  const brandOptions = collectBrandOptions(crossBorderProducts);
+  const matchedProducts = applyOfferFilters(crossBorderProducts, listOptions.filters ?? {});
   
   if (listOptions.sort === "price-asc") {
     matchedProducts.sort((a, b) => (a.basePrice || Infinity) - (b.basePrice || Infinity));
@@ -271,6 +276,7 @@ export async function fetchMergedProductsForLocation(
       hasSampleFeed: feedResult.sources.includes("sample"),
       mappingSummary: mappingReport.summary,
       feedMerchants,
+      brandOptions,
       gtinLinkedProductCount,
       totalMatched,
       limit: limit ?? null,

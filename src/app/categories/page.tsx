@@ -11,7 +11,6 @@ import {
 import {
   getCollectionLabel,
   getDepartmentLabel,
-  localeFromCountry,
 } from "@/lib/category-i18n";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
@@ -26,24 +25,30 @@ import {
   CATEGORY_PAGE_PRODUCT_LIMIT,
 } from "@/lib/product-list-options";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
+import { withLangParam } from "@/lib/seo/site-url";
 
 export const dynamic = "force-dynamic";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const countryCode = await getRequestMarketCountry();
-  const locale = localeFromCountry(countryCode);
+type CategoriesPageProps = {
+  searchParams: LocaleSearchParams;
+};
+
+export async function generateMetadata({ searchParams }: CategoriesPageProps): Promise<Metadata> {
+  const locale = await resolvePageLocale(searchParams);
   const homeUi = HOME_UI[locale];
   return createPageMetadata({
     title: homeUi.categoriesMetaTitle,
     description: homeUi.categoriesMetaDescription,
     path: "/categories",
+    locale,
   });
 }
 
-export default async function CategoriesPage() {
+export default async function CategoriesPage({ searchParams }: CategoriesPageProps) {
   const countryCode = await getRequestMarketCountry();
   const country = COUNTRIES[countryCode];
-  const locale = localeFromCountry(countryCode);
+  const locale = await resolvePageLocale(searchParams);
   const homeUi = HOME_UI[locale];
   const catalog = await fetchCatalogForCountry(countryCode, undefined, {
     ...BROWSE_LIST_OPTIONS,
@@ -62,7 +67,7 @@ export default async function CategoriesPage() {
       <div className="space-y-8">
         <CategoryBreadcrumbs
           items={[
-            { label: "Home", href: "/" },
+            { label: "Home", href: withLangParam("/", locale) },
             { label: homeUi.allProducts },
           ]}
         />
@@ -93,7 +98,7 @@ export default async function CategoriesPage() {
             {visibleCollections.map((collection) => (
               <Link
                 key={collection.id}
-                href={collectionBrowsePath(collection.id)}
+                href={collectionBrowsePath(collection.id, locale)}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-900 hover:border-orange-300 transition-colors"
               >
                 {getCollectionLabel(collection.id, locale)}
@@ -114,7 +119,7 @@ export default async function CategoriesPage() {
               {visibleCategories.map((cat) => (
                 <Link
                   key={cat.id}
-                  href={departmentCategoryPath(cat.id)}
+                  href={departmentCategoryPath(cat.id, locale)}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:border-emerald-300 hover:text-emerald-800 transition-colors"
                 >
                   {getDepartmentLabel(cat.id, locale)}

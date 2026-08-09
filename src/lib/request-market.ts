@@ -11,8 +11,8 @@ import {
 
 /**
  * Resolve the browse market for SSR category/compare/home pages.
- * Preference: cookie/geo when that market has live feeds → primary live (RO).
- * Stale CH cookies must not empty the catalogue (0 CH feeds today).
+ * Preference: explicit market cookie, then Vercel's request country, then fallback.
+ * Only the two-letter country code is read.
  */
 export async function getRequestMarketCountry(): Promise<CountryCode> {
   const cookieStore = await cookies();
@@ -20,8 +20,8 @@ export async function getRequestMarketCountry(): Promise<CountryCode> {
   if (isCountryCode(fromCookie)) return resolveBrowseCountry(fromCookie);
 
   const headerStore = await headers();
-  const fromGeo = headerStore.get("x-vercel-ip-country");
-  if (isCountryCode(fromGeo)) return resolveBrowseCountry(fromGeo);
+  const requestCountry = headerStore.get("x-vercel-ip-country")?.toUpperCase();
+  if (isCountryCode(requestCountry)) return resolveBrowseCountry(requestCountry);
 
   return getPrimaryLiveBrowseCountry();
 }

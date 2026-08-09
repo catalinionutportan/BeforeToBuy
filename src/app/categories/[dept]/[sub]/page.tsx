@@ -14,7 +14,6 @@ import { createCategoryMetadata } from "@/lib/metadata";
 import {
   getDepartmentLabel,
   getSubcategoryLabel,
-  localeFromCountry,
 } from "@/lib/category-i18n";
 import { getCategoryById, getSubcategoryById } from "@/lib/categories";
 import { COUNTRIES } from "@/lib/countries";
@@ -24,6 +23,8 @@ import {
   CATEGORY_PAGE_PRODUCT_LIMIT,
 } from "@/lib/product-list-options";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
+import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
+import { withLangParam } from "@/lib/seo/site-url";
 
 export const dynamic = "force-dynamic";
 
@@ -34,13 +35,14 @@ const PAGE_LIST = {
 
 interface SubcategoryPageProps {
   params: Promise<{ dept: string; sub: string }>;
+  searchParams: LocaleSearchParams;
 }
 
-export async function generateMetadata({ params }: SubcategoryPageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: SubcategoryPageProps): Promise<Metadata> {
   const { dept, sub } = await params;
   const route = validateSubcategoryRoute(dept, sub);
   const countryCode = await getRequestMarketCountry();
-  const locale = localeFromCountry(countryCode);
+  const locale = await resolvePageLocale(searchParams);
   const homeUi = HOME_UI[locale];
 
   if (!route?.subId) {
@@ -49,6 +51,7 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
       description: homeUi.categoryNotFoundMetaDescription,
       path: `/categories/${dept}/${sub}`,
       index: false,
+      locale,
     });
   }
 
@@ -62,15 +65,17 @@ export async function generateMetadata({ params }: SubcategoryPageProps): Promis
     }),
     path: subcategoryCategoryPath(route.deptId, route.subId),
     index: (catalog.meta.totalMatched ?? catalog.products.length) > 0,
+    locale,
   });
 }
 
-export default async function SubcategoryCategoryPage({ params }: SubcategoryPageProps) {
+export default async function SubcategoryCategoryPage({ params, searchParams }: SubcategoryPageProps) {
   const { dept, sub } = await params;
   const route = validateSubcategoryRoute(dept, sub);
   if (!route?.subId) notFound();
 
-  const canonicalPath = canonicalSubcategoryPath(dept, sub, route);
+  const locale = await resolvePageLocale(searchParams);
+  const canonicalPath = canonicalSubcategoryPath(dept, sub, route, locale);
   if (canonicalPath) redirect(canonicalPath);
 
   const department = getCategoryById(route.deptId);
@@ -79,7 +84,6 @@ export default async function SubcategoryCategoryPage({ params }: SubcategoryPag
 
   const countryCode = await getRequestMarketCountry();
   const country = COUNTRIES[countryCode];
-  const locale = localeFromCountry(countryCode);
   const homeUi = HOME_UI[locale];
   const catalog = await fetchCatalogForCountry(countryCode, route.subId, PAGE_LIST);
   const departmentLabel = getDepartmentLabel(route.deptId, locale);
@@ -90,9 +94,9 @@ export default async function SubcategoryCategoryPage({ params }: SubcategoryPag
       <div className="space-y-8">
         <CategoryBreadcrumbs
           items={[
-            { label: "Home", href: "/" },
-            { label: homeUi.categories, href: "/categories" },
-            { label: departmentLabel, href: departmentCategoryPath(route.deptId) },
+            { label: "Home", href: withLangParam("/", locale) },
+            { label: homeUi.categories, href: withLangParam("/categories", locale) },
+            { label: departmentLabel, href: departmentCategoryPath(route.deptId, locale) },
             { label: subcategoryLabel },
           ]}
         />

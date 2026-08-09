@@ -1,5 +1,5 @@
 {
-  "name": "geo-price-aggregator",
+  "name": "beforetobuy-price-comparison",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest --run",
-    "test:e2e": "playwright test e2e/smoke.spec.ts",
+    "test:e2e": "playwright test",
     "smoke:prod": "node scripts/smoke-production.mjs",
     "feeds:warm": "node scripts/warm-feeds.mjs",
     "feeds:import": "node --env-file=.env.local --import tsx src/scripts/run-import.ts",
@@ -47,7 +47,7 @@
     "@vitest/coverage-v8": "^4.1.10",
     "autoprefixer": "^10.5.4",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^15.5.22",
+    "eslint-config-next": "^16.3.0",
     "jsdom": "^29.1.1",
     "patch-package": "^8.0.1",
     "postcss": "^8.5.2",

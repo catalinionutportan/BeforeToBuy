@@ -1,11 +1,8 @@
 "use client";
 
-import {
-  MAX_TOTAL_PRICE_OPTIONS,
-  type OfferFilterCriteria,
-} from "@/lib/offers/offer-filters";
+import { type OfferFilterCriteria } from "@/lib/offers/offer-filters";
 import { OFFER_FILTER_UI, type CategoryLocale } from "@/lib/category-i18n";
-import { PackageCheck, Tag, Truck } from "lucide-react";
+import { PackageCheck, Tag } from "lucide-react";
 
 interface OfferFiltersProps {
   criteria: OfferFilterCriteria;
@@ -58,11 +55,11 @@ export function OfferFilters({
         </label>
 
         <label className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">
-          <span className="text-slate-500">De la:</span>
+          <span className="text-slate-500">{ui.minTotal}:</span>
           <input
             type="number"
             min="0"
-            placeholder="Min"
+            placeholder={ui.anyPrice}
             value={criteria.minTotalPrice ?? ""}
             onChange={(event) => {
               const value = event.target.value;
@@ -76,11 +73,11 @@ export function OfferFilters({
         </label>
 
         <label className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">
-          <span className="text-slate-500">Până la:</span>
+          <span className="text-slate-500">{ui.maxTotal}:</span>
           <input
             type="number"
             min="0"
-            placeholder="Max"
+            placeholder={ui.anyPrice}
             value={criteria.maxTotalPrice ?? ""}
             onChange={(event) => {
               const value = event.target.value;

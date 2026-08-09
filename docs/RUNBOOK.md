@@ -3,7 +3,7 @@
 **Owner:** PortanX - Catalin Portan (`admin@portanx.com`)  
 **Platform:** https://www.beforetobuy.com  
 **Repo:** https://github.com/catalinionutportan/BeforeToBuy  
-**Phase:** Beta/Demo (controlled launch)
+**Phase:** Production (controlled rollout)
 
 ---
 
@@ -11,10 +11,10 @@
 
 | Layer | Stack |
 |-------|-------|
-| Frontend | Next.js 15 App Router, React 19, Tailwind |
+| Frontend | Next.js 16 App Router, React 19, Tailwind |
 | Hosting | Vercel (auto-deploy on push to `main`) |
 | Product data | Demo catalog + multi-merchant sample/production feeds (CH) + Scule365 Google Merchant (RO) |
-| APIs | `/api/products`, `/api/health`, `/api/contact`, `/api/geocode`, `/api/location` |
+| APIs | `/api/products`, `/api/health`, `/api/contact`, `/api/consent` |
 
 ---
 
@@ -50,7 +50,7 @@ git push origin main
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `CONSENT_SIGNING_SECRET` | **Required** | Signs the HttpOnly consent cookie enforced by `/api/location` and `/api/geocode` (minimum 32 characters) |
+| `CONSENT_SIGNING_SECRET` | **Required** | Signs the HttpOnly cookie for Affiliate consent preferences (minimum 32 characters) |
 | `AWIN_FEED_URL_CH_BRACK` | Optional | Production AWIN CSV for Brack.ch |
 | `AWIN_FEED_URL_CH` | Optional | Legacy alias for Brack production feed |
 | `AWIN_FEED_URL_CH_MEDIAMARKT` | Optional | Production AWIN CSV for MediaMarkt CH |
@@ -64,7 +64,7 @@ git push origin main
 | `CONTACT_FROM_EMAIL` | Optional | Contact form sender |
 
 Without per-merchant feed URLs, sample files under `src/data/` are used for all six CH retailers.
-Without `CONSENT_SIGNING_SECRET`, consent saving and location APIs fail closed in production.
+Without `CONSENT_SIGNING_SECRET`, optional consent preferences fail closed in production.
 
 ---
 
@@ -84,7 +84,7 @@ Without `CONSENT_SIGNING_SECRET`, consent saving and location APIs fail closed i
 
 ---
 
-## 6. Go-live checklist (Beta)
+## 6. Production checklist
 
 - [ ] CI green on `main`
 - [ ] `npm run smoke:prod` passes
@@ -92,7 +92,7 @@ Without `CONSENT_SIGNING_SECRET`, consent saving and location APIs fail closed i
 - [ ] Cookie banner + consent gating works
 - [ ] Contact form validates (Resend optional)
 - [ ] Legal pages accessible (`/legal`, `/privacy`, `/terms`)
-- [ ] Beta/Demo disclaimers visible
+- [ ] Live/sample/demo source labels visible
 - [ ] `AWIN_FEED_URL_CH` set when production feed ready
 - [ ] Legal documents reviewed by lawyer (recommended)
 
@@ -121,4 +121,4 @@ npm run smoke:prod   # Production HTTP smoke checks
 
 ---
 
-*Last updated: Phase 6 — August 2026. Initial ops draft, not certified SLAs.*
+*Last updated: Production rollout — August 2026. Operational guidance, not certified SLAs.*

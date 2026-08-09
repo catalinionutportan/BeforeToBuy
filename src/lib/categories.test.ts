@@ -186,7 +186,6 @@ describe('Category and Collection Logic', () => {
 
   it("comparison collections stay separate from product taxonomy", () => {
     expect(COMPARISON_COLLECTION_FILTERS.length).toBe(3);
-    expect(isCollectionFilter("compare-local-pickup")).toBe(false);
     expect(isCollectionFilter("sale")).toBe(true);
     expect(isCollectionFilter("audio-headphones")).toBe(false);
   });

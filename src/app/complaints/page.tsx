@@ -6,18 +6,29 @@ import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY, LEGAL_CONTACT } from "@/lib/company-info";
 import { DSAR_RESPONSE_DAYS } from "@/lib/legal-config";
-import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import { withLangParam } from "@/lib/seo/site-url";
+import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
 
-const homeUi = HOME_UI[DEFAULT_LOCALE];
+type Props = {
+  searchParams: LocaleSearchParams;
+};
 
-export const metadata: Metadata = createPageMetadata({
-  title: HOME_UI.en.complaintsMetaTitle,
-  description: HOME_UI.en.complaintsMetaDescription,
-  path: "/complaints",
-});
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const locale = await resolvePageLocale(searchParams);
+  const homeUi = HOME_UI[locale];
 
-export default function ComplaintsPage() {
+  return createPageMetadata({
+    title: homeUi.complaintsMetaTitle,
+    description: homeUi.complaintsMetaDescription,
+    path: "/complaints",
+    locale,
+  });
+}
+
+export default async function ComplaintsPage({ searchParams }: Props) {
+  const locale = await resolvePageLocale(searchParams);
+  const homeUi = HOME_UI[locale];
   return (
     <PageShell maxWidthClass="max-w-3xl">
       <div className="space-y-8">
@@ -51,7 +62,7 @@ export default function ComplaintsPage() {
                   {LEGAL_CONTACT.complaints}
                 </a>{" "}
                 {homeUi.complaintsSubmitStep1OrUse}{" "}
-                <Link href="/contact" className="text-emerald-700 underline font-semibold">
+                <Link href={withLangParam("/contact", locale)} className="text-emerald-700 underline font-semibold">
                   {homeUi.contactForm}
                 </Link>
                 {homeUi.complaintsSubmitStep1Dot}

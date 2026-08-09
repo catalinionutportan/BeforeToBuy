@@ -1,19 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import {
-  clearProductPreview,
-  markServerProductModalMounted,
-} from "@/lib/product-preview";
-
-/** Marks the RSC product modal as ready so the instant overlay can unmount. */
+/** @deprecated Use ProductModalHandoff — kept so old imports do not break builds. */
 export function ProductModalReady() {
-  useEffect(() => {
-    markServerProductModalMounted();
-    return () => {
-      clearProductPreview();
-    };
-  }, []);
-
   return null;
 }

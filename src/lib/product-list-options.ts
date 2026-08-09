@@ -1,12 +1,11 @@
+import type { OfferFilterCriteria } from "@/lib/offers/offer-filters";
+
 /** Browse/list API defaults — full catalog responses are too large for mobile clients. */
 export const DEFAULT_PRODUCT_LIST_LIMIT = 96;
 export const MAX_PRODUCT_LIST_LIMIT = 480;
 export const HOME_SSR_PRODUCT_LIMIT = 48;
 /** SEO category / compare pages — keep HTML payloads small; meta.totalMatched stays full. */
 export const CATEGORY_PAGE_PRODUCT_LIMIT = 96;
-/** Product URLs included in sitemap.xml (counts still come from full matched set). */
-export const SITEMAP_PRODUCT_LIMIT = 200;
-
 export const BROWSE_LIST_OPTIONS = {
   compact: true,
   includePriceHistory: false,
@@ -23,6 +22,8 @@ export type ProductListOptions = {
   /** Strip long descriptions from products/offers. Default true for capped lists. */
   compact?: boolean;
   sort?: ProductSortOption;
+  /** Product/offer criteria applied before sorting and pagination. */
+  filters?: OfferFilterCriteria;
 };
 
 export function clampProductListLimit(raw: number | undefined, fallback: number): number {

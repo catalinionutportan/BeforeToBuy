@@ -30,13 +30,12 @@ describe("saveConsentPreferences", () => {
     window.addEventListener(CONSENT_UPDATED_EVENT, listener);
 
     const ok = await saveConsentPreferences({
-      location: true,
       affiliate: false,
       analytics: false,
     });
 
     expect(ok).toBe(false);
-    expect(localStorage.getItem("b2b_consent_v3")).toBeNull();
+    expect(localStorage.getItem("b2b_consent_v4")).toBeNull();
     expect(listener).not.toHaveBeenCalled();
     window.removeEventListener(CONSENT_UPDATED_EVENT, listener);
   });
@@ -46,7 +45,6 @@ describe("saveConsentPreferences", () => {
     window.addEventListener(CONSENT_UPDATED_EVENT, listener);
 
     const ok = await saveConsentPreferences({
-      location: true,
       affiliate: true,
       analytics: false,
     });
@@ -54,7 +52,6 @@ describe("saveConsentPreferences", () => {
     expect(ok).toBe(true);
     expect(listener).toHaveBeenCalledTimes(1);
     expect(getConsentPreferences()).toMatchObject({
-      location: true,
       affiliate: true,
       analytics: false,
       version: CONSENT_VERSION,

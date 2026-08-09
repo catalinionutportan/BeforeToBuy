@@ -48,12 +48,6 @@ export interface RawGalaxusFeedItem {
   product_url: string;
   image_url: string;
   merchant_category?: string;
-  branch_availability?: {
-    store_name: string;
-    city: string;
-    lat: number;
-    lng: number;
-  }[];
 }
 
 function parseCsvLine(line: string): string[] {
@@ -330,21 +324,7 @@ function buildGalaxusOffersFromRow(
     badge: isProduction ? "Production feed" : "Sample feed",
   });
 
-  const offers: Offer[] = [onlineOffer];
-
-  // Only take the first branch for simplicity, as per original logic
-  if (row.branch_availability?.length) {
-    offers.push({
-      ...onlineOffer,
-      id: `galaxus-${row.gtin}-pickup`,
-      type: "local_pickup",
-      deliveryTime: "Pick up today",
-      deliveryCost: 0,
-      badge: isProduction ? "Click & Collect" : "Sample pickup",
-    });
-  }
-
-  return offers;
+  return [onlineOffer];
 }
 
 /** Ingest one Galaxus row into `productsMap`/`mappingLog`, shared by the string and stream parsers. */

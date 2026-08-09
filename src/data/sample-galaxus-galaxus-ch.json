@@ -8,15 +8,7 @@
     "stock_status": "in_stock",
     "product_url": "https://www.galaxus.ch/en/s1/product/sample-dyson-v15",
     "image_url": "https://images.unsplash.com/photo-1558317374-067fb5f30001?w=600&auto=format&fit=crop&q=80",
-    "merchant_category": "Household & Living",
-    "branch_availability": [
-      {
-        "store_name": "Galaxus Wohlen",
-        "city": "Wohlen",
-        "lat": 47.3492,
-        "lng": 8.2789
-      }
-    ]
+    "merchant_category": "Household & Living"
   },
   {
     "gtin": "7612345678912",

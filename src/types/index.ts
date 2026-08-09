@@ -9,7 +9,6 @@ export interface MerchantDomainInfo {
   countryCode: CountryCode;
   affiliateNetwork: string; // e.g. "Galaxus Merchant Network", "AWIN CH", "Amazon Associates DE/CH"
   category: string; // e.g. "Electronics & Tech", "General Retail & Marketplace"
-  hasClickAndCollect: boolean;
   status:
     | "Planned Integration"
     | "Demo Catalog"
@@ -31,40 +30,14 @@ export interface CountryInfo {
   flag: string;
   currency: string;
   currencySymbol: string;
-  defaultCoordinates: {
-    lat: number;
-    lng: number;
-    city: string;
-  };
   supportedStores: string[];
   merchantDomains: MerchantDomainInfo[];
   affiliateNetworks: string[];
 }
 
-export type LocationKind = "default" | "ip" | "gps" | "manual";
-
 export interface UserLocation {
-  latitude: number;
-  longitude: number;
   countryCode: CountryCode;
   countryName: string;
-  city: string;
-  postalCode?: string;
-  isGps: boolean; // true if from GPS, false if IP fallback or manual
-  /** How the current coordinates/city were obtained (avoids claiming "Detected" for defaults). */
-  locationKind?: LocationKind;
-}
-
-export interface PhysicalStoreBranch {
-  id: string;
-  storeName: string;
-  branchName: string;
-  address: string;
-  city: string;
-  latitude: number;
-  longitude: number;
-  distanceKm?: number;
-  stockStatus: "In Stock" | "Low Stock" | "Pickup Today" | "Order Required";
 }
 
 export interface PriceHistoryPoint {
@@ -83,14 +56,13 @@ export interface Offer {
   discountPercentage?: number;
   currency: string;
   inStock: boolean;
-  deliveryTime: string; // e.g. "Tomorrow", "1-2 days", "Pick up in 15 min"
-  deliveryCost: number;
+  deliveryTime?: string; // e.g. "Tomorrow", "1-2 days", "Pick up in 15 min"
+  deliveryCost?: number;
   totalPrice?: number; // price + deliveryCost (excl. VAT/customs)
   purchaseUrl: string; // Affiliate link
-  affiliateNetwork: string; // e.g. "Amazon Associates CH", "AWIN CH", "Galaxus Partner"
-  type: "online" | "local_pickup" | "cross_border";
-  nearbyBranch?: PhysicalStoreBranch;
-  badge?: string; // e.g. "Cheapest Online", "Closest to You", "Best Click & Collect"
+  affiliateNetwork?: string; // e.g. "Amazon Associates CH", "AWIN CH", "Galaxus Partner"
+  type: "online" | "cross_border";
+  badge?: string;
   promoCode?: string; // e.g. "SUMMER10"
   source: OfferSource;
   feedMerchantId?: string;

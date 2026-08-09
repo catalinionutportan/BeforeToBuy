@@ -2,7 +2,7 @@
 
 ## Project Description
 
-BeforeToBuy.com is a powerful, GPS-driven, multi-country price comparison engine designed to help users find the best deals locally and online. It allows users to compare product prices from various merchants, check local stock availability, apply detailed filters, and view price history. The platform supports multiple countries (Switzerland, Germany, France, Romania, UK, and USA) with independent UI language selection.
+BeforeToBuy.com is a multi-country price comparison engine designed to help users find deals from participating merchants. Users choose their shopping market manually, compare available prices, apply detailed filters, and view price history. The platform supports independent market and interface-language selection.
 
 ## Technologies Used
 

@@ -59,19 +59,16 @@ export interface ShoppingCategory {
   isPromo?: boolean; // Sale, Clearance, Used
 }
 
-/** BeforeToBuy.com category tree — comparison-first, not a retailer catalog clone.
- *  Depth where buyers compare prices (cameras + accessories, audio gear, tech).
- *  Unique "Before You Buy" modules highlight GPS, cross-border & local pickup value. */
+/** BeforeToBuy.com category tree — comparison-first, not a retailer catalog clone. */
 const LEGACY_SHOPPING_CATEGORIES: ShoppingCategory[] = [
   {
     id: "before-you-buy",
     label: "Before You Buy",
     labelDe: "Before You Buy",
     icon: Globe,
-    description: "Cross-border savings, local pickup near you, smart accessories & refurb vs new — only on BeforeToBuy.",
+    description: "Cross-border savings, smart accessories and refurbished versus new products.",
     subcategories: [
       { id: "compare-cross-border", label: "Cross-Border Savings", labelDe: "Grenzüberschreitend sparen", searchKeywords: ["cross border", "import savings", "cheaper abroad", "ch vs de", "eu price", "international deal"] },
-      { id: "compare-local-pickup", label: "Pick Up Near You", labelDe: "Abholung in der Nähe", searchKeywords: ["click collect", "pickup", "near me", "local store", "same day", "branch"] },
       { id: "compare-accessories", label: "Smart Accessory Picks", labelDe: "Sinnvolles Zubehör", searchKeywords: ["accessory", "spare battery", "case", "charger", "must have", "bundle", "replacement"] },
       { id: "compare-refurb", label: "Refurb vs New", labelDe: "Refurb vs Neu", searchKeywords: ["refurb", "refurbished", "renewed", "used", "second hand", "outlet"] },
     ],
@@ -351,7 +348,7 @@ const subcategory = (
  * Canonical comparison taxonomy v2.
  *
  * It is intentionally retailer-neutral: products belong to assignable product
- * types, while promotions, condition, pickup and cross-border status are offer
+ * types, while promotions, condition and cross-border status are offer
  * facets or curated collections.
  */
 export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
@@ -393,7 +390,7 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
       subcategory("computers-ereaders", "E-Readers", "E-Book-Reader", ["e-reader", "ereader", "kindle", "kobo"]),
       subcategory("computers-docks", "Docks & Computer Accessories", "Docks & Computerzubehör", ["dock", "docking station", "laptop stand", "usb hub"]),
       ...legacySubcategories(["wearables-smartwatch", "wearables-fitness", "wearables-accessories"]),
-      subcategory("mobile-navigation-radio", "Navigation & Radio", "Navigation + Funk", ["gps navigation", "sat nav", "walkie talkie", "funkgerät", "radio"]),
+      subcategory("mobile-navigation-radio", "Navigation & Radio", "Navigation + Funk", ["navigation device", "sat nav", "walkie talkie", "funkgerät", "radio"]),
       ...legacySubcategories(["tv-televisions", "tv-projectors", "tv-streaming", "tv-mounts"]),
       subcategory("tv-screens", "Projection Screens", "Leinwände", ["projector screen", "projection screen", "leinwand"]),
       subcategory("tv-home-cinema-systems", "Home Cinema Systems", "Heimkino-Systeme", ["home cinema", "home theater", "av receiver"]),
@@ -898,8 +895,8 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
       ]),
       subcategory("mobility-accessories", "Bike & Scooter Accessories", "Rad- + Scooter-Zubehör", ["scooter accessory", "bike accessory", "helmet", "casca"]),
       subcategory("sport-fitness-equipment", "Fitness Equipment", "Fitnessgeräte", ["treadmill", "exercise bike", "dumbbell", "fitness equipment"]),
-      subcategory("sport-electronics", "Sports Electronics", "Sportelektronik", ["bike computer", "gps watch", "heart rate monitor"]),
-      subcategory("outdoor-electronics", "Outdoor Electronics", "Outdoor-Elektronik", ["power station", "headlamp", "outdoor gps"]),
+      subcategory("sport-electronics", "Sports Electronics", "Sportelektronik", ["bike computer", "sports watch", "heart rate monitor"]),
+      subcategory("outdoor-electronics", "Outdoor Electronics", "Outdoor-Elektronik", ["power station", "headlamp", "outdoor navigation"]),
     ],
   },
   {
@@ -997,7 +994,7 @@ export interface ComparisonCollectionFilter {
   description: string;
 }
 
-/** Active comparison chips in the UI. Local pickup / “Near you” retired — too hard to maintain. */
+/** Active offer-based comparison views. */
 export const COMPARISON_COLLECTION_FILTERS: ComparisonCollectionFilter[] = [
   {
     id: "compare-cross-border",
@@ -1016,8 +1013,7 @@ export const COMPARISON_COLLECTION_FILTERS: ComparisonCollectionFilter[] = [
   },
 ];
 
-/** Retired collection ids — URLs still resolve for bookmarks, but not shown in navigation. */
-export const RETIRED_COLLECTION_FILTER_IDS = ["compare-local-pickup"] as const;
+export const RETIRED_COLLECTION_FILTER_IDS = [] as const;
 
 export interface CategorySubcategoryGroup {
   id: string;
@@ -1103,8 +1099,8 @@ export const SHOPPING_COLLECTIONS: ShoppingCollection[] = [
   {
     id: "before-you-buy",
     label: "Before You Buy",
-    description: "Curated comparison views for cross-border, pickup, accessories and condition.",
-    legacyIds: ["compare-cross-border", "compare-local-pickup", "compare-accessories", "compare-refurb"],
+    description: "Curated comparison views for cross-border offers, accessories and condition.",
+    legacyIds: ["compare-cross-border", "compare-accessories", "compare-refurb"],
   },
   {
     id: "deals",
@@ -1392,9 +1388,6 @@ export function productMatchesCategoryFilter(
   // Legacy collection URLs remain functional, but collections are not taxonomy.
   if (categoryFilter === "compare-cross-border") {
     return Boolean(product.offers?.some((offer) => offer.type === "cross_border"));
-  }
-  if (categoryFilter === "compare-local-pickup") {
-    return Boolean(product.offers?.some((offer) => offer.type === "local_pickup"));
   }
   if (
     categoryFilter === "sale" ||

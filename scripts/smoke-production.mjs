@@ -3,11 +3,11 @@
 const BASE_URL = process.env.SMOKE_BASE_URL || "https://www.beforetobuy.com";
 
 const endpoints = [
-  { name: "Homepage", path: "/", expectText: "BeforeToBuy" },
-  { name: "Legal hub", path: "/legal", expectText: "Legal hub" },
-  { name: "Help", path: "/help", expectText: "Help" },
-  { name: "Privacy", path: "/privacy", expectText: "Privacy" },
-  { name: "Cookies", path: "/cookies", expectText: "Cookie" },
+  { name: "Homepage", path: "/?lang=en", expectText: "BeforeToBuy" },
+  { name: "Legal hub", path: "/legal?lang=en", expectText: "Legal" },
+  { name: "Help", path: "/help?lang=en", expectText: "Help" },
+  { name: "Privacy", path: "/privacy?lang=en", expectText: "Privacy" },
+  { name: "Cookies", path: "/cookies?lang=en", expectText: "Cookie" },
   {
     name: "Health API",
     path: "/api/health",
@@ -37,7 +37,9 @@ function getNestedValue(object, keyPath) {
 
 async function checkEndpoint(endpoint) {
   const url = `${BASE_URL}${endpoint.path}`;
-  const response = await fetch(url, { headers: { Accept: "*/*" } });
+  const response = await fetch(url, {
+    headers: { Accept: "*/*", Cookie: "btb-ui-lang=en" },
+  });
 
   if (!response.ok) {
     throw new Error(`${endpoint.name} failed: HTTP ${response.status} (${url})`);
@@ -81,22 +83,17 @@ function getSetCookie(response, name) {
   return match.split(";")[0];
 }
 
-async function checkConsentAndLocation() {
+async function checkConsentPreferences() {
   const consentUrl = `${BASE_URL}/api/consent`;
   const origin = new URL(BASE_URL).origin;
 
   const blocked = await fetch(consentUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ location: true, affiliate: false, analytics: false }),
+    body: JSON.stringify({ affiliate: false, analytics: false }),
   });
   if (blocked.status !== 403) {
     throw new Error(`Consent CSRF expected 403 without Origin, got ${blocked.status}`);
-  }
-
-  const locationBlocked = await fetch(`${BASE_URL}/api/location`);
-  if (locationBlocked.status !== 403) {
-    throw new Error(`Location without consent expected 403, got ${locationBlocked.status}`);
   }
 
   const saved = await fetch(consentUrl, {
@@ -105,7 +102,7 @@ async function checkConsentAndLocation() {
       "Content-Type": "application/json",
       Origin: origin,
     },
-    body: JSON.stringify({ location: true, affiliate: false, analytics: false }),
+    body: JSON.stringify({ affiliate: false, analytics: false }),
   });
   if (!saved.ok) {
     throw new Error(`Consent save failed: HTTP ${saved.status}`);
@@ -116,19 +113,15 @@ async function checkConsentAndLocation() {
     throw new Error("Consent save missing b2b_consent Set-Cookie");
   }
 
-  const located = await fetch(`${BASE_URL}/api/location`, {
-    headers: { Cookie: consentCookie },
+  const cleared = await fetch(consentUrl, {
+    method: "DELETE",
+    headers: { Origin: origin, Cookie: consentCookie },
   });
-  if (!located.ok) {
-    throw new Error(`Location with consent failed: HTTP ${located.status}`);
+  if (!cleared.ok) {
+    throw new Error(`Consent clear failed: HTTP ${cleared.status}`);
   }
 
-  const body = await located.json();
-  if (!body.countryCode) {
-    throw new Error("Location response missing countryCode");
-  }
-
-  return "Consent + location: OK (CSRF, gate, unlock)";
+  return "Consent preferences: OK (CSRF, save, clear)";
 }
 
 async function main() {
@@ -141,7 +134,7 @@ async function main() {
     results.push(result);
   }
 
-  const consentResult = await checkConsentAndLocation();
+  const consentResult = await checkConsentPreferences();
   console.log(`✓ ${consentResult}`);
   results.push(consentResult);
 

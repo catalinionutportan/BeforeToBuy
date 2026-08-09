@@ -7,12 +7,8 @@ import { fetchMergedProductsForLocation } from "@/lib/product-service";
 export function getBrowseLocationForCountry(countryCode: CountryCode): UserLocation {
   const country = COUNTRIES[countryCode] || COUNTRIES[getPrimaryLiveBrowseCountry()];
   return {
-    latitude: country.defaultCoordinates.lat,
-    longitude: country.defaultCoordinates.lng,
     countryCode: country.code,
     countryName: country.name,
-    city: country.defaultCoordinates.city,
-    isGps: false,
   };
 }
 

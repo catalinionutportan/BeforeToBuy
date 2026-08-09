@@ -47,17 +47,17 @@ describe("getRequestMarketCountry", () => {
     await expect(getRequestMarketCountry()).resolves.toBe("RO");
   });
 
-  it("ignores geo for markets without live feeds", async () => {
+  it("keeps a supported request country even when its catalogue is empty", async () => {
     cookiesMock.mockResolvedValue({ get: () => undefined });
     headersMock.mockResolvedValue({
       get: (name: string) => (name === "x-vercel-ip-country" ? "CH" : null),
     });
 
     const { getRequestMarketCountry } = await import("@/lib/request-market");
-    await expect(getRequestMarketCountry()).resolves.toBe("RO");
+    await expect(getRequestMarketCountry()).resolves.toBe("CH");
   });
 
-  it("ignores stale empty-market cookies (CH has no live feeds)", async () => {
+  it("keeps an explicit supported market cookie", async () => {
     cookiesMock.mockResolvedValue({
       get: (name: string) =>
         name === "btb-market-country" ? { value: "CH" } : undefined,
@@ -65,6 +65,6 @@ describe("getRequestMarketCountry", () => {
     headersMock.mockResolvedValue({ get: () => null });
 
     const { getRequestMarketCountry } = await import("@/lib/request-market");
-    await expect(getRequestMarketCountry()).resolves.toBe("RO");
+    await expect(getRequestMarketCountry()).resolves.toBe("CH");
   });
 });

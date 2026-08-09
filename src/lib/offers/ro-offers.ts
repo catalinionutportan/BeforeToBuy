@@ -9,7 +9,6 @@ import type { SiteLocale } from "@/lib/i18n/locales";
 export async function getRoOffers(
   _product: Product,
   _userLocation: UserLocation,
-  _closestStore: unknown,
   _locale?: SiteLocale
 ): Promise<Offer[]> {
   return [];

@@ -37,7 +37,6 @@ export async function POST(request: Request) {
   if (
     !body ||
     typeof body !== "object" ||
-    typeof (body as { location?: unknown }).location !== "boolean" ||
     typeof (body as { affiliate?: unknown }).affiliate !== "boolean"
   ) {
     return NextResponse.json(
@@ -47,13 +46,11 @@ export async function POST(request: Request) {
   }
 
   const preferences = body as {
-    location: boolean;
     affiliate: boolean;
     analytics?: unknown;
   };
   const analytics = preferences.analytics === true;
   const token = createConsentToken({
-    location: preferences.location,
     affiliate: preferences.affiliate,
   });
   if (!token) {
@@ -79,7 +76,6 @@ export async function POST(request: Request) {
     name: CONSENT_CLIENT_HINT_COOKIE_NAME,
     value: JSON.stringify({
       essential: true,
-      location: preferences.location,
       affiliate: preferences.affiliate,
       analytics,
       updatedAt: new Date().toISOString(),

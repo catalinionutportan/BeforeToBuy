@@ -86,6 +86,17 @@ describe('Offer Filtering Logic', () => {
     expect(free[0]!.offers.length).toBe(1);
     expect(free[0]!.offers[0]!.deliveryCost).toBe(0);
 
+    const unknownDelivery = applyOfferFilters(
+      [
+        {
+          ...products[1]!,
+          offers: [offer({ id: "unknown", deliveryCost: undefined })],
+        },
+      ],
+      { freeDeliveryOnly: true }
+    );
+    expect(unknownDelivery).toHaveLength(0);
+
     const capped = applyOfferFilters(products, { maxTotalPrice: 100 });
     expect(capped.length).toBe(1);
     expect(capped[0]!.brand).toBe("JBL");

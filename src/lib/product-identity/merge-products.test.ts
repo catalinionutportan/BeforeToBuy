@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { Product } from '@/types';
 import { extractVariantKey } from './variant-key';
 import {
+  attachOfferTimestamps,
   mergeFeedAndDemoProducts,
   mergeFeedProductsByIdentity,
 } from './merge-products';
@@ -153,5 +154,23 @@ describe('Product Merging Logic', () => {
 
     const merged = mergeFeedAndDemoProducts(demoProducts, feedProducts);
     expect(merged.length).toBe(2);
+  });
+
+  it("keeps a real feed timestamp and only fills missing timestamps", () => {
+    const product = sampleFeedProduct({
+      id: "feed-timestamp",
+      title: "Timestamped product",
+      brand: "Test",
+      storeName: "Test store",
+      feedMerchantId: "test-store",
+    });
+    product.offers[0]!.fetchedAt = "2026-08-01T08:00:00.000Z";
+
+    const preserved = attachOfferTimestamps([product], "2026-08-09T08:00:00.000Z");
+    expect(preserved[0]!.offers[0]!.fetchedAt).toBe("2026-08-01T08:00:00.000Z");
+
+    delete product.offers[0]!.fetchedAt;
+    const filled = attachOfferTimestamps([product], "2026-08-09T08:00:00.000Z");
+    expect(filled[0]!.offers[0]!.fetchedAt).toBe("2026-08-09T08:00:00.000Z");
   });
 });

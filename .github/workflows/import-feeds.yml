@@ -10,6 +10,10 @@ on:
 jobs:
   import-feeds:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    concurrency:
+      group: import-2performant-feeds
+      cancel-in-progress: false
     
     steps:
       - name: Checkout repository
@@ -18,7 +22,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -31,4 +35,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          ALLOW_RO_IMPORT: '1'
+          TWO_PERFORMANT_FEED_URL_RO_ROWENTA: ${{ secrets.TWO_PERFORMANT_FEED_URL_RO_ROWENTA }}
+          TWO_PERFORMANT_FEED_URL_RO_SCULE365: ${{ secrets.TWO_PERFORMANT_FEED_URL_RO_SCULE365 }}
         run: npx tsx src/scripts/run-import.ts --all

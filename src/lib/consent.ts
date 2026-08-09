@@ -1,10 +1,9 @@
 import { CONSENT_CLIENT_HINT_COOKIE_NAME, CONSENT_VERSION } from "@/lib/consent-config";
 
-export type ConsentCategory = "location" | "affiliate" | "analytics";
+export type ConsentCategory = "affiliate" | "analytics";
 
 export interface ConsentPreferences {
   essential: true;
-  location: boolean;
   affiliate: boolean;
   /** Optional performance/analytics (e.g. Datadog RUM). Defaults false when absent. */
   analytics: boolean;
@@ -12,7 +11,7 @@ export interface ConsentPreferences {
   version: number;
 }
 
-const STORAGE_KEY = "b2b_consent_v3";
+const STORAGE_KEY = "b2b_consent_v4";
 export const CONSENT_UPDATED_EVENT = "b2b-consent-updated";
 
 function isBrowser() {
@@ -24,10 +23,9 @@ function parseConsentPreferences(raw: string | null | undefined): ConsentPrefere
   try {
     const parsed = JSON.parse(raw) as Partial<ConsentPreferences>;
     if (parsed.essential !== true || parsed.version !== CONSENT_VERSION) return null;
-    if (typeof parsed.location !== "boolean" || typeof parsed.affiliate !== "boolean") return null;
+    if (typeof parsed.affiliate !== "boolean") return null;
     return {
       essential: true,
-      location: parsed.location,
       affiliate: parsed.affiliate,
       analytics: parsed.analytics === true,
       updatedAt: typeof parsed.updatedAt === "string" ? parsed.updatedAt : new Date().toISOString(),
@@ -75,7 +73,6 @@ function consentValuesEqual(a: ConsentPreferences | null, b: ConsentPreferences 
   if (a === b) return true;
   if (!a || !b) return false;
   return (
-    a.location === b.location &&
     a.affiliate === b.affiliate &&
     a.analytics === b.analytics &&
     a.version === b.version
@@ -103,7 +100,7 @@ export function hasConsent(category: ConsentCategory): boolean {
 }
 
 async function postConsentPreferences(
-  prefs: Pick<ConsentPreferences, "location" | "affiliate" | "analytics">
+  prefs: Pick<ConsentPreferences, "affiliate" | "analytics">
 ): Promise<boolean> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8_000);
@@ -113,7 +110,6 @@ async function postConsentPreferences(
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        location: prefs.location,
         affiliate: prefs.affiliate,
         analytics: prefs.analytics,
       }),
@@ -128,21 +124,19 @@ async function postConsentPreferences(
 }
 
 export async function saveConsentPreferences(
-  prefs: Pick<ConsentPreferences, "location" | "affiliate" | "analytics">
+  prefs: Pick<ConsentPreferences, "affiliate" | "analytics">
 ): Promise<boolean> {
   if (!isBrowser()) return false;
 
   const payload: ConsentPreferences = {
     essential: true,
-    location: prefs.location,
     affiliate: prefs.affiliate,
     analytics: prefs.analytics,
     updatedAt: new Date().toISOString(),
     version: CONSENT_VERSION,
   };
 
-  // Wait for the signed HttpOnly cookie before advertising success. Firing
-  // CONSENT_UPDATED_EVENT earlier lets location fetch race and hit 403.
+  // Wait for the signed cookie before advertising success.
   const savedOnServer = await postConsentPreferences(prefs);
   if (!savedOnServer) {
     console.warn("[consent] server save failed; preferences not applied");
@@ -155,11 +149,11 @@ export async function saveConsentPreferences(
 }
 
 export async function acceptAllConsent() {
-  return saveConsentPreferences({ location: true, affiliate: true, analytics: true });
+  return saveConsentPreferences({ affiliate: true, analytics: true });
 }
 
 export async function acceptEssentialConsent() {
-  return saveConsentPreferences({ location: false, affiliate: false, analytics: false });
+  return saveConsentPreferences({ affiliate: false, analytics: false });
 }
 
 export function openConsentPreferences() {

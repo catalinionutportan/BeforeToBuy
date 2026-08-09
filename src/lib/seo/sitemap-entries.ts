@@ -1,16 +1,17 @@
 import type { MetadataRoute } from "next";
 import { COMPARISON_COLLECTION_FILTERS, getAllCategoryPaths } from "@/lib/categories";
 import { fetchDefaultCatalog } from "@/lib/category-page-data";
+import { listProductIdsForSitemap } from "@/lib/product-lookup";
 import {
   collectionBrowsePath,
   departmentCategoryPath,
   subcategoryCategoryPath,
 } from "@/lib/category-routes";
-import { BROWSE_LIST_OPTIONS, SITEMAP_PRODUCT_LIMIT } from "@/lib/product-list-options";
+import { BROWSE_LIST_OPTIONS } from "@/lib/product-list-options";
 import { redisGetJson, redisSetJson } from "@/lib/redis-cache";
 import { productPagePath } from "@/lib/seo/site-url";
 
-const SITEMAP_CACHE_KEY = "sitemap:v1:entries";
+const SITEMAP_CACHE_KEY = "sitemap:v2:entries";
 const SITEMAP_CACHE_TTL_SECONDS = 60 * 60;
 
 type CachedSitemap = {
@@ -61,11 +62,12 @@ async function buildSitemapEntries(): Promise<MetadataRoute.Sitemap> {
   const staticRoutesList = staticRoutes(baseUrl);
 
   try {
-    // One capped merge: categoryCounts cover the full matched set; body is limited.
+    // Category counts come from the full matched set; product IDs use a lightweight DB query.
     const catalog = await fetchDefaultCatalog(undefined, {
       ...BROWSE_LIST_OPTIONS,
-      limit: SITEMAP_PRODUCT_LIMIT,
+      limit: 1,
     });
+    const productIds = await listProductIdsForSitemap(45_000);
     const counts = catalog.meta.categoryCounts;
     const collectionCounts = catalog.meta.collectionCounts ?? {};
 
@@ -99,11 +101,9 @@ async function buildSitemapEntries(): Promise<MetadataRoute.Sitemap> {
       priority: 0.65,
     }));
 
-    const productRoutes: MetadataRoute.Sitemap = catalog.products
-      .slice(0, SITEMAP_PRODUCT_LIMIT)
-      .map((product) => ({
-        url: `${baseUrl}${productPagePath(product.id)}`,
-        lastModified: new Date().toISOString(),
+    const productRoutes: MetadataRoute.Sitemap = productIds
+      .map((productId) => ({
+        url: `${baseUrl}${productPagePath(productId)}`,
         changeFrequency: "daily" as const,
         priority: 0.8,
       }));

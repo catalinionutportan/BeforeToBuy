@@ -1,6 +1,5 @@
-import { CountryCode, Offer, PhysicalStoreBranch, Product, UserLocation } from "@/types";
+import { CountryCode, Offer, Product, UserLocation } from "@/types";
 import { COUNTRIES, DEFAULT_COUNTRY } from "./countries";
-import { calculateHaversineDistance } from "./geolocation";
 import { getChOffers } from "./offers/ch-offers";
 import { getDeOffers } from "./offers/de-offers";
 import { getFrOffers } from "./offers/fr-offers";
@@ -8,31 +7,15 @@ import { getRoOffers } from "./offers/ro-offers";
 import { getGbOffers } from "./offers/gb-offers";
 import { getUsOffers } from "./offers/us-offers";
 import countryPriceMultipliers from "@/data/country-price-multipliers.json";
-import chBranches from "@/data/store-branches-ch.json";
-import deBranches from "@/data/store-branches-de.json";
-import frBranches from "@/data/store-branches-fr.json";
-import roBranches from "@/data/store-branches-ro.json";
-import gbBranches from "@/data/store-branches-gb.json";
-import usBranches from "@/data/store-branches-us.json";
 import { DEFAULT_LOCALE, type SiteLocale } from "@/lib/i18n/locales";
 
 export async function fetchCountryPriceMultipliers(): Promise<Record<CountryCode, number>> {
   return countryPriceMultipliers as Record<CountryCode, number>;
 }
 
-const STORE_BRANCHES: Record<CountryCode, PhysicalStoreBranch[]> = {
-  CH: chBranches as PhysicalStoreBranch[],
-  DE: deBranches as PhysicalStoreBranch[],
-  FR: frBranches as PhysicalStoreBranch[],
-  RO: roBranches as PhysicalStoreBranch[],
-  GB: gbBranches as PhysicalStoreBranch[],
-  US: usBranches as PhysicalStoreBranch[],
-};
-
 type OfferLoader = (
   product: Product,
   userLocation: UserLocation,
-  closestStore: PhysicalStoreBranch,
   locale: SiteLocale
 ) => Promise<Offer[]>;
 
@@ -65,28 +48,10 @@ export async function generateOffersForLocation(
   const basePrice = product.basePrice || 350;
   const targetPrice = Math.round(basePrice * mult);
 
-  const stores = STORE_BRANCHES[country] || STORE_BRANCHES[DEFAULT_COUNTRY];
-  const storesWithDistance = stores
-    .map((store) => {
-      const dist = calculateHaversineDistance(
-        userLocation.latitude,
-        userLocation.longitude,
-        store.latitude,
-        store.longitude
-      );
-      return { ...store, distanceKm: dist };
-    })
-    .sort((a, b) => (a.distanceKm || 0) - (b.distanceKm || 0));
-
-  const closestStore = storesWithDistance[0] ?? stores[0];
-  if (!closestStore) {
-    return [];
-  }
-
   const loader = OFFER_LOADERS[country] ?? OFFER_LOADERS.US;
   let initialOffers: Offer[] = [];
   try {
-    initialOffers = await loader(product, userLocation, closestStore, locale);
+    initialOffers = await loader(product, userLocation, locale);
   } catch (error) {
     console.error(`[api-aggregator] offer loader failed for ${country}:`, error);
     initialOffers = [];
