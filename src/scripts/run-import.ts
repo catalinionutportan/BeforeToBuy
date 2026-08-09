@@ -71,6 +71,13 @@ const FEEDS: FeedSpec[] = [
     countryCode: "RO",
     currency: "RON",
   },
+  {
+    url: "https://api.2performant.com/feed/b1d791b60.csv",
+    merchantId: "ro-autoeco",
+    storeName: "autoeco.ro",
+    countryCode: "RO",
+    currency: "RON",
+  },
 ];
 
 function parseArgs(argv: string[]) {
