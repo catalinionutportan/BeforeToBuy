@@ -77,7 +77,9 @@ describe("2Performant Scule365 CSV feed", () => {
 
   it("configured feed loader includes Scule365 TWO_PERFORMANT", async () => {
     const feed = MERCHANT_FEEDS.find((item) => item.merchantId === "ro-scule365");
-    expect(feed?.defaultRemoteUrl).toContain("fcdbb3e99.csv");
+    // Remote URL intentionally unset — RO catalogues are offline-imported into Supabase.
+    expect(feed?.defaultRemoteUrl).toBeUndefined();
+    expect(feed?.sampleFile).toBe("sample-2performant-scule365-ro.csv");
     const csv = fs.readFileSync(scule365SamplePath, "utf8");
     const parsed = await parseConfiguredFeed(feed!, csv, "RO", "production-live");
     expect(parsed.products.length).toBeGreaterThanOrEqual(3);
@@ -91,16 +93,8 @@ describe("2Performant Scule365 CSV feed", () => {
     expect(result.merchantProductCounts["ro-evomag"] ?? 0).toBe(0);
   });
 
-  it("configured feed loader includes evoMAG TWO_PERFORMANT with Category CSV", async () => {
+  it("keeps evoMAG removed from the configured feed registry", () => {
     const feed = MERCHANT_FEEDS.find((item) => item.merchantId === "ro-evomag");
-    expect(feed?.defaultRemoteUrl).toContain("9519e6c41.csv");
-    const csv = fs.readFileSync(
-      path.join(process.cwd(), "src/data/sample-2performant-evomag-ro.csv"),
-      "utf8"
-    );
-    const parsed = await parseConfiguredFeed(feed!, csv, "RO", "production-live");
-    expect(parsed.products.length).toBeGreaterThanOrEqual(3);
-    expect(parsed.products[0]?.offers[0]?.storeName).toBe("evoMAG.ro");
-    expect(parsed.products[0]?.image).toMatch(/evomag\.ro/);
+    expect(feed).toBeUndefined();
   });
 });

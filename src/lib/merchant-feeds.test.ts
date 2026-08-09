@@ -78,12 +78,14 @@ describe("Merchant Feed Processing", () => {
     expect(result.merchantProductCounts).toEqual({});
   });
 
-  it("marks evoMAG as heavy/cache-only", () => {
+  it("keeps evoMAG out of the registry and Scule365 heavy/cache-only", () => {
     const evomag = MERCHANT_FEEDS.find((feed) => feed.merchantId === "ro-evomag");
-    expect(evomag).toBeDefined();
-    expect(isCacheOnlyFeed(evomag!)).toBe(true);
-    expect(evomag!.heavy).toBe(true);
-    expect(evomag!.cacheOnly).toBe(true);
+    expect(evomag).toBeUndefined();
+
+    const scule365 = MERCHANT_FEEDS.find((feed) => feed.merchantId === "ro-scule365");
+    expect(scule365).toBeDefined();
+    expect(isCacheOnlyFeed(scule365!)).toBe(true);
+    expect(scule365!.heavy).toBe(true);
   });
 
   it("request path never fetches remote evoMAG CSV on cache miss", async () => {

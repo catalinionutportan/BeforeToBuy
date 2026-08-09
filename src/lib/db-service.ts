@@ -47,7 +47,7 @@ export function normalizeProductImageUrl(
 
 /** Convert Prisma Product to Application Product */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapPrismaProduct(p: any): Product {
+export function mapPrismaProduct(p: any): Product {
   return {
     id: p.id,
     title: p.title,
