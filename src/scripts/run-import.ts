@@ -57,6 +57,13 @@ const FEEDS: FeedSpec[] = [
     countryCode: "RO",
     currency: "RON",
   },
+  {
+    url: "https://api.2performant.com/feed/86d0f944f.csv",
+    merchantId: "ro-micul-meserias",
+    storeName: "Micul Meserias",
+    countryCode: "RO",
+    currency: "RON",
+  },
 ];
 
 function parseArgs(argv: string[]) {
