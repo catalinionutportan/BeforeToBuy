@@ -15,10 +15,32 @@ import { SITE_PHASE } from "@/lib/site-config";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { isInternalApiAuthorized } from "@/lib/internal-api-auth";
+import { prisma } from "@/lib/db";
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
 export const dynamic = "force-dynamic";
+
+async function checkSupabaseCatalogue() {
+  if (!process.env.DATABASE_URL?.trim()) {
+    return { status: "warn" as const, productCount: 0, message: "DATABASE_URL unset" };
+  }
+  try {
+    const productCount = await prisma.product.count({
+      where: { targetCountries: { has: "RO" } },
+    });
+    return {
+      status: productCount > 0 ? ("ok" as const) : ("warn" as const),
+      productCount,
+    };
+  } catch (error) {
+    return {
+      status: "error" as const,
+      productCount: 0,
+      message: error instanceof Error ? error.message.slice(0, 180) : homeUi.healthCheckUnknownError,
+    };
+  }
+}
 
 async function checkSampleFeedFiles() {
   const results = await Promise.all(
@@ -105,7 +127,7 @@ export async function GET(request: Request) {
 
   // Public health must stay cheap for smoke/monitoring — skip full catalog merge.
   // Internal callers still run the expensive productsMerge probe.
-  const [sampleFeed, productsMerge, priceHistoryStats] = await Promise.all([
+  const [sampleFeed, productsMerge, supabaseCatalogue, priceHistoryStats] = await Promise.all([
     checkSampleFeedFiles(),
     authorized
       ? checkProductsMerge()
@@ -122,6 +144,7 @@ export async function GET(request: Request) {
           enabledFeedCount,
           liveMerchantCount,
         }),
+    checkSupabaseCatalogue(),
     getPriceHistoryStats().catch(() => ({
       trackedOffers: 0,
       totalPoints: 0,
@@ -130,7 +153,10 @@ export async function GET(request: Request) {
     })),
   ]);
 
-  const hasError = sampleFeed.status === "error" || productsMerge.status === "error";
+  const hasError =
+    sampleFeed.status === "error" ||
+    productsMerge.status === "error" ||
+    supabaseCatalogue.status === "error";
   const overallStatus = hasError
     ? "unhealthy"
     : integrations.hasProductionFeed
@@ -160,12 +186,17 @@ export async function GET(request: Request) {
       status: priceHistoryStats.totalPoints > 0 ? ("ok" as const) : ("warn" as const),
       backend: priceHistoryStats.backend ?? getPriceHistoryBackend(),
     },
+    supabaseCatalogue: {
+      status: supabaseCatalogue.status,
+      productCount: supabaseCatalogue.productCount,
+    },
   };
 
   const fullChecks = {
     app: { status: "ok" as const },
     sampleFeed,
     productsMerge,
+    supabaseCatalogue,
     integrations: {
       status: integrations.hasProductionFeed ? ("ok" as const) : ("warn" as const),
       feedMerchantIds: integrations.feedMerchantIds,
