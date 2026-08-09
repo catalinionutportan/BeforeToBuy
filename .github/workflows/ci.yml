@@ -30,6 +30,9 @@ jobs:
         run: npm run typecheck
 
       - name: Build
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+          DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
         run: npm run build
 
       - name: Audit (report only)
@@ -57,6 +60,9 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Build
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+          DIRECT_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
         run: npm run build
 
       - name: Run E2E smoke tests
