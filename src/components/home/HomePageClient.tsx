@@ -435,13 +435,25 @@ export default function HomePageClient({
       products.filter((product) => productMatchesCategoryFilter(product, selectedCategory)),
     [products, selectedCategory]
   );
+  const isSearching = debouncedSearchQuery.trim().length > 0;
   const displayedProducts = useMemo(
     () =>
       sortProductsForBrowse(
         applyOfferFilters(categoryFilteredProducts, activeOfferFilters),
-        sortOrder
+        sortOrder,
+        {
+          countryCode: userLocation.countryCode,
+          // Search bar = cross-catalog (phones + fashion + …). Hubs/menu = aisle order.
+          preserveApiOrder: isSearching,
+        }
       ),
-    [categoryFilteredProducts, activeOfferFilters, sortOrder]
+    [
+      categoryFilteredProducts,
+      activeOfferFilters,
+      sortOrder,
+      userLocation.countryCode,
+      isSearching,
+    ]
   );
   const filtersActiveBeyondCategory = useMemo(() => hasActiveOfferFilters(activeOfferFilters), [activeOfferFilters]);
   const visibleProducts = useMemo(
