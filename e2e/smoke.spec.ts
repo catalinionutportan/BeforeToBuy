@@ -113,19 +113,65 @@ test.describe("BeforeToBuy smoke E2E", () => {
   });
 
   test("health API distinguishes sample-only from production feeds", async ({ request }) => {
+    const publicResponse = await request.get("/api/health");
+    expect(publicResponse.ok()).toBeTruthy();
+    const publicBody = await publicResponse.json();
+    expect(publicBody.detailLevel).toBe("public");
+    expect(publicBody.commit).toBeUndefined();
+    expect(publicBody.environment).toBeUndefined();
+    expect(publicBody.checks.supabaseCatalogue).toBeUndefined();
+    expect(publicBody.checks.priceHistory).toBeUndefined();
+
     const response = await request.get("/api/health", {
-      headers: { Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || process.env.CRON_SECRET || "playwright-internal-api-secret-32chars!"}` },
+      headers: { Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || "playwright-internal-api-secret-32chars!"}` },
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
     expect(body.sitePhase).toBe("production");
     expect(body.legalDocumentVersion).toBe("1.0");
+    expect(body.detailLevel).toBe("internal");
     expect(body.checks.productsMerge.productCount).toBeGreaterThan(0);
     if (body.checks.integrations.hasProductionFeed) {
       expect(body.status).toBe("healthy");
     } else {
       expect(body.status).toBe("degraded");
     }
+  });
+
+  test("HTML responses include nonce-based CSP without wildcard https img-src", async ({ page }) => {
+    const response = await page.goto("/?lang=en");
+    expect(response?.ok()).toBeTruthy();
+    const csp = response?.headers()["content-security-policy"] || "";
+    expect(csp).toContain("script-src");
+    expect(csp).toMatch(/nonce-[A-Za-z0-9+/=]+/);
+    expect(csp).toContain("strict-dynamic");
+    expect(csp).not.toMatch(/img-src[^;]*\shttps:(;|$)/);
+    expect(csp).toContain("https://www.rowenta.ro");
+  });
+
+  test("primary pages emit no Content-Security-Policy console violations", async ({ page }) => {
+    const cspViolations: string[] = [];
+    page.on("console", (message) => {
+      const text = message.text();
+      if (
+        message.type() === "error" &&
+        (/content security policy/i.test(text) ||
+          /refused to apply inline style/i.test(text) ||
+          /refused to load/i.test(text))
+      ) {
+        cspViolations.push(text);
+      }
+    });
+
+    await page.goto("/");
+    await dismissCookieBannerIfPresent(page);
+    await selectRomaniaMarket(page);
+    await expect(page.locator("article").first()).toBeVisible({ timeout: 60_000 });
+
+    await page.goto("/legal");
+    await expect(page.getByRole("heading", { name: /Legal & Company Information/i })).toBeVisible();
+
+    expect(cspViolations, cspViolations.join("\n")).toEqual([]);
   });
 
   test("products API has empty CH catalog until merchant approval", async ({ request }) => {
@@ -201,25 +247,29 @@ test.describe("BeforeToBuy smoke E2E", () => {
     ).toBeVisible();
   });
 
-  test("integrations status reports all configured merchant feed modes", async ({ request }) => {
+  test("integrations status reports configured merchant feeds from registry", async ({ request }) => {
     const response = await request.get("/api/integrations/status", {
       headers: {
-        Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || process.env.CRON_SECRET || "playwright-internal-api-secret-32chars!"}`,
+        Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || "playwright-internal-api-secret-32chars!"}`,
       },
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    // CH is disabled. Local smoke mode may expose the two checked-in RO sample feeds.
+    // CH remains disabled until approval.
     expect(body.feedMerchantIds).not.toContain("ch-brack");
     expect(body.feedMerchantIds).not.toContain("ch-digitec");
     expect(body.feedMerchantIds).toContain("gb-seentat");
+    expect(body.feedMerchantIds).toContain("us-ottocast");
+    // FORCE_SAMPLE_FEEDS may enable RO samples — assert config presence, not a fragile count.
     if (body.feedMerchantIds.includes("ro-rowenta")) {
-      expect(body.feedMerchantIds).toContain("ro-rowenta");
       expect(body.feedMerchantIds).toContain("ro-scule365");
-      expect(body.merchants.length).toBe(3);
-    } else {
-      expect(body.merchants.length).toBe(1);
-      expect(body.feedMerchantIds).not.toContain("ro-rowenta");
+    }
+    expect(Array.isArray(body.merchants)).toBe(true);
+    expect(body.merchants.length).toBe(body.feedMerchantIds.length);
+    for (const merchantId of body.feedMerchantIds as string[]) {
+      expect(body.merchants.some((m: { merchantId: string }) => m.merchantId === merchantId)).toBe(
+        true
+      );
     }
   });
 
@@ -236,7 +286,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
   test("mapping report API is empty for CH while merchants are pending", async ({ request }) => {
     const response = await request.get("/api/mapping/report?country=CH", {
       headers: {
-        Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || process.env.CRON_SECRET || "playwright-internal-api-secret-32chars!"}`,
+        Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || "playwright-internal-api-secret-32chars!"}`,
       },
     });
     expect(response.ok()).toBeTruthy();
