@@ -142,8 +142,12 @@ function buildWhere(
   }
   if (filters.hasGtinOnly) where.gtin = { not: null };
 
+  // Catalogue only surfaces products with at least one in-stock offer.
+  // Soft-paused merchants (e.g. evoMAG image CDN) set inStock=false to hide without delete.
   const offerWhere = buildOfferWhere(filters);
-  if (offerWhere) where.offers = { some: offerWhere };
+  where.offers = {
+    some: offerWhere ? { AND: [offerWhere, { inStock: true }] } : { inStock: true },
+  };
 
   return where;
 }
@@ -155,7 +159,10 @@ export async function getCategoryCountsFromDb(countryCode: string): Promise<{
 }> {
   const rows = await prisma.product.groupBy({
     by: ["category"],
-    where: { targetCountries: { has: countryCode } },
+    where: {
+      targetCountries: { has: countryCode },
+      offers: { some: { inStock: true } },
+    },
     _count: { _all: true },
   });
 
@@ -186,6 +193,9 @@ export async function getProductsFromDb(
 ) {
   const whereClause = buildWhere(countryCode, query, category, filters);
   const offerWhere = buildOfferWhere(filters);
+  const visibleOfferWhere: Prisma.OfferWhereInput = offerWhere
+    ? { AND: [offerWhere, { inStock: true }] }
+    : { inStock: true };
   const take = limit == null ? 100 : Math.max(0, Math.floor(limit));
   const skip = Math.max(0, Math.floor(offset || 0));
   const sortByOfferTotal = sort === "price-asc" || sort === "price-desc";
@@ -195,7 +205,7 @@ export async function getProductsFromDb(
   const [products, total, countMaps, countryTotal, brandRows] = await Promise.all([
     prisma.product.findMany({
       where: whereClause,
-      include: { offers: offerWhere ? { where: offerWhere } : true },
+      include: { offers: { where: visibleOfferWhere } },
       take: sortByOfferTotal ? undefined : take,
       skip: sortByOfferTotal ? undefined : skip,
       orderBy,
@@ -203,7 +213,10 @@ export async function getProductsFromDb(
     prisma.product.count({ where: whereClause }),
     getCategoryCountsFromDb(countryCode),
     prisma.product.count({
-      where: { targetCountries: { has: countryCode } },
+      where: {
+        targetCountries: { has: countryCode },
+        offers: { some: { inStock: true } },
+      },
     }),
     prisma.product.findMany({
       where: { ...brandWhere, brand: { not: null } },
