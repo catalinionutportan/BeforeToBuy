@@ -3,7 +3,10 @@
 import { memo } from "react";
 import { ExternalLink } from "lucide-react";
 import type { ProductPreview } from "@/lib/product-preview";
-import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
+import {
+  resolveProductImageSrc,
+  shouldUseNativeProductImage,
+} from "@/lib/utils/product-image";
 import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
 
 /**
@@ -12,16 +15,17 @@ import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLin
  */
 function ProductPreviewContentInner({ preview }: { preview: ProductPreview }) {
   const offers = preview.offers ?? [];
+  const imageSrc = resolveProductImageSrc(preview.image);
 
   return (
     <div className="space-y-6 sm:space-y-8 p-4 sm:p-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
         <div className="relative aspect-square bg-slate-50 rounded-2xl overflow-hidden border border-slate-100">
-          {preview.image ? (
+          {imageSrc ? (
             <div className="absolute inset-6">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={preview.image}
+                src={imageSrc}
                 alt={preview.title}
                 className="h-full w-full object-contain object-center"
                 referrerPolicy={

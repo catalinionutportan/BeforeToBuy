@@ -4,7 +4,10 @@ import { useState } from "react";
 import { Product } from "@/types";
 import { HOME_UI } from "@/lib/i18n/ui";
 import type { SiteLocale } from "@/lib/i18n/locales";
-import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
+import {
+  resolveProductImageSrc,
+  shouldUseNativeProductImage,
+} from "@/lib/utils/product-image";
 import { Sparkles } from "lucide-react";
 
 interface ProductCardImageProps {
@@ -20,15 +23,16 @@ export function ProductCardImage({
 }: ProductCardImageProps) {
   const ui = HOME_UI[locale];
   const [broken, setBroken] = useState(false);
+  const imageSrc = resolveProductImageSrc(product.image);
 
   return (
     <div className="relative bg-slate-100/60 aspect-square w-full overflow-hidden">
       {/* Native feed URL — same src as the product modal, so open is cache-hit. */}
       <div className="absolute inset-2 sm:inset-3">
-        {!broken && product.image ? (
+        {!broken && imageSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={product.image}
+            src={imageSrc}
             alt={product.title}
             loading="lazy"
             decoding="async"

@@ -6,7 +6,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
+import {
+  resolveProductImageSrc,
+  shouldUseNativeProductImage,
+} from "@/lib/utils/product-image";
 import {
   isComparePath,
   saveBrowseScrollAnchor,
@@ -90,6 +93,7 @@ export function CompareBar() {
         <div className="flex items-center justify-center gap-4 flex-1 w-full overflow-x-auto pb-2 md:pb-0 px-2">
           {[0, 1].map((index) => {
             const product = compareList[index];
+            const imageSrc = resolveProductImageSrc(product?.image);
 
             return product ? (
               <div
@@ -104,18 +108,18 @@ export function CompareBar() {
                   <X className="w-3 h-3" />
                 </button>
                 <div className="relative w-12 h-12 bg-white rounded-lg border border-slate-100 shrink-0 overflow-hidden">
-                  {product.image &&
+                  {imageSrc &&
                     (shouldUseNativeProductImage(product.image) ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={product.image}
+                        src={imageSrc}
                         alt=""
                         className="w-full h-full object-contain p-1"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
                       <Image
-                        src={product.image}
+                        src={imageSrc}
                         alt=""
                         fill
                         sizes="48px"

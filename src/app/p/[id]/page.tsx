@@ -19,7 +19,10 @@ import { buildProductJsonLd } from "@/lib/seo/json-ld";
 import { productPagePath, safeReturnPath } from "@/lib/seo/site-url";
 import { getMarketHubIdForLeaf } from "@/lib/market-hubs";
 import { ALL_CATEGORIES_ID, getParentCategoryId } from "@/lib/categories";
-import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
+import {
+  resolveProductImageSrc,
+  shouldUseNativeProductImage,
+} from "@/lib/utils/product-image";
 import { resolvePageLocale } from "@/lib/server-page-locale";
 
 export const dynamic = "force-dynamic";
@@ -101,6 +104,7 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
     locale,
     offers: sortedOffers,
   });
+  const productImageSrc = resolveProductImageSrc(product.image);
 
   return (
     <PageShell maxWidthClass="max-w-7xl">
@@ -116,12 +120,12 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs">
           <div className="relative aspect-square bg-slate-50 rounded-2xl overflow-hidden border border-slate-100">
-            {product.image ? (
+            {productImageSrc ? (
               <div className="absolute inset-6">
                 {shouldUseNativeProductImage(product.image) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={product.image}
+                    src={productImageSrc}
                     alt={product.title}
                     className="h-full w-full object-contain object-center"
                     referrerPolicy="no-referrer"
@@ -129,7 +133,7 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
                   />
                 ) : (
                   <Image
-                    src={product.image}
+                    src={productImageSrc}
                     alt={product.title}
                     fill
                     className="object-contain object-center"

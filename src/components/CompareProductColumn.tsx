@@ -4,7 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import { ExternalLink, Maximize2, X } from "lucide-react";
 import type { Product } from "@/types";
-import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
+import {
+  resolveProductImageSrc,
+  shouldUseNativeProductImage,
+} from "@/lib/utils/product-image";
 import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
 
 type Props = {
@@ -39,6 +42,7 @@ export function CompareProductColumn({
   expandImageLabel,
 }: Props) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const imageSrc = resolveProductImageSrc(product.image);
   const description = (product.description || "").trim();
   const showDescription =
     description.length > 0 &&
@@ -54,12 +58,12 @@ export function CompareProductColumn({
 
       {/* 1. Product presentation — first thing you see */}
       <div className="relative w-full aspect-square bg-slate-50 rounded-2xl mb-4 border border-slate-100 overflow-hidden">
-        {product.image ? (
+        {imageSrc ? (
           <div className="absolute inset-4 sm:inset-6">
             {shouldUseNativeProductImage(product.image) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={product.image}
+                src={imageSrc}
                 alt={product.title}
                 className="h-full w-full object-contain object-center"
                 referrerPolicy="no-referrer"
@@ -67,7 +71,7 @@ export function CompareProductColumn({
               />
             ) : (
               <Image
-                src={product.image}
+                src={imageSrc}
                 alt={product.title}
                 fill
                 className="object-contain object-center"
@@ -136,7 +140,7 @@ export function CompareProductColumn({
         </div>
       ) : null}
 
-      {lightboxOpen && product.image ? (
+      {lightboxOpen && imageSrc ? (
         <div
           className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/70 p-4"
           role="dialog"
@@ -159,14 +163,14 @@ export function CompareProductColumn({
             {shouldUseNativeProductImage(product.image) ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={product.image}
+                src={imageSrc}
                 alt={product.title}
                 className="h-full w-full object-contain"
                 referrerPolicy="no-referrer"
               />
             ) : (
               <Image
-                src={product.image}
+                src={imageSrc}
                 alt={product.title}
                 fill
                 className="object-contain p-6"

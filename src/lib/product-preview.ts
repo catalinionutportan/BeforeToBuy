@@ -1,5 +1,7 @@
 /** Instant product-modal preview from the browse card (before RSC arrives). */
 
+import { resolveProductImageSrc } from "@/lib/utils/product-image";
+
 export type ProductPreviewOffer = {
   id: string;
   storeName: string;
@@ -63,7 +65,7 @@ export function warmProductPreviewImage(src: string | undefined): void {
   if (!src || typeof window === "undefined") return;
   const img = new Image();
   img.decoding = "async";
-  img.src = src;
+  img.src = resolveProductImageSrc(src);
   void img.decode?.().catch(() => {});
 }
 
@@ -71,7 +73,7 @@ function decodeImage(src: string): Promise<void> {
   return new Promise((resolve) => {
     const img = new Image();
     img.decoding = "async";
-    img.src = src;
+    img.src = resolveProductImageSrc(src);
     const done = () => resolve();
     if (typeof img.decode === "function") {
       img.decode().then(done, done);
