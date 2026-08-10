@@ -17,6 +17,7 @@ export const MAPPING_MERCHANT_IDS = [
   "ro-rowenta",
   "ro-evomag",
   "gb-seentat",
+  "us-ottocast",
 ] as const;
 
 export type MappingMerchantId = (typeof MAPPING_MERCHANT_IDS)[number];
@@ -703,6 +704,24 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       { patterns: /\b(camera|pixpro|mirrorless|dslr)\b/i, subcategoryId: "photo-compact" },
       { patterns: /\b(gopro|action\s+cam|insta360)\b/i, subcategoryId: "photo-action" },
       { patterns: /\b(playstation|xbox|nintendo|steam\s+deck)\b/i, subcategoryId: "gaming-consoles" },
+    ],
+  },
+
+  /**
+   * Ottocast US — small AWIN CarPlay / Android Auto catalogue (USD).
+   * Feed aisle is typically "Automotive".
+   */
+  "us-ottocast": {
+    exact: exactRules({
+      automotive: "audio-car",
+      "vehicles, parts and accessories": "audio-car",
+      "car electronics": "audio-car",
+    }),
+    patterns: [
+      {
+        patterns: /\b(carplay|android\s+auto|aibox|ottocast|dash\s*cam|car\s+tv\s+mate|screenflow)\b/i,
+        subcategoryId: "audio-car",
+      },
     ],
   },
 };

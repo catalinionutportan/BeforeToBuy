@@ -41,7 +41,7 @@ const BRACK_SAMPLE_ROWS = [
 describe('Category Mapper Functions', () => {
   it("merchant category rules validate without conflicts", () => {
     expect(validateMerchantCategoryRules()).toEqual([]);
-    expect(MAPPING_MERCHANT_IDS.length).toBe(10);
+    expect(MAPPING_MERCHANT_IDS.length).toBe(11);
   });
 
   it("Brack sample feed rows map with merchant-exact rules", () => {
@@ -358,6 +358,16 @@ describe('Category Mapper Functions', () => {
         title: "Trotineta electrica Xiaomi",
       })
     ).toBe("mobility-escooters");
+  });
+
+  it("Ottocast Automotive aisle maps to in-car audio", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "us-ottocast",
+        merchantCategory: "Automotive",
+        title: "Ottocast Mini Cube Wireless CarPlay Adapter",
+      })
+    ).toBe("audio-car");
   });
 
   it("evoMAG Sisteme PC feed aisles map to desktop / component leaves", () => {

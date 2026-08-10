@@ -197,6 +197,16 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     sampleFile: "sample-awin-seentat-gb.csv",
     sampleFormat: "csv",
   },
+  {
+    provider: "AWIN",
+    country: "US",
+    merchantId: "us-ottocast",
+    merchantName: "Ottocast",
+    envVar: "AWIN_FEED_URL_US_OTTOCAST",
+    awinFeedId: "109551",
+    sampleFile: "sample-awin-ottocast-us.csv",
+    sampleFormat: "csv",
+  },
 ];
 
 /** Columns requested for AWIN productdata downloads (no secrets). */

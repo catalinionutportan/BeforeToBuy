@@ -111,7 +111,9 @@ describe('Merchant Integrations', () => {
       expect(summary.feedMerchantIds).not.toEqual(
         expect.arrayContaining(["ro-rowenta", "ro-scule365", "ro-evomag"])
       );
-      expect(summary.feedMerchantIds).toEqual(expect.arrayContaining(["gb-seentat"]));
+      expect(summary.feedMerchantIds).toEqual(
+        expect.arrayContaining(["gb-seentat", "us-ottocast"])
+      );
       expect(summary.feedMerchantIds.some((id) => id.startsWith("ch-"))).toBe(false);
     } finally {
       if (previousForce === undefined) delete process.env.FORCE_SAMPLE_FEEDS;

@@ -352,6 +352,20 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "UK online electronics retailer (Seentat). Live AWIN product feed with affiliate deep links; homepage quicklink available on Magazines.",
   },
+  // --- United States (US) ---
+  {
+    id: "us-ottocast",
+    name: "Ottocast",
+    domain: "ottocast.com",
+    websiteUrl: AFFILIATE_LINKS.ottocastAwin,
+    countryCode: "US",
+    affiliateNetwork: "AWIN",
+    category: "Automotive Electronics",
+    status: "Live Feed",
+    badge: "AWIN + product feed 🇺🇸",
+    description:
+      "Ottocast wireless CarPlay / Android Auto adapters and AI boxes. Live AWIN USD product feed with affiliate deep links.",
+  },
 ];
 
 export const COUNTRIES: Record<CountryCode, CountryInfo> = {
@@ -423,9 +437,9 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     flag: "🇺🇸",
     currency: "USD",
     currencySymbol: "$",
-    supportedStores: [],
+    supportedStores: ["ottocast.com"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "US"),
-    affiliateNetworks: [],
+    affiliateNetworks: ["AWIN (Ottocast) — live USD product feed + homepage affiliate"],
   },
 };
 

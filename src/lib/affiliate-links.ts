@@ -13,6 +13,9 @@ export const AFFILIATE_LINKS = {
   /** Seentat UK homepage — AWIN advertiser 125014 / publisher 3024371. */
   seentatAwin:
     "https://www.awin1.com/cread.php?awinmid=125014&awinaffid=3024371&ued=https%3A%2F%2Fwww.seentat.com",
+  /** Ottocast homepage — AWIN advertiser 96499 / publisher 3024371 (USD catalogue). */
+  ottocastAwin:
+    "https://www.awin1.com/cread.php?awinmid=96499&awinaffid=3024371&ued=https%3A%2F%2Fwww.ottocast.com",
 } as const;
 
 const SCULE365_2P_BASE =

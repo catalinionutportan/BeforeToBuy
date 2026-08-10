@@ -55,6 +55,9 @@ const nextConfig: NextConfig = {
       // Seentat UK (AWIN) product images
       { protocol: "https", hostname: "www.seentat.com" },
       { protocol: "https", hostname: "seentat.com" },
+      // Ottocast US (AWIN) product images
+      { protocol: "https", hostname: "www.ottocast.com" },
+      { protocol: "https", hostname: "ottocast.com" },
       { protocol: "https", hostname: "images2.productserve.com" },
     ],
   },

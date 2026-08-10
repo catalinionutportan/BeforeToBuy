@@ -11,6 +11,8 @@ const OPTIMIZER_ALLOWED_HOSTS = new Set([
   "rowenta.ro",
   "www.seentat.com",
   "seentat.com",
+  "www.ottocast.com",
+  "ottocast.com",
   "images2.productserve.com",
 ]);
 
