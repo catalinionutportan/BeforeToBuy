@@ -6,6 +6,10 @@ import { resolveGtin } from "@/lib/product-identity/gtin";
 import { enrichProductIdentity } from "@/lib/product-identity/merge-products";
 import { enrichOfferPricing } from "@/lib/pricing/total-price";
 import { wrapScule365AffiliateUrl } from "@/lib/affiliate-links";
+import {
+  sanitizeCommercialUrl,
+  sanitizeFeedImageUrl,
+} from "@/lib/feed-url-policy";
 
 export interface RawGoogleMerchantItem {
   id: string;
@@ -99,9 +103,10 @@ function affiliateNetworkForMerchant(feedMerchantId: string): string {
   return "Google Merchant feed";
 }
 
-function wrapPurchaseUrl(feedMerchantId: string, productUrl: string): string {
-  if (feedMerchantId === "ro-scule365") return wrapScule365AffiliateUrl(productUrl);
-  return productUrl;
+function wrapPurchaseUrl(feedMerchantId: string, productUrl: string): string | null {
+  const wrapped =
+    feedMerchantId === "ro-scule365" ? wrapScule365AffiliateUrl(productUrl) : productUrl;
+  return sanitizeCommercialUrl(wrapped, feedMerchantId);
 }
 
 function buildOffer(
@@ -124,6 +129,8 @@ function buildOffer(
       : undefined;
   const shipping = parseMoney(item.shippingPrice);
   const isProduction = source === "production-live";
+  const purchaseUrl = wrapPurchaseUrl(feedMerchantId, item.link);
+  if (!purchaseUrl) return null;
 
   return enrichOfferPricing({
     id: `gm-${feedMerchantId}-${item.id}`,
@@ -135,7 +142,7 @@ function buildOffer(
     inStock: /in[_ ]?stock/i.test(item.availability),
     deliveryTime: "2-5 zile lucrătoare",
     deliveryCost: shipping?.amount ?? 0,
-    purchaseUrl: wrapPurchaseUrl(feedMerchantId, item.link),
+    purchaseUrl,
     affiliateNetwork: affiliateNetworkForMerchant(feedMerchantId),
     type: "online",
     source,
@@ -199,9 +206,7 @@ function ingestItem(
       proposedCategoryId: categoryMapping.proposedCategoryId,
     },
     brand: item.brand,
-    image:
-      item.imageLink ||
-      "https://images.unsplash.com/photo-1581166397057-235af2e37a9f?w=600",
+    image: sanitizeFeedImageUrl(item.imageLink, feedMerchantId),
     targetCountries: [targetCountry],
     isFlashDeal:
       source === "production-live" && Boolean(offer.discountPercentage && offer.discountPercentage >= 15),

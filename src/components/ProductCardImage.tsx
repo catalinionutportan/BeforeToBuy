@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Product } from "@/types";
 import { HOME_UI } from "@/lib/i18n/ui";
 import type { SiteLocale } from "@/lib/i18n/locales";
-import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 import { Sparkles } from "lucide-react";
 
 interface ProductCardImageProps {
@@ -23,7 +22,7 @@ export function ProductCardImage({
 
   return (
     <div className="relative bg-slate-100/60 aspect-square w-full overflow-hidden">
-      {/* Native feed URL — same src as the product modal, so open is cache-hit. */}
+      {/* Native <img> for instant modal/card paint (sanitized URLs). Compare/detail routes use Next/Image. */}
       <div className="absolute inset-2 sm:inset-3">
         {!broken && product.image ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -32,9 +31,7 @@ export function ProductCardImage({
             alt={product.title}
             loading="lazy"
             decoding="async"
-            referrerPolicy={
-              shouldUseNativeProductImage(product.image) ? "no-referrer" : undefined
-            }
+            referrerPolicy="no-referrer"
             className="h-full w-full object-contain object-center"
             onError={() => setBroken(true)}
           />

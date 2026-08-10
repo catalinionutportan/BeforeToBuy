@@ -1,3 +1,5 @@
+import { sanitizeProductImageForRender } from "@/lib/feed-url-policy";
+
 /** Instant product-modal preview from the browse card (before RSC arrives). */
 
 export type ProductPreviewOffer = {
@@ -51,19 +53,31 @@ export function subscribeProductPreview(listener: Listener): () => void {
 }
 
 export function getProductPreview(): ProductPreview | null {
-  return memoryPreview;
+  return memoryPreview ? withSanitizedPreviewImage(memoryPreview) : null;
 }
 
 export function isProductPreviewPaintReady(): boolean {
   return Boolean(memoryPreview && openPending && paintReady);
 }
 
+function sanitizePreviewImage(image: string | undefined): string | undefined {
+  if (!image?.trim()) return undefined;
+  return sanitizeProductImageForRender(image);
+}
+
+function withSanitizedPreviewImage<T extends { image?: string }>(preview: T): T {
+  if (!preview.image) return preview;
+  return { ...preview, image: sanitizePreviewImage(preview.image) };
+}
+
 /** Warm browser image cache on card hover — open becomes a same-frame paint. */
 export function warmProductPreviewImage(src: string | undefined): void {
   if (!src || typeof window === "undefined") return;
+  const safeSrc = sanitizePreviewImage(src);
+  if (!safeSrc) return;
   const img = new Image();
   img.decoding = "async";
-  img.src = src;
+  img.src = safeSrc;
   void img.decode?.().catch(() => {});
 }
 
@@ -102,11 +116,12 @@ function markPaintReady(token: number): void {
  */
 export function saveProductPreview(preview: ProductPreview): void {
   const token = ++prepareToken;
-  memoryPreview = { ...preview, serverReady: false };
+  const sanitized = withSanitizedPreviewImage({ ...preview, serverReady: false });
+  memoryPreview = sanitized;
   openPending = true;
   paintReady = false;
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(memoryPreview));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
   } catch {
     // ignore
   }
@@ -118,13 +133,13 @@ export function saveProductPreview(preview: ProductPreview): void {
     return;
   }
 
-  const start = preview.image ? decodeImage(preview.image) : Promise.resolve();
+  const start = sanitized.image ? decodeImage(sanitized.image) : Promise.resolve();
   void start.then(() => markPaintReady(token));
 }
 
 export function readStoredProductPreview(productId?: string): ProductPreview | null {
   if (memoryPreview && (!productId || memoryPreview.id === productId)) {
-    return memoryPreview;
+    return withSanitizedPreviewImage(memoryPreview);
   }
   if (typeof window === "undefined") return null;
   try {
@@ -133,8 +148,8 @@ export function readStoredProductPreview(productId?: string): ProductPreview | n
     const parsed = JSON.parse(raw) as ProductPreview;
     if (!parsed?.id || !parsed?.title) return null;
     if (productId && parsed.id !== productId) return null;
-    memoryPreview = parsed;
-    return parsed;
+    memoryPreview = withSanitizedPreviewImage(parsed);
+    return memoryPreview;
   } catch {
     return null;
   }
@@ -147,7 +162,7 @@ export function readStoredProductPreview(productId?: string): ProductPreview | n
 export function enrichProductPreview(patch: Partial<ProductPreview> & { id: string }): void {
   if (!memoryPreview || memoryPreview.id !== patch.id) {
     const token = ++prepareToken;
-    memoryPreview = {
+    memoryPreview = withSanitizedPreviewImage({
       id: patch.id,
       title: patch.title || "",
       brand: patch.brand || "",
@@ -164,11 +179,11 @@ export function enrichProductPreview(patch: Partial<ProductPreview> & { id: stri
       gtin: patch.gtin,
       offers: patch.offers,
       serverReady: true,
-    };
+    });
     openPending = true;
     paintReady = false;
     emit();
-    const start = patch.image ? decodeImage(patch.image) : Promise.resolve();
+    const start = memoryPreview.image ? decodeImage(memoryPreview.image) : Promise.resolve();
     void start.then(() => markPaintReady(token));
     return;
   }

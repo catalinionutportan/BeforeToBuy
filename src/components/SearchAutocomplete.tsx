@@ -8,7 +8,6 @@ import { Search, Loader2 } from "lucide-react";
 import { Product } from "@/types";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { productPagePathWithReturn } from "@/lib/seo/site-url";
-import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import type { SiteLocale } from "@/lib/i18n/locales";
@@ -197,12 +196,7 @@ export function SearchAutocomplete({
                     >
                       <div className="relative w-12 h-12 shrink-0 bg-slate-100 rounded-md overflow-hidden p-1 border border-slate-200">
                         {product.image ? (
-                          shouldUseNativeProductImage(product.image) ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={product.image} alt={product.title} className="w-full h-full object-contain" />
-                          ) : (
                             <Image src={product.image} alt={product.title} fill sizes="48px" className="object-contain p-1" />
-                          )
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-[8px] text-slate-400 font-bold uppercase">
                             {ui.noImageLabel}

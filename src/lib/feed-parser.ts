@@ -4,7 +4,19 @@ import { createMappingLogEntry, type MappingLogEntry } from "@/lib/mapping-log";
 import { resolveGtin } from "@/lib/product-identity/gtin";
 import { enrichProductIdentity } from "@/lib/product-identity/merge-products";
 import { enrichOfferPricing } from "@/lib/pricing/total-price";
+import {
+  SAFE_IMAGE_FALLBACK,
+  sanitizeCommercialUrl,
+  validateFeedUrl,
+  logRejectedFeedUrl,
+} from "@/lib/feed-url-policy";
+import {
+  assertJsonByteLimit,
+  BodyTooLargeError,
+  MAX_JSON_FEED_BYTES,
+} from "@/lib/request-body-limits";
 import csv from "csv-parser";
+import type { Readable } from "node:stream";
 import chain from 'stream-chain';
 import {streamArray} from 'stream-json/streamers/stream-array.js';
 
@@ -102,7 +114,7 @@ function buildAwinOfferFromRow(
   targetCountry: CountryCode,
   feedMerchantId: string,
   source: Extract<OfferSource, "production-live" | "sample">
-): Offer {
+): Offer | null {
   const isProduction = source === "production-live";
   const price = parseFloat(row.search_price || row.store_price || "0");
   const originalPrice = isProduction && row.rrp_price ? parseFloat(row.rrp_price) : undefined;
@@ -115,6 +127,9 @@ function buildAwinOfferFromRow(
   const inStock =
     stockRaw === "" || stockRaw === "1" || stockRaw === "true" || stockRaw === "yes";
 
+  const purchaseUrl = sanitizeCommercialUrl(row.aw_deep_link || "", feedMerchantId);
+  if (!purchaseUrl) return null;
+
   return enrichOfferPricing({
     id: `awin-${row.aw_product_id}`,
     storeName: row.merchant_name || "AWIN Merchant",
@@ -125,7 +140,7 @@ function buildAwinOfferFromRow(
     inStock,
     deliveryTime: "1-2 Work Days",
     deliveryCost: parseFloat(row.delivery_cost || "0"),
-    purchaseUrl: row.aw_deep_link || "#",
+    purchaseUrl,
     affiliateNetwork: `AWIN ${targetCountry}`,
     type: "online",
     promoCode: isProduction ? row.promo_code : undefined,
@@ -153,6 +168,7 @@ function ingestAwinRow(
 
   const isProduction = source === "production-live";
   const offer = buildAwinOfferFromRow(row, targetCountry, feedMerchantId, source);
+  if (!offer) return;
   const gtin = readAwinGtin(row as unknown as Record<string, string>);
   const productId = gtin ? `feed-gtin-${gtin}` : `feed-${row.aw_product_id}`;
 
@@ -196,10 +212,22 @@ function ingestAwinRow(
       proposedCategoryId: categoryMapping.proposedCategoryId,
     },
     brand: row.brand_name || "Generic",
-    image:
-      row.merchant_image_url ||
-      row.aw_image_url ||
-      "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
+    image: (() => {
+      for (const candidate of [row.merchant_image_url, row.aw_image_url]) {
+        if (!candidate?.trim()) continue;
+        const result = validateFeedUrl(candidate, "image", { feedMerchantId });
+        if (result.ok) return result.normalized;
+      }
+      if (row.merchant_image_url || row.aw_image_url) {
+        logRejectedFeedUrl(
+          "image",
+          row.merchant_image_url || row.aw_image_url,
+          "no-allowlisted-candidate",
+          feedMerchantId
+        );
+      }
+      return SAFE_IMAGE_FALLBACK;
+    })(),
     targetCountries: [targetCountry],
     isFlashDeal: isProduction && offer.discountPercentage ? offer.discountPercentage >= 15 : false,
     catalogSource: source,
@@ -305,6 +333,9 @@ function buildGalaxusOffersFromRow(
       ? Math.round(((originalPrice - price) / originalPrice) * 100)
       : undefined;
 
+  const purchaseUrl = sanitizeCommercialUrl(row.product_url || "", feedMerchantId);
+  if (!purchaseUrl) return [];
+
   const onlineOffer: Offer = enrichOfferPricing({
     id: `galaxus-${row.gtin}-online`,
     storeName,
@@ -315,7 +346,7 @@ function buildGalaxusOffersFromRow(
     inStock: row.stock_status !== "out_of_stock" && row.stock_status !== "0",
     deliveryTime: "1-3 Work Days",
     deliveryCost: 0,
-    purchaseUrl: row.product_url || "#",
+    purchaseUrl,
     affiliateNetwork: galaxusAffiliateNetwork(feedMerchantId),
     type: "online",
     source,
@@ -340,6 +371,7 @@ function ingestGalaxusRow(
   if (!row.gtin || !row.title) return;
 
   const offers = buildGalaxusOffersFromRow(row, feedMerchantId, source, storeName);
+  if (offers.length === 0) return;
   const isProduction = source === "production-live";
   const discountPercentage = offers[0]?.discountPercentage;
 
@@ -375,7 +407,14 @@ function ingestGalaxusRow(
       proposedCategoryId: categoryMapping.proposedCategoryId,
     },
     brand: row.brand || "Generic",
-    image: row.image_url || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600",
+    image: (() => {
+      const result = validateFeedUrl(row.image_url, "image", { feedMerchantId });
+      if (result.ok) return result.normalized;
+      if (row.image_url) {
+        logRejectedFeedUrl("image", row.image_url, result.reason, feedMerchantId);
+      }
+      return SAFE_IMAGE_FALLBACK;
+    })(),
     targetCountries: [targetCountry],
     isFlashDeal: isProduction && discountPercentage ? discountPercentage >= 15 : false,
     catalogSource: source,
@@ -394,9 +433,11 @@ export function parseGalaxusJsonFeed(
 ): { products: Product[]; mappingLog: MappingLogEntry[] } {
   let rows: RawGalaxusFeedItem[] = [];
   try {
+    assertJsonByteLimit(jsonContent, MAX_JSON_FEED_BYTES);
     const parsed = JSON.parse(jsonContent) as RawGalaxusFeedItem[] | { products: RawGalaxusFeedItem[] };
     rows = Array.isArray(parsed) ? parsed : parsed.products ?? [];
-  } catch {
+  } catch (error) {
+    if (error instanceof BodyTooLargeError) throw error;
     return { products: [], mappingLog: [] };
   }
 
@@ -426,6 +467,16 @@ export async function parseGalaxusJsonFeedStream(
   const productsMap = new Map<string, Product>();
   const mappingLog: MappingLogEntry[] = [];
   const storeName = galaxusStoreName(feedMerchantId);
+
+  let totalBytes = 0;
+  jsonStream.on("data", (chunk: string | Buffer) => {
+    const byteLength =
+      typeof chunk === "string" ? Buffer.byteLength(chunk) : chunk.length;
+    totalBytes += byteLength;
+    if (totalBytes > MAX_JSON_FEED_BYTES) {
+      (jsonStream as Readable).destroy(new BodyTooLargeError(MAX_JSON_FEED_BYTES));
+    }
+  });
 
   const pipeline = chain([
     jsonStream,

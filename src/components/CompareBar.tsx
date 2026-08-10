@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 import {
   isComparePath,
   saveBrowseScrollAnchor,
@@ -104,24 +103,15 @@ export function CompareBar() {
                   <X className="w-3 h-3" />
                 </button>
                 <div className="relative w-12 h-12 bg-white rounded-lg border border-slate-100 shrink-0 overflow-hidden">
-                  {product.image &&
-                    (shouldUseNativeProductImage(product.image) ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={product.image}
-                        alt=""
-                        className="w-full h-full object-contain p-1"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <Image
-                        src={product.image}
-                        alt=""
-                        fill
-                        sizes="48px"
-                        className="object-contain p-1"
-                      />
-                    ))}
+                  {product.image ? (
+                    <Image
+                      src={product.image}
+                      alt=""
+                      fill
+                      sizes="48px"
+                      className="object-contain p-1"
+                    />
+                  ) : null}
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider truncate">

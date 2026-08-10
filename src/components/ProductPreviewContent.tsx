@@ -3,7 +3,6 @@
 import { memo } from "react";
 import { ExternalLink } from "lucide-react";
 import type { ProductPreview } from "@/lib/product-preview";
-import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
 
 /**
@@ -19,14 +18,13 @@ function ProductPreviewContentInner({ preview }: { preview: ProductPreview }) {
         <div className="relative aspect-square bg-slate-50 rounded-2xl overflow-hidden border border-slate-100">
           {preview.image ? (
             <div className="absolute inset-6">
+              {/* Native <img> for instant modal paint (sanitized URLs). Product detail uses Next/Image. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={preview.image}
                 alt={preview.title}
                 className="h-full w-full object-contain object-center"
-                referrerPolicy={
-                  shouldUseNativeProductImage(preview.image) ? "no-referrer" : undefined
-                }
+                referrerPolicy="no-referrer"
                 decoding="sync"
                 fetchPriority="high"
                 loading="eager"

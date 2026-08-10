@@ -86,6 +86,17 @@ describe('Offer Filtering Logic', () => {
     expect(free[0]!.offers.length).toBe(1);
     expect(free[0]!.offers[0]!.deliveryCost).toBe(0);
 
+    const negativeFree = applyOfferFilters(
+      [
+        {
+          ...products[1]!,
+          offers: [offer({ id: "promo", deliveryCost: -1 })],
+        },
+      ],
+      { freeDeliveryOnly: true }
+    );
+    expect(negativeFree).toHaveLength(1);
+
     const unknownDelivery = applyOfferFilters(
       [
         {

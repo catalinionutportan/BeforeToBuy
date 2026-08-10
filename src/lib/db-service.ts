@@ -1,18 +1,12 @@
 import { prisma } from "@/lib/db";
-import type { Offer as PrismaOffer, Prisma } from "@prisma/client";
+import { Prisma, type Offer as PrismaOffer } from "@prisma/client";
 import type { CountryCode, Product, Offer } from "@/types";
 import { getParentCategoryId, resolveCategoryAlias } from "@/lib/categories";
 import { expandCategoryFilterToDbIds } from "@/lib/db-category-filter";
 import type { OfferFilterCriteria } from "@/lib/offers/offer-filters";
+import { sanitizeProductImageForRender } from "@/lib/feed-url-policy";
 
 type PrismaProductWithOffers = Prisma.ProductGetPayload<{ include: { offers: true } }>;
-
-function lowestOfferTotal(product: PrismaProductWithOffers): number {
-  return product.offers.reduce(
-    (lowest, offer) => Math.min(lowest, offer.totalPrice ?? offer.price + (offer.deliveryCost ?? 0)),
-    Number.POSITIVE_INFINITY
-  );
-}
 
 /** Convert Prisma Offer to Application Offer */
 function mapPrismaOffer(o: PrismaOffer): Offer {
@@ -64,7 +58,7 @@ export function mapPrismaProduct(p: PrismaProductWithOffers): Product {
     gtin: p.gtin || undefined,
     brand: p.brand || "",
     category: resolveCategoryAlias(p.category),
-    image: normalizeProductImageUrl(p.image) || p.image || "",
+    image: sanitizeProductImageForRender(normalizeProductImageUrl(p.image) || p.image || ""),
     catalogSource: p.catalogSource as Product["catalogSource"],
     targetCountries: (p.targetCountries || []) as CountryCode[],
     offers: p.offers ? p.offers.map(mapPrismaOffer) : [],
@@ -87,7 +81,7 @@ function buildOfferWhere(filters: OfferFilterCriteria = {}): Prisma.OfferWhereIn
   }
   if (filters.inStockOnly) and.push({ inStock: true });
   if (filters.freeDeliveryOnly) {
-    and.push({ deliveryCost: { lte: 0 } });
+    and.push({ deliveryCost: { not: null, lte: 0 } });
   }
 
   const totalRange: Prisma.FloatNullableFilter = {};
@@ -181,6 +175,91 @@ export async function getCategoryCountsFromDb(countryCode: string): Promise<{
   return { categoryCounts, leafCounts };
 }
 
+/** Global price sort via SQL MIN(offer total) — no in-memory scan cap. */
+async function queryProductIdsByMinOfferTotal(
+  countryCode: string,
+  query: string | undefined,
+  category: string | undefined,
+  filters: OfferFilterCriteria,
+  sort: "price-asc" | "price-desc",
+  take: number,
+  skip: number
+): Promise<string[]> {
+  const categoryIds = expandCategoryFilterToDbIds(category);
+  const orderDir = sort === "price-desc" ? Prisma.raw("DESC") : Prisma.raw("ASC");
+
+  const categorySql = categoryIds?.length
+    ? Prisma.sql`AND p.category IN (${Prisma.join(categoryIds)})`
+    : Prisma.empty;
+
+  const trimmedQuery = query?.trim();
+  const queryPattern = trimmedQuery ? `%${trimmedQuery}%` : null;
+  const querySql = queryPattern
+    ? Prisma.sql`AND (
+        p.title ILIKE ${queryPattern}
+        OR p.brand ILIKE ${queryPattern}
+        OR p.description ILIKE ${queryPattern}
+        OR p.gtin ILIKE ${queryPattern}
+      )`
+    : Prisma.empty;
+
+  const brandSql = filters.brand
+    ? Prisma.sql`AND LOWER(p.brand) = LOWER(${filters.brand.trim()})`
+    : Prisma.empty;
+
+  const gtinSql = filters.hasGtinOnly ? Prisma.sql`AND p.gtin IS NOT NULL` : Prisma.empty;
+
+  const offerClauses: Prisma.Sql[] = [Prisma.sql`o."inStock" = true`];
+
+  if (filters.domain && filters.domain !== "all") {
+    const domain = filters.domain.trim();
+    const token = domain.split(".")[0] || domain;
+    offerClauses.push(
+      Prisma.sql`(o."storeName" ILIKE ${`%${token}%`} OR o."purchaseUrl" ILIKE ${`%${domain}%`})`
+    );
+  }
+  if (filters.inStockOnly) {
+    offerClauses.push(Prisma.sql`o."inStock" = true`);
+  }
+  if (filters.freeDeliveryOnly) {
+    offerClauses.push(Prisma.sql`o."deliveryCost" IS NOT NULL AND o."deliveryCost" <= 0`);
+  }
+  if (filters.minTotalPrice != null) {
+    offerClauses.push(
+      Prisma.sql`COALESCE(o."totalPrice", o.price + COALESCE(o."deliveryCost", 0)) >= ${filters.minTotalPrice}`
+    );
+  }
+  if (filters.maxTotalPrice != null) {
+    offerClauses.push(
+      Prisma.sql`COALESCE(o."totalPrice", o.price + COALESCE(o."deliveryCost", 0)) <= ${filters.maxTotalPrice}`
+    );
+  }
+
+  const offerWhereSql = Prisma.join(offerClauses, " AND ");
+
+  const rows = await prisma.$queryRaw<{ id: string }[]>`
+    SELECT p.id
+    FROM "Product" p
+    INNER JOIN (
+      SELECT o."productId",
+        MIN(COALESCE(o."totalPrice", o.price + COALESCE(o."deliveryCost", 0))) AS min_total
+      FROM "Offer" o
+      WHERE ${offerWhereSql}
+      GROUP BY o."productId"
+    ) priced ON priced."productId" = p.id
+    WHERE ${countryCode} = ANY(p."targetCountries")
+    ${categorySql}
+    ${querySql}
+    ${brandSql}
+    ${gtinSql}
+    ORDER BY priced.min_total ${orderDir}, p.id ASC
+    LIMIT ${take}
+    OFFSET ${skip}
+  `;
+
+  return rows.map((row) => row.id);
+}
+
 /** Fetch filtered products directly from Supabase DB */
 export async function getProductsFromDb(
   countryCode: string,
@@ -202,41 +281,73 @@ export async function getProductsFromDb(
 
   const orderBy: Prisma.ProductOrderByWithRelationInput = { updatedAt: "desc" };
   const brandWhere = buildWhere(countryCode, query, category, { ...filters, brand: undefined });
-  const [products, total, countMaps, countryTotal, brandRows] = await Promise.all([
-    prisma.product.findMany({
-      where: whereClause,
-      include: { offers: { where: visibleOfferWhere } },
-      take: sortByOfferTotal ? undefined : take,
-      skip: sortByOfferTotal ? undefined : skip,
-      orderBy,
-    }),
-    prisma.product.count({ where: whereClause }),
-    getCategoryCountsFromDb(countryCode),
-    prisma.product.count({
-      where: {
-        targetCountries: { has: countryCode },
-        offers: { some: { inStock: true } },
-      },
-    }),
-    prisma.product.findMany({
-      where: { ...brandWhere, brand: { not: null } },
-      select: { brand: true },
-      distinct: ["brand"],
-      orderBy: { brand: "asc" },
-    }),
-  ]);
 
-  const pageProducts = sortByOfferTotal
-    ? products
-        .sort((a, b) => {
-          const difference = lowestOfferTotal(a) - lowestOfferTotal(b);
-          return sort === "price-desc" ? -difference : difference;
-        })
-        .slice(skip, skip + take)
-    : products;
+  const pricedIdsPromise = sortByOfferTotal
+    ? queryProductIdsByMinOfferTotal(
+        countryCode,
+        query,
+        category,
+        filters,
+        sort as "price-asc" | "price-desc",
+        take,
+        skip
+      )
+    : Promise.resolve(null);
+
+  const [pricedIds, productsDefault, total, countMaps, countryTotal, brandRows] =
+    await Promise.all([
+      pricedIdsPromise,
+      sortByOfferTotal
+        ? Promise.resolve([] as PrismaProductWithOffers[])
+        : prisma.product.findMany({
+            where: whereClause,
+            include: { offers: { where: visibleOfferWhere } },
+            take,
+            skip,
+            orderBy,
+          }),
+      prisma.product.count({ where: whereClause }),
+      getCategoryCountsFromDb(countryCode),
+      prisma.product.count({
+        where: {
+          targetCountries: { has: countryCode },
+          offers: { some: { inStock: true } },
+        },
+      }),
+      prisma.product.findMany({
+        where: { ...brandWhere, brand: { not: null } },
+        select: { brand: true },
+        distinct: ["brand"],
+        orderBy: { brand: "asc" },
+      }),
+    ]);
+
+  let pageProducts: PrismaProductWithOffers[];
+  if (sortByOfferTotal && pricedIds) {
+    if (pricedIds.length === 0) {
+      pageProducts = [];
+    } else {
+      const fetched = await prisma.product.findMany({
+        where: { id: { in: pricedIds } },
+        include: { offers: { where: visibleOfferWhere } },
+      });
+      const byId = new Map(fetched.map((product) => [product.id, product]));
+      pageProducts = pricedIds
+        .map((id) => byId.get(id))
+        .filter((product): product is PrismaProductWithOffers => Boolean(product));
+    }
+  } else {
+    pageProducts = productsDefault;
+  }
+
+  pageProducts = pageProducts.filter((product) => product.offers.length > 0);
+
+  const products = pageProducts
+    .map(mapPrismaProduct)
+    .filter((product) => product.offers.length > 0);
 
   return {
-    products: pageProducts.map(mapPrismaProduct),
+    products,
     totalMatched: total,
     categoryCounts: countMaps.categoryCounts,
     leafCounts: countMaps.leafCounts,

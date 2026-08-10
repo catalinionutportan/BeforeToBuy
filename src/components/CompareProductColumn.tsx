@@ -4,7 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import { ExternalLink, Maximize2, X } from "lucide-react";
 import type { Product } from "@/types";
-import { shouldUseNativeProductImage } from "@/lib/utils/product-image";
 import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
 
 type Props = {
@@ -56,25 +55,14 @@ export function CompareProductColumn({
       <div className="relative w-full aspect-square bg-slate-50 rounded-2xl mb-4 border border-slate-100 overflow-hidden">
         {product.image ? (
           <div className="absolute inset-4 sm:inset-6">
-            {shouldUseNativeProductImage(product.image) ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={product.image}
-                alt={product.title}
-                className="h-full w-full object-contain object-center"
-                referrerPolicy="no-referrer"
-                decoding="async"
-              />
-            ) : (
-              <Image
-                src={product.image}
-                alt={product.title}
-                fill
-                className="object-contain object-center"
-                sizes="(max-width: 768px) 50vw, 40vw"
-                priority
-              />
-            )}
+            <Image
+              src={product.image}
+              alt={product.title}
+              fill
+              className="object-contain object-center"
+              sizes="(max-width: 768px) 50vw, 40vw"
+              priority
+            />
           </div>
         ) : null}
 
@@ -156,24 +144,14 @@ export function CompareProductColumn({
             className="relative w-full max-w-3xl aspect-square bg-white rounded-2xl p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            {shouldUseNativeProductImage(product.image) ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={product.image}
-                alt={product.title}
-                className="h-full w-full object-contain"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <Image
-                src={product.image}
-                alt={product.title}
-                fill
-                className="object-contain p-6"
-                sizes="90vw"
-                priority
-              />
-            )}
+            <Image
+              src={product.image}
+              alt={product.title}
+              fill
+              className="object-contain p-6"
+              sizes="90vw"
+              priority
+            />
           </div>
         </div>
       ) : null}

@@ -1,5 +1,6 @@
 import type { Offer, Product } from "@/types";
 import { computeTotalPrice } from "@/lib/pricing/total-price";
+import { isExplicitFreeDelivery } from "@/lib/offers/delivery-cost";
 
 export interface OfferFilterCriteria {
   domain?: string;
@@ -27,7 +28,7 @@ function offerMatchesCriteria(offer: Offer, criteria: OfferFilterCriteria): bool
     return false;
   }
   if (criteria.inStockOnly && !offer.inStock) return false;
-  if (criteria.freeDeliveryOnly && offer.deliveryCost !== 0) return false;
+  if (criteria.freeDeliveryOnly && !isExplicitFreeDelivery(offer.deliveryCost)) return false;
   if (criteria.minTotalPrice != null) {
     const total = offer.totalPrice ?? computeTotalPrice(offer);
     if (total < criteria.minTotalPrice) return false;

@@ -7,6 +7,12 @@ import { createMappingLogEntry, type MappingLogEntry } from "@/lib/mapping-log";
 import { resolveGtin } from "@/lib/product-identity/gtin";
 import { enrichProductIdentity } from "@/lib/product-identity/merge-products";
 import { enrichOfferPricing } from "@/lib/pricing/total-price";
+import {
+  SAFE_IMAGE_FALLBACK,
+  sanitizeCommercialUrl,
+  validateFeedUrl,
+  logRejectedFeedUrl,
+} from "@/lib/feed-url-policy";
 
 /** 2Performant “My Feeds” CSV columns (export field set may vary per feed). */
 export interface RawTwoPerformantFeedItem {
@@ -61,15 +67,24 @@ function parsePrice(value?: string): number | undefined {
 }
 
 /** Pick the first usable image URL from a 2P `image_urls` cell (comma/`|` separated). */
-export function firstImage(imageUrls?: string): string {
+export function firstImage(imageUrls?: string, feedMerchantId?: string): string {
   if (!imageUrls?.trim()) {
-    return "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600";
+    return SAFE_IMAGE_FALLBACK;
   }
-  const first = imageUrls
+  const candidates = imageUrls
     .split(/\s*[|,]\s*/)
     .map((part) => part.trim())
-    .find((part) => part.startsWith("http"));
-  return first || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600";
+    .filter(Boolean);
+
+  for (const candidate of candidates) {
+    const result = validateFeedUrl(candidate, "image", { feedMerchantId });
+    if (result.ok) return result.normalized;
+  }
+
+  if (candidates[0]) {
+    logRejectedFeedUrl("image", candidates[0], "no-allowlisted-candidate", feedMerchantId);
+  }
+  return SAFE_IMAGE_FALLBACK;
 }
 
 function storeNameForMerchant(feedMerchantId: string): string {
@@ -88,8 +103,11 @@ function buildOffer(
   const price = parsePrice(row.price);
   if (!price || !row.title?.trim()) return null;
 
-  const purchaseUrl = (row.aff_code || row.url || "").trim();
-  if (!purchaseUrl.startsWith("http")) return null;
+  const purchaseUrl = sanitizeCommercialUrl(
+    (row.aff_code || row.url || "").trim(),
+    feedMerchantId
+  );
+  if (!purchaseUrl) return null;
 
   const originalPrice = parsePrice(row.old_price);
   const discountPercentage =
@@ -194,7 +212,7 @@ function ingestRow(
       proposedCategoryId: categoryMapping.proposedCategoryId,
     },
     brand,
-    image: firstImage(row.image_urls),
+    image: firstImage(row.image_urls, feedMerchantId),
     targetCountries: [targetCountry],
     isFlashDeal: Boolean(offer.discountPercentage && offer.discountPercentage >= 15),
     catalogSource: source,
