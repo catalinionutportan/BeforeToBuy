@@ -97,17 +97,18 @@ export const TARGET_MARKETS = [
  * Keep in sync with AFFILIATE_NETWORKS_ACTIVE.
  */
 export const STAGE_ZERO_MONETIZATION = {
-  en: "BeforeToBuy.com currently has live merchant programmes via AWIN in the United Kingdom (Seentat) and via 2Performant in Romania (Rowenta, Scule365), each with a live product feed and affiliate deep links when Affiliate cookie consent is granted. Other merchants are added only after acceptance and feed wiring. Other markets remain planned. We only compare and redirect; checkout is always on the merchant site. We may earn a referral commission from the merchant or network — we do not add a BeforeToBuy fee to your price.",
-  de: "BeforeToBuy.com hat derzeit Live-Händlerprogramme über AWIN im Vereinigten Königreich (Seentat) und über 2Performant in Rumänien (Rowenta, Scule365), jeweils mit Live-Produktfeed und Affiliate-Deep-Links bei Affiliate-Cookie-Zustimmung. Weitere Händler werden erst nach Freigabe und Feed-Anbindung ergänzt. Andere Märkte sind geplant. Wir vergleichen und leiten nur weiter; der Kaufabschluss erfolgt stets beim Händler. Wir können eine Vermittlungsprovision erhalten — ohne BeforeToBuy-Aufschlag.",
-  fr: "BeforeToBuy.com a actuellement des programmes marchands live via AWIN au Royaume-Uni (Seentat) et via 2Performant en Roumanie (Rowenta, Scule365), chacun avec flux produit live et liens affiliés lorsque le consentement cookies Affilié est accordé. Les autres marchands sont ajoutés uniquement après acceptation et branchement du flux. Les autres marchés restent prévus. Nous comparons et redirigeons seulement ; le paiement a toujours lieu chez le marchand. Nous pouvons recevoir une commission — sans frais BeforeToBuy.",
-  it: "BeforeToBuy.com ha attualmente programmi merchant live via AWIN nel Regno Unito (Seentat) e via 2Performant in Romania (Rowenta, Scule365), ciascuno con feed prodotti live e deep link affiliati con consenso cookie Affiliato. Altri merchant vengono aggiunti solo dopo accettazione e collegamento del feed. Altri mercati restano pianificati. Confrontiamo e reindirizziamo soltanto; il checkout è sempre sul sito del rivenditore. Possiamo ricevere una commissione — senza ricarico BeforeToBuy.",
-  ro: "BeforeToBuy.com are momentan programe merchant live via AWIN în Regatul Unit (Seentat) și via 2Performant în România (Rowenta, Scule365), fiecare cu feed de produse live și deep link-uri afiliate când există consimțământ cookie Afiliat. Alte magazine se adaugă doar după acceptare și conectarea feed-ului. Alte piețe rămân planificate. Doar comparăm și redirecționăm; plata se face mereu pe site-ul magazinului. Putem primi comision de recomandare — fără adaos BeforeToBuy.",
+  en: "BeforeToBuy.com currently has live merchant programmes via AWIN in the United Kingdom (Seentat) and the United States (Ottocast), and via 2Performant in Romania (Rowenta, Scule365), each with a product feed and affiliate deep links when Affiliate cookie consent is granted. evoMAG remains soft-paused until image/CDN readiness is confirmed. Other merchants are added only after acceptance and feed wiring. Other markets remain planned. We only compare and redirect; checkout is always on the merchant site. We may earn a referral commission from the merchant or network — we do not add a BeforeToBuy fee to your price. Default ranking is not paid placement; coverage is limited to configured feeds and may exclude taxes/shipping shown only at checkout.",
+  de: "BeforeToBuy.com hat derzeit Live-Händlerprogramme über AWIN im Vereinigten Königreich (Seentat) und in den USA (Ottocast) sowie über 2Performant in Rumänien (Rowenta, Scule365), jeweils mit Produktfeed und Affiliate-Deep-Links bei Affiliate-Cookie-Zustimmung. evoMAG bleibt soft-pausiert, bis Bild-/CDN-Bereitschaft bestätigt ist. Weitere Händler erst nach Freigabe und Feed-Anbindung. Andere Märkte sind geplant. Wir vergleichen und leiten nur weiter; der Kaufabschluss erfolgt stets beim Händler. Wir können eine Vermittlungsprovision erhalten — ohne BeforeToBuy-Aufschlag. Das Standardranking ist keine bezahlte Platzierung; die Abdeckung ist auf konfigurierte Feeds begrenzt und kann Steuern/Versand ausschließen, die erst im Checkout erscheinen.",
+  fr: "BeforeToBuy.com a actuellement des programmes marchands live via AWIN au Royaume-Uni (Seentat) et aux États-Unis (Ottocast), et via 2Performant en Roumanie (Rowenta, Scule365), chacun avec flux produit et liens affiliés lorsque le consentement cookies Affilié est accordé. evoMAG reste en soft-pause jusqu'à confirmation de la disponibilité image/CDN. Les autres marchands sont ajoutés uniquement après acceptation et branchement du flux. Les autres marchés restent prévus. Nous comparons et redirigeons seulement ; le paiement a toujours lieu chez le marchand. Nous pouvons recevoir une commission — sans frais BeforeToBuy. Le classement par défaut n'est pas un placement payant ; la couverture est limitée aux flux configurés et peut exclure taxes/frais de port visibles seulement au checkout.",
+  it: "BeforeToBuy.com ha attualmente programmi merchant live via AWIN nel Regno Unito (Seentat) e negli Stati Uniti (Ottocast), e via 2Performant in Romania (Rowenta, Scule365), ciascuno con feed prodotti e deep link affiliati con consenso cookie Affiliato. evoMAG resta in soft-pause finché non è confermata la disponibilità immagini/CDN. Altri merchant solo dopo accettazione e collegamento del feed. Altri mercati restano pianificati. Confrontiamo e reindirizziamo soltanto; il checkout è sempre sul sito del rivenditore. Possiamo ricevere una commissione — senza ricarico BeforeToBuy. La classifica predefinita non è placement a pagamento; la copertura è limitata ai feed configurati e può escludere tasse/spedizione visibili solo al checkout.",
+  ro: "BeforeToBuy.com are momentan programe merchant live via AWIN în Regatul Unit (Seentat) și Statele Unite (Ottocast), și via 2Performant în România (Rowenta, Scule365), fiecare cu feed de produse și deep link-uri afiliate când există consimțământ cookie Afiliat. evoMAG rămâne soft-paused până la confirmarea disponibilității imaginilor/CDN. Alte magazine se adaugă doar după acceptare și conectarea feed-ului. Alte piețe rămân planificate. Doar comparăm și redirecționăm; plata se face mereu pe site-ul magazinului. Putem primi comision de recomandare — fără adaos BeforeToBuy. Clasamentul implicit nu este plasare plătită; acoperirea este limitată la feed-urile configurate și poate exclude taxe/transport vizibile doar la checkout.",
 } as const;
 
 /** Networks with at least one live consented outbound program. */
 export const AFFILIATE_NETWORKS_ACTIVE = [
-  "2Performant Romania (Rowenta, Scule365)",
+  "2Performant Romania (Rowenta, Scule365; evoMAG soft-paused)",
   "AWIN UK (Seentat)",
+  "AWIN US (Ottocast)",
 ] as const;
 
 export const AFFILIATE_NETWORKS_PLANNED = [
@@ -125,15 +126,6 @@ export const AFFILIATE_NETWORKS = [
   ...AFFILIATE_NETWORKS_PLANNED.map((name) => `${name} (planned)`),
 ] as const;
 
-export const DATA_PROCESSORS = [
-  { name: "Vercel Inc.", purpose: "Hosting, CDN, server logs", region: "USA/EU" },
-  { name: "Upstash Redis", purpose: "Optional rate-limit counters and price-history cache (when configured)", region: "USA/EU" },
-  { name: "Datadog", purpose: "Optional browser RUM / performance monitoring (with Analytics consent)", region: "USA/EU" },
-  { name: "Resend", purpose: "Contact form email delivery (when configured)", region: "USA" },
-  { name: "AWIN / merchant partners", purpose: "Affiliate tracking on merchant domains when production feeds are configured (with Affiliate consent)", region: "Various" },
-  { name: "2Performant", purpose: "Affiliate tracking for Rowenta.ro and Scule365.ro outbound links (with Affiliate consent)", region: "RO/EU" },
-  { name: "AWIN", purpose: "Affiliate tracking for Seentat UK and other joined AWIN programmes (with Affiliate consent)", region: "UK/EU" },
-  { name: "Rowenta 2Performant product feed", purpose: "Product catalog and prices for Rowenta.ro (affiliate deep links from 2Performant My Feeds)", region: "RO/EU" },
-  { name: "Scule365 2Performant product feed", purpose: "Product catalog and prices for Scule365.ro (affiliate deep links from 2Performant My Feeds)", region: "RO/EU" },
-  { name: "Seentat AWIN product feed", purpose: "Product catalog and prices for Seentat UK (affiliate deep links from AWIN)", region: "UK/EU" },
-] as const;
+import { buildLocalizedDataProcessors } from "@/lib/data-processors";
+
+export const DATA_PROCESSORS = buildLocalizedDataProcessors("en");

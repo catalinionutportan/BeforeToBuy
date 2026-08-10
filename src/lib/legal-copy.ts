@@ -1,4 +1,8 @@
 import type { SiteLocale } from "@/lib/i18n/locales";
+import {
+  buildLocalizedDataProcessors,
+  type ProcessorItem,
+} from "@/lib/data-processors";
 
 type LegalCopy = {
   common: {
@@ -68,7 +72,7 @@ type LegalCopy = {
     analyticsStorage: string;
     analyticsRequired: string;
     processorsTitle: string;
-    processorItems: [string, string, string, string];
+    processorItems: [string, string, string, string, string];
     manageChoicesTitle: string;
     manageChoicesBody: string;
     manageChoicesBody2: string;
@@ -168,12 +172,6 @@ type RetentionItem = {
   legalBasis: string;
 };
 
-type ProcessorItem = {
-  name: string;
-  purpose: string;
-  region: string;
-};
-
 const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
   en: {
     common: {
@@ -243,7 +241,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Last updated: August 2026. This page explains how BeforeToBuy.com stores consent choices and when optional technologies run.",
       whatWeUseTitle: "1. What we use",
       whatWeUseBody:
-        "BeforeToBuy.com is a comparison demo. We do not run advertising cookies on our domain. We use browser local storage to remember your choices and a signed HttpOnly essential cookie to record Affiliate consent server-side.",
+        "BeforeToBuy.com is a price comparison service. We do not run advertising cookies on our domain. We use browser local storage to remember your choices and a signed HttpOnly essential cookie to record Affiliate consent server-side. Affiliate outbound links stay blocked until you grant Affiliate consent. Approved merchant and CDN product images may load as an essential catalogue function and can receive your IP address, user-agent, and technical request metadata.",
       categoriesTitle: "2. Categories",
       tableCategory: "Category",
       tablePurpose: "Purpose",
@@ -267,8 +265,9 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       processorsTitle: "3. Service providers and optional third parties",
       processorItems: [
         "Vercel — hosting, CDN, and server logs.",
+        "Supabase — product catalogue database.",
         "Datadog — optional RUM and performance monitoring for the Analytics category.",
-        "Merchant partners — affiliate tracking on merchant domains after you leave our site.",
+        "Merchant partners and approved CDN image hosts — catalogue images and affiliate tracking on merchant domains after you leave our site (Affiliate consent required for outbound affiliate links).",
         "Resend — contact-form email delivery when configured.",
       ],
       manageChoicesTitle: "4. Manage your choices",
@@ -437,7 +436,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Letzte Aktualisierung: August 2026. Diese Seite erklärt, wie BeforeToBuy.com Einwilligungen speichert und wann optionale Technologien aktiv werden.",
       whatWeUseTitle: "1. Was wir verwenden",
       whatWeUseBody:
-        "BeforeToBuy.com ist eine Vergleichs-Demo. Wir setzen auf unserer Domain keine Werbe-Cookies ein. Wir verwenden den Browser-Lokalspeicher, um Ihre Entscheidungen zu merken, sowie ein signiertes essenzielles HttpOnly-Cookie, um die Affiliate-Einwilligung serverseitig zu erfassen.",
+        "BeforeToBuy.com ist ein Preisvergleichsdienst. Wir setzen auf unserer Domain keine Werbe-Cookies ein. Wir verwenden den Browser-Lokalspeicher, um Ihre Entscheidungen zu merken, sowie ein signiertes essenzielles HttpOnly-Cookie, um die Affiliate-Einwilligung serverseitig zu erfassen. Affiliate-Links bleiben gesperrt, bis Sie Affiliate-Einwilligung erteilen. Freigegebene Händler-/CDN-Produktbilder können als wesentliche Katalogfunktion geladen werden und dabei IP-Adresse, User-Agent und technische Metadaten erhalten.",
       categoriesTitle: "2. Kategorien",
       tableCategory: "Kategorie",
       tablePurpose: "Zweck",
@@ -461,8 +460,9 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       processorsTitle: "3. Dienstleister und optionale Drittanbieter",
       processorItems: [
         "Vercel — Hosting, CDN und Server-Logs.",
+        "Supabase — Produktkatalog-Datenbank.",
         "Datadog — optionales RUM und Performance-Monitoring für die Analytics-Kategorie.",
-        "Händlerpartner — Affiliate-Tracking auf Händler-Domains nach Verlassen unserer Seite.",
+        "Händlerpartner und freigegebene CDN-Bildhosts — Katalogbilder und Affiliate-Tracking auf Händler-Domains nach Verlassen unserer Seite (Affiliate-Links nur mit Einwilligung).",
         "Resend — E-Mail-Zustellung für Kontaktformulare, wenn konfiguriert.",
       ],
       manageChoicesTitle: "4. Ihre Auswahl verwalten",
@@ -631,7 +631,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Dernière mise à jour : août 2026. Cette page explique comment BeforeToBuy.com mémorise vos choix de consentement et à quel moment les technologies optionnelles sont activées.",
       whatWeUseTitle: "1. Ce que nous utilisons",
       whatWeUseBody:
-        "BeforeToBuy.com est une démo de comparaison. Nous n'utilisons pas de cookies publicitaires sur notre domaine. Nous utilisons le stockage local du navigateur pour retenir vos choix et un cookie essentiel HttpOnly signé pour enregistrer le consentement Affiliation côté serveur.",
+        "BeforeToBuy.com est un service de comparaison de prix. Nous n'utilisons pas de cookies publicitaires sur notre domaine. Nous utilisons le stockage local du navigateur pour retenir vos choix et un cookie essentiel HttpOnly signé pour enregistrer le consentement Affiliation côté serveur. Les liens affiliés restent bloqués jusqu'au consentement Affiliation. Les images produit approuvées des marchands/CDN peuvent se charger comme fonction essentielle du catalogue et recevoir l'adresse IP, l'user-agent et des métadonnées techniques.",
       categoriesTitle: "2. Catégories",
       tableCategory: "Catégorie",
       tablePurpose: "Finalité",
@@ -655,8 +655,9 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       processorsTitle: "3. Prestataires et tiers optionnels",
       processorItems: [
         "Vercel — hébergement, CDN et journaux serveur.",
-        "Datadog — RUM et supervision de performance optionnels pour la catégorie Analytics.",
-        "Partenaires marchands — suivi d'affiliation sur les domaines marchands après avoir quitté notre site.",
+        "Supabase — base de données du catalogue produit.",
+        "Datadog — RUM et supervision des performances optionnels pour la catégorie Analytics.",
+        "Partenaires marchands et hôtes d'images CDN approuvés — images catalogue et suivi d'affiliation sur les domaines marchands après avoir quitté notre site (liens affiliés uniquement avec consentement).",
         "Resend — envoi des e-mails du formulaire de contact lorsqu'il est configuré.",
       ],
       manageChoicesTitle: "4. Gérer vos choix",
@@ -825,7 +826,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Ultimo aggiornamento: agosto 2026. Questa pagina spiega come BeforeToBuy.com memorizza le scelte di consenso e quando entrano in funzione le tecnologie opzionali.",
       whatWeUseTitle: "1. Cosa utilizziamo",
       whatWeUseBody:
-        "BeforeToBuy.com è una demo comparativa. Non utilizziamo cookie pubblicitari sul nostro dominio. Usiamo lo storage locale del browser per ricordare le tue scelte e un cookie essenziale HttpOnly firmato per registrare il consenso Affiliazione lato server.",
+        "BeforeToBuy.com è un servizio di confronto prezzi. Non utilizziamo cookie pubblicitari sul nostro dominio. Usiamo lo storage locale del browser per ricordare le tue scelte e un cookie essenziale HttpOnly firmato per registrare il consenso Affiliazione lato server. I link affiliati restano bloccati fino al consenso Affiliazione. Le immagini prodotto approvate di merchant/CDN possono caricarsi come funzione essenziale del catalogo e ricevere IP, user-agent e metadati tecnici.",
       categoriesTitle: "2. Categorie",
       tableCategory: "Categoria",
       tablePurpose: "Finalità",
@@ -849,9 +850,10 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       processorsTitle: "3. Fornitori di servizi e terze parti opzionali",
       processorItems: [
         "Vercel — hosting, CDN e log server.",
+        "Supabase — database del catalogo prodotti.",
         "Datadog — RUM e monitoraggio prestazionale opzionali per la categoria Analytics.",
-        "Partner merchant — tracciamento affiliate sui domini merchant dopo l'uscita dal nostro sito.",
-        "Resend — consegna email del form di contatto quando configurato.",
+        "Partner merchant e host immagini CDN approvati — immagini catalogo e tracking affiliato sui domini merchant dopo aver lasciato il sito (link affiliati solo con consenso).",
+        "Resend — consegna email del modulo di contatto quando configurata.",
       ],
       manageChoicesTitle: "4. Gestisci le tue scelte",
       manageChoicesBody:
@@ -1019,7 +1021,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Ultima actualizare: august 2026. Această pagină explică modul în care BeforeToBuy.com memorează alegerile de consimțământ și când rulează tehnologiile opționale.",
       whatWeUseTitle: "1. Ce folosim",
       whatWeUseBody:
-        "BeforeToBuy.com este un demo de comparație. Nu rulăm cookie-uri de publicitate pe domeniul nostru. Folosim stocarea locală a browserului pentru a vă reține alegerile și un cookie esențial HttpOnly semnat pentru a înregistra pe server consimțământul Afiliat.",
+        "BeforeToBuy.com este un serviciu de comparare a prețurilor. Nu rulăm cookie-uri de publicitate pe domeniul nostru. Folosim stocarea locală a browserului pentru a vă reține alegerile și un cookie esențial HttpOnly semnat pentru a înregistra pe server consimțământul Afiliat. Linkurile afiliate rămân blocate până la acordarea consimțământului Afiliat. Imaginile aprobate ale comercianților/CDN-urilor se pot încărca ca funcție esențială a catalogului și pot primi IP, user-agent și metadate tehnice.",
       categoriesTitle: "2. Categorii",
       tableCategory: "Categorie",
       tablePurpose: "Scop",
@@ -1043,9 +1045,10 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       processorsTitle: "3. Furnizori de servicii și terți opționali",
       processorItems: [
         "Vercel — hosting, CDN și log-uri server.",
+        "Supabase — baza de date a catalogului de produse.",
         "Datadog — RUM și monitorizare de performanță opționale pentru categoria Analytics.",
-        "Parteneri comercianți — tracking afiliat pe domeniile comercianților după ce părăsiți site-ul nostru.",
-        "Resend — livrarea emailurilor din formularul de contact atunci când este configurată.",
+        "Parteneri comercianți și host-uri CDN de imagini aprobate — imagini de catalog și tracking afiliat pe domeniile comercianților după ce părăsiți site-ul (linkuri afiliate doar cu consimțământ).",
+        "Resend — livrarea emailurilor din formularul de contact când este configurată.",
       ],
       manageChoicesTitle: "4. Gestionarea alegerilor",
       manageChoicesBody:
@@ -1966,69 +1969,6 @@ const RETENTION_SCHEDULE: Record<SiteLocale, RetentionItem[]> = {
   ],
 };
 
-const DATA_PROCESSORS: Record<SiteLocale, ProcessorItem[]> = {
-  en: [
-    { name: "Vercel Inc.", purpose: "Hosting, CDN, and server logs", region: "USA/EU" },
-    { name: "Upstash Redis", purpose: "Optional rate-limit counters and price-history cache when configured", region: "USA/EU" },
-    { name: "Datadog", purpose: "Optional browser RUM and performance monitoring with Analytics consent", region: "USA/EU" },
-    { name: "Resend", purpose: "Contact-form email delivery when configured", region: "USA" },
-    { name: "AWIN / merchant partners", purpose: "Affiliate tracking on merchant domains with Affiliate consent", region: "Various" },
-    { name: "2Performant", purpose: "Affiliate tracking for Rowenta.ro and Scule365.ro outbound links with Affiliate consent", region: "RO/EU" },
-    { name: "AWIN", purpose: "Affiliate tracking for Seentat UK and other joined AWIN programmes with Affiliate consent", region: "UK/EU" },
-    { name: "Rowenta 2Performant product feed", purpose: "Product catalog and prices for Rowenta.ro", region: "RO/EU" },
-    { name: "Scule365 2Performant product feed", purpose: "Product catalog and prices for Scule365.ro", region: "RO/EU" },
-    { name: "Seentat AWIN product feed", purpose: "Product catalog and prices for Seentat UK", region: "UK/EU" },
-  ],
-  de: [
-    { name: "Vercel Inc.", purpose: "Hosting, CDN und Server-Logs", region: "USA/EU" },
-    { name: "Upstash Redis", purpose: "Optionale Rate-Limit-Zähler und Preisverlaufs-Cache bei Konfiguration", region: "USA/EU" },
-    { name: "Datadog", purpose: "Optionales Browser-RUM und Performance-Monitoring mit Analytics-Einwilligung", region: "USA/EU" },
-    { name: "Resend", purpose: "E-Mail-Zustellung für Kontaktformulare bei Konfiguration", region: "USA" },
-    { name: "AWIN / Händlerpartner", purpose: "Affiliate-Tracking auf Händler-Domains mit Affiliate-Einwilligung", region: "Verschiedene" },
-    { name: "2Performant", purpose: "Affiliate-Tracking für Rowenta.ro- und Scule365.ro-Links mit Affiliate-Einwilligung", region: "RO/EU" },
-    { name: "AWIN", purpose: "Affiliate-Tracking für Seentat UK und weitere AWIN-Programme mit Affiliate-Einwilligung", region: "UK/EU" },
-    { name: "Rowenta 2Performant product feed", purpose: "Produktkatalog und Preise für Rowenta.ro", region: "RO/EU" },
-    { name: "Scule365 2Performant product feed", purpose: "Produktkatalog und Preise für Scule365.ro", region: "RO/EU" },
-    { name: "Seentat AWIN product feed", purpose: "Produktkatalog und Preise für Seentat UK", region: "UK/EU" },
-  ],
-  fr: [
-    { name: "Vercel Inc.", purpose: "Hébergement, CDN et journaux serveur", region: "USA/EU" },
-    { name: "Upstash Redis", purpose: "Compteurs de limitation de débit et cache d'historique de prix optionnels lorsqu'ils sont configurés", region: "USA/EU" },
-    { name: "Datadog", purpose: "RUM navigateur et supervision des performances optionnels avec consentement Analytics", region: "USA/EU" },
-    { name: "Resend", purpose: "Envoi des e-mails du formulaire de contact lorsqu'il est configuré", region: "USA" },
-    { name: "AWIN / partenaires marchands", purpose: "Suivi d'affiliation sur les domaines marchands avec consentement Affiliation", region: "Divers" },
-    { name: "2Performant", purpose: "Suivi d'affiliation pour les liens Rowenta.ro et Scule365.ro avec consentement Affiliation", region: "RO/EU" },
-    { name: "AWIN", purpose: "Suivi d'affiliation pour Seentat UK et autres programmes AWIN rejoints avec consentement Affiliation", region: "UK/EU" },
-    { name: "Rowenta 2Performant product feed", purpose: "Catalogue produit et prix pour Rowenta.ro", region: "RO/EU" },
-    { name: "Scule365 2Performant product feed", purpose: "Catalogue produit et prix pour Scule365.ro", region: "RO/EU" },
-    { name: "Seentat AWIN product feed", purpose: "Catalogue produit et prix pour Seentat UK", region: "UK/EU" },
-  ],
-  it: [
-    { name: "Vercel Inc.", purpose: "Hosting, CDN e log server", region: "USA/EU" },
-    { name: "Upstash Redis", purpose: "Contatori rate-limit opzionali e cache storico prezzi quando configurato", region: "USA/EU" },
-    { name: "Datadog", purpose: "Browser RUM e monitoraggio prestazionale opzionali con consenso Analytics", region: "USA/EU" },
-    { name: "Resend", purpose: "Consegna email del modulo di contatto quando configurato", region: "USA" },
-    { name: "AWIN / partner merchant", purpose: "Tracking affiliato sui domini merchant con consenso Affiliazione", region: "Varie" },
-    { name: "2Performant", purpose: "Tracking affiliato per link Rowenta.ro e Scule365.ro con consenso Affiliazione", region: "RO/EU" },
-    { name: "AWIN", purpose: "Tracking affiliato per Seentat UK e altri programmi AWIN aderenti con consenso Affiliazione", region: "UK/EU" },
-    { name: "Rowenta 2Performant product feed", purpose: "Catalogo prodotti e prezzi per Rowenta.ro", region: "RO/EU" },
-    { name: "Scule365 2Performant product feed", purpose: "Catalogo prodotti e prezzi per Scule365.ro", region: "RO/EU" },
-    { name: "Seentat AWIN product feed", purpose: "Catalogo prodotti e prezzi per Seentat UK", region: "UK/EU" },
-  ],
-  ro: [
-    { name: "Vercel Inc.", purpose: "Hosting, CDN și log-uri server", region: "USA/EU" },
-    { name: "Upstash Redis", purpose: "Contoare opționale de rate-limit și cache pentru istoricul prețurilor când este configurat", region: "USA/EU" },
-    { name: "Datadog", purpose: "Browser RUM și monitorizare de performanță opționale cu consimțământ Analytics", region: "USA/EU" },
-    { name: "Resend", purpose: "Livrarea emailurilor din formularul de contact când este configurată", region: "USA" },
-    { name: "AWIN / parteneri comercianți", purpose: "Tracking afiliat pe domeniile comercianților cu consimțământ Afiliat", region: "Diverse" },
-    { name: "2Performant", purpose: "Tracking afiliat pentru linkurile Rowenta.ro și Scule365.ro cu consimțământ Afiliat", region: "RO/EU" },
-    { name: "AWIN", purpose: "Tracking afiliat pentru Seentat UK și alte programe AWIN acceptate cu consimțământ Afiliat", region: "UK/EU" },
-    { name: "Rowenta 2Performant product feed", purpose: "Catalog de produse și prețuri pentru Rowenta.ro", region: "RO/EU" },
-    { name: "Scule365 2Performant product feed", purpose: "Catalog de produse și prețuri pentru Scule365.ro", region: "RO/EU" },
-    { name: "Seentat AWIN product feed", purpose: "Catalog de produse și prețuri pentru Seentat UK", region: "UK/EU" },
-  ],
-};
-
 export function getLegalCopy(locale: SiteLocale): LegalCopy {
   return LEGAL_COPY[locale];
 }
@@ -2046,5 +1986,7 @@ export function getLocalizedRetentionSchedule(locale: SiteLocale): RetentionItem
 }
 
 export function getLocalizedDataProcessors(locale: SiteLocale): ProcessorItem[] {
-  return DATA_PROCESSORS[locale];
+  return buildLocalizedDataProcessors(locale);
 }
+
+export type { ProcessorItem };

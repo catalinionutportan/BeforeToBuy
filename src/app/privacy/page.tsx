@@ -11,6 +11,7 @@ import {
   getLocalizedProcessingPurposes,
   getLocalizedRetentionSchedule,
 } from "@/lib/legal-copy";
+import { getProcessorUiLabels, type PublicProcessorKind } from "@/lib/data-processors";
 import { createPageMetadata } from "@/lib/metadata";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import { withLangParam } from "@/lib/seo/site-url";
@@ -19,6 +20,17 @@ import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-lo
 type Props = {
   searchParams: LocaleSearchParams;
 };
+
+function processorBadgeClass(kind: PublicProcessorKind): string {
+  switch (kind) {
+    case "processor":
+      return "bg-emerald-100 text-emerald-800 border-emerald-200";
+    case "independent_controller":
+      return "bg-amber-100 text-amber-900 border-amber-200";
+    case "cdn_recipient":
+      return "bg-slate-100 text-slate-800 border-slate-200";
+  }
+}
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const locale = await resolvePageLocale(searchParams);
@@ -37,6 +49,7 @@ export default async function PrivacyPage({ searchParams }: Props) {
   const homeUi = HOME_UI[locale];
   const legalCopy = getLegalCopy(locale);
   const processors = getLocalizedDataProcessors(locale);
+  const processorUi = getProcessorUiLabels(locale);
   const processingPurposes = getLocalizedProcessingPurposes(locale);
   const retentionSchedule = getLocalizedRetentionSchedule(locale);
 
@@ -95,10 +108,47 @@ export default async function PrivacyPage({ searchParams }: Props) {
             </h2>
             <p className="text-xs text-slate-600">{homeUi.affiliateLinksProcessorsBody1}</p>
             <p className="text-xs text-slate-600 font-semibold mt-2">{homeUi.subProcessorsRecipients}</p>
-            <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
+            <ul className="space-y-3 pl-0 list-none text-xs text-slate-600">
               {processors.map((processor) => (
-                <li key={processor.name}>
-                  <strong>{processor.name}</strong> — {processor.purpose} ({processor.region})
+                <li
+                  key={processor.id}
+                  className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 space-y-1.5"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${processorBadgeClass(processor.kind)}`}
+                    >
+                      {processor.roleLabel}
+                    </span>
+                    {processor.optional ? (
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                        {processorUi.optionalNote}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p>
+                    <strong className="text-slate-900">{processor.name}</strong>
+                    <span className="text-slate-500"> — {processor.legalEntity}</span>
+                  </p>
+                  <p>{processor.purpose}</p>
+                  {processor.projectRegion ? (
+                    <p>
+                      <span className="font-semibold text-slate-800">{processor.projectRegion}</span>
+                    </p>
+                  ) : null}
+                  {processor.transferSummary ? <p>{processor.transferSummary}</p> : null}
+                  {processor.officialDocUrl ? (
+                    <p>
+                      <a
+                        href={processor.officialDocUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-700 underline font-semibold"
+                      >
+                        {processorUi.officialDocLabel}
+                      </a>
+                    </p>
+                  ) : null}
                 </li>
               ))}
             </ul>

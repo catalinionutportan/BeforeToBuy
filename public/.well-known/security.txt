@@ -1,0 +1,5 @@
+Contact: mailto:admin@portanx.com
+Expires: 2027-08-10T00:00:00.000Z
+Preferred-Languages: en, ro, de, fr, it
+Canonical: https://www.beforetobuy.com/.well-known/security.txt
+Policy: https://github.com/catalinionutportan/BeforeToBuy/blob/main/SECURITY.md
