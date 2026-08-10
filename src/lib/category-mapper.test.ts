@@ -360,6 +360,37 @@ describe('Category Mapper Functions', () => {
     ).toBe("mobility-escooters");
   });
 
+  it("evoMAG Sisteme PC feed aisles map to desktop / component leaves", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-evomag",
+        merchantCategory: "Branduri",
+        title: "Calculator Sistem Mini PC Asus",
+      })
+    ).toBe("notebooks-desktops");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-evomag",
+        merchantCategory: "HDD Server",
+        title: "HDD Server HP 1.2TB SAS",
+      })
+    ).toBe("pc-ram-ssd");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-evomag",
+        merchantCategory: "Procesoare Server",
+        title: "Procesor server AMD EPYC",
+      })
+    ).toBe("pc-cpu");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-evomag",
+        merchantCategory: "Surse Server",
+        title: "Sursa Server HP 800W",
+      })
+    ).toBe("pc-motherboard");
+  });
+
   it("evoMAG VIDEO feed aisles map to photo / TV / security leaves", () => {
     expect(
       mapToBeforeToBuyCategory({

@@ -558,6 +558,13 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "placi de sunet": "peripherals-accessories",
       "unitati optice": "peripherals-storage",
       "servere rack": "notebooks-desktops",
+      // evoMAG Sisteme PC category feed aisle labels
+      branduri: "notebooks-desktops", // feed aisle of complete PC/Mini PC systems
+      "hdd server": "pc-ram-ssd",
+      "memorii server": "pc-ram-ssd",
+      "procesoare server": "pc-cpu",
+      servere: "notebooks-desktops",
+      "surse server": "pc-motherboard",
       "nas (network attached storage)": "networking-nas",
       "sisteme desktop": "notebooks-desktops",
       "mini pc": "notebooks-desktops",
