@@ -1,15 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 
-/**
- * Authorize internal/admin API routes with a Bearer token.
- * Uses INTERNAL_API_SECRET, falling back to CRON_SECRET.
- * In production the secret is required; elsewhere missing secret denies access.
- */
-export function isInternalApiAuthorized(request: Request): boolean {
-  const secret = process.env.INTERNAL_API_SECRET || process.env.CRON_SECRET;
-  if (!secret) {
-    return false;
-  }
+function bearerMatchesSecret(request: Request, secret: string | undefined): boolean {
+  if (!secret) return false;
 
   const authHeader = request.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
@@ -25,4 +17,19 @@ export function isInternalApiAuthorized(request: Request): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Authorize internal diagnostic/admin APIs with INTERNAL_API_SECRET only.
+ * No fallback to CRON_SECRET — keep cron and internal diagnostics separated.
+ */
+export function isInternalApiAuthorized(request: Request): boolean {
+  return bearerMatchesSecret(request, process.env.INTERNAL_API_SECRET);
+}
+
+/**
+ * Authorize scheduled cron routes with CRON_SECRET only.
+ */
+export function isCronAuthorized(request: Request): boolean {
+  return bearerMatchesSecret(request, process.env.CRON_SECRET);
 }

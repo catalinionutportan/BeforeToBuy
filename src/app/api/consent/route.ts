@@ -10,6 +10,12 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { hasValidRequestOrigin } from "@/lib/request-origin";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
+import {
+  BodyTooLargeError,
+  contentLengthExceedsLimit,
+  MAX_CONSENT_BODY_BYTES,
+  readRequestBodyWithLimit,
+} from "@/lib/request-body-limits";
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
@@ -27,10 +33,18 @@ export async function POST(request: Request) {
     );
   }
 
+  if (contentLengthExceedsLimit(request, MAX_CONSENT_BODY_BYTES)) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+
   let body: unknown;
   try {
-    body = await request.json();
-  } catch {
+    const raw = await readRequestBodyWithLimit(request, MAX_CONSENT_BODY_BYTES);
+    body = raw ? JSON.parse(raw) : {};
+  } catch (error) {
+    if (error instanceof BodyTooLargeError) {
+      return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+    }
     return NextResponse.json({ error: homeUi.invalidJsonBody }, { status: 400 });
   }
 

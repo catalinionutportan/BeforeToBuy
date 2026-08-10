@@ -16,6 +16,7 @@ import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { isInternalApiAuthorized } from "@/lib/internal-api-auth";
 import { prisma } from "@/lib/db";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
@@ -80,8 +81,6 @@ async function checkSampleFeedFiles() {
 
 async function checkProductsMerge() {
   try {
-    // Probe an enabled feed country — empty markets (e.g. CH) must not fail health.
-    // Probe the first country that still has enabled feeds (today: RO).
     const enabledCountries = [
       ...new Set(getEnabledMerchantFeeds().map((feed) => feed.country)),
     ] as CountryCode[];
@@ -112,34 +111,59 @@ async function checkProductsMerge() {
 }
 
 export async function GET(request: Request) {
+  const clientIp = getClientIp(request);
+  const rateLimit = await checkRateLimit(`health:${clientIp}`, 60, 60_000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: homeUi.productApiTooManyRequests },
+      { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } }
+    );
+  }
+
   const authorized = isInternalApiAuthorized(request);
   const startedAt = Date.now();
+
+  // Public health: cheap, cacheable, no Supabase/Redis/deep diagnostics.
+  if (!authorized) {
+    const enabledFeedCount = getEnabledMerchantFeeds().length;
+    const integrations = getIntegrationSummary();
+    const overallStatus: "healthy" | "degraded" | "unhealthy" =
+      integrations.hasProductionFeed && enabledFeedCount > 0
+        ? "healthy"
+        : "degraded";
+
+    return NextResponse.json(
+      {
+        status: overallStatus,
+        sitePhase: SITE_PHASE,
+        legalDocumentVersion: LEGAL_DOCUMENT_VERSION,
+        legalLastUpdated: LEGAL_LAST_UPDATED,
+        checks: {
+          app: { status: "ok" as const },
+          feedsConfigured: {
+            status: enabledFeedCount > 0 ? ("ok" as const) : ("warn" as const),
+            hasProductionFeed: integrations.hasProductionFeed,
+          },
+        },
+        responseMs: Date.now() - startedAt,
+        timestamp: new Date().toISOString(),
+        detailLevel: "public" as const,
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "public, max-age=30, s-maxage=45, stale-while-revalidate=30",
+        },
+      }
+    );
+  }
+
   const integrations = getIntegrationSummary();
-
   const enabledFeedCount = getEnabledMerchantFeeds().length;
-  const liveMerchantCount = integrations.feedMerchantIds?.length
-    ?? integrations.productionMerchantIds?.length
-    ?? enabledFeedCount;
 
-  // Public health must stay cheap for smoke/monitoring — skip full catalog merge.
-  // Internal callers still run the expensive productsMerge probe.
   const [sampleFeed, productsMerge, supabaseCatalogue, priceHistoryStats] = await Promise.all([
     checkSampleFeedFiles(),
-    authorized
-      ? checkProductsMerge()
-      : Promise.resolve({
-          status: (integrations.hasProductionFeed && enabledFeedCount > 0
-            ? "ok"
-            : "error") as "ok" | "error",
-          // Public callers should not see a misleading zero productCount.
-          productCount: liveMerchantCount,
-          productionOfferCount: 0,
-          sampleOfferCount: 0,
-          probedCountry: undefined as string | undefined,
-          skippedFullMerge: true,
-          enabledFeedCount,
-          liveMerchantCount,
-        }),
+    checkProductsMerge(),
     checkSupabaseCatalogue(),
     getPriceHistoryStats().catch(() => ({
       trackedOffers: 0,
@@ -159,57 +183,6 @@ export async function GET(request: Request) {
       ? "healthy"
       : "degraded";
 
-  // Public callers (status page / smoke) get a non-sensitive operational summary.
-  // Authorized internal callers get full diagnostics.
-  const publicChecks = {
-    app: { status: "ok" as const },
-    sampleFeed: { status: sampleFeed.status },
-    productsMerge: {
-      status: productsMerge.status,
-      // For public cheap checks this is enabled live-merchant count, not SKU count.
-      productCount: productsMerge.productCount,
-      skippedFullMerge: "skippedFullMerge" in productsMerge ? productsMerge.skippedFullMerge : false,
-      enabledFeedCount:
-        "enabledFeedCount" in productsMerge ? productsMerge.enabledFeedCount : enabledFeedCount,
-      hasProductionFeed: integrations.hasProductionFeed,
-    },
-    integrations: {
-      status: integrations.hasProductionFeed ? ("ok" as const) : ("warn" as const),
-      hasProductionFeed: integrations.hasProductionFeed,
-      enabledFeedCount,
-    },
-    priceHistory: {
-      status: priceHistoryStats.totalPoints > 0 ? ("ok" as const) : ("warn" as const),
-      backend: priceHistoryStats.backend ?? getPriceHistoryBackend(),
-    },
-    supabaseCatalogue: {
-      status: supabaseCatalogue.status,
-      productCount: supabaseCatalogue.productCount,
-    },
-  };
-
-  const fullChecks = {
-    app: { status: "ok" as const },
-    sampleFeed,
-    productsMerge,
-    supabaseCatalogue,
-    integrations: {
-      status: integrations.hasProductionFeed ? ("ok" as const) : ("warn" as const),
-      feedMerchantIds: integrations.feedMerchantIds,
-      productionMerchantIds: integrations.productionMerchantIds,
-      hasProductionFeed: integrations.hasProductionFeed,
-      sampleFeeds: integrations.sampleFeeds,
-      merchants: integrations.merchants,
-    },
-    priceHistory: {
-      status: priceHistoryStats.totalPoints > 0 ? ("ok" as const) : ("warn" as const),
-      backend: priceHistoryStats.backend ?? getPriceHistoryBackend(),
-      trackedOffers: priceHistoryStats.trackedOffers,
-      totalPoints: priceHistoryStats.totalPoints,
-      lastSnapshotAt: priceHistoryStats.lastSnapshotAt ?? null,
-    },
-  };
-
   return NextResponse.json(
     {
       status: overallStatus,
@@ -218,10 +191,31 @@ export async function GET(request: Request) {
       legalLastUpdated: LEGAL_LAST_UPDATED,
       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || null,
       environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "unknown",
-      checks: authorized ? fullChecks : publicChecks,
+      checks: {
+        app: { status: "ok" as const },
+        sampleFeed,
+        productsMerge,
+        supabaseCatalogue,
+        integrations: {
+          status: integrations.hasProductionFeed ? ("ok" as const) : ("warn" as const),
+          feedMerchantIds: integrations.feedMerchantIds,
+          productionMerchantIds: integrations.productionMerchantIds,
+          hasProductionFeed: integrations.hasProductionFeed,
+          sampleFeeds: integrations.sampleFeeds,
+          merchants: integrations.merchants,
+          enabledFeedCount,
+        },
+        priceHistory: {
+          status: priceHistoryStats.totalPoints > 0 ? ("ok" as const) : ("warn" as const),
+          backend: priceHistoryStats.backend ?? getPriceHistoryBackend(),
+          trackedOffers: priceHistoryStats.trackedOffers,
+          totalPoints: priceHistoryStats.totalPoints,
+          lastSnapshotAt: priceHistoryStats.lastSnapshotAt ?? null,
+        },
+      },
       responseMs: Date.now() - startedAt,
       timestamp: new Date().toISOString(),
-      ...(authorized ? {} : { detailLevel: "public" as const }),
+      detailLevel: "internal" as const,
     },
     {
       status: hasError ? 503 : 200,

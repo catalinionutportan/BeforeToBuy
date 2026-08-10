@@ -14,9 +14,10 @@ import { productMatchesCategoryFilter, ALL_CATEGORIES_ID } from "@/lib/categorie
 import { buildMappingReport, type MappingLogEntry, type MappingReport } from "@/lib/mapping-log";
 import { mergeFeedProductsByIdentity } from "@/lib/product-identity/merge-products";
 import { productMatchesSearchQuery } from "@/lib/product-search";
-import { fetchWithTimeout } from "@/lib/fetch-with-timeout";
 import { diversifyProductCap } from "@/lib/feed-product-cap";
+import { fetchFeedWithManualRedirects, safeFeedHost } from "@/lib/feed-download";
 import { redisGetJson, redisSetJson } from "@/lib/redis-cache";
+import { assertFeedDownloadUrl } from "@/lib/feed-url-policy";
 
 type FeedCacheEntry = {
   fetchedAt: number;
@@ -231,6 +232,7 @@ async function fetchRemoteFeed(
   url: string,
   feed: FeedConfig
 ): Promise<NodeJS.ReadableStream> {
+  assertFeedDownloadUrl(url);
   const provider = feed.provider;
   const label = feedLabel(feed);
   const accept =
@@ -246,21 +248,48 @@ async function fetchRemoteFeed(
   const retries = provider === "TWO_PERFORMANT" ? 1 : 2;
   const maxBytes = maxDownloadBytesForFeed(feed);
 
-  const response = await fetchWithTimeout(
-    url,
-    {
-      headers: { Accept: accept },
-      next: { revalidate: 3600 },
-    },
-    { timeoutMs, retries }
-  );
+  const host = safeFeedHost(url);
+  let response: Response | undefined;
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      response = await fetchFeedWithManualRedirects(url, {
+        headers: { Accept: accept },
+        signal: controller.signal,
+        next: { revalidate: 3600 },
+      });
+      clearTimeout(timeout);
+
+      if (response.status >= 500 && attempt < retries) {
+        await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+        continue;
+      }
+      break;
+    } catch (error) {
+      clearTimeout(timeout);
+      lastError = error;
+      if (attempt < retries) {
+        await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+        continue;
+      }
+    }
+  }
+
+  if (!response) {
+    throw lastError instanceof Error
+      ? lastError
+      : new Error(`Feed fetch failed host=${host}`);
+  }
 
   if (!response.ok) {
-    throw new Error(`Feed fetch failed (${response.status}) for ${url}`);
+    throw new Error(`Feed fetch failed (${response.status}) host=${host}`);
   }
 
   if (!response.body) {
-    throw new Error(`Feed fetch returned empty body for ${url}`);
+    throw new Error(`Feed fetch returned empty body host=${host}`);
   }
 
   const contentLength = response.headers.get("content-length");
@@ -280,7 +309,10 @@ async function fetchRemoteFeed(
 
   const contentEncoding = (response.headers.get("content-encoding") || "").toLowerCase();
   const contentType = (response.headers.get("content-type") || "").toLowerCase();
-  const urlLooksGzip = /compression\/gzip/i.test(url);
+  const parsedUrl = new URL(url);
+  const urlLooksGzip = /(?:^|[/?&])compression\/gzip/i.test(
+    `${parsedUrl.pathname}${parsedUrl.search}`
+  );
   const decoded =
     contentEncoding.includes("gzip") ||
     contentType.includes("gzip") ||

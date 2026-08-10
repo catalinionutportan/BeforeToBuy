@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { warmMerchantFeeds } from "@/lib/merchant-feeds";
-import { isInternalApiAuthorized } from "@/lib/internal-api-auth";
+import { isCronAuthorized } from "@/lib/internal-api-auth";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 
@@ -12,11 +12,11 @@ export const maxDuration = 300;
 
 /**
  * Offline feed warm — downloads heavy catalogues and writes Redis.
- * Secured by CRON_SECRET / INTERNAL_API_SECRET Bearer token.
+ * Secured by CRON_SECRET Bearer token only (not INTERNAL_API_SECRET).
  * Vercel Cron: Authorization: Bearer $CRON_SECRET
  */
 export async function GET(request: NextRequest) {
-  if (!isInternalApiAuthorized(request)) {
+  if (!isCronAuthorized(request)) {
     return NextResponse.json({ error: homeUi.unauthorized }, { status: 401 });
   }
 

@@ -8,18 +8,18 @@
  *   CRON_SECRET=... FEEDS_WARM_URL=http://localhost:3000/api/cron/feeds-warm npm run feeds:warm
  *
  * Env:
- *   CRON_SECRET or INTERNAL_API_SECRET — Bearer token (required)
+ *   CRON_SECRET — Bearer token (required; INTERNAL_API_SECRET is not accepted)
  *   FEEDS_WARM_URL — full cron URL (default: https://www.beforetobuy.com/api/cron/feeds-warm)
  *   FEEDS_WARM_ALL=1 — warm all enabled feeds, not only heavy/cacheOnly
  */
-const secret = process.env.CRON_SECRET || process.env.INTERNAL_API_SECRET;
+const secret = process.env.CRON_SECRET;
 const base =
   process.env.FEEDS_WARM_URL ||
   `${(process.env.SMOKE_BASE_URL || "https://www.beforetobuy.com").replace(/\/$/, "")}/api/cron/feeds-warm`;
 const url = process.env.FEEDS_WARM_ALL === "1" ? `${base}${base.includes("?") ? "&" : "?"}all=1` : base;
 
 if (!secret) {
-  console.error("[feeds:warm] Set CRON_SECRET or INTERNAL_API_SECRET");
+  console.error("[feeds:warm] Set CRON_SECRET");
   process.exit(1);
 }
 

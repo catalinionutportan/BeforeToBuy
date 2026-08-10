@@ -16,6 +16,13 @@ import { prisma } from "../lib/db";
 import { mapToBeforeToBuyCategoryWithMetadata } from "../lib/category-mapper";
 import { UNMAPPED_CATEGORY_ID } from "../lib/categories";
 import { resolveGtin } from "../lib/product-identity/gtin";
+import {
+  assertFeedDownloadUrl,
+  sanitizeCommercialUrl,
+  sanitizeFeedImageUrl,
+} from "../lib/feed-url-policy";
+import { MAX_FEED_REDIRECTS, safeFeedHost } from "../lib/feed-download";
+import { deriveRowDeliveryFields } from "../lib/offers/delivery-cost";
 
 type RawRow = Record<string, string | undefined>;
 
@@ -47,6 +54,9 @@ type BatchItem = {
     feedMerchantId: string;
     merchantProductId: string;
     fetchedAt: string;
+    deliveryTime?: string;
+    deliveryCost?: number;
+    totalPrice?: number;
   };
 };
 
@@ -55,7 +65,7 @@ type BatchResult = {
   productIds: Set<string>;
 };
 
-const MAX_REDIRECTS = 5;
+const MAX_REDIRECTS = MAX_FEED_REDIRECTS;
 const MAX_FEED_BYTES = 250 * 1024 * 1024;
 const REQUEST_TIMEOUT_MS = 30_000;
 const PRODUCT_REFRESH_BATCH_SIZE = 500;
@@ -98,31 +108,8 @@ function resolveMerchantProductId(row: RawRow, fallback: number): string {
   return String(fallback);
 }
 
-function isAllowedFeedHost(hostname: string): boolean {
-  const configuredHosts = (process.env.FEED_ALLOWED_HOSTS || "")
-    .split(",")
-    .map((host) => host.trim().toLowerCase())
-    .filter(Boolean);
-  const allowedHosts = ["2performant.com", ...configuredHosts];
-  const normalizedHostname = hostname.toLowerCase();
-
-  return allowedHosts.some(
-    (host) => normalizedHostname === host || normalizedHostname.endsWith(`.${host}`)
-  );
-}
-
 function validateFeedUrl(csvUrl: string): URL {
-  const url = new URL(csvUrl);
-  if (url.protocol !== "https:") {
-    throw new Error("Feed URL must use HTTPS.");
-  }
-  if (url.username || url.password) {
-    throw new Error("Feed URL must not contain credentials.");
-  }
-  if (!isAllowedFeedHost(url.hostname)) {
-    throw new Error(`Feed host is not allowed: ${url.hostname}`);
-  }
-  return url;
+  return assertFeedDownloadUrl(csvUrl);
 }
 
 function openCsvStream(csvUrl: string, redirectCount = 0): Promise<Readable> {
@@ -142,13 +129,26 @@ function openCsvStream(csvUrl: string, redirectCount = 0): Promise<Readable> {
             res.resume();
             return;
           }
-          const redirectUrl = new URL(res.headers.location, url).toString();
-          openCsvStream(redirectUrl, redirectCount + 1).then(resolve, reject);
+          let redirectTarget: URL;
+          try {
+            redirectTarget = assertFeedDownloadUrl(
+              new URL(res.headers.location, url).toString()
+            );
+          } catch (error) {
+            reject(error);
+            res.resume();
+            return;
+          }
+          openCsvStream(redirectTarget.toString(), redirectCount + 1).then(resolve, reject);
           res.resume();
           return;
         }
         if (!res.statusCode || res.statusCode < 200 || res.statusCode >= 300) {
-          reject(new Error(`Feed request failed with HTTP ${res.statusCode ?? "unknown"}.`));
+          reject(
+            new Error(
+              `Feed request failed with HTTP ${res.statusCode ?? "unknown"} host=${safeFeedHost(url)}.`
+            )
+          );
           res.resume();
           return;
         }
@@ -193,8 +193,11 @@ function rowToBatchItem(
 ): BatchItem | null {
   const price = parsePrice(row.price);
   const title = row.title?.trim();
-  const purchaseUrl = (row.aff_code || row.aff_link || row.url || "").trim();
-  if (!price || !title || !purchaseUrl.startsWith("http")) return null;
+  const purchaseUrl = sanitizeCommercialUrl(
+    (row.aff_code || row.aff_link || row.url || "").trim(),
+    merchantId
+  );
+  if (!price || !title || !purchaseUrl) return null;
 
   const merchantProductId = resolveMerchantProductId(row, index);
   const gtin = resolveGtin(row.ean || row.gtin) ?? null;
@@ -224,11 +227,16 @@ function rowToBatchItem(
       : null;
 
   const imageRaw = row.image_urls || row.image_url || "";
-  const image =
+  const imageCandidate =
     imageRaw
       .split(/\s*[|,]\s*/)
       .map((part) => part.trim())
-      .find((part) => part.startsWith("http")) || null;
+      .find(Boolean) || null;
+  const image = imageCandidate
+    ? sanitizeFeedImageUrl(imageCandidate, merchantId)
+    : null;
+
+  const delivery = deriveRowDeliveryFields(row, price);
 
   return {
     gtin,
@@ -258,6 +266,7 @@ function rowToBatchItem(
       feedMerchantId: merchantId,
       merchantProductId,
       fetchedAt,
+      ...delivery,
     },
   };
 }
@@ -457,8 +466,20 @@ async function processBatchWithDeduplication(batch: BatchItem[]): Promise<BatchR
 
       await prisma.offer.upsert({
         where: { id: item.offerData.id },
-        update: { ...item.offerData, productId: existingProduct.id },
-        create: { ...item.offerData, productId: existingProduct.id },
+        update: {
+          ...item.offerData,
+          productId: existingProduct.id,
+          deliveryTime: item.offerData.deliveryTime ?? null,
+          deliveryCost: item.offerData.deliveryCost ?? null,
+          totalPrice: item.offerData.totalPrice ?? null,
+        },
+        create: {
+          ...item.offerData,
+          productId: existingProduct.id,
+          deliveryTime: item.offerData.deliveryTime ?? null,
+          deliveryCost: item.offerData.deliveryCost ?? null,
+          totalPrice: item.offerData.totalPrice ?? null,
+        },
       });
       ok += 1;
     } catch (dbError: unknown) {

@@ -11,10 +11,9 @@ import { withLangParam } from "@/lib/seo/site-url";
 type HealthPayload = {
   status: "healthy" | "degraded" | "unhealthy";
   sitePhase: string;
-  commit: string | null;
-  environment: string;
   responseMs: number;
   timestamp: string;
+  detailLevel?: string;
   checks: Record<string, { status: string; [key: string]: unknown }>;
 };
 
@@ -30,7 +29,7 @@ export default function StatusPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/health", { cache: "no-store" });
+      const response = await fetch("/api/health");
       const data = (await response.json()) as HealthPayload;
       setHealth(data);
       if (!response.ok) {
@@ -101,22 +100,18 @@ export default function StatusPage() {
 
         {health && (
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4 text-xs">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
                 <p className="text-slate-500">{copy.phase}</p>
                 <p className="font-bold text-slate-900">{health.sitePhase}</p>
               </div>
               <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                <p className="text-slate-500">{copy.environment}</p>
-                <p className="font-bold text-slate-900">{health.environment}</p>
-              </div>
-              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                <p className="text-slate-500">{copy.commit}</p>
-                <p className="font-bold text-slate-900 font-mono">{health.commit || "local"}</p>
-              </div>
-              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
                 <p className="text-slate-500">{copy.response}</p>
                 <p className="font-bold text-slate-900">{health.responseMs} ms</p>
+              </div>
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                <p className="text-slate-500">{copy.checks}</p>
+                <p className="font-bold text-slate-900">{health.detailLevel || "public"}</p>
               </div>
             </div>
 

@@ -15,6 +15,11 @@ import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n/locales";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 import { parseOfferFiltersFromSearchParams } from "@/lib/offers/offer-filters";
 import type { ProductSortOption } from "@/lib/product-list-options";
+import {
+  clampFilterString,
+  MAX_PRODUCT_FILTER_CHARS,
+  MAX_PRODUCT_QUERY_CHARS,
+} from "@/lib/request-body-limits";
 
 /** Cache-only catalogue path — heavy CSV is never fetched here. */
 export const maxDuration = 60;
@@ -30,7 +35,6 @@ function sanitizeQueryParam(input: string | null | undefined): string | undefine
 const VALID_COUNTRIES = new Set<CountryCode>(Object.keys(COUNTRIES) as CountryCode[]);
 
 function parseCountry(value: string | null): CountryCode {
-  // Default to the primary live catalogue when country is omitted/invalid.
   if (!value) return getPrimaryLiveBrowseCountry();
   const code = value.toUpperCase() as CountryCode;
   return VALID_COUNTRIES.has(code) ? code : getPrimaryLiveBrowseCountry();
@@ -53,8 +57,8 @@ function parseSort(value: string | null): ProductSortOption | undefined {
 
 export async function GET(request: Request) {
   const clientIp = getClientIp(request);
-  // Homepage SSR + client refetch + navigation can burn a low budget quickly.
-  const rateLimit = await checkRateLimit(`products:${clientIp}`, 300, 60_000);
+  // Enough for normal browse + SSR refetch; lower than before to reduce abuse headroom.
+  const rateLimit = await checkRateLimit(`products:${clientIp}`, 120, 60_000);
 
   if (!rateLimit.allowed) {
     return NextResponse.json(
@@ -64,9 +68,27 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
+
+  const qCheck = clampFilterString(searchParams.get("q"), MAX_PRODUCT_QUERY_CHARS);
+  const categoryCheck = clampFilterString(
+    searchParams.get("category"),
+    MAX_PRODUCT_FILTER_CHARS
+  );
+  const domainCheck = clampFilterString(
+    searchParams.get("domain"),
+    MAX_PRODUCT_FILTER_CHARS
+  );
+  const brandCheck = clampFilterString(
+    searchParams.get("brand"),
+    MAX_PRODUCT_FILTER_CHARS
+  );
+  if (!qCheck.ok || !categoryCheck.ok || !domainCheck.ok || !brandCheck.ok) {
+    return NextResponse.json({ error: "Query parameter too long" }, { status: 400 });
+  }
+
   const countryCode = parseCountry(searchParams.get("country"));
-  const query = sanitizeQueryParam(searchParams.get("q"));
-  const category = sanitizeQueryParam(searchParams.get("category"));
+  const query = sanitizeQueryParam(qCheck.value);
+  const category = sanitizeQueryParam(categoryCheck.value);
   const locale = normalizeLocale(searchParams.get("locale")) ?? DEFAULT_LOCALE;
   const limit = clampProductListLimit(
     searchParams.get("limit") ? Number(searchParams.get("limit")) : undefined,
@@ -77,6 +99,15 @@ export async function GET(request: Request) {
   );
   const includePriceHistory = searchParams.get("priceHistory") === "1";
   const filters = parseOfferFiltersFromSearchParams(searchParams);
+  if (domainCheck.value !== undefined) {
+    // Re-apply length-clamped domain/brand after parse (parse may re-read raw params).
+    if (filters.domain && filters.domain.length > MAX_PRODUCT_FILTER_CHARS) {
+      return NextResponse.json({ error: "Query parameter too long" }, { status: 400 });
+    }
+  }
+  if (brandCheck.value !== undefined && filters.brand && filters.brand.length > MAX_PRODUCT_FILTER_CHARS) {
+    return NextResponse.json({ error: "Query parameter too long" }, { status: 400 });
+  }
   const sort = parseSort(searchParams.get("sort"));
   const userLocation = buildUserLocation(countryCode);
 
@@ -91,7 +122,8 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(result, {
       headers: {
-        "Cache-Control": "private, max-age=30",
+        // Public catalogue — no personal data; allow CDN edge caching.
+        "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=30",
       },
     });
   } catch (error) {
