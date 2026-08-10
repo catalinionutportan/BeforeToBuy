@@ -360,6 +360,37 @@ describe('Category Mapper Functions', () => {
     ).toBe("mobility-escooters");
   });
 
+  it("evoMAG VIDEO feed aisles map to photo / TV / security leaves", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-evomag",
+        merchantCategory: "Camere Video",
+        title: "Camere video de actiune Mediacom",
+      })
+    ).toBe("photo-video-cameras");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-evomag",
+        merchantCategory: "Ecrane de proiectie",
+        title: "Ecran de proiectie",
+      })
+    ).toBe("tv-screens");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-evomag",
+        merchantCategory: "Sisteme Supraveghere Video",
+        title: "Sistem supraveghere",
+      })
+    ).toBe("smart-home-security");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ro-evomag",
+        merchantCategory: "Videoproiectoare",
+        title: "Videoproiector Epson",
+      })
+    ).toBe("tv-projectors");
+  });
+
   it("evoMAG skips keyword invention when aisle is unknown", () => {
     const robot = mapToBeforeToBuyCategoryWithMetadata({
       merchantId: "ro-evomag",

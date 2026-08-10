@@ -45,6 +45,13 @@ const FEEDS: FeedSpec[] = [
     countryCode: "RO",
     currency: "RON",
   },
+  {
+    envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG",
+    merchantId: "ro-evomag",
+    storeName: "evoMAG.ro",
+    countryCode: "RO",
+    currency: "RON",
+  },
 ];
 
 function parseArgs(argv: string[]) {

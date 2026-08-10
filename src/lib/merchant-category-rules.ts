@@ -563,6 +563,10 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "mini pc": "notebooks-desktops",
       "all in one": "notebooks-desktops",
       "videoproiectoare": "tv-projectors",
+      // evoMAG VIDEO category feed (351 SKUs) aisle labels
+      "camere video": "photo-video-cameras",
+      "ecrane de proiectie": "tv-screens",
+      "sisteme supraveghere video": "smart-home-security",
       "accesorii tv": "tv-mounts",
       "soundbar": "audio-speakers",
       "casti gaming": "audio-headphones",

@@ -123,7 +123,7 @@ describe('Merchant Integrations', () => {
     const previousForce = process.env.FORCE_SAMPLE_FEEDS;
     delete process.env.FORCE_SAMPLE_FEEDS;
     try {
-      for (const id of ["ro-rowenta", "ro-scule365"] as const) {
+      for (const id of ["ro-rowenta", "ro-scule365", "ro-evomag"] as const) {
         const feed = MERCHANT_FEEDS.find((item) => item.merchantId === id);
         expect(feed?.enabled).toBe(false);
         expect(isCacheOnlyFeed(feed!)).toBe(true);

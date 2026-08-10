@@ -93,8 +93,9 @@ describe("2Performant Scule365 CSV feed", () => {
     expect(result.merchantProductCounts["ro-evomag"] ?? 0).toBe(0);
   });
 
-  it("keeps evoMAG removed from the configured feed registry", () => {
+  it("keeps evoMAG registered but disabled for offline import only", () => {
     const feed = MERCHANT_FEEDS.find((item) => item.merchantId === "ro-evomag");
-    expect(feed).toBeUndefined();
+    expect(feed?.enabled).toBe(false);
+    expect(feed?.cacheOnly).toBe(true);
   });
 });

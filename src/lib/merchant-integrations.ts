@@ -175,6 +175,19 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     cacheOnly: true,
   },
   {
+    provider: "TWO_PERFORMANT",
+    country: "RO",
+    merchantId: "ro-evomag",
+    merchantName: "evoMAG.ro",
+    envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG",
+    sampleFile: "sample-2performant-evomag-ro.csv",
+    sampleFormat: "csv",
+    // Offline Supabase import only (category feeds, e.g. VIDEO ~351). Never request-path.
+    enabled: false,
+    heavy: true,
+    cacheOnly: true,
+  },
+  {
     provider: "AWIN",
     country: "GB",
     merchantId: "gb-seentat",
