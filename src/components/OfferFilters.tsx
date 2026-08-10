@@ -2,7 +2,7 @@
 
 import { type OfferFilterCriteria } from "@/lib/offers/offer-filters";
 import { OFFER_FILTER_UI, type CategoryLocale } from "@/lib/category-i18n";
-import { PackageCheck, Tag } from "lucide-react";
+import { Tag } from "lucide-react";
 
 interface OfferFiltersProps {
   criteria: OfferFilterCriteria;
@@ -89,19 +89,6 @@ export function OfferFilters({
           />
           <span className="text-slate-500 font-normal">{currencySymbol}</span>
         </label>
-
-        <button
-          type="button"
-          onClick={() => patch({ inStockOnly: !criteria.inStockOnly })}
-          className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[11px] font-bold transition-all cursor-pointer ${
-            criteria.inStockOnly
-              ? "border-emerald-500 bg-emerald-600 text-white"
-              : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-          }`}
-        >
-          <PackageCheck className="h-3.5 w-3.5" />
-          {ui.inStock}
-        </button>
       </div>
     </div>
   );

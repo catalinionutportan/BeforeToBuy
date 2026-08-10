@@ -256,7 +256,7 @@ export const OFFER_FILTER_UI: Record<
 > = {
   en: {
     title: "Offer filters",
-    hint: "Refine by total price, brand, stock, delivery & product ID",
+    hint: "Refine by brand and total price",
     allBrands: "All brands",
     minTotal: "Min total",
     maxTotal: "Max total",
@@ -267,7 +267,7 @@ export const OFFER_FILTER_UI: Record<
   },
   de: {
     title: "Angebotsfilter",
-    hint: "Nach Gesamtpreis, Marke, Lager, Lieferung & EAN verfeinern",
+    hint: "Nach Marke und Gesamtpreis verfeinern",
     allBrands: "Alle Marken",
     minTotal: "Min. Gesamt",
     maxTotal: "Max. Gesamt",
@@ -278,7 +278,7 @@ export const OFFER_FILTER_UI: Record<
   },
   fr: {
     title: "Filtres d'offres",
-    hint: "Affiner par prix total, marque, stock, livraison & EAN",
+    hint: "Affiner par marque et prix total",
     allBrands: "Toutes les marques",
     minTotal: "Total min.",
     maxTotal: "Total max.",
@@ -289,7 +289,7 @@ export const OFFER_FILTER_UI: Record<
   },
   ro: {
     title: "Filtre oferte",
-    hint: "Rafinează după preț total, brand, stoc, livrare & EAN",
+    hint: "Rafinează după brand și preț total",
     allBrands: "Toate brandurile",
     minTotal: "Total min.",
     maxTotal: "Total max.",
@@ -300,7 +300,7 @@ export const OFFER_FILTER_UI: Record<
   },
   it: {
     title: "Filtri offerte",
-    hint: "Affina per prezzo totale, marca, stock, consegna e EAN",
+    hint: "Affina per marca e prezzo totale",
     allBrands: "Tutte le marche",
     minTotal: "Totale min.",
     maxTotal: "Totale max.",
