@@ -262,70 +262,98 @@ function rowToBatchItem(
   };
 }
 
+/**
+ * Sync one or more 2Performant CSV URLs for the same merchant.
+ * Multiple URLs (category slices) share one `fetchedAt` so stale cleanup
+ * only drops offers missing from the full set — not from a single slice.
+ */
 export async function sync2PerformantFeed(
-  csvUrl: string,
+  csvUrl: string | string[],
   merchantId: string,
   storeName: string,
   countryCode: string,
   currency: string
 ): Promise<number> {
-  const feedUrl = validateFeedUrl(csvUrl);
+  const csvUrls = (Array.isArray(csvUrl) ? csvUrl : [csvUrl])
+    .map((url) => url.trim())
+    .filter(Boolean);
+  if (csvUrls.length === 0) {
+    throw new Error(`No feed URLs provided for ${merchantId}.`);
+  }
+
+  for (const url of csvUrls) {
+    validateFeedUrl(url);
+  }
+
   console.log(`Starting sync for ${storeName} (${merchantId}) from ${countryCode}...`);
-  console.log(`Feed host: ${feedUrl.hostname}`);
+  console.log(`Feed URL(s): ${csvUrls.length}`);
 
   const safeMerchantId = merchantId.replace(/[^a-zA-Z0-9_-]/g, "-");
-  const tmpFile = path.join(os.tmpdir(), `beforetobuy-${safeMerchantId}-${randomUUID()}.csv`);
   const fetchedAt = new Date().toISOString();
+  const tmpFiles: string[] = [];
+
+  let rowIndex = 0;
+  let parsed = 0;
+  let written = 0;
+  let skipped = 0;
+  const affectedProductIds = new Set<string>();
+  const BATCH_SIZE = 1000;
+
   try {
-    console.log(`[1/3] Downloading ${merchantId} to disk (prevents network timeouts)...`);
-    const stream = await openCsvStream(csvUrl);
-    await pipeline(stream, fs.createWriteStream(tmpFile));
-    console.log(`[1/3] Download complete!`);
-
-    console.log(`[2/3] Parsing and inserting to database...`);
-    const parser = fs.createReadStream(tmpFile).pipe(csv());
-
-    let rowIndex = 0;
-    let parsed = 0;
-    let written = 0;
-    let skipped = 0;
-    let batch: BatchItem[] = [];
-    const affectedProductIds = new Set<string>();
-    const BATCH_SIZE = 1000;
-
-    for await (const row of parser as AsyncIterable<RawRow>) {
-      rowIndex += 1;
-      const item = rowToBatchItem(
-        row,
-        merchantId,
-        storeName,
-        countryCode,
-        currency,
-        rowIndex,
-        fetchedAt
+    for (let feedIndex = 0; feedIndex < csvUrls.length; feedIndex += 1) {
+      const url = csvUrls[feedIndex]!;
+      const host = new URL(url).hostname;
+      const tmpFile = path.join(
+        os.tmpdir(),
+        `beforetobuy-${safeMerchantId}-${feedIndex + 1}-${randomUUID()}.csv`
       );
-      if (!item) {
-        skipped += 1;
-        continue;
-      }
-      batch.push(item);
-      parsed += 1;
+      tmpFiles.push(tmpFile);
 
-      if (batch.length >= BATCH_SIZE) {
+      console.log(
+        `[1/${csvUrls.length}] Downloading slice ${feedIndex + 1}/${csvUrls.length} (${host})...`
+      );
+      const stream = await openCsvStream(url);
+      await pipeline(stream, fs.createWriteStream(tmpFile));
+      console.log(`[1/${csvUrls.length}] Download complete for slice ${feedIndex + 1}.`);
+
+      console.log(`[2/${csvUrls.length}] Parsing slice ${feedIndex + 1}...`);
+      const parser = fs.createReadStream(tmpFile).pipe(csv());
+      let batch: BatchItem[] = [];
+
+      for await (const row of parser as AsyncIterable<RawRow>) {
+        rowIndex += 1;
+        const item = rowToBatchItem(
+          row,
+          merchantId,
+          storeName,
+          countryCode,
+          currency,
+          rowIndex,
+          fetchedAt
+        );
+        if (!item) {
+          skipped += 1;
+          continue;
+        }
+        batch.push(item);
+        parsed += 1;
+
+        if (batch.length >= BATCH_SIZE) {
+          const result = await processBatchWithDeduplication(batch);
+          written += result.written;
+          result.productIds.forEach((id) => affectedProductIds.add(id));
+          batch = [];
+          if (parsed % 2000 === 0) {
+            console.log(`... ${parsed} rows parsed, ${written} offers upserted`);
+          }
+        }
+      }
+
+      if (batch.length > 0) {
         const result = await processBatchWithDeduplication(batch);
         written += result.written;
         result.productIds.forEach((id) => affectedProductIds.add(id));
-        batch = [];
-        if (parsed % 2000 === 0) {
-          console.log(`... ${parsed} rows parsed, ${written} offers upserted`);
-        }
       }
-    }
-
-    if (batch.length > 0) {
-      const result = await processBatchWithDeduplication(batch);
-      written += result.written;
-      result.productIds.forEach((id) => affectedProductIds.add(id));
     }
 
     if (written === 0) {
@@ -354,7 +382,9 @@ export async function sync2PerformantFeed(
     );
     return written;
   } finally {
-    await fs.promises.rm(tmpFile, { force: true }).catch(() => undefined);
+    await Promise.all(
+      tmpFiles.map((tmpFile) => fs.promises.rm(tmpFile, { force: true }).catch(() => undefined))
+    );
   }
 }
 

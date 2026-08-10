@@ -8,11 +8,9 @@
  *
  * Do NOT restore a bulk 9-feed list and `--all` until the site is stable.
  *
- * Why evoMAG (~100k SKUs) was painful:
- * - CSV is ~200MB; Vercel request/SSR cannot download/parse it live
- * - image hosts must be allowlisted (or use native <img>) or cards look empty
- * - soft caps / Redis warm path still struggle at that size without dedicated infra
- * Re-add evoMAG only after a capped/import-offline plan — never on the request path.
+ * evoMAG: import only small 2Performant *category* CSVs (VIDEO, Laptopuri, …).
+ * Put multiple URLs in TWO_PERFORMANT_FEED_URL_RO_EVOMAG (comma-separated) so
+ * stale cleanup keeps every slice in stock. Never use the full ~78k catalogue.
  */
 import { sync2PerformantFeed } from "./sync-feeds";
 import { prisma } from "../lib/db";
@@ -24,6 +22,14 @@ type FeedSpec = {
   countryCode: string;
   currency: string;
 };
+
+/** One URL, or several category slices separated by comma / whitespace. */
+function parseFeedUrls(raw: string): string[] {
+  return raw
+    .split(/[\s,]+/)
+    .map((url) => url.trim())
+    .filter(Boolean);
+}
 
 /**
  * Add RO merchants one at a time (checked feeds only).
@@ -111,12 +117,15 @@ async function main() {
   for (const feed of selected) {
     console.log(`\n=== ${feed.storeName} (${feed.merchantId}) ===`);
     try {
-      const feedUrl = process.env[feed.envVar]?.trim();
-      if (!feedUrl) {
+      const feedUrls = parseFeedUrls(process.env[feed.envVar] || "");
+      if (feedUrls.length === 0) {
         throw new Error(`Missing required environment variable ${feed.envVar}.`);
       }
+      if (feedUrls.length > 1) {
+        console.log(`Category slices: ${feedUrls.length}`);
+      }
       const written = await sync2PerformantFeed(
-        feedUrl,
+        feedUrls,
         feed.merchantId,
         feed.storeName,
         feed.countryCode,
