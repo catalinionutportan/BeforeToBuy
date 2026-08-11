@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 /**
  * Supabase "direct" hosts (db.*.supabase.co) are often IPv6-only.
@@ -66,12 +67,12 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const url = resolveDatabaseUrl();
-  return new PrismaClient({
-    datasources: url ? {
-      db: { url },
-    } : undefined,
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-  });
+  const log: ("error" | "warn")[] = process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"];
+
+  // Prisma 7 connects through a driver adapter instead of `datasources.db.url`.
+  return url
+    ? new PrismaClient({ adapter: new PrismaPg(url), log })
+    : new PrismaClient({ log });
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
