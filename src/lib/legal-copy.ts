@@ -322,7 +322,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Operator details and commercial notices for users and partner due diligence. The dedicated legal pages remain linked from the legal hub and footer.",
       operatorNoticeTitle: "Operator and platform notice",
       operatorNoticeBody:
-        "BeforeToBuy.com is a Swiss-based price comparison service without checkout on this site. It is operated by {legalName} (Commercial Register Canton of Bern, UID: {uid}). The catalog may include sample or demo offers, so confirm final terms on the merchant site.",
+        "BeforeToBuy.com is a product-presentation and redirect service without checkout on this site. It is operated from Switzerland by {legalName} (Commercial Register Canton of Bern, UID: {uid}). Live partner feeds cover selected merchants in multiple countries; the catalog may also include sample or demo offers, so confirm final terms on the merchant site.",
       companyCardTitle: "Company entity and registration",
       companyCardBody:
         "Operated by {legalName} ({legalForm}). Registered in {registryOffice} under Daily Register No. {dailyRegisterNumber} (SHAB publication {messageNumber}).",
@@ -517,7 +517,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Betreiberangaben und kommerzielle Hinweise für Nutzer und Partner-Due-Diligence. Die ausführlichen Rechtsdokumente bleiben im Footer und in der Rechtszentrale verlinkt.",
       operatorNoticeTitle: "Betreiber- und Plattformhinweis",
       operatorNoticeBody:
-        "BeforeToBuy.com ist ein Schweizer Preisvergleichsdienst ohne Checkout auf dieser Seite. Betrieben wird die Plattform von {legalName} (Handelsregister des Kantons Bern, UID: {uid}). Der Katalog kann Sample- oder Demo-Angebote enthalten; maßgeblich bleiben die finalen Bedingungen auf der Händlerseite.",
+        "BeforeToBuy.com ist ein Produktpräsentations- und Weiterleitungsdienst ohne Checkout auf dieser Seite. Betrieben wird die Plattform aus der Schweiz von {legalName} (Handelsregister des Kantons Bern, UID: {uid}). Live-Partnerfeeds decken ausgewählte Händler in mehreren Ländern ab; der Katalog kann auch Sample- oder Demo-Angebote enthalten — maßgeblich bleiben die finalen Bedingungen auf der Händlerseite.",
       companyCardTitle: "Unternehmen und Registrierung",
       companyCardBody:
         "Betrieben von {legalName} ({legalForm}). Eingetragen beim {registryOffice} unter Tagesregister-Nr. {dailyRegisterNumber} (SHAB-Meldung {messageNumber}).",
@@ -712,7 +712,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Informations sur l'opérateur et notices commerciales pour les utilisateurs et la diligence des partenaires. Les documents juridiques détaillés restent accessibles depuis le hub juridique et le pied de page.",
       operatorNoticeTitle: "Avis sur l'opérateur et la plateforme",
       operatorNoticeBody:
-        "BeforeToBuy.com est un service suisse de comparaison de prix, sans checkout sur ce site. La plateforme est exploitée par {legalName} (registre du commerce du canton de Berne, UID : {uid}). Le catalogue peut inclure des offres sample ou démo ; les conditions finales doivent toujours être confirmées chez le marchand.",
+        "BeforeToBuy.com est un service de présentation de produits et de redirection, sans checkout sur ce site. La plateforme est exploitée depuis la Suisse par {legalName} (registre du commerce du canton de Berne, UID : {uid}). Des flux partenaires live couvrent des marchands sélectionnés dans plusieurs pays ; le catalogue peut aussi inclure des offres sample ou démo — confirmez toujours les conditions finales chez le marchand.",
       companyCardTitle: "Entité et immatriculation",
       companyCardBody:
         "Exploité par {legalName} ({legalForm}). Enregistré auprès du {registryOffice} sous le numéro de registre journalier {dailyRegisterNumber} (publication SHAB {messageNumber}).",
@@ -907,7 +907,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Dettagli sull'operatore e avvisi commerciali per utenti e diligence dei partner. I documenti legali dedicati restano accessibili dall'hub legale e dal footer.",
       operatorNoticeTitle: "Avviso su operatore e piattaforma",
       operatorNoticeBody:
-        "BeforeToBuy.com è un servizio svizzero di confronto prezzi senza checkout su questo sito. La piattaforma è gestita da {legalName} (registro di commercio del Canton Berna, UID: {uid}). Il catalogo può includere offerte sample o demo; conferma sempre le condizioni finali sul sito del merchant.",
+        "BeforeToBuy.com è un servizio di presentazione prodotti e reindirizzamento senza checkout su questo sito. La piattaforma è gestita dalla Svizzera da {legalName} (registro di commercio del Canton Berna, UID: {uid}). Feed partner live coprono merchant selezionati in più paesi; il catalogo può anche includere offerte sample o demo — conferma sempre le condizioni finali sul sito del merchant.",
       companyCardTitle: "Entità e registrazione",
       companyCardBody:
         "Gestito da {legalName} ({legalForm}). Registrato presso {registryOffice} con numero di registro giornaliero {dailyRegisterNumber} (pubblicazione SHAB {messageNumber}).",
@@ -1102,7 +1102,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Detalii despre operator și notificări comerciale pentru utilizatori și verificările partenerilor. Documentele legale dedicate rămân accesibile din centrul legal și din subsol.",
       operatorNoticeTitle: "Notificare despre operator și platformă",
       operatorNoticeBody:
-        "BeforeToBuy.com este un serviciu elvețian de comparare a prețurilor, fără checkout pe acest site. Platforma este operată de {legalName} (Registrul Comerțului Cantonul Berna, UID: {uid}). Catalogul poate include oferte sample sau demo; confirmați întotdeauna condițiile finale pe site-ul comerciantului.",
+        "BeforeToBuy.com este un serviciu de prezentare a produselor și redirecționare, fără checkout pe acest site. Platforma este operată din Elveția de {legalName} (Registrul Comerțului Cantonul Berna, UID: {uid}). Feed-uri partenere live acoperă comercianți selectați din mai multe țări; catalogul poate include și oferte sample sau demo — confirmați întotdeauna condițiile finale pe site-ul comerciantului.",
       companyCardTitle: "Entitatea și înregistrarea companiei",
       companyCardBody:
         "Operat de {legalName} ({legalForm}). Înregistrat la {registryOffice} sub numărul de registru zilnic {dailyRegisterNumber} (publicare SHAB {messageNumber}).",

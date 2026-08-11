@@ -41,7 +41,7 @@ const FAQ_EN: FaqSection[] = [
     items: [
       {
         q: "What is BeforeToBuy.com?",
-        a: "A free price comparison service operated by PortanX - Catalin Portan in Bern, Switzerland. We compare offers and redirect you to merchant websites — we do not sell products ourselves.",
+        a: "A free product-presentation service operated by PortanX - Catalin Portan in Bern, Switzerland. We show partner-store offers and redirect you to merchant websites — we do not sell products ourselves.",
       },
       {
         q: "Do you sell products or process payments?",
@@ -53,7 +53,7 @@ const FAQ_EN: FaqSection[] = [
       },
       {
         q: "Which countries can I browse?",
-        a: "The platform targets several markets (including Switzerland and Romania). Availability of live merchant feeds varies by country and partnership status.",
+        a: "Live partner feeds currently cover selected merchants in Romania, the United Kingdom, and the United States. Other markets (including Switzerland) are added only after program approval.",
       },
       {
         q: "What should I know about offer sources?",
@@ -220,7 +220,7 @@ const FAQ_RO: FaqSection[] = [
     items: [
       {
         q: "Ce este BeforeToBuy.com?",
-        a: "Un serviciu gratuit de comparare a prețurilor, operat de PortanX - Catalin Portan în Berna, Elveția. Comparăm oferte și te redirecționăm către magazine — nu vindem noi produse.",
+        a: "Un spațiu gratuit de prezentare a produselor, operat de PortanX - Catalin Portan în Berna, Elveția. Afișăm oferte de la magazine partenere și te redirecționăm pe site-ul comerciantului — nu vindem noi produse.",
       },
       {
         q: "Vindeți produse sau procesați plăți?",
@@ -232,7 +232,7 @@ const FAQ_RO: FaqSection[] = [
       },
       {
         q: "Ce țări pot naviga?",
-        a: "Platforma țintește mai multe piețe (inclusiv Elveția și România). Disponibilitatea feed-urilor live variază după țară și parteneriate.",
+        a: "Feed-urile partenere live acoperă acum comercianți selectați din România, Regatul Unit și SUA. Alte piețe (inclusiv Elveția) se adaugă doar după aprobarea programului.",
       },
       {
         q: "Ce trebuie să știu despre sursele ofertelor?",
