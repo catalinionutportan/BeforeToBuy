@@ -67,7 +67,7 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const url = resolveDatabaseUrl();
-  const log = process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"];
+  const log = process.env.NODE_ENV === "development" ? (["error", "warn"] as const) : (["error"] as const);
 
   // Prisma 7 connects through a driver adapter instead of `datasources.db.url`.
   return url
