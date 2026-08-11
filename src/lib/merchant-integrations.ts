@@ -199,6 +199,16 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
   },
   {
     provider: "AWIN",
+    country: "GB",
+    merchantId: "gb-geepas",
+    merchantName: "Geepas UK",
+    envVar: "AWIN_FEED_URL_GB_GEEPAS",
+    awinFeedId: "92363",
+    sampleFile: "sample-awin-geepas-gb.csv",
+    sampleFormat: "csv",
+  },
+  {
+    provider: "AWIN",
     country: "US",
     merchantId: "us-ottocast",
     merchantName: "Ottocast",

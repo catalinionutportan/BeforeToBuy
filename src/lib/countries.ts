@@ -352,6 +352,19 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "UK online electronics retailer (Seentat). Live AWIN product feed with affiliate deep links; homepage quicklink available on Magazines.",
   },
+  {
+    id: "gb-geepas",
+    name: "Geepas UK",
+    domain: "geepas.co.uk",
+    websiteUrl: AFFILIATE_LINKS.geepasAwin,
+    countryCode: "GB",
+    affiliateNetwork: "AWIN UK",
+    category: "Home Appliances",
+    status: "Live Feed",
+    badge: "AWIN + product feed 🇬🇧",
+    description:
+      "Geepas UK kitchen and home appliances. Live AWIN GBP product feed with affiliate deep links.",
+  },
   // --- United States (US) ---
   {
     id: "us-ottocast",
@@ -424,10 +437,10 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     flag: "🇬🇧",
     currency: "GBP",
     currencySymbol: "£",
-    supportedStores: ["seentat.com"],
+    supportedStores: ["seentat.com", "geepas.co.uk"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "GB"),
     affiliateNetworks: [
-      "AWIN UK (Seentat) — live product feed + homepage affiliate",
+      "AWIN UK (Seentat + Geepas) — live product feeds + homepage affiliates",
     ],
   },
   US: {

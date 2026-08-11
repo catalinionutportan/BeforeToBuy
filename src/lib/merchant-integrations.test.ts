@@ -112,7 +112,7 @@ describe('Merchant Integrations', () => {
         expect.arrayContaining(["ro-rowenta", "ro-scule365", "ro-evomag"])
       );
       expect(summary.feedMerchantIds).toEqual(
-        expect.arrayContaining(["gb-seentat", "us-ottocast"])
+        expect.arrayContaining(["gb-seentat", "gb-geepas", "us-ottocast"])
       );
       expect(summary.feedMerchantIds.some((id) => id.startsWith("ch-"))).toBe(false);
     } finally {

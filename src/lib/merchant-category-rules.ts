@@ -17,6 +17,7 @@ export const MAPPING_MERCHANT_IDS = [
   "ro-rowenta",
   "ro-evomag",
   "gb-seentat",
+  "gb-geepas",
   "us-ottocast",
 ] as const;
 
@@ -708,6 +709,31 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
   },
 
   /**
+   * Geepas UK — AWIN kitchen / home appliances catalogue (GBP).
+   * Feed aisle is typically "Kitchen Units"; refine by title patterns.
+   */
+  "gb-geepas": {
+    // Broad aisle "Kitchen Units" must not be exact — title patterns refine leaves.
+    exact: exactRules({}),
+    patterns: [
+      { patterns: /\b(coffee|espresso|filter\s+coffee)\b/i, subcategoryId: "kitchen-coffee-machines" },
+      {
+        patterns: /\b(blender|mixer|food\s+processor|salad\s+maker|grater|chopper|mincer)\b/i,
+        subcategoryId: "kitchen-machines-mixers",
+      },
+      {
+        patterns: /\b(air\s*fryer|deep\s+fat\s+fryer|fryer|multicooker|rice\s+cooker|pressure\s+cooker)\b/i,
+        subcategoryId: "kitchen-cooking-appliances",
+      },
+      { patterns: /\b(microwave)\b/i, subcategoryId: "kitchen-microwaves" },
+      {
+        patterns: /\b(toaster|kettle|waffle|sandwich\s+maker|egg\s+cooker|breakfast)\b/i,
+        subcategoryId: "kitchen-breakfast",
+      },
+    ],
+  },
+
+  /**
    * Ottocast US — small AWIN CarPlay / Android Auto catalogue (USD).
    * Feed aisle is typically "Automotive".
    */
@@ -786,6 +812,7 @@ export function isRowentaAllowedCategory(categoryId: string): boolean {
 export function getMerchantDefaultCategory(merchantId: string | undefined): string | null {
   if (merchantId === "ro-scule365") return "diy-hand-tools";
   if (merchantId === "ro-rowenta") return "cleaning-vacuums";
+  if (merchantId === "gb-geepas") return "kitchen-cooking-appliances";
   return null;
 }
 

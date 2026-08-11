@@ -41,7 +41,7 @@ const BRACK_SAMPLE_ROWS = [
 describe('Category Mapper Functions', () => {
   it("merchant category rules validate without conflicts", () => {
     expect(validateMerchantCategoryRules()).toEqual([]);
-    expect(MAPPING_MERCHANT_IDS.length).toBe(11);
+    expect(MAPPING_MERCHANT_IDS.length).toBe(12);
   });
 
   it("Brack sample feed rows map with merchant-exact rules", () => {
@@ -368,6 +368,30 @@ describe('Category Mapper Functions', () => {
         title: "Ottocast Mini Cube Wireless CarPlay Adapter",
       })
     ).toBe("audio-car");
+  });
+
+  it("Geepas Kitchen Units aisle maps by title patterns", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-geepas",
+        merchantCategory: "Kitchen Units",
+        title: "Geepas Digital Espresso Coffee Machine",
+      })
+    ).toBe("kitchen-coffee-machines");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-geepas",
+        merchantCategory: "Kitchen Units",
+        title: "Geepas Air Fryer 4.5L",
+      })
+    ).toBe("kitchen-cooking-appliances");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-geepas",
+        merchantCategory: "Kitchen Units",
+        title: "Geepas Electric Kettle 1.7L",
+      })
+    ).toBe("kitchen-breakfast");
   });
 
   it("evoMAG Sisteme PC feed aisles map to desktop / component leaves", () => {

@@ -170,11 +170,11 @@ const PROCESSOR_PURPOSES: Record<ProcessorRecord["id"], Record<SiteLocale, strin
     ro: "Tracking afiliat pentru linkurile Rowenta.ro și Scule365.ro cu consimțământ Afiliat",
   },
   awin: {
-    en: "Affiliate tracking for Seentat UK, Ottocast US, and other joined AWIN programmes with Affiliate consent",
-    de: "Affiliate-Tracking für Seentat UK, Ottocast US und weitere AWIN-Programme mit Affiliate-Einwilligung",
-    fr: "Suivi d'affiliation pour Seentat UK, Ottocast US et autres programmes AWIN rejoints avec consentement Affiliation",
-    it: "Tracking affiliato per Seentat UK, Ottocast US e altri programmi AWIN aderenti con consenso Affiliazione",
-    ro: "Tracking afiliat pentru Seentat UK, Ottocast US și alte programe AWIN acceptate cu consimțământ Afiliat",
+    en: "Affiliate tracking for Seentat UK, Geepas UK, Ottocast US, and other joined AWIN programmes with Affiliate consent",
+    de: "Affiliate-Tracking für Seentat UK, Geepas UK, Ottocast US und weitere AWIN-Programme mit Affiliate-Einwilligung",
+    fr: "Suivi d'affiliation pour Seentat UK, Geepas UK, Ottocast US et autres programmes AWIN rejoints avec consentement Affiliation",
+    it: "Tracking affiliato per Seentat UK, Geepas UK, Ottocast US e altri programmi AWIN aderenti con consenso Affiliazione",
+    ro: "Tracking afiliat pentru Seentat UK, Geepas UK, Ottocast US și alte programe AWIN acceptate cu consimțământ Afiliat",
   },
   "feed-rowenta-2p": {
     en: "Server-side catalogue import for Rowenta.ro",
@@ -196,6 +196,13 @@ const PROCESSOR_PURPOSES: Record<ProcessorRecord["id"], Record<SiteLocale, strin
     fr: "Import catalogue côté serveur pour Seentat UK",
     it: "Import catalogo lato server per Seentat UK",
     ro: "Import catalog server-side pentru Seentat UK",
+  },
+  "feed-geepas-awin": {
+    en: "Server-side catalogue import for Geepas UK",
+    de: "Serverseitiger Katalogimport für Geepas UK",
+    fr: "Import catalogue côté serveur pour Geepas UK",
+    it: "Import catalogo lato server per Geepas UK",
+    ro: "Import catalog server-side pentru Geepas UK",
   },
   "feed-ottocast-awin": {
     en: "Server-side catalogue import for Ottocast US",
