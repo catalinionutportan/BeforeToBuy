@@ -22,6 +22,9 @@ export const AFFILIATE_LINKS = {
   /** baby-walz CH homepage — AWIN advertiser 11616 / publisher 3024371 (CHF catalogue). */
   babywalzAwin:
     "https://www.awin1.com/cread.php?awinmid=11616&awinaffid=3024371&ued=https%3A%2F%2Fwww.baby-walz.ch%2Fde%2F",
+  /** Reifen.com CH homepage — AWIN advertiser 11412 / publisher 3024371 (CHF catalogue). */
+  reifencomAwin:
+    "https://www.awin1.com/cread.php?awinmid=11412&awinaffid=3024371&ued=https%3A%2F%2Fwww.reifen.com%2Fde-ch",
 } as const;
 
 const SCULE365_2P_BASE =

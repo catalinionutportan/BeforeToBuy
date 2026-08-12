@@ -49,6 +49,8 @@ export const APPROVED_IMAGE_HOSTS = [
   "fust.ch",
   "www.baby-walz.ch",
   "baby-walz.ch",
+  "www.reifen.com",
+  "reifen.com",
 ] as const;
 
 /** Affiliate network click hosts. */
@@ -86,6 +88,8 @@ export const MERCHANT_STORE_HOSTS = [
   "fust.ch",
   "www.baby-walz.ch",
   "baby-walz.ch",
+  "www.reifen.com",
+  "reifen.com",
 ] as const;
 
 /** Remote feed download hosts (CSV/XML endpoints). */
@@ -147,6 +151,12 @@ export const COMMERCIAL_HOSTS_BY_FEED: Record<string, readonly string[]> = {
     "awin1.com",
     "www.baby-walz.ch",
     "baby-walz.ch",
+  ],
+  "ch-reifencom": [
+    "www.awin1.com",
+    "awin1.com",
+    "www.reifen.com",
+    "reifen.com",
   ],
 };
 

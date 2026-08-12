@@ -325,6 +325,19 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Swiss baby and kids retailer (baby-walz). Live AWIN CHF product feed with affiliate deep links. Coupon/voucher listing is not used for this programme.",
   },
+  {
+    id: "ch-reifencom",
+    name: "Reifen.com CH",
+    domain: "reifen.com",
+    websiteUrl: AFFILIATE_LINKS.reifencomAwin,
+    countryCode: "CH",
+    affiliateNetwork: "AWIN Switzerland",
+    category: "Tires & Wheels",
+    status: "Live Feed",
+    badge: "AWIN + product feed 🇨🇭",
+    description:
+      "Swiss tyre and rim shop (reifen.com). Live AWIN CHF product feed with affiliate deep links for tyres, rims, and complete wheels.",
+  },
   // --- Romania (RO) ---
   {
     id: "ro-rowenta",
@@ -403,10 +416,10 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     flag: "🇨🇭",
     currency: "CHF",
     currencySymbol: "CHF ",
-    supportedStores: ["baby-walz.ch"],
+    supportedStores: ["baby-walz.ch", "reifen.com"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "CH"),
     affiliateNetworks: [
-      "AWIN Switzerland (baby-walz) — live product feed + homepage affiliate",
+      "AWIN Switzerland (baby-walz + Reifen.com) — live product feeds + homepage affiliates",
     ],
   },
   DE: {

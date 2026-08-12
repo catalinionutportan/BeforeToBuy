@@ -259,6 +259,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(body.feedMerchantIds).not.toContain("ch-brack");
     expect(body.feedMerchantIds).not.toContain("ch-digitec");
     expect(body.feedMerchantIds).toContain("ch-babywalz");
+    expect(body.feedMerchantIds).toContain("ch-reifencom");
     expect(body.feedMerchantIds).toContain("gb-seentat");
     expect(body.feedMerchantIds).toContain("us-ottocast");
     expect(body.feedMerchantIds).toContain("gb-geepas");
@@ -299,7 +300,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(Array.isArray(body.reviewQueue)).toBeTruthy();
   });
 
-  test("stores page lists baby-walz but not pending CH sample merchants", async ({ page }) => {
+  test("stores page lists live CH merchants but not pending CH sample merchants", async ({ page }) => {
     await page.goto("/stores");
     await expect(page.getByRole("heading", { name: "Brack.ch" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Digitec" })).toHaveCount(0);
@@ -307,8 +308,10 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.getByRole("heading", { name: "Fust" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Microspot.ch" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: /baby-walz/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Reifen\.com/i })).toBeVisible();
     // RO live affiliates remain listed.
     await expect(page.getByRole("heading", { name: "Rowenta.ro" })).toBeVisible();
   });
 });
+
 

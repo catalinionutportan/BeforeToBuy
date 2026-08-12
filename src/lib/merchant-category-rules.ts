@@ -14,6 +14,7 @@ export const MAPPING_MERCHANT_IDS = [
   "ch-interdiscount",
   "ch-fust",
   "ch-babywalz",
+  "ch-reifencom",
   "ro-scule365",
   "ro-rowenta",
   "ro-evomag",
@@ -259,6 +260,33 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
         subcategoryId: "fashion-kids-baby",
       },
       { patterns: /\b(spielzeug|kuscheltier|holzspiel)\b/i, subcategoryId: "toys-electronic" },
+    ],
+  },
+  /**
+   * Reifen.com CH — AWIN DE tyre/rim catalogue. Default leaf: auto-tires-wheels.
+   */
+  "ch-reifencom": {
+    exact: exactRules({
+      reifen: "auto-tires-wheels",
+      felgen: "auto-tires-wheels",
+      kompletträder: "auto-tires-wheels",
+      kompletraeder: "auto-tires-wheels",
+      winterreifen: "auto-tires-wheels",
+      sommerreifen: "auto-tires-wheels",
+      ganzjahresreifen: "auto-tires-wheels",
+      schneeketten: "auto-tires-wheels",
+      zubehör: "auto-interior-care",
+      zubehoer: "auto-interior-care",
+    }),
+    patterns: [
+      {
+        patterns: /\b(reifen|felgen?|komplettrad|kompletträder|tyre|tire|rim)\b/i,
+        subcategoryId: "auto-tires-wheels",
+      },
+      {
+        patterns: /\b(schneekette|snow\s*chain|felgenbaum)\b/i,
+        subcategoryId: "auto-tires-wheels",
+      },
     ],
   },
   "ch-mediamarkt": {
@@ -860,6 +888,7 @@ export function getMerchantDefaultCategory(merchantId: string | undefined): stri
   if (merchantId === "ro-rowenta") return "cleaning-vacuums";
   if (merchantId === "gb-geepas") return "kitchen-cooking-appliances";
   if (merchantId === "ch-babywalz") return "fashion-kids-baby";
+  if (merchantId === "ch-reifencom") return "auto-tires-wheels";
   return null;
 }
 

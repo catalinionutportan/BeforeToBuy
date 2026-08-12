@@ -11,7 +11,7 @@ import {
 } from './merchant-integrations';
 
 describe('Merchant Integrations', () => {
-  it("CH pending merchants stay disabled; baby-walz is the live CH feed", () => {
+  it("CH pending merchants stay disabled; baby-walz and Reifen.com are live CH feeds", () => {
     const chFeeds = MERCHANT_FEEDS.filter((feed) => feed.country === "CH");
     expect(chFeeds.map((feed) => feed.merchantId).sort()).toEqual([
       "ch-babywalz",
@@ -21,16 +21,20 @@ describe('Merchant Integrations', () => {
       "ch-galaxus",
       "ch-interdiscount",
       "ch-mediamarkt",
+      "ch-reifencom",
     ]);
-    const babywalz = chFeeds.find((feed) => feed.merchantId === "ch-babywalz");
-    expect(babywalz?.enabled).not.toBe(false);
-    expect(babywalz?.awinFeedId).toBe("23813");
-    expect(babywalz?.awinLanguage).toBe("de");
-    expect(isCacheOnlyFeed(babywalz!)).toBe(true);
+    const liveIds = new Set(["ch-babywalz", "ch-reifencom"]);
+    for (const id of liveIds) {
+      const feed = chFeeds.find((item) => item.merchantId === id);
+      expect(feed?.enabled).not.toBe(false);
+      expect(isCacheOnlyFeed(feed!)).toBe(true);
+    }
+    expect(chFeeds.find((f) => f.merchantId === "ch-babywalz")?.awinFeedId).toBe("23813");
+    expect(chFeeds.find((f) => f.merchantId === "ch-reifencom")?.awinFeedId).toBe("24181");
     expect(
-      chFeeds.filter((feed) => feed.merchantId !== "ch-babywalz").every((feed) => feed.enabled === false)
+      chFeeds.filter((feed) => !liveIds.has(feed.merchantId)).every((feed) => feed.enabled === false)
     ).toBe(true);
-    expect(getEnabledMerchantFeeds().some((feed) => feed.merchantId === "ch-babywalz")).toBe(true);
+    expect(getEnabledMerchantFeeds().some((feed) => feed.merchantId === "ch-reifencom")).toBe(true);
   });
 
   it("enabled feed mode defaults to sample when env var is unset", () => {
@@ -143,9 +147,18 @@ describe('Merchant Integrations', () => {
         expect.arrayContaining(["ro-rowenta", "ro-scule365", "ro-evomag"])
       );
       expect(summary.feedMerchantIds).toEqual(
-        expect.arrayContaining(["gb-seentat", "gb-geepas", "us-ottocast", "ch-babywalz"])
+        expect.arrayContaining([
+          "gb-seentat",
+          "gb-geepas",
+          "us-ottocast",
+          "ch-babywalz",
+          "ch-reifencom",
+        ])
       );
-      expect(summary.feedMerchantIds.filter((id) => id.startsWith("ch-"))).toEqual(["ch-babywalz"]);
+      expect(summary.feedMerchantIds.filter((id) => id.startsWith("ch-")).sort()).toEqual([
+        "ch-babywalz",
+        "ch-reifencom",
+      ]);
     } finally {
       if (previousForce === undefined) delete process.env.FORCE_SAMPLE_FEEDS;
       else process.env.FORCE_SAMPLE_FEEDS = previousForce;

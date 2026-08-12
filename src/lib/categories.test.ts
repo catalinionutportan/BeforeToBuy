@@ -214,13 +214,16 @@ describe('Category and Collection Logic', () => {
     }
   });
 
-  it("Swiss pending merchants stay off the public registry; baby-walz is live", () => {
-    expect(ALL_MERCHANT_DOMAINS.filter((m) => m.countryCode === "CH").map((m) => m.id)).toEqual([
-      "ch-babywalz",
-    ]);
+  it("Swiss pending merchants stay off the public registry; baby-walz and Reifen.com are live", () => {
+    expect(
+      ALL_MERCHANT_DOMAINS.filter((m) => m.countryCode === "CH")
+        .map((m) => m.id)
+        .sort()
+    ).toEqual(["ch-babywalz", "ch-reifencom"]);
 
     const pendingIds = new Set(CH_MERCHANTS_PENDING_APPROVAL.map((m) => m.id));
     expect(pendingIds.has("ch-babywalz")).toBeFalsy();
+    expect(pendingIds.has("ch-reifencom")).toBeFalsy();
     expect(pendingIds.has("ch-microspot")).toBeFalsy();
     expect(pendingIds.has("ch-interdiscount")).toBeTruthy();
     expect(pendingIds.has("ch-fust")).toBeTruthy();
@@ -229,9 +232,10 @@ describe('Category and Collection Logic', () => {
     expect(MERCHANT_ID_ALIASES["ch-microspot"]).toBe("ch-interdiscount");
   });
 
-  it("public registry exposes live CH baby-walz, RO, Seentat UK, Geepas UK, and Ottocast US", () => {
+  it("public registry exposes live CH, RO, Seentat UK, Geepas UK, and Ottocast US", () => {
     expect(ALL_MERCHANT_DOMAINS.map((m) => m.id).sort()).toEqual([
       "ch-babywalz",
+      "ch-reifencom",
       "gb-geepas",
       "gb-seentat",
       "ro-rowenta",

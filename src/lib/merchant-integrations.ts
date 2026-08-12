@@ -167,6 +167,21 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     cacheOnly: true,
   },
   {
+    provider: "AWIN",
+    country: "CH",
+    merchantId: "ch-reifencom",
+    merchantName: "Reifen.com CH",
+    envVar: "AWIN_FEED_URL_CH_REIFENCOM",
+    awinFeedId: "24181",
+    awinLanguage: "de",
+    sampleFile: "sample-awin-reifencom-ch.csv",
+    sampleFormat: "csv",
+    categoryHint: "auto-tires-wheels",
+    // Tyre catalogues are large — warm/import only.
+    heavy: true,
+    cacheOnly: true,
+  },
+  {
     provider: "TWO_PERFORMANT",
     country: "RO",
     merchantId: "ro-rowenta",
