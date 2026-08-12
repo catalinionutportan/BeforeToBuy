@@ -668,31 +668,32 @@ export default function HomePageClient({
             </p>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="inline-flex max-w-full items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">
-                <span className="text-slate-500">{homeUi.storeDomainLabel}</span>
-                <select
-                  aria-label={homeUi.storeDomainLabel}
-                  value={selectedDomain}
-                  onChange={(event) => handleDomainChange(event.target.value)}
-                  className="max-w-[12rem] min-w-0 bg-transparent text-[11px] font-bold text-slate-800 outline-none"
-                >
-                  <option value="all">{homeUi.allStores}</option>
-                  {currentCountryInfo.merchantDomains.map((merchant) => (
-                    <option key={merchant.id} value={merchant.domain}>
-                      {merchant.domain}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <p className="rounded-xl border border-emerald-100 bg-emerald-50/80 px-2.5 py-1.5 text-[11px] font-bold text-emerald-900">
-                {formatUi(homeUi.itemsFound, {
-                  count: catalogMeta?.totalMatched ?? displayedProducts.length,
-                })}
-              </p>
-            </div>
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <label className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">
+              <span className="text-slate-500">{homeUi.storeDomainLabel}</span>
+              <select
+                aria-label={homeUi.storeDomainLabel}
+                value={selectedDomain}
+                onChange={(event) => handleDomainChange(event.target.value)}
+                className="max-w-[10rem] min-w-0 bg-transparent text-[11px] font-bold text-slate-800 outline-none sm:max-w-[12rem]"
+              >
+                <option value="all">{homeUi.allStores}</option>
+                {currentCountryInfo.merchantDomains.map((merchant) => (
+                  <option key={merchant.id} value={merchant.domain}>
+                    {merchant.domain}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <p className="whitespace-nowrap rounded-xl border border-emerald-100 bg-emerald-50/80 px-2.5 py-1.5 text-[11px] font-bold text-emerald-900">
+              {formatUi(homeUi.itemsFound, {
+                count: catalogMeta?.totalMatched ?? displayedProducts.length,
+              })}
+            </p>
+
             <OfferFilters
+              compact
               criteria={activeOfferFilters}
               brandOptions={brandOptions}
               currencySymbol={currentCountryInfo.currencySymbol}
@@ -700,20 +701,20 @@ export default function HomePageClient({
               onChange={handleOfferFiltersChange}
             />
 
-            <div className="ml-auto mt-2 flex w-full shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white p-1.5 shadow-xs sm:mt-0 sm:w-auto">
-              <span className="pl-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <label className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 shadow-xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 {homeUi.sortLabel}
               </span>
               <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as SortOption)}
-                className="w-full cursor-pointer border-none bg-transparent pr-4 text-sm font-semibold text-slate-700 outline-none focus:ring-0"
+                className="cursor-pointer bg-transparent text-[11px] font-bold text-slate-800 outline-none"
               >
                 <option value="default">{homeUi.sortRelevance}</option>
                 <option value="price-asc">{homeUi.sortPriceAsc}</option>
                 <option value="price-desc">{homeUi.sortPriceDesc}</option>
               </select>
-            </div>
+            </label>
           </div>
 
           {isLoadingProducts ? (
