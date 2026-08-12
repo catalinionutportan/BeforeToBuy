@@ -13,6 +13,7 @@ export const MAPPING_MERCHANT_IDS = [
   "ch-mediamarkt",
   "ch-interdiscount",
   "ch-fust",
+  "ch-babywalz",
   "ro-scule365",
   "ro-rowenta",
   "ro-evomag",
@@ -213,6 +214,51 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       ...SHARED_SWISS_PATTERNS,
       { patterns: /\b(geschirrspüler|dishwasher|herd|oven|backofen)\b/i, subcategoryId: "large-dishwashers" },
       { patterns: /\b(waschmaschine|trockner|washing|dryer)\b/i, subcategoryId: "large-washers-dryers" },
+    ],
+  },
+  /**
+   * baby-walz CH — AWIN DE catalogue (~20k). Prefer merchant_category / titles;
+   * strollers and nursery map to closest existing leaves until dedicated baby tree expands.
+   */
+  "ch-babywalz": {
+    exact: exactRules({
+      kinderwagen: "furniture-bedroom",
+      buggy: "furniture-bedroom",
+      sportwagen: "furniture-bedroom",
+      babyueberwachung: "baby-monitoring-feeding",
+      "babyüberwachung": "baby-monitoring-feeding",
+      babyphone: "baby-monitoring-feeding",
+      babybekleidung: "fashion-kids-baby",
+      babykleidung: "fashion-kids-baby",
+      wickeln: "fashion-kids-baby",
+      ernaehrung: "baby-monitoring-feeding",
+      ernährung: "baby-monitoring-feeding",
+      spielzeug: "toys-electronic",
+      autositze: "furniture-bedroom",
+      kindersitze: "furniture-bedroom",
+    }),
+    patterns: [
+      {
+        patterns: /\b(kinderwagen|buggy|sportwagen|kombikinderwagen|jogger)\b/i,
+        subcategoryId: "furniture-bedroom",
+      },
+      {
+        patterns: /\b(autositz|kindersitz|reboarder|babyschale)\b/i,
+        subcategoryId: "furniture-bedroom",
+      },
+      {
+        patterns: /\b(babyphone|baby\s*monitor|überwachung|ueberwachung)\b/i,
+        subcategoryId: "baby-monitoring-feeding",
+      },
+      {
+        patterns: /\b(flasche|sterilisator|milchpumpe|brei|still)\b/i,
+        subcategoryId: "baby-monitoring-feeding",
+      },
+      {
+        patterns: /\b(body|strampler|babykleidung|babybekleidung|wickel)\b/i,
+        subcategoryId: "fashion-kids-baby",
+      },
+      { patterns: /\b(spielzeug|kuscheltier|holzspiel)\b/i, subcategoryId: "toys-electronic" },
     ],
   },
   "ch-mediamarkt": {
@@ -813,6 +859,7 @@ export function getMerchantDefaultCategory(merchantId: string | undefined): stri
   if (merchantId === "ro-scule365") return "diy-hand-tools";
   if (merchantId === "ro-rowenta") return "cleaning-vacuums";
   if (merchantId === "gb-geepas") return "kitchen-cooking-appliances";
+  if (merchantId === "ch-babywalz") return "fashion-kids-baby";
   return null;
 }
 

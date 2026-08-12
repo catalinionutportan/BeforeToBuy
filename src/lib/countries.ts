@@ -311,6 +311,20 @@ export const DEMO_MERCHANTS_PENDING_APPROVAL: MerchantDomainInfo[] = [
 
 export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
   // Live public merchants only. Restore others from *_PENDING_APPROVAL after agreements.
+  // --- Switzerland (CH) ---
+  {
+    id: "ch-babywalz",
+    name: "baby-walz CH",
+    domain: "baby-walz.ch",
+    websiteUrl: AFFILIATE_LINKS.babywalzAwin,
+    countryCode: "CH",
+    affiliateNetwork: "AWIN Switzerland",
+    category: "Baby & Kids",
+    status: "Live Feed",
+    badge: "AWIN + product feed 🇨🇭",
+    description:
+      "Swiss baby and kids retailer (baby-walz). Live AWIN CHF product feed with affiliate deep links. Coupon/voucher listing is not used for this programme.",
+  },
   // --- Romania (RO) ---
   {
     id: "ro-rowenta",
@@ -389,10 +403,11 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     flag: "🇨🇭",
     currency: "CHF",
     currencySymbol: "CHF ",
-    // Empty until CH merchant partnerships are approved.
-    supportedStores: [],
+    supportedStores: ["baby-walz.ch"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "CH"),
-    affiliateNetworks: [],
+    affiliateNetworks: [
+      "AWIN Switzerland (baby-walz) — live product feed + homepage affiliate",
+    ],
   },
   DE: {
     code: "DE",

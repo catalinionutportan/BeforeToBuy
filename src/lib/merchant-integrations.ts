@@ -20,6 +20,8 @@ export interface FeedConfig {
   defaultRemoteUrl?: string;
   /** AWIN datafeed id (fid). Combined with AWIN_API_KEY when env URL is unset. */
   awinFeedId?: string;
+  /** AWIN productdata language segment (default `en`). Use `de` for CH DE catalogues. */
+  awinLanguage?: string;
   sampleFile?: string;
   sampleFormat?: FeedSampleFormat;
   /**
@@ -150,6 +152,21 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     enabled: false,
   },
   {
+    provider: "AWIN",
+    country: "CH",
+    merchantId: "ch-babywalz",
+    merchantName: "baby-walz CH",
+    envVar: "AWIN_FEED_URL_CH_BABYWALZ",
+    awinFeedId: "23813",
+    awinLanguage: "de",
+    sampleFile: "sample-awin-babywalz-ch.csv",
+    sampleFormat: "csv",
+    categoryHint: "fashion-kids-baby",
+    // ~20k SKUs — warm/import only; never download on visitor requests.
+    heavy: true,
+    cacheOnly: true,
+  },
+  {
     provider: "TWO_PERFORMANT",
     country: "RO",
     merchantId: "ro-rowenta",
@@ -223,15 +240,20 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
 const AWIN_PRODUCTDATA_COLUMNS =
   "aw_deep_link,product_name,aw_product_id,merchant_product_id,merchant_image_url,description,merchant_category,search_price,merchant_name,merchant_id,category_name,category_id,aw_image_url,currency,store_price,delivery_cost,merchant_deep_link,language,last_updated,display_price,data_feed_id";
 
-export function buildAwinProductdataUrl(apiKey: string, feedId: string, language = "en"): string {
+export function buildAwinProductdataUrl(
+  apiKey: string,
+  feedId: string,
+  language = "en"
+): string {
   const key = apiKey.trim();
   const fid = feedId.trim();
+  const lang = language.trim() || "en";
   if (!key || !fid) {
     throw new Error("AWIN productdata URL requires apiKey and feedId");
   }
   return (
     `https://productdata.awin.com/datafeed/download/apikey/${encodeURIComponent(key)}` +
-    `/language/${encodeURIComponent(language)}/fid/${encodeURIComponent(fid)}` +
+    `/language/${encodeURIComponent(lang)}/fid/${encodeURIComponent(fid)}` +
     `/rid/0/hasEnhancedFeeds/0/columns/${AWIN_PRODUCTDATA_COLUMNS}` +
     `/format/csv/delimiter/%2C/compression/gzip/`
   );
@@ -267,7 +289,11 @@ export function resolveFeedRemoteUrl(feed: FeedConfig): string | undefined {
         return apiKeyRaw;
       }
       const extracted = apiKeyRaw.match(/\/apikey\/([^/]+)\//i)?.[1];
-      return buildAwinProductdataUrl(extracted || apiKeyRaw, feed.awinFeedId);
+      return buildAwinProductdataUrl(
+        extracted || apiKeyRaw,
+        feed.awinFeedId,
+        feed.awinLanguage ?? "en"
+      );
     }
   }
 

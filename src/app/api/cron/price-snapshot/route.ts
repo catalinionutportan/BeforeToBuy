@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Snapshot live catalogue markets (RO + GB). CH stays empty until Swiss feeds launch.
+    // Snapshot live catalogue markets (RO + GB + CH when products exist).
     const result = await runPriceSnapshotJob(["RO", "GB"]);
     return NextResponse.json(result, {
       headers: { "Cache-Control": "no-store" },

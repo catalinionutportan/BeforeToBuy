@@ -255,9 +255,10 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    // CH remains disabled until approval.
+    // Pending CH sample merchants stay out; baby-walz is the live CH feed.
     expect(body.feedMerchantIds).not.toContain("ch-brack");
     expect(body.feedMerchantIds).not.toContain("ch-digitec");
+    expect(body.feedMerchantIds).toContain("ch-babywalz");
     expect(body.feedMerchantIds).toContain("gb-seentat");
     expect(body.feedMerchantIds).toContain("us-ottocast");
     expect(body.feedMerchantIds).toContain("gb-geepas");
@@ -274,17 +275,17 @@ test.describe("BeforeToBuy smoke E2E", () => {
     }
   });
 
-  test("products API has no CH merchant feeds until approval", async ({ request }) => {
+  test("products API exposes CH baby-walz sample/live catalogue", async ({ request }) => {
     const response = await request.get("/api/products?country=CH");
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    expect(body.meta.feedMerchants).toEqual({});
-    expect(body.meta.feedProductCount).toBe(0);
-    expect(body.products?.length ?? 0).toBe(0);
+    expect(body.meta.feedMerchants?.["ch-babywalz"] ?? 0).toBeGreaterThan(0);
+    expect(body.meta.feedProductCount).toBeGreaterThan(0);
+    expect(body.products?.length ?? 0).toBeGreaterThan(0);
     expect(body.meta.priceHistory?.enabled).toBe(true);
   });
 
-  test("mapping report API is empty for CH while merchants are pending", async ({ request }) => {
+  test("mapping report API includes baby-walz for CH", async ({ request }) => {
     const response = await request.get("/api/mapping/report?country=CH", {
       headers: {
         Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || "playwright-internal-api-secret-32chars!"}`,
@@ -292,19 +293,22 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    expect(body.summary.total).toBe(0);
+    expect(body.summary.total).toBeGreaterThan(0);
+    expect(body.summary.byMerchant["ch-babywalz"]).toBeTruthy();
     expect(body.summary.byMerchant["ch-brack"]).toBeFalsy();
     expect(Array.isArray(body.reviewQueue)).toBeTruthy();
   });
 
-  test("stores page does not list CH sample merchants", async ({ page }) => {
+  test("stores page lists baby-walz but not pending CH sample merchants", async ({ page }) => {
     await page.goto("/stores");
     await expect(page.getByRole("heading", { name: "Brack.ch" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Digitec" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Interdiscount" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Fust" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Microspot.ch" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: /baby-walz/i })).toBeVisible();
     // RO live affiliates remain listed.
     await expect(page.getByRole("heading", { name: "Rowenta.ro" })).toBeVisible();
   });
 });
+

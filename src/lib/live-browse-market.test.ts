@@ -12,8 +12,8 @@ describe("live browse market", () => {
     // Request-path CSV feeds for RO are disabled (Supabase import path).
     expect(countryHasLiveFeeds("RO")).toBe(false);
     expect(countryHasBrowseCatalogue("RO")).toBe(true);
-    expect(countryHasLiveFeeds("CH")).toBe(false);
-    expect(countryHasBrowseCatalogue("CH")).toBe(false);
+    expect(countryHasLiveFeeds("CH")).toBe(true);
+    expect(countryHasBrowseCatalogue("CH")).toBe(true);
   });
 
   it("keeps supported markets and falls back only when missing", () => {

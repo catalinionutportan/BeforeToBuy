@@ -47,6 +47,8 @@ export const APPROVED_IMAGE_HOSTS = [
   "interdiscount.ch",
   "www.fust.ch",
   "fust.ch",
+  "www.baby-walz.ch",
+  "baby-walz.ch",
 ] as const;
 
 /** Affiliate network click hosts. */
@@ -82,6 +84,8 @@ export const MERCHANT_STORE_HOSTS = [
   "interdiscount.ch",
   "www.fust.ch",
   "fust.ch",
+  "www.baby-walz.ch",
+  "baby-walz.ch",
 ] as const;
 
 /** Remote feed download hosts (CSV/XML endpoints). */
@@ -138,6 +142,12 @@ export const COMMERCIAL_HOSTS_BY_FEED: Record<string, readonly string[]> = {
     "interdiscount.ch",
   ],
   "ch-fust": ["www.awin1.com", "awin1.com", "www.fust.ch", "fust.ch"],
+  "ch-babywalz": [
+    "www.awin1.com",
+    "awin1.com",
+    "www.baby-walz.ch",
+    "baby-walz.ch",
+  ],
 };
 
 export type FeedUrlKind = "image" | "commercial" | "feed-download";

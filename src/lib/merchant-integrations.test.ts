@@ -11,9 +11,10 @@ import {
 } from './merchant-integrations';
 
 describe('Merchant Integrations', () => {
-  it("CH merchant feeds stay registered but disabled until approval", () => {
+  it("CH pending merchants stay disabled; baby-walz is the live CH feed", () => {
     const chFeeds = MERCHANT_FEEDS.filter((feed) => feed.country === "CH");
     expect(chFeeds.map((feed) => feed.merchantId).sort()).toEqual([
+      "ch-babywalz",
       "ch-brack",
       "ch-digitec",
       "ch-fust",
@@ -21,8 +22,15 @@ describe('Merchant Integrations', () => {
       "ch-interdiscount",
       "ch-mediamarkt",
     ]);
-    expect(chFeeds.every((feed) => feed.enabled === false)).toBe(true);
-    expect(getEnabledMerchantFeeds().every((feed) => feed.country !== "CH")).toBe(true);
+    const babywalz = chFeeds.find((feed) => feed.merchantId === "ch-babywalz");
+    expect(babywalz?.enabled).not.toBe(false);
+    expect(babywalz?.awinFeedId).toBe("23813");
+    expect(babywalz?.awinLanguage).toBe("de");
+    expect(isCacheOnlyFeed(babywalz!)).toBe(true);
+    expect(
+      chFeeds.filter((feed) => feed.merchantId !== "ch-babywalz").every((feed) => feed.enabled === false)
+    ).toBe(true);
+    expect(getEnabledMerchantFeeds().some((feed) => feed.merchantId === "ch-babywalz")).toBe(true);
   });
 
   it("enabled feed mode defaults to sample when env var is unset", () => {
@@ -35,7 +43,30 @@ describe('Merchant Integrations', () => {
     const url = buildAwinProductdataUrl("test-key", "115553");
     expect(url).toContain("/apikey/test-key/");
     expect(url).toContain("/fid/115553/");
+    expect(url).toContain("/language/en/");
     expect(url).toContain("productdata.awin.com");
+  });
+
+  it("resolves baby-walz CH production URL with German language segment", () => {
+    const babywalz = MERCHANT_FEEDS.find((feed) => feed.merchantId === "ch-babywalz");
+    expect(babywalz).toBeDefined();
+
+    const previousKey = process.env.AWIN_API_KEY;
+    const previousUrl = process.env.AWIN_FEED_URL_CH_BABYWALZ;
+    delete process.env.AWIN_FEED_URL_CH_BABYWALZ;
+    process.env.AWIN_API_KEY = "unit-test-awin-key";
+
+    try {
+      const url = resolveFeedRemoteUrl(babywalz!);
+      expect(url).toContain("/apikey/unit-test-awin-key/");
+      expect(url).toContain("/fid/23813/");
+      expect(url).toContain("/language/de/");
+    } finally {
+      if (previousKey === undefined) delete process.env.AWIN_API_KEY;
+      else process.env.AWIN_API_KEY = previousKey;
+      if (previousUrl === undefined) delete process.env.AWIN_FEED_URL_CH_BABYWALZ;
+      else process.env.AWIN_FEED_URL_CH_BABYWALZ = previousUrl;
+    }
   });
 
   it("resolves Seentat production URL from AWIN_API_KEY", () => {
@@ -112,9 +143,9 @@ describe('Merchant Integrations', () => {
         expect.arrayContaining(["ro-rowenta", "ro-scule365", "ro-evomag"])
       );
       expect(summary.feedMerchantIds).toEqual(
-        expect.arrayContaining(["gb-seentat", "gb-geepas", "us-ottocast"])
+        expect.arrayContaining(["gb-seentat", "gb-geepas", "us-ottocast", "ch-babywalz"])
       );
-      expect(summary.feedMerchantIds.some((id) => id.startsWith("ch-"))).toBe(false);
+      expect(summary.feedMerchantIds.filter((id) => id.startsWith("ch-"))).toEqual(["ch-babywalz"]);
     } finally {
       if (previousForce === undefined) delete process.env.FORCE_SAMPLE_FEEDS;
       else process.env.FORCE_SAMPLE_FEEDS = previousForce;

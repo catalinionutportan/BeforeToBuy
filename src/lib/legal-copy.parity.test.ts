@@ -29,6 +29,7 @@ const MERCHANT_FEED_IDS = [
   "feed-seentat-awin",
   "feed-geepas-awin",
   "feed-ottocast-awin",
+  "feed-babywalz-awin",
   "feed-evomag-2p",
 ];
 

@@ -19,6 +19,9 @@ export const AFFILIATE_LINKS = {
   /** Geepas UK homepage — AWIN advertiser 46851 / publisher 3024371 (GBP catalogue). */
   geepasAwin:
     "https://www.awin1.com/cread.php?awinmid=46851&awinaffid=3024371&ued=https%3A%2F%2Fgeepas.co.uk",
+  /** baby-walz CH homepage — AWIN advertiser 11616 / publisher 3024371 (CHF catalogue). */
+  babywalzAwin:
+    "https://www.awin1.com/cread.php?awinmid=11616&awinaffid=3024371&ued=https%3A%2F%2Fwww.baby-walz.ch%2Fde%2F",
 } as const;
 
 const SCULE365_2P_BASE =

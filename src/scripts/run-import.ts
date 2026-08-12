@@ -1,7 +1,7 @@
 /**
  * Offline catalogue import into Supabase (2Performant CSV → Product/Offer).
  *
- * Catalogue focus today: GB Seentat via `src/scripts/import-gb-seentat.ts`.
+ * Catalogue focus: GB Seentat / Geepas, US Ottocast, CH baby-walz, plus RO offline imports.
  *
  * Add RO (or other) merchants ONE AT A TIME to FEEDS below, then:
  *   ALLOW_RO_IMPORT=1 npm run feeds:import -- --merchant=<merchantId>

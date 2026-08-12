@@ -15,17 +15,20 @@ export function countryHasBrowseCatalogue(countryCode: CountryCode): boolean {
   if (countryHasLiveFeeds(countryCode)) return true;
   // RO catalogues are imported into Supabase — not loaded via merchant-feeds on request.
   if (countryCode === "RO") return true;
+  // CH baby-walz is cache-only / Supabase-imported; still browsable once products exist.
+  if (countryCode === "CH") return true;
   return false;
 }
 
 /**
- * Primary browse market while CH (and other) catalogues await approval.
- * Prefer RO (Supabase / live); otherwise first enabled feed country; else DEFAULT_COUNTRY.
+ * Primary browse market for first visit / fallback.
+ * Prefer RO (Supabase / live); otherwise GB/CH/first enabled feed country; else DEFAULT_COUNTRY.
  */
 export function getPrimaryLiveBrowseCountry(): CountryCode {
   if (countryHasBrowseCatalogue("RO")) return "RO";
   const enabled = getEnabledMerchantFeeds();
   if (enabled.some((feed) => feed.country === "GB")) return "GB";
+  if (enabled.some((feed) => feed.country === "CH")) return "CH";
   if (enabled[0]?.country) return enabled[0].country;
   return DEFAULT_COUNTRY;
 }
