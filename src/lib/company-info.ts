@@ -5,6 +5,9 @@ export const COMPANY = {
   legalName: "PortanX - Catalin Portan",
   tradeName: "PortanX",
   platformName: "BeforeToBuy.com",
+  /** Spaced brand form for search / schema (query: "before to buy"). */
+  brandNameSpaced: "Before To Buy",
+  brandAliases: ["Before To Buy", "BeforeToBuy", "BeforeToBuy.com"] as const,
   legalForm: {
     en: "Sole proprietorship (Einzelunternehmen)",
     de: "Einzelunternehmen",

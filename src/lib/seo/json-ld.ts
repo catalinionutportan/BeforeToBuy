@@ -12,6 +12,7 @@ export function buildOrganizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: COMPANY.platformName,
+    alternateName: [...COMPANY.brandAliases],
     legalName: COMPANY.legalName,
     url: getSiteUrl(),
     email: COMPANY.email,
@@ -31,7 +32,8 @@ export function buildWebSiteJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: COMPANY.platformName,
+    name: COMPANY.brandNameSpaced,
+    alternateName: [...COMPANY.brandAliases],
     url: site,
     potentialAction: {
       "@type": "SearchAction",
