@@ -142,9 +142,13 @@ async function writeCatalogue(products: ApiProduct[]) {
   console.log(`Writing ${productRows.length} products, ${offerRows.length} offers...`);
 
   await prisma.offer.deleteMany({ where: { feedMerchantId: MERCHANT_ID } });
-  await prisma.product.deleteMany({ where: { id: { in: productRows.map((r) => r.id) } } });
 
   const CHUNK = 500;
+  const productIds = productRows.map((r) => r.id);
+  for (let i = 0; i < productIds.length; i += CHUNK) {
+    await prisma.product.deleteMany({ where: { id: { in: productIds.slice(i, i + CHUNK) } } });
+  }
+
   for (let i = 0; i < productRows.length; i += CHUNK) {
     await prisma.product.createMany({ data: productRows.slice(i, i + CHUNK), skipDuplicates: true });
   }
