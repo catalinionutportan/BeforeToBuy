@@ -9,6 +9,7 @@ import {
   getMerchantDefaultCategory,
   getMerchantExactMatch,
   getMerchantPatternMatch,
+  isBabywalzAllowedCategory,
   isRowentaAllowedCategory,
   MAPPING_CONFIDENCE,
   MIN_MAPPING_CONFIDENCE,
@@ -20,6 +21,9 @@ const SCULE365_FALLBACK_LEAF = "diy-hand-tools";
 
 /** Rowenta fallback when title/category is ambiguous. */
 const ROWENTA_FALLBACK_LEAF = "cleaning-vacuums";
+
+/** baby-walz fallback when title/category is ambiguous. */
+const BABYWALZ_FALLBACK_LEAF = "fashion-kids-baby";
 
 /**
  * Maps merchant / affiliate feed categories + product text → BeforeToBuy subcategory id.
@@ -134,6 +138,23 @@ function clampRowentaToAppliances(result: CategoryMappingResult): CategoryMappin
   return result;
 }
 
+/** Force baby-walz into baby / kids / toys leaves only. */
+function clampBabywalzToBabyCatalogue(result: CategoryMappingResult): CategoryMappingResult {
+  if (result.categoryId === UNMAPPED_CATEGORY_ID || !isBabywalzAllowedCategory(result.categoryId)) {
+    return {
+      ...result,
+      categoryId: BABYWALZ_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      proposedCategoryId:
+        result.categoryId !== UNMAPPED_CATEGORY_ID && result.categoryId !== BABYWALZ_FALLBACK_LEAF
+          ? result.categoryId
+          : result.proposedCategoryId,
+    };
+  }
+  return result;
+}
+
 export interface CategoryMappingInput {
   merchantId?: string;
   merchantCategory?: string;
@@ -173,6 +194,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     const scored = applyConfidenceThreshold(result);
     if (merchantId === "ro-scule365") return clampScule365ToDiy(scored);
     if (merchantId === "ro-rowenta") return clampRowentaToAppliances(scored);
+    if (merchantId === "ch-babywalz") return clampBabywalzToBabyCatalogue(scored);
     return scored;
   };
 
@@ -236,6 +258,14 @@ export function mapToBeforeToBuyCategoryWithMetadata(
   if (merchantId === "ro-rowenta") {
     return {
       categoryId: ROWENTA_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: merchantCategory,
+    };
+  }
+  if (merchantId === "ch-babywalz") {
+    return {
+      categoryId: BABYWALZ_FALLBACK_LEAF,
       method: "merchant-default",
       confidence: MAPPING_CONFIDENCE.combinedPattern,
       rawCategory: merchantCategory,

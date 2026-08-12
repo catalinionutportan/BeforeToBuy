@@ -268,6 +268,35 @@ describe('Category Mapper Functions', () => {
     expect(report.reviewQueue[0]?.productId).toBe("feed-2");
   });
 
+  it("baby-walz keeps strollers/clothes out of electronics", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-babywalz",
+        merchantCategory: "Kinderwagen",
+        title: "Kombikinderwagen Single",
+      })
+    ).toBe("baby-strollers-travel");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-babywalz",
+        title: "T-Shirt Maus",
+      })
+    ).toBe("fashion-kids-baby");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-babywalz",
+        title: "Windeleimer Twist & Click inklusive 6er-Pack Nachfüllkassetten",
+      })
+    ).toBe("fashion-kids-baby");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-babywalz",
+        merchantCategory: "Autositze",
+        title: "Babyschale Pebble 360",
+      })
+    ).toBe("baby-car-seats");
+  });
+
   it("Seentat UK merchant aisles map to electronics leaves", () => {
     expect(
       mapToBeforeToBuyCategory({

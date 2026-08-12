@@ -251,6 +251,9 @@ export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
       "health-monitors-scales",
       "health-massage-recovery",
       "baby-monitoring-feeding",
+      "baby-strollers-travel",
+      "baby-car-seats",
+      "baby-nursery",
     ],
   },
   {

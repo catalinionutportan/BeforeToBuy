@@ -218,48 +218,74 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     ],
   },
   /**
-   * baby-walz CH — AWIN DE catalogue (~20k). Prefer merchant_category / titles;
-   * strollers and nursery map to closest existing leaves until dedicated baby tree expands.
+   * baby-walz CH — AWIN DE baby catalogue. Keep mappings inside baby/kids/toys only;
+   * global electronics keywords (Maus, Kassette, Backpack) must not win.
    */
   "ch-babywalz": {
     exact: exactRules({
-      kinderwagen: "furniture-bedroom",
-      buggy: "furniture-bedroom",
-      sportwagen: "furniture-bedroom",
+      kinderwagen: "baby-strollers-travel",
+      buggy: "baby-strollers-travel",
+      sportwagen: "baby-strollers-travel",
+      reisesysteme: "baby-strollers-travel",
       babyueberwachung: "baby-monitoring-feeding",
-      "babyüberwachung": "baby-monitoring-feeding",
+      babyüberwachung: "baby-monitoring-feeding",
       babyphone: "baby-monitoring-feeding",
       babybekleidung: "fashion-kids-baby",
       babykleidung: "fashion-kids-baby",
+      kindermode: "fashion-kids-baby",
+      bekleidung: "fashion-kids-baby",
       wickeln: "fashion-kids-baby",
+      bad: "fashion-kids-baby",
       ernaehrung: "baby-monitoring-feeding",
       ernährung: "baby-monitoring-feeding",
       spielzeug: "toys-electronic",
-      autositze: "furniture-bedroom",
-      kindersitze: "furniture-bedroom",
+      fahrzeuge: "toys-electronic",
+      autositze: "baby-car-seats",
+      kindersitze: "baby-car-seats",
+      hochstühle: "baby-nursery",
+      hochstuehle: "baby-nursery",
+      kinderzimmer: "baby-nursery",
+      möbel: "baby-nursery",
+      moebel: "baby-nursery",
+      taschen: "fashion-bags",
+      schulbedarf: "fashion-bags",
+      schuhe: "fashion-shoes-kids-sneakers",
+      umstandsmode: "fashion-women-tops",
     }),
     patterns: [
       {
-        patterns: /\b(kinderwagen|buggy|sportwagen|kombikinderwagen|jogger)\b/i,
-        subcategoryId: "furniture-bedroom",
+        patterns: /\b(kinderwagen|buggy|sportwagen|kombikinderwagen|jogger|reisesystem)\b/i,
+        subcategoryId: "baby-strollers-travel",
       },
       {
-        patterns: /\b(autositz|kindersitz|reboarder|babyschale)\b/i,
-        subcategoryId: "furniture-bedroom",
+        patterns: /\b(autositz|kindersitz|reboarder|babyschale|isofix)\b/i,
+        subcategoryId: "baby-car-seats",
       },
       {
-        patterns: /\b(babyphone|baby\s*monitor|überwachung|ueberwachung)\b/i,
+        patterns: /\b(hochstuhl|babybett|wickelkommode|stubenwagen|beistellbett)\b/i,
+        subcategoryId: "baby-nursery",
+      },
+      {
+        patterns: /\b(babyphone|baby\s*monitor|überwachung|ueberwachung|milchpumpe|flaschenwärmer|sterilisator)\b/i,
         subcategoryId: "baby-monitoring-feeding",
       },
       {
-        patterns: /\b(flasche|sterilisator|milchpumpe|brei|still)\b/i,
+        patterns: /\b(flasche|brei|still|trinklern)\b/i,
         subcategoryId: "baby-monitoring-feeding",
       },
       {
-        patterns: /\b(body|strampler|babykleidung|babybekleidung|wickel)\b/i,
+        patterns:
+          /\b(body|bodys|strampler|babykleidung|babybekleidung|wickel|leggings|t-shirt|shirt|hose|kleid|jacke|mütze|socken)\b/i,
         subcategoryId: "fashion-kids-baby",
       },
-      { patterns: /\b(spielzeug|kuscheltier|holzspiel)\b/i, subcategoryId: "toys-electronic" },
+      {
+        patterns: /\b(rucksack|schulranzen|trolley|tasche|beutel)\b/i,
+        subcategoryId: "fashion-bags",
+      },
+      {
+        patterns: /\b(spielzeug|kuscheltier|holzspiel|scooter|laufrad|dreirad)\b/i,
+        subcategoryId: "toys-electronic",
+      },
     ],
   },
   /**
@@ -877,6 +903,43 @@ export const ROWENTA_ALLOWED_CATEGORY_IDS = new Set([
 
 export function isRowentaAllowedCategory(categoryId: string): boolean {
   return ROWENTA_ALLOWED_CATEGORY_IDS.has(categoryId);
+}
+
+/** baby-walz must never land in electronics / appliances via global keyword noise. */
+export const BABYWALZ_ALLOWED_CATEGORY_IDS = new Set([
+  "fashion-kids",
+  "fashion-kids-girls",
+  "fashion-kids-boys",
+  "fashion-kids-baby",
+  "fashion-shoes-kids",
+  "fashion-shoes-kids-sneakers",
+  "fashion-shoes-kids-boots",
+  "fashion-shoes-kids-sandals",
+  "fashion-shoes-kids-sport",
+  "fashion-shoes-kids-school",
+  "fashion-bags",
+  "fashion-socks",
+  "fashion-underwear",
+  "fashion-accessories",
+  "fashion-women-tops",
+  "fashion-women-dresses",
+  "fashion-women-bottoms",
+  "fashion-women-activewear",
+  "baby-monitoring-feeding",
+  "baby-strollers-travel",
+  "baby-car-seats",
+  "baby-nursery",
+  "toys-rc-models",
+  "toys-building-sets",
+  "toys-electronic",
+  "toys-board-games",
+  "toys-accessories",
+  "textiles-towels",
+  "textiles-bedding",
+]);
+
+export function isBabywalzAllowedCategory(categoryId: string): boolean {
+  return BABYWALZ_ALLOWED_CATEGORY_IDS.has(categoryId);
 }
 
 /**
