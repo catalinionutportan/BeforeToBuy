@@ -113,7 +113,7 @@ export const enUi = {
     howPlatformStep3Body: "View Offer sends you to the official store. Checkout and payment happen there — BeforeToBuy does not sell products or process payments.",
     howPlatformPriceNotice: "Price notice: totals shown here are indicative. Final price, VAT, shipping, and stock are confirmed only on the merchant checkout page.",
     analytics: "Analytics",
-    analyticsDescription: " — reserved for a possible future analytics tool. No third-party analytics is active today. Off by default.",
+    analyticsDescription: " — optional performance monitoring (Datadog RUM) to improve stability. Off by default.",
     productFetchError: "Could not load products. Please try again later.",
     shoppingIn: "Shopping in {city}, {countryName}",
     hybridCatalogFor: "Hybrid catalog for {countryName} in {currency}",

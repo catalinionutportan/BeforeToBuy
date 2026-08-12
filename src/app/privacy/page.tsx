@@ -1,26 +1,36 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Lock, Database, Eye, Cookie, Mail, Clock, Globe } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
-import { PRIVACY_POLICY_LAST_UPDATED, PRIVACY_POLICY_SECTIONS } from "@/content/privacy-policy";
+import { COMPANY, LEGAL_CONTACT } from "@/lib/company-info";
+import { DSAR_RESPONSE_DAYS } from "@/lib/legal-config";
+import {
+  getLegalCopy,
+  getLocalizedDataProcessors,
+  getLocalizedProcessingPurposes,
+  getLocalizedRetentionSchedule,
+} from "@/lib/legal-copy";
+import { getProcessorUiLabels, type PublicProcessorKind } from "@/lib/data-processors";
 import { createPageMetadata } from "@/lib/metadata";
-import { HOME_UI } from "@/lib/i18n/ui";
+import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import { withLangParam } from "@/lib/seo/site-url";
 import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
-import type { SiteLocale } from "@/lib/i18n/locales";
 
 type Props = {
   searchParams: LocaleSearchParams;
 };
 
-const ENGLISH_PREVAILS: Record<SiteLocale, string> = {
-  en: "This page publishes the English Privacy Policy (source of truth). If a translation conflicts, English prevails.",
-  de: "Diese Seite veröffentlicht die englische Datenschutzerklärung (maßgebliche Fassung). Bei Widersprüchen gilt die englische Version.",
-  fr: "Cette page publie la politique de confidentialité en anglais (version de référence). En cas de conflit, l’anglais prévaut.",
-  it: "Questa pagina pubblica l’informativa privacy in inglese (versione di riferimento). In caso di conflitto prevale l’inglese.",
-  ro: "Această pagină publică Politica de confidențialitate în engleză (versiunea de referință). În caz de conflict, prevalează engleza.",
-};
+function processorBadgeClass(kind: PublicProcessorKind): string {
+  switch (kind) {
+    case "processor":
+      return "bg-emerald-100 text-emerald-800 border-emerald-200";
+    case "independent_controller":
+      return "bg-amber-100 text-amber-900 border-amber-200";
+    case "cdn_recipient":
+      return "bg-slate-100 text-slate-800 border-slate-200";
+  }
+}
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const locale = await resolvePageLocale(searchParams);
@@ -37,6 +47,11 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function PrivacyPage({ searchParams }: Props) {
   const locale = await resolvePageLocale(searchParams);
   const homeUi = HOME_UI[locale];
+  const legalCopy = getLegalCopy(locale);
+  const processors = getLocalizedDataProcessors(locale);
+  const processorUi = getProcessorUiLabels(locale);
+  const processingPurposes = getLocalizedProcessingPurposes(locale);
+  const retentionSchedule = getLocalizedRetentionSchedule(locale);
 
   return (
     <PageShell>
@@ -45,50 +60,194 @@ export default async function PrivacyPage({ searchParams }: Props) {
           <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
             {homeUi.privacyPolicyDEEN}
           </span>
-          <h1 className="text-3xl font-extrabold flex items-center gap-2">
-            <ShieldCheck className="w-8 h-8 text-emerald-400 shrink-0" aria-hidden="true" />
-            Privacy Policy — BeforeToBuy.com
-          </h1>
-          <p className="text-slate-300 text-sm">Last updated: {PRIVACY_POLICY_LAST_UPDATED}</p>
-          <p className="text-slate-400 text-xs leading-relaxed">{ENGLISH_PREVAILS[locale]}</p>
+          <h1 className="text-3xl font-extrabold">{homeUi.privacyPolicyDEENTitle}</h1>
+          <p className="text-slate-300 text-sm">{homeUi.privacyPolicyDEENText}</p>
         </div>
 
         <LegalDraftNotice />
 
-        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-8 text-sm text-slate-700 leading-relaxed">
-          {PRIVACY_POLICY_SECTIONS.map((section) => (
-            <section key={section.id} id={section.id} className="space-y-3 border-t border-slate-100 pt-6 first:border-t-0 first:pt-0">
-              <h2 className="text-lg font-bold text-slate-900">{section.title}</h2>
-              {section.paragraphs.map((paragraph, index) => (
-                <p key={`${section.id}-p-${index}`} className="text-xs text-slate-600 whitespace-pre-wrap">
-                  {paragraph}
-                </p>
-              ))}
-              {section.bullets?.length ? (
-                <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-1">
-                  {section.bullets.map((item, index) => (
-                    <li key={`${section.id}-b-${index}`}>{item}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </section>
-          ))}
+        <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xs space-y-6 text-sm text-slate-700 leading-relaxed">
+          <section className="space-y-2">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              {homeUi.dataControllerTitle}
+            </h2>
+            <p className="text-xs text-slate-600">
+              {homeUi.dataControllerIntroPart1} <strong>{COMPANY.platformName}</strong>
+              {homeUi.dataControllerIntroPart2}
+              <br />
+              <strong>{COMPANY.legalName}</strong>
+              <br />
+              {COMPANY.address.formattedDe}
+              <br />
+              {homeUi.uid}: {COMPANY.uid} | {homeUi.email}:{" "}
+              <a href={`mailto:${LEGAL_CONTACT.privacy}`} className="text-emerald-700 underline">
+                {LEGAL_CONTACT.privacy}
+              </a>
+            </p>
+          </section>
 
-          <section className="border-t border-slate-100 pt-6 text-xs text-slate-600 space-y-2">
-            <p>
-              Related pages:{" "}
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Cookie className="w-5 h-5 text-emerald-600" />
+              {homeUi.cookiesAndConsentTitle}
+            </h2>
+            <p className="text-xs text-slate-600">
+              {homeUi.cookiesAndConsentBodyPart1}{" "}
               <Link href={withLangParam("/cookies", locale)} className="text-emerald-700 underline font-semibold">
                 {homeUi.cookiePolicy}
-              </Link>
-              {" · "}
-              <Link href={withLangParam("/contact", locale)} className="text-emerald-700 underline font-semibold">
-                {homeUi.contactForm}
-              </Link>
-              {" · "}
-              <Link href={withLangParam("/impressum", locale)} className="text-emerald-700 underline font-semibold">
-                Impressum
-              </Link>
+              </Link>{" "}
+              {homeUi.cookiesAndConsentBodyPart2}
             </p>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Database className="w-5 h-5 text-emerald-600" />
+              {homeUi.affiliateLinksProcessorsTitle}
+            </h2>
+            <p className="text-xs text-slate-600">{homeUi.affiliateLinksProcessorsBody1}</p>
+            <p className="text-xs text-slate-600 font-semibold mt-2">{homeUi.subProcessorsRecipients}</p>
+            <ul className="space-y-3 pl-0 list-none text-xs text-slate-600">
+              {processors.map((processor) => (
+                <li
+                  key={processor.id}
+                  className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 space-y-1.5"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${processorBadgeClass(processor.kind)}`}
+                    >
+                      {processor.roleLabel}
+                    </span>
+                    {processor.optional ? (
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                        {processorUi.optionalNote}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p>
+                    <strong className="text-slate-900">{processor.name}</strong>
+                    <span className="text-slate-500"> — {processor.legalEntity}</span>
+                  </p>
+                  <p>{processor.purpose}</p>
+                  {processor.projectRegion ? (
+                    <p>
+                      <span className="font-semibold text-slate-800">{processor.projectRegion}</span>
+                    </p>
+                  ) : null}
+                  {processor.transferSummary ? <p>{processor.transferSummary}</p> : null}
+                  {processor.officialDocUrl ? (
+                    <p>
+                      <a
+                        href={processor.officialDocUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-700 underline font-semibold"
+                      >
+                        {processorUi.officialDocLabel}
+                      </a>
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Database className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              {legalCopy.privacy.processingTitle}
+            </h2>
+            <p className="text-xs text-slate-600">{legalCopy.privacy.processingBody}</p>
+            <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
+              {processingPurposes.map((item) => (
+                <li key={item.purpose}>
+                  <strong>{item.purpose}</strong> — {item.basis}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Globe className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              {legalCopy.privacy.transfersTitle}
+            </h2>
+            <p className="text-xs text-slate-600">{legalCopy.privacy.transfersBody}</p>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              {homeUi.retentionTitle}
+            </h2>
+            <ul className="list-disc list-inside text-xs text-slate-600 space-y-1 pl-2">
+              {retentionSchedule.map((item) => (
+                <li key={item.data}>
+                  <strong>{item.data}:</strong> {item.retention}{" "}
+                  <span className="text-slate-500">({item.legalBasis})</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Lock className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+              {homeUi.serverLogsTitle}
+            </h2>
+            <p className="text-xs text-slate-600">{homeUi.serverLogsBody}</p>
+          </section>
+
+          <section className="space-y-2 border-t border-slate-100 pt-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Eye className="w-5 h-5 text-emerald-600" />
+              {homeUi.yourRightsTitle}
+            </h2>
+            <p className="text-xs text-slate-600">{homeUi.yourRightsBody1}</p>
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs space-y-2 mt-2">
+              <p className="font-bold text-slate-900 flex items-center gap-1.5">
+                <Mail className="w-4 h-4 text-emerald-600" />
+                {homeUi.howToSubmitDSARTitle}
+              </p>
+              <ol className="list-decimal list-inside space-y-1 text-slate-600 pl-1">
+                <li>
+                  {homeUi.howToSubmitDSARStep1Part1}{" "}
+                  <a href={`mailto:${LEGAL_CONTACT.dsar}`} className="text-emerald-700 underline font-semibold">
+                    {LEGAL_CONTACT.dsar}
+                  </a>{" "}
+                  {homeUi.howToSubmitDSARStep1Part2}{" "}
+                  <Link href={withLangParam("/contact", locale)} className="text-emerald-700 underline font-semibold">
+                    {homeUi.contactForm}
+                  </Link>{" "}
+                  {homeUi.howToSubmitDSARStep1Part3}
+                </li>
+                <li>{homeUi.howToSubmitDSARStep2}</li>
+                <li>{homeUi.howToSubmitDSARStep3}</li>
+                <li
+                  dangerouslySetInnerHTML={{
+                    __html: formatUi(homeUi.howToSubmitDSARStep4, { dsarDays: DSAR_RESPONSE_DAYS }),
+                  }}
+                />
+              </ol>
+              <p className="text-slate-600 pt-2">
+                {legalCopy.privacy.complaintBody}{" "}
+                <a
+                  href="https://www.edoeb.admin.ch"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-700 underline font-semibold"
+                >
+                  edoeb.admin.ch
+                </a>
+                .{" "}
+                <Link href={withLangParam("/complaints", locale)} className="text-emerald-700 underline font-semibold">
+                  {homeUi.complaintsProcedure}
+                </Link>
+                .
+              </p>
+            </div>
           </section>
         </div>
       </div>

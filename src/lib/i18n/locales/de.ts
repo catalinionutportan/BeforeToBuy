@@ -123,7 +123,7 @@ export const deUi = {
     howPlatformStep3Body: "„Angebot ansehen“ führt zum offiziellen Shop. Checkout und Zahlung erfolgen dort — BeforeToBuy verkauft keine Produkte und verarbeitet keine Zahlungen.",
     howPlatformPriceNotice: "Preishinweis: Angezeigte Summen sind indikativ. Endpreis, MwSt., Versand und Bestand werden erst auf der Händlerseite bestätigt.",
     analytics: "Analyse",
-    analyticsDescription: " — reserviert für ein mögliches künftiges Analytics-Tool. Derzeit kein Drittanbieter-Analytics aktiv. Standardmässig aus.",
+    analyticsDescription: " — optionales Performance-Monitoring (Datadog RUM) zur Stabilität. Standardmässig aus.",
     productFetchError: "Produkte konnten nicht geladen werden. Bitte versuchen Sie es später erneut.",
     shoppingIn: "Einkaufen in {city}, {countryName}",
     hybridCatalogFor: "Hybridkatalog für {countryName} in {currency}",

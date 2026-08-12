@@ -204,7 +204,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Swiss nDSG applies to our processing as a Swiss controller. Where the EU GDPR applies to visitors in the EU/EEA, you may also exercise GDPR rights. This notice is a transparency document, not a legal certification.",
       transfersTitle: "International transfers",
       transfersBody:
-        "Hosting and infrastructure providers (especially Vercel and Supabase) may process data in the EU and/or other countries, including the United States. Optional tools such as Datadog or Resend are used only if configured and, where required, only with consent. Standard contractual and transfer mechanisms used by those providers may apply; please consult each provider for details.",
+        "Some processors, especially Vercel, Datadog, and Resend when configured, may process data in the United States or other countries. We use them for hosting, optional performance monitoring, and contact-form delivery. Optional features involving those processors require your consent where indicated. Standard contractual and transfer mechanisms used by those providers may apply; please consult each provider for details.",
       complaintBody:
         "You may also lodge a complaint with the Swiss Federal Data Protection and Information Commissioner (FDPIC / EDOB):",
     },
@@ -258,21 +258,21 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       affiliateRequired: "No, only with consent",
       analyticsCategory: "Analytics (optional)",
       analyticsPurpose:
-        "Reserved for a possible future analytics tool. No third-party analytics product is currently active on BeforeToBuy.com.",
+        "Datadog RUM performance monitoring to improve stability, with session replay disabled.",
       analyticsStorage:
-        "Consent preference only (localStorage / consent hint). No analytics SDK is loaded while analytics tools remain inactive.",
+        "Datadog browser SDK when opted in; the preference is stored in consent localStorage.",
       analyticsRequired: "No, only with consent and off by default",
       processorsTitle: "3. Service providers and optional third parties",
       processorItems: [
         "Vercel — hosting, CDN, and server logs.",
         "Supabase — product catalogue database.",
-        "Analytics tools — not currently active; the Analytics consent category is reserved for a future optional tool.",
+        "Datadog — optional RUM and performance monitoring for the Analytics category.",
         "Merchant partners and approved CDN image hosts — catalogue images and affiliate tracking on merchant domains after you leave our site (Affiliate consent required for outbound affiliate links).",
-        "Resend — contact-form email delivery when configured (otherwise mailto fallback).",
+        "Resend — contact-form email delivery when configured.",
       ],
       manageChoicesTitle: "4. Manage your choices",
       manageChoicesBody:
-        "You can change or withdraw consent at any time using the cookie banner or the \"Cookie Settings\" link in the site footer. Withdrawing Affiliate consent blocks outbound affiliate links until you accept again.",
+        "You can change or withdraw consent at any time using the cookie banner or the \"Cookie Settings\" link in the site footer. Withdrawing consent stops optional analytics monitoring and affiliate outbound links until you accept again.",
       manageChoicesBody2: "See also our",
     },
     affiliate: {
@@ -399,7 +399,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Für unsere Verarbeitung als Schweizer Verantwortlicher gilt das nDSG. Soweit die EU-DSGVO für Besucher in der EU/im EWR anwendbar ist, können Sie zusätzlich DSGVO-Rechte ausüben. Dieser Hinweis ist ein Transparenzdokument und keine Rechtszertifizierung.",
       transfersTitle: "Internationale Datenübermittlungen",
       transfersBody:
-        "Hosting- und Infrastrukturanbieter (insbesondere Vercel und Supabase) können Daten in der EU und/oder anderen Staaten, einschliesslich der USA, verarbeiten. Optionale Tools wie Datadog oder Resend werden nur verwendet, wenn sie konfiguriert sind und — soweit erforderlich — nur mit Einwilligung. Es können die von den jeweiligen Anbietern vorgesehenen Standardvertrags- oder Transfermechanismen gelten.",
+        "Einige Auftragsverarbeiter, insbesondere Vercel, Datadog und Resend, können Daten in den USA oder anderen Staaten verarbeiten. Wir nutzen sie für Hosting, optionale Performance-Messung und die Zustellung von Kontaktformularen. Optionale Funktionen mit diesen Diensten setzen, soweit angegeben, Ihre Einwilligung voraus. Es können die von den jeweiligen Anbietern vorgesehenen Standardvertrags- oder Transfermechanismen gelten.",
       complaintBody:
         "Sie können sich außerdem beim Eidgenössischen Datenschutz- und Öffentlichkeitsbeauftragten (EDÖB / FDPIC) beschweren:",
     },
@@ -453,21 +453,21 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       affiliateRequired: "Nein, nur mit Einwilligung",
       analyticsCategory: "Analytics (optional)",
       analyticsPurpose:
-        "Für ein mögliches künftiges Analytics-Tool reserviert. Derzeit ist kein Drittanbieter-Analytics auf BeforeToBuy.com aktiv.",
+        "Datadog-RUM zur Performance-Messung und Stabilitätsverbesserung, ohne Session-Replay.",
       analyticsStorage:
-        "Nur Einwilligungspräferenz (localStorage / Consent-Hint). Kein Analytics-SDK, solange Analytics inaktiv bleibt.",
+        "Datadog-Browser-SDK bei Opt-in; die Präferenz wird im Consent-localStorage gespeichert.",
       analyticsRequired: "Nein, nur mit Einwilligung und standardmäßig deaktiviert",
       processorsTitle: "3. Dienstleister und optionale Drittanbieter",
       processorItems: [
         "Vercel — Hosting, CDN und Server-Logs.",
         "Supabase — Produktkatalog-Datenbank.",
-        "Analytics-Tools — derzeit nicht aktiv; die Analytics-Einwilligung ist für ein künftiges optionales Tool reserviert.",
+        "Datadog — optionales RUM und Performance-Monitoring für die Analytics-Kategorie.",
         "Händlerpartner und freigegebene CDN-Bildhosts — Katalogbilder und Affiliate-Tracking auf Händler-Domains nach Verlassen unserer Seite (Affiliate-Links nur mit Einwilligung).",
-        "Resend — E-Mail-Zustellung für Kontaktformulare, wenn konfiguriert (sonst Mailto-Fallback).",
+        "Resend — E-Mail-Zustellung für Kontaktformulare, wenn konfiguriert.",
       ],
       manageChoicesTitle: "4. Ihre Auswahl verwalten",
       manageChoicesBody:
-        "Sie können Ihre Einwilligung jederzeit über das Cookie-Banner oder den Link \"Cookie-Einstellungen\" in der Fußzeile ändern oder widerrufen. Ein Widerruf der Affiliate-Einwilligung blockiert ausgehende Affiliate-Links, bis Sie erneut zustimmen.",
+        "Sie können Ihre Einwilligung jederzeit über das Cookie-Banner oder den Link \"Cookie-Einstellungen\" in der Fußzeile ändern oder widerrufen. Ein Widerruf stoppt optionales Analytics-Monitoring und Affiliate-Links, bis Sie erneut zustimmen.",
       manageChoicesBody2: "Siehe auch unsere",
     },
     affiliate: {
@@ -594,7 +594,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "La nLPD suisse s'applique à nos traitements en tant que responsable suisse. Lorsque le RGPD s'applique aux visiteurs de l'UE/EEE, vous pouvez également exercer les droits prévus par le RGPD. Ce texte est un document de transparence, pas une certification juridique.",
       transfersTitle: "Transferts internationaux",
       transfersBody:
-        "Les prestataires d'hébergement et d'infrastructure (notamment Vercel et Supabase) peuvent traiter des données dans l'UE et/ou d'autres pays, y compris les États-Unis. Des outils optionnels tels que Datadog ou Resend ne sont utilisés que s'ils sont configurés et, le cas échéant, uniquement avec consentement. Les mécanismes contractuels ou de transfert prévus par ces prestataires peuvent s'appliquer.",
+        "Certains sous-traitants, notamment Vercel, Datadog et Resend lorsqu'ils sont configurés, peuvent traiter des données aux États-Unis ou dans d'autres pays. Nous les utilisons pour l'hébergement, la mesure optionnelle des performances et la livraison des formulaires de contact. Les fonctions optionnelles impliquant ces prestataires nécessitent votre consentement lorsque cela est indiqué. Les mécanismes contractuels ou de transfert prévus par ces prestataires peuvent s'appliquer.",
       complaintBody:
         "Vous pouvez également déposer une plainte auprès du Préposé fédéral à la protection des données et à la transparence (PFPDT / FDPIC) :",
     },
@@ -648,21 +648,21 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       affiliateRequired: "Non, uniquement avec consentement",
       analyticsCategory: "Analytics (optionnel)",
       analyticsPurpose:
-        "Réservée à un éventuel outil analytics futur. Aucun produit analytics tiers n'est actuellement actif sur BeforeToBuy.com.",
+        "Surveillance de performance Datadog RUM pour améliorer la stabilité, sans session replay.",
       analyticsStorage:
-        "Préférence de consentement uniquement (localStorage / indicateur). Aucun SDK analytics n'est chargé tant que les outils restent inactifs.",
+        "SDK navigateur Datadog en cas d'opt-in ; la préférence est stockée dans le localStorage de consentement.",
       analyticsRequired: "Non, uniquement avec consentement et désactivé par défaut",
       processorsTitle: "3. Prestataires et tiers optionnels",
       processorItems: [
         "Vercel — hébergement, CDN et journaux serveur.",
         "Supabase — base de données du catalogue produit.",
-        "Outils analytics — actuellement inactifs ; la catégorie Analytics est réservée à un outil optionnel futur.",
+        "Datadog — RUM et supervision des performances optionnels pour la catégorie Analytics.",
         "Partenaires marchands et hôtes d'images CDN approuvés — images catalogue et suivi d'affiliation sur les domaines marchands après avoir quitté notre site (liens affiliés uniquement avec consentement).",
-        "Resend — envoi des e-mails du formulaire de contact lorsqu'il est configuré (sinon repli mailto).",
+        "Resend — envoi des e-mails du formulaire de contact lorsqu'il est configuré.",
       ],
       manageChoicesTitle: "4. Gérer vos choix",
       manageChoicesBody:
-        "Vous pouvez modifier ou retirer votre consentement à tout moment via la bannière cookies ou le lien \"Paramètres des cookies\" dans le pied de page. Le retrait du consentement Affiliation bloque les liens affiliés sortants jusqu'à une nouvelle acceptation.",
+        "Vous pouvez modifier ou retirer votre consentement à tout moment via la bannière cookies ou le lien \"Paramètres des cookies\" dans le pied de page. Le retrait du consentement désactive le monitoring analytics optionnel et les liens affiliés jusqu'à une nouvelle acceptation.",
       manageChoicesBody2: "Voir aussi notre",
     },
     affiliate: {
@@ -789,7 +789,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "La nLPD svizzera si applica ai nostri trattamenti come titolare svizzero. Quando il GDPR UE si applica ai visitatori nell'UE/SEE, puoi esercitare anche i diritti previsti dal GDPR. Questa informativa è un documento di trasparenza, non una certificazione legale.",
       transfersTitle: "Trasferimenti internazionali",
       transfersBody:
-        "I fornitori di hosting e infrastruttura (in particolare Vercel e Supabase) possono trattare dati nell'UE e/o in altri Paesi, inclusi gli Stati Uniti. Strumenti opzionali come Datadog o Resend sono usati solo se configurati e, ove richiesto, solo con consenso. Possono applicarsi i meccanismi contrattuali o di trasferimento previsti da tali fornitori.",
+        "Alcuni responsabili del trattamento, in particolare Vercel, Datadog e Resend quando configurato, possono trattare dati negli Stati Uniti o in altri Paesi. Li utilizziamo per hosting, monitoraggio prestazionale opzionale e consegna dei moduli di contatto. Le funzioni opzionali che coinvolgono questi fornitori richiedono il tuo consenso dove indicato. Possono applicarsi i meccanismi contrattuali o di trasferimento previsti da tali fornitori.",
       complaintBody:
         "Puoi anche presentare un reclamo all'Incaricato federale della protezione dei dati e della trasparenza (FDPIC / EDOB):",
     },
@@ -843,21 +843,21 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       affiliateRequired: "No, solo con consenso",
       analyticsCategory: "Analytics (opzionale)",
       analyticsPurpose:
-        "Riservata a un possibile strumento analytics futuro. Nessun prodotto analytics di terze parti è attualmente attivo su BeforeToBuy.com.",
+        "Monitoraggio prestazionale Datadog RUM per migliorare la stabilità, con session replay disattivato.",
       analyticsStorage:
-        "Solo preferenza di consenso (localStorage / hint). Nessun SDK analytics viene caricato mentre gli strumenti restano inattivi.",
+        "SDK browser Datadog in caso di opt-in; la preferenza è salvata nel localStorage di consenso.",
       analyticsRequired: "No, solo con consenso e disattivato di default",
       processorsTitle: "3. Fornitori di servizi e terze parti opzionali",
       processorItems: [
         "Vercel — hosting, CDN e log server.",
         "Supabase — database del catalogo prodotti.",
-        "Strumenti analytics — attualmente non attivi; la categoria Analytics è riservata a un futuro strumento opzionale.",
+        "Datadog — RUM e monitoraggio prestazionale opzionali per la categoria Analytics.",
         "Partner merchant e host immagini CDN approvati — immagini catalogo e tracking affiliato sui domini merchant dopo aver lasciato il sito (link affiliati solo con consenso).",
-        "Resend — consegna email del modulo di contatto quando configurata (altrimenti fallback mailto).",
+        "Resend — consegna email del modulo di contatto quando configurata.",
       ],
       manageChoicesTitle: "4. Gestisci le tue scelte",
       manageChoicesBody:
-        "Puoi modificare o revocare il consenso in qualsiasi momento tramite il banner cookie o il link \"Impostazioni cookie\" nel footer. La revoca del consenso Affiliazione blocca i link affiliati in uscita finché non accetti di nuovo.",
+        "Puoi modificare o revocare il consenso in qualsiasi momento tramite il banner cookie o il link \"Impostazioni cookie\" nel footer. La revoca ferma il monitoraggio analytics opzionale e i link affiliati finché non accetti di nuovo.",
       manageChoicesBody2: "Vedi anche la nostra",
     },
     affiliate: {
@@ -984,7 +984,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "nDSG elvețian se aplică prelucrărilor noastre în calitate de operator elvețian. Acolo unde GDPR UE se aplică vizitatorilor din UE/SEE, puteți exercita și drepturile prevăzute de GDPR. Acest text este un document de transparență, nu o certificare juridică.",
       transfersTitle: "Transferuri internaționale",
       transfersBody:
-        "Furnizorii de hosting și infrastructură (în special Vercel și Supabase) pot prelucra date în UE și/sau în alte țări, inclusiv Statele Unite. Instrumente opționale precum Datadog sau Resend sunt folosite doar dacă sunt configurate și, unde este necesar, doar cu consimțământ. Pot fi aplicate mecanismele contractuale sau de transfer prevăzute de acești furnizori.",
+        "Anumiți procesatori, în special Vercel, Datadog și Resend atunci când sunt configurate, pot prelucra date în Statele Unite sau în alte țări. Îi folosim pentru hosting, monitorizare opțională de performanță și livrarea formularelor de contact. Funcțiile opționale care implică acești furnizori necesită consimțământul dvs. acolo unde este indicat. Pot fi aplicate mecanismele contractuale sau de transfer prevăzute de acești furnizori.",
       complaintBody:
         "Puteți depune o plângere și la Autoritatea Federală Elvețiană pentru Protecția Datelor și Transparență (FDPIC / EDOB):",
     },
@@ -1038,21 +1038,21 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       affiliateRequired: "Nu, doar cu consimțământ",
       analyticsCategory: "Analytics (opțional)",
       analyticsPurpose:
-        "Rezervată pentru un posibil instrument analytics viitor. Momentan nu rulează niciun produs analytics terț pe BeforeToBuy.com.",
+        "Monitorizare de performanță Datadog RUM pentru îmbunătățirea stabilității, cu session replay dezactivat.",
       analyticsStorage:
-        "Doar preferința de consimțământ (localStorage / hint). Niciun SDK analytics nu este încărcat cât timp instrumentele rămân inactive.",
+        "SDK browser Datadog când faceți opt-in; preferința este stocată în localStorage-ul de consimțământ.",
       analyticsRequired: "Nu, doar cu consimțământ și dezactivat implicit",
       processorsTitle: "3. Furnizori de servicii și terți opționali",
       processorItems: [
         "Vercel — hosting, CDN și log-uri server.",
         "Supabase — baza de date a catalogului de produse.",
-        "Instrumente analytics — momentan inactive; categoria Analytics este rezervată pentru un instrument opțional viitor.",
+        "Datadog — RUM și monitorizare de performanță opționale pentru categoria Analytics.",
         "Parteneri comercianți și host-uri CDN de imagini aprobate — imagini de catalog și tracking afiliat pe domeniile comercianților după ce părăsiți site-ul (linkuri afiliate doar cu consimțământ).",
-        "Resend — livrarea emailurilor din formularul de contact când este configurată (altfel fallback mailto).",
+        "Resend — livrarea emailurilor din formularul de contact când este configurată.",
       ],
       manageChoicesTitle: "4. Gestionarea alegerilor",
       manageChoicesBody:
-        "Puteți modifica sau retrage consimțământul în orice moment folosind bannerul cookie sau linkul \"Setări cookie\" din subsol. Retragerea consimțământului Afiliat blochează linkurile afiliate externe până când acceptați din nou.",
+        "Puteți modifica sau retrage consimțământul în orice moment folosind bannerul cookie sau linkul \"Setări cookie\" din subsol. Retragerea oprește monitorizarea analytics opțională și linkurile afiliate până când acceptați din nou.",
       manageChoicesBody2: "Consultați și",
     },
     affiliate: {
@@ -1794,8 +1794,8 @@ const PROCESSING_PURPOSES: Record<SiteLocale, ProcessingPurpose[]> = {
       basis: "Consent (Affiliate category)",
     },
     {
-      purpose: "Analytics consent category reserved for a future optional tool (not currently active)",
-      basis: "Consent (Analytics category) — only if/when an analytics tool is enabled",
+      purpose: "Optional performance monitoring with Datadog RUM",
+      basis: "Consent (Analytics category)",
     },
   ],
   de: [
@@ -1808,8 +1808,8 @@ const PROCESSING_PURPOSES: Record<SiteLocale, ProcessingPurpose[]> = {
       basis: "Einwilligung (Affiliate-Kategorie)",
     },
     {
-      purpose: "Analytics-Kategorie für ein künftiges optionales Tool reserviert (derzeit nicht aktiv)",
-      basis: "Einwilligung (Analytics-Kategorie) — nur falls/wenn ein Analytics-Tool aktiviert wird",
+      purpose: "Optionales Performance-Monitoring mit Datadog RUM",
+      basis: "Einwilligung (Analytics-Kategorie)",
     },
   ],
   fr: [
@@ -1822,8 +1822,8 @@ const PROCESSING_PURPOSES: Record<SiteLocale, ProcessingPurpose[]> = {
       basis: "Consentement (catégorie Affiliation)",
     },
     {
-      purpose: "Catégorie Analytics réservée à un outil optionnel futur (actuellement inactive)",
-      basis: "Consentement (catégorie Analytics) — uniquement si/quand un outil analytics est activé",
+      purpose: "Surveillance optionnelle des performances avec Datadog RUM",
+      basis: "Consentement (catégorie Analytics)",
     },
   ],
   it: [
@@ -1836,8 +1836,8 @@ const PROCESSING_PURPOSES: Record<SiteLocale, ProcessingPurpose[]> = {
       basis: "Consenso (categoria Affiliazione)",
     },
     {
-      purpose: "Categoria Analytics riservata a un futuro strumento opzionale (attualmente non attivo)",
-      basis: "Consenso (categoria Analytics) — solo se/quando viene attivato uno strumento analytics",
+      purpose: "Monitoraggio prestazionale opzionale con Datadog RUM",
+      basis: "Consenso (categoria Analytics)",
     },
   ],
   ro: [
@@ -1850,8 +1850,8 @@ const PROCESSING_PURPOSES: Record<SiteLocale, ProcessingPurpose[]> = {
       basis: "Consimțământ (categoria Afiliat)",
     },
     {
-      purpose: "Categoria Analytics rezervată pentru un instrument opțional viitor (momentan inactivă)",
-      basis: "Consimțământ (categoria Analytics) — doar dacă/când se activează un instrument analytics",
+      purpose: "Monitorizare opțională de performanță cu Datadog RUM",
+      basis: "Consimțământ (categoria Analytics)",
     },
   ],
 };
@@ -1875,8 +1875,8 @@ const RETENTION_SCHEDULE: Record<SiteLocale, RetentionItem[]> = {
     },
     {
       data: "Optional analytics",
-      retention: "Not applicable while no analytics tool is active; consent preference only up to 180 days",
-      legalBasis: "Consent (Analytics) — reserved",
+      retention: "Per Datadog retention when opted in",
+      legalBasis: "Consent (Analytics)",
     },
   ],
   de: [
@@ -1897,8 +1897,8 @@ const RETENTION_SCHEDULE: Record<SiteLocale, RetentionItem[]> = {
     },
     {
       data: "Optionale Analytics",
-      retention: "Nicht anwendbar, solange kein Analytics-Tool aktiv ist; nur Consent-Präferenz bis 180 Tage",
-      legalBasis: "Einwilligung (Analytics) — reserviert",
+      retention: "Gemäß Datadog-Aufbewahrung bei Opt-in",
+      legalBasis: "Einwilligung (Analytics)",
     },
   ],
   fr: [
@@ -1919,8 +1919,8 @@ const RETENTION_SCHEDULE: Record<SiteLocale, RetentionItem[]> = {
     },
     {
       data: "Analytics optionnels",
-      retention: "Sans objet tant qu'aucun outil analytics n'est actif ; préférence de consentement uniquement jusqu'à 180 jours",
-      legalBasis: "Consentement (Analytics) — réservé",
+      retention: "Selon la rétention Datadog en cas d'opt-in",
+      legalBasis: "Consentement (Analytics)",
     },
   ],
   it: [
@@ -1941,8 +1941,8 @@ const RETENTION_SCHEDULE: Record<SiteLocale, RetentionItem[]> = {
     },
     {
       data: "Analytics opzionali",
-      retention: "Non applicabile finché nessuno strumento analytics è attivo; solo preferenza di consenso fino a 180 giorni",
-      legalBasis: "Consenso (Analytics) — riservato",
+      retention: "Secondo la retention Datadog in caso di opt-in",
+      legalBasis: "Consenso (Analytics)",
     },
   ],
   ro: [
@@ -1963,8 +1963,8 @@ const RETENTION_SCHEDULE: Record<SiteLocale, RetentionItem[]> = {
     },
     {
       data: "Analytics opțional",
-      retention: "Nu se aplică cât timp nu există instrument analytics activ; doar preferința de consimțământ până la 180 zile",
-      legalBasis: "Consimțământ (Analytics) — rezervat",
+      retention: "Conform retenției Datadog când există opt-in",
+      legalBasis: "Consimțământ (Analytics)",
     },
   ],
 };

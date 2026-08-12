@@ -123,7 +123,7 @@ export const roUi = {
     howPlatformStep3Body: "Vezi oferta te trimite în magazinul oficial. Plata se face acolo — BeforeToBuy nu vinde produse și nu procesează plăți.",
     howPlatformPriceNotice: "Notă de preț: totalurile afișate sunt orientative. Prețul final, TVA, livrarea și stocul se confirmă doar pe pagina magazinului.",
     analytics: "Analitică",
-    analyticsDescription: " — rezervată pentru un posibil instrument analytics viitor. Momentan nu rulează analytics terț. Dezactivată implicit.",
+    analyticsDescription: " — monitorizare opțională de performanță (Datadog RUM). Dezactivată implicit.",
     productFetchError: "Nu s-au putut încărca produsele. Vă rugăm să încercați din nou mai târziu.",
     shoppingIn: "Cumpărături în {city}, {countryName}",
     hybridCatalogFor: "Catalog hibrid pentru {countryName} în {currency}",
