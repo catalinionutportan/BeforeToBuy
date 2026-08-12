@@ -448,16 +448,19 @@ export default function HomePageClient({
           return appended.length ? [...prev, ...appended] : prev;
         });
         setCatalogMeta((prev) => {
-          if (!data.meta) return prev;
-          return {
-            ...data.meta,
+          const next = data.meta;
+          if (!next) return prev;
+          const merged: ProductFetchMeta = {
+            ...next,
             // Keep catalogue-wide counts from the first page when a later page is thin.
-            feedProductCount: data.meta.feedProductCount || prev?.feedProductCount || 0,
-            categoryCounts: data.meta.categoryCounts ?? prev?.categoryCounts,
-            brandOptions: data.meta.brandOptions?.length
-              ? data.meta.brandOptions
-              : prev?.brandOptions,
+            feedProductCount: next.feedProductCount || prev?.feedProductCount || 0,
+            categoryCounts: next.categoryCounts ?? prev?.categoryCounts ?? {},
+            brandOptions:
+              next.brandOptions.length > 0
+                ? next.brandOptions
+                : (prev?.brandOptions ?? []),
           };
+          return merged;
         });
       } catch (error) {
         if (controller.signal.aborted) return;
