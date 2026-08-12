@@ -289,7 +289,8 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     ],
   },
   /**
-   * Reifen.com CH — AWIN DE tyre/rim catalogue. Default leaf: auto-tires-wheels.
+   * Reifen.com CH — AWIN DE tyre/rim catalogue.
+   * Prefer auto-tires-wheels; never let tyre-code tokens (TV, TT, Shredder, Tracker) hit electronics.
    */
   "ch-reifencom": {
     exact: exactRules({
@@ -300,13 +301,23 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       winterreifen: "auto-tires-wheels",
       sommerreifen: "auto-tires-wheels",
       ganzjahresreifen: "auto-tires-wheels",
+      motorradreifen: "auto-tires-wheels",
+      pkw: "auto-tires-wheels",
+      lkw: "auto-tires-wheels",
       schneeketten: "auto-tires-wheels",
       zubehör: "auto-interior-care",
       zubehoer: "auto-interior-care",
+      zubehörteile: "auto-interior-care",
     }),
     patterns: [
       {
-        patterns: /\b(reifen|felgen?|komplettrad|kompletträder|tyre|tire|rim)\b/i,
+        patterns:
+          /\b(reifen|felgen?|komplettrad|kompletträder|tyre|tire|rim|blizzak|pilot\s+sport|all\s*terrain|wintercontact|sommerreifen|winterreifen)\b/i,
+        subcategoryId: "auto-tires-wheels",
+      },
+      {
+        // Tyre size / load-speed style codes dominate this catalogue.
+        patterns: /\b\d{3}\/\d{2}\s*z?r?\d{2}\b|\b\d\.\d{2}-\d{2}\b|\b\d{2,3}\/\d{2,3}-\d{2}\b/i,
         subcategoryId: "auto-tires-wheels",
       },
       {
@@ -940,6 +951,21 @@ export const BABYWALZ_ALLOWED_CATEGORY_IDS = new Set([
 
 export function isBabywalzAllowedCategory(categoryId: string): boolean {
   return BABYWALZ_ALLOWED_CATEGORY_IDS.has(categoryId);
+}
+
+/** Reifen.com must stay in tyre/auto leaves — tire codes like TV/TT/Shredder must not hit electronics. */
+export const REIFENCOM_ALLOWED_CATEGORY_IDS = new Set([
+  "auto-tires-wheels",
+  "auto-interior-care",
+  "auto-oils-fluids",
+  "auto-tools-chargers",
+  "auto-batteries",
+  "auto-lighting",
+  "auto-filters-brakes",
+]);
+
+export function isReifencomAllowedCategory(categoryId: string): boolean {
+  return REIFENCOM_ALLOWED_CATEGORY_IDS.has(categoryId);
 }
 
 /**

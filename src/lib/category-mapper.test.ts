@@ -268,6 +268,27 @@ describe('Category Mapper Functions', () => {
     expect(report.reviewQueue[0]?.productId).toBe("feed-2");
   });
 
+  it("Reifen.com keeps tyre codes out of electronics", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-reifencom",
+        title: "275/35 ZR19(100Y)Pilot Super Sport XL*Selfseal TV",
+      })
+    ).toBe("auto-tires-wheels");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-reifencom",
+        title: "265/60 R18 110T Shredder AT FSL",
+      })
+    ).toBe("auto-tires-wheels");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-reifencom",
+        title: "110/90-19 62R TT Tracker Moto Rear M/C",
+      })
+    ).toBe("auto-tires-wheels");
+  });
+
   it("baby-walz keeps strollers/clothes out of electronics", () => {
     expect(
       mapToBeforeToBuyCategory({

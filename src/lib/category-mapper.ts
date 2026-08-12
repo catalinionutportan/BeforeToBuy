@@ -10,6 +10,7 @@ import {
   getMerchantExactMatch,
   getMerchantPatternMatch,
   isBabywalzAllowedCategory,
+  isReifencomAllowedCategory,
   isRowentaAllowedCategory,
   MAPPING_CONFIDENCE,
   MIN_MAPPING_CONFIDENCE,
@@ -24,6 +25,9 @@ const ROWENTA_FALLBACK_LEAF = "cleaning-vacuums";
 
 /** baby-walz fallback when title/category is ambiguous. */
 const BABYWALZ_FALLBACK_LEAF = "fashion-kids-baby";
+
+/** Reifen.com fallback when title/category is ambiguous. */
+const REIFENCOM_FALLBACK_LEAF = "auto-tires-wheels";
 
 /**
  * Maps merchant / affiliate feed categories + product text → BeforeToBuy subcategory id.
@@ -155,6 +159,23 @@ function clampBabywalzToBabyCatalogue(result: CategoryMappingResult): CategoryMa
   return result;
 }
 
+/** Force Reifen.com into tyre / auto accessory leaves only. */
+function clampReifencomToAutoCatalogue(result: CategoryMappingResult): CategoryMappingResult {
+  if (result.categoryId === UNMAPPED_CATEGORY_ID || !isReifencomAllowedCategory(result.categoryId)) {
+    return {
+      ...result,
+      categoryId: REIFENCOM_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      proposedCategoryId:
+        result.categoryId !== UNMAPPED_CATEGORY_ID && result.categoryId !== REIFENCOM_FALLBACK_LEAF
+          ? result.categoryId
+          : result.proposedCategoryId,
+    };
+  }
+  return result;
+}
+
 export interface CategoryMappingInput {
   merchantId?: string;
   merchantCategory?: string;
@@ -195,6 +216,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     if (merchantId === "ro-scule365") return clampScule365ToDiy(scored);
     if (merchantId === "ro-rowenta") return clampRowentaToAppliances(scored);
     if (merchantId === "ch-babywalz") return clampBabywalzToBabyCatalogue(scored);
+    if (merchantId === "ch-reifencom") return clampReifencomToAutoCatalogue(scored);
     return scored;
   };
 
@@ -266,6 +288,14 @@ export function mapToBeforeToBuyCategoryWithMetadata(
   if (merchantId === "ch-babywalz") {
     return {
       categoryId: BABYWALZ_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: merchantCategory,
+    };
+  }
+  if (merchantId === "ch-reifencom") {
+    return {
+      categoryId: REIFENCOM_FALLBACK_LEAF,
       method: "merchant-default",
       confidence: MAPPING_CONFIDENCE.combinedPattern,
       rawCategory: merchantCategory,
