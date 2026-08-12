@@ -19,8 +19,11 @@ jobs:
           FEEDS_WARM_URL: ${{ vars.FEEDS_WARM_URL }}
         run: |
           if [ -z "$CRON_SECRET" ]; then
-            echo "CRON_SECRET secret is required"
-            exit 1
+            echo "::warning::CRON_SECRET is not set in GitHub Actions secrets."
+            echo "Add repository secret CRON_SECRET (same value as Vercel env CRON_SECRET),"
+            echo "then re-run this workflow. Skipping warm until configured."
+            echo "Settings: https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 0
           fi
           URL="${FEEDS_WARM_URL:-https://www.beforetobuy.com/api/cron/feeds-warm}"
           echo "Warming via $URL"
