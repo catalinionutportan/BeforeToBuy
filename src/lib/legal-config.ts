@@ -1,6 +1,6 @@
 /** Versioning for the public legal and transparency documents. */
-export const LEGAL_DOCUMENT_VERSION = "1.0";
-export const LEGAL_LAST_UPDATED = "2026-08-10";
+export const LEGAL_DOCUMENT_VERSION = "1.1";
+export const LEGAL_LAST_UPDATED = "2026-08-12";
 
 export const LEGAL_DRAFT_NOTICE = {
   en: "Published transparency document. Service scope, data sources, commercial relationships, and current limitations are described as they operate today.",
@@ -35,7 +35,11 @@ export const RETENTION_SCHEDULE = [
   { data: "Contact form submissions", retention: "Until inquiry resolved + 12 months", legalBasis: "Legitimate interest / contract initiation" },
   { data: "Server / edge logs (Vercel)", retention: "Per Vercel policy (typically days to weeks)", legalBasis: "Security & stability (overriding interest)" },
   { data: "Consent preferences (localStorage + signed cookie)", retention: "Up to 180 days or until cleared", legalBasis: "Consent / essential preferences" },
-  { data: "Optional analytics (Datadog RUM)", retention: "Per Datadog retention when opted in", legalBasis: "Consent (Analytics)" },
+  {
+    data: "Optional analytics (reserved category; no active third-party analytics product)",
+    retention: "Consent preference only until cleared; no analytics telemetry while tools are inactive",
+    legalBasis: "Consent (Analytics) if a tool is activated later",
+  },
 ] as const;
 
 /** High-level processing purposes for privacy transparency (bootstrap hygiene). */
@@ -49,8 +53,8 @@ export const PROCESSING_PURPOSES = [
     basis: "Consent (Affiliate category)",
   },
   {
-    purpose: "Optional performance monitoring (Datadog RUM)",
-    basis: "Consent (Analytics category)",
+    purpose: "Optional analytics category reserved for a future tool (currently inactive)",
+    basis: "Consent (Analytics category) — only if an analytics product is activated later",
   },
 ] as const;
 

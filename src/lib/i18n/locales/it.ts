@@ -123,7 +123,7 @@ export const itUi = {
     howPlatformStep3Body: "Vedi offerta ti porta al negozio ufficiale. Checkout e pagamento avvengono lì — BeforeToBuy non vende né elabora pagamenti.",
     howPlatformPriceNotice: "Avviso prezzi: i totali mostrati sono indicativi. Prezzo finale, IVA, spedizione e disponibilità si confermano solo sul sito del rivenditore.",
     analytics: "Analitica",
-    analyticsDescription: " — monitoraggio prestazioni opzionale (Datadog RUM). Disattivato di default.",
+    analyticsDescription: " — riservata a un possibile strumento analytics futuro. Nessun analytics di terze parti è attivo oggi. Disattivato di default.",
     productFetchError: "Impossibile caricare i prodotti. Riprova più tardi.",
     companyName: "BeforeToBuy.com",
     shoppingIn: "Shopping in {city}, {countryName}",
