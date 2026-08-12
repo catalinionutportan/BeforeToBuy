@@ -46,16 +46,17 @@ test.describe("Search, filters and product handoff", () => {
     await expect(page.getByRole("heading", { name: "No products found" })).toBeVisible();
   });
 
-  test("filters by market hub and merchant domain", async ({ page }) => {
-    await page.getByRole("tab", { name: /^All\b/i }).click();
+  test("filters by merchant domain and opens category menu", async ({ page }) => {
     await page.getByLabel("Store domain").selectOption("rowenta.ro");
 
     await expect(page).toHaveURL(/domain=rowenta.ro/);
     await expect(page.locator("article").first()).toContainText(/rowenta/i);
 
-    await page.getByRole("tab", { name: /^Home\b/i }).click();
-    await expect(page).toHaveURL(/category=hub-home/);
-    await expect(page.locator("article").first()).toBeVisible();
+    // Hub tabs were removed — categories live under the bag menu (iOS affordance).
+    await page.getByRole("button", { name: /^Menu$/i }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
   test("opens accessible product details", async ({ page }) => {
@@ -91,12 +92,12 @@ test.describe("Search, filters and product handoff", () => {
     await popup.close();
   });
 
-  test("clears RO products when switching to an empty CH market", async ({ page }) => {
+  test("loads CH catalogue when switching market from RO", async ({ page }) => {
     await page.getByLabel("Country / market").selectOption("CH");
 
-    await expect(page.locator("article")).toHaveCount(0, { timeout: 30_000 });
-    await expect(
-      page.getByRole("heading", { name: /No offers in this category yet|No products found/i })
-    ).toBeVisible();
+    await expect(page.locator("article").first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByText(/\d[\d,.]*\s+(items found|results)/i).first()).toBeVisible();
+    // Permanent bag + menu stay available on every market.
+    await expect(page.getByRole("button", { name: /^Menu$/i })).toBeVisible();
   });
 });
