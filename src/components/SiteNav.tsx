@@ -1,19 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, LifeBuoy, Scale, HelpCircle, Layers, Store } from "lucide-react";
+import { Mail, LifeBuoy, Scale, HelpCircle, Layers, Store, Menu } from "lucide-react";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
+import { CategoryFlyoutMenu } from "@/components/CategoryFlyoutMenu";
 import { useRouter } from "next/navigation";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { withLangParam } from "@/lib/seo/site-url";
+import { ALL_CATEGORIES_ID } from "@/lib/categories";
 
 export function SiteNav() {
   const { countryCode, locale: browseLocale } = useBrowseLocale();
   const homeUi = HOME_UI[browseLocale];
   const router = useRouter();
   const homeHref = withLangParam("/", browseLocale);
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
 
   const navLinks = [
     { href: withLangParam("/about", browseLocale), label: homeUi.about, icon: HelpCircle },
@@ -24,48 +28,81 @@ export function SiteNav() {
     { href: withLangParam("/legal", browseLocale), label: homeUi.legalHub, icon: Scale },
   ] as const;
 
+  function browseCategory(categoryId: string) {
+    setIsCategoryMenuOpen(false);
+    const path =
+      !categoryId || categoryId === ALL_CATEGORIES_ID
+        ? "/"
+        : `/?category=${encodeURIComponent(categoryId)}`;
+    router.push(withLangParam(path, browseLocale));
+  }
+
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <Link href={homeHref} className="flex items-center gap-2.5 shrink-0">
-          <span className="relative block h-9 w-9">
-            <Image
-              src="/beforetobuy-mark.png"
-              alt=""
-              width={72}
-              height={72}
-              className="h-full w-full object-contain"
-              priority
-            />
-          </span>
-          <span className="text-base font-extrabold text-slate-900 block leading-tight">
-            BeforeToBuy
-          </span>
-        </Link>
-
-        <div className="flex-1 w-full sm:max-w-md mx-4 order-3 sm:order-none mt-3 sm:mt-0">
-          <SearchAutocomplete 
-            onSearchSubmit={(q) => {
-              router.push(withLangParam(`/?q=${encodeURIComponent(q)}`, browseLocale));
-            }}
-            countryCode={countryCode}
-            locale={browseLocale}
-          />
-        </div>
-
-        <nav aria-label={homeUi.language} className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          {navLinks.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 px-2.5 py-1.5 rounded-lg transition-colors"
-            >
-              <Icon className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>{label}</span>
+    <>
+      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 shadow-xs backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-3 px-4 py-3 sm:flex-row sm:items-center sm:px-6 lg:px-8">
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="flex flex-col items-center gap-0.5">
+              <Link href={homeHref} className="relative block h-9 w-9">
+                <Image
+                  src="/beforetobuy-mark.png"
+                  alt=""
+                  width={72}
+                  height={72}
+                  className="h-full w-full object-contain"
+                  priority
+                />
+              </Link>
+              <button
+                type="button"
+                onClick={() => setIsCategoryMenuOpen(true)}
+                className="inline-flex h-7 w-9 items-center justify-center rounded-md text-slate-700 hover:bg-slate-100 hover:text-emerald-800"
+                aria-haspopup="dialog"
+                aria-label={homeUi.menuOpen}
+                title={homeUi.menuOpen}
+              >
+                <Menu className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
+            <Link href={homeHref} className="min-w-0">
+              <span className="block text-base font-extrabold leading-tight text-slate-900">
+                BeforeToBuy
+              </span>
             </Link>
-          ))}
-        </nav>
-      </div>
-    </header>
+          </div>
+
+          <div className="order-3 mx-0 mt-1 w-full flex-1 sm:order-none sm:mx-4 sm:mt-0 sm:max-w-md">
+            <SearchAutocomplete
+              onSearchSubmit={(q) => {
+                router.push(withLangParam(`/?q=${encodeURIComponent(q)}`, browseLocale));
+              }}
+              countryCode={countryCode}
+              locale={browseLocale}
+            />
+          </div>
+
+          <nav aria-label={homeUi.language} className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {navLinks.map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
+              >
+                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>{label}</span>
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <CategoryFlyoutMenu
+        open={isCategoryMenuOpen}
+        onClose={() => setIsCategoryMenuOpen(false)}
+        selectedCategory={ALL_CATEGORIES_ID}
+        onCategoryChange={browseCategory}
+        locale={browseLocale}
+      />
+    </>
   );
 }

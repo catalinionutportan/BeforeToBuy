@@ -1482,6 +1482,8 @@ export function getCategoryLabel(categoryId: string): string {
         return "Garden";
       case "hub-diy":
         return "DIY + Tools";
+      case "hub-auto":
+        return "Auto";
       default:
         return hub.id;
     }

@@ -279,7 +279,11 @@ export async function getProductsFromDb(
   const skip = Math.max(0, Math.floor(offset || 0));
   const sortByOfferTotal = sort === "price-asc" || sort === "price-desc";
 
-  const orderBy: Prisma.ProductOrderByWithRelationInput = { updatedAt: "desc" };
+  // Secondary id keeps OFFSET pages stable (updatedAt ties otherwise skip/dup rows).
+  const orderBy: Prisma.ProductOrderByWithRelationInput[] = [
+    { updatedAt: "desc" },
+    { id: "asc" },
+  ];
   const brandWhere = buildWhere(countryCode, query, category, { ...filters, brand: undefined });
 
   const pricedIdsPromise = sortByOfferTotal

@@ -19,5 +19,13 @@ describe("expandCategoryFilterToDbIds", () => {
     const ids = expandCategoryFilterToDbIds("hub-diy");
     expect(ids).toContain("diy-hand-tools");
     expect(ids).toContain("diy-power-tools");
+    expect(ids).not.toContain("auto-tires-wheels");
+  });
+
+  it("expands Auto hub to tyre leaves", () => {
+    const ids = expandCategoryFilterToDbIds("hub-auto");
+    expect(ids).toContain("auto-tires-wheels");
+    expect(ids).toContain("auto-batteries");
+    expect(ids).not.toContain("diy-power-tools");
   });
 });

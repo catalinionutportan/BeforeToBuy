@@ -358,6 +358,7 @@ export function getLocalizedCategoryLabel(categoryId: string, locale: CategoryLo
     "hub-fashion": { en: "Fashion", de: "Mode", fr: "Mode", it: "Moda", ro: "Modă" },
     "hub-garden": { en: "Garden", de: "Garten", fr: "Jardin", it: "Giardino", ro: "Grădină" },
     "hub-diy": { en: "DIY + Tools", de: "Baumarkt", fr: "Bricolage", it: "Fai da te", ro: "Bricolaj" },
+    "hub-auto": { en: "Auto", de: "Auto", fr: "Auto", it: "Auto", ro: "Auto" },
   };
   const hub = hubLabels[categoryId];
   if (hub) return hub[locale] ?? hub.en ?? categoryId;

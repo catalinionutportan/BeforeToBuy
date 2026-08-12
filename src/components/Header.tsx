@@ -3,15 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import type { SiteLocale } from "@/lib/i18n/locales";
+import { Menu } from "lucide-react";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 import { SearchAutocomplete } from "@/components/SearchAutocomplete";
+import { CategoryFlyoutMenu } from "@/components/CategoryFlyoutMenu";
 import type { BrowseCategoryOption } from "@/components/BrowseCategoryOption";
+import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import { clearBrowseScrollY, isBrowsePath } from "@/lib/browse-scroll";
 import { withLangParam } from "@/lib/seo/site-url";
 
@@ -28,8 +31,14 @@ interface HeaderProps {
   categoryOptions?: BrowseCategoryOption[];
   selectedCategoryId?: string;
   onCategorySelect?: (categoryId: string) => void;
+  /** Leaf/department counts for the iOS-style category flyout under the bag. */
+  categoryCounts?: Record<string, number>;
 }
 
+/**
+ * Browse chrome: bag mark + permanent ☰ menu (future iOS app affordance) + search.
+ * The hamburger must always render — it is not optional UI.
+ */
 export function Header({
   userLocation,
   onCountryChange,
@@ -40,12 +49,14 @@ export function Header({
   onLocaleChange,
   availableLocales,
   categoryOptions,
-  selectedCategoryId,
+  selectedCategoryId = ALL_CATEGORIES_ID,
   onCategorySelect,
+  categoryCounts,
 }: HeaderProps) {
   const pathname = usePathname();
   const ui = HOME_UI[locale];
   const homeHref = withLangParam("/", locale);
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const searchPlaceholder =
     selectedDomain && selectedDomain !== "all"
       ? formatUi(ui.searchPlaceholderDomain, { domain: selectedDomain })
@@ -57,6 +68,15 @@ export function Header({
       clearBrowseScrollY();
       window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
     }
+  }
+
+  function openCategoryMenu() {
+    setIsCategoryMenuOpen(true);
+  }
+
+  function handleCategoryChange(categoryId: string) {
+    onCategorySelect?.(categoryId);
+    setIsCategoryMenuOpen(false);
   }
 
   return (
@@ -97,22 +117,35 @@ export function Header({
           </div>
 
           <div className="mt-1.5 flex min-w-0 items-stretch gap-3 sm:gap-4">
-            <Link
-              href={homeHref}
-              className="relative mt-0.5 block h-11 w-11 shrink-0 sm:h-12 sm:w-12"
-              aria-label="BeforeToBuy — top of page"
-              title="Top of page"
-              onClick={goToBrowseTop}
-            >
-              <Image
-                src="/beforetobuy-mark.png"
-                alt=""
-                width={96}
-                height={96}
-                className="h-full w-full object-contain"
-                priority
-              />
-            </Link>
+            <div className="flex shrink-0 flex-col items-center gap-0.5">
+              <Link
+                href={homeHref}
+                className="relative block h-11 w-11 sm:h-12 sm:w-12"
+                aria-label="BeforeToBuy — top of page"
+                title="Top of page"
+                onClick={goToBrowseTop}
+              >
+                <Image
+                  src="/beforetobuy-mark.png"
+                  alt=""
+                  width={96}
+                  height={96}
+                  className="h-full w-full object-contain"
+                  priority
+                />
+              </Link>
+              <button
+                type="button"
+                onClick={openCategoryMenu}
+                className="inline-flex h-7 w-11 items-center justify-center rounded-md text-slate-700 hover:bg-slate-100 hover:text-emerald-800 sm:h-8 sm:w-12"
+                aria-haspopup="dialog"
+                aria-expanded={isCategoryMenuOpen}
+                aria-label={ui.menuOpen}
+                title={ui.menuOpen}
+              >
+                <Menu className="h-5 w-5" strokeWidth={2.25} aria-hidden="true" />
+              </button>
+            </div>
 
             <div className="flex min-w-0 flex-1 items-center">
               <SearchAutocomplete
@@ -129,7 +162,16 @@ export function Header({
           </div>
         </div>
       </header>
-      <div className="h-[6.6rem] sm:h-[7rem]" aria-hidden="true" />
+      <div className="h-[7.9rem] sm:h-[8.4rem]" aria-hidden="true" />
+
+      <CategoryFlyoutMenu
+        open={isCategoryMenuOpen}
+        onClose={() => setIsCategoryMenuOpen(false)}
+        selectedCategory={selectedCategoryId}
+        onCategoryChange={handleCategoryChange}
+        categoryCounts={categoryCounts}
+        locale={locale}
+      />
     </>
   );
 }

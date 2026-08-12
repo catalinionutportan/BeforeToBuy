@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useId, useRef } from "react";
+import { useState, useEffect, useId, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,15 @@ import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import type { SiteLocale } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import type { BrowseCategoryOption } from "@/components/BrowseCategoryOption";
+
+/** Case/diacritic-insensitive match for live category filtering. */
+function foldSearchText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .trim();
+}
 
 interface SearchAutocompleteProps {
   initialQuery?: string;
@@ -51,12 +60,22 @@ export function SearchAutocomplete({
   const containerRef = useRef<HTMLDivElement>(null);
   const country = COUNTRIES[countryCode as keyof typeof COUNTRIES] || COUNTRIES[DEFAULT_COUNTRY];
 
-  const showCategoryMenu =
+  const filteredCategories = useMemo(() => {
+    if (!onCategorySelect || categoryOptions.length === 0) return [];
+    const needle = foldSearchText(query);
+    if (!needle) return categoryOptions;
+    return categoryOptions.filter((option) => foldSearchText(option.label).includes(needle));
+  }, [categoryOptions, onCategorySelect, query]);
+
+  const canBrowseCategories = Boolean(onCategorySelect) && categoryOptions.length > 0;
+  /** Empty / 1-letter query: category panel (live filter). 2+ letters: categories only if they still match. */
+  const showCategoryPanel =
     isOpen &&
-    query.trim().length < 2 &&
-    categoryOptions.length > 0 &&
-    Boolean(onCategorySelect);
+    canBrowseCategories &&
+    (query.trim().length < 2 || filteredCategories.length > 0);
   const showProductResults = isOpen && debouncedQuery.trim().length >= 2;
+  const showDropdown = showCategoryPanel || showProductResults;
+  const categoryCount = showCategoryPanel ? filteredCategories.length : 0;
 
   useEffect(() => {
     setQuery(initialQuery);
@@ -121,9 +140,13 @@ export function SearchAutocomplete({
 
   const pickCategory = (categoryId: string) => {
     onCategorySelect?.(categoryId);
+    setQuery("");
     setIsOpen(false);
     setActiveIndex(-1);
   };
+
+  const productCount = showProductResults ? results.length : 0;
+  const totalOptions = categoryCount + productCount;
 
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Escape") {
@@ -132,46 +155,30 @@ export function SearchAutocomplete({
       return;
     }
 
-    if (showCategoryMenu) {
-      if (event.key === "ArrowDown") {
-        event.preventDefault();
-        setActiveIndex((current) => (current + 1) % categoryOptions.length);
-        return;
-      }
-      if (event.key === "ArrowUp") {
-        event.preventDefault();
-        setActiveIndex((current) =>
-          current <= 0 ? categoryOptions.length - 1 : current - 1
-        );
-        return;
-      }
-      if (event.key === "Enter" && activeIndex >= 0) {
-        event.preventDefault();
-        const option = categoryOptions[activeIndex];
-        if (option) pickCategory(option.id);
-        return;
-      }
-    }
-
-    if (!showProductResults || results.length === 0) return;
+    if (!showDropdown || totalOptions === 0) return;
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveIndex((current) => (current + 1) % results.length);
+      setActiveIndex((current) => (current + 1) % totalOptions);
       return;
     }
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActiveIndex((current) =>
-        current <= 0 ? results.length - 1 : current - 1
-      );
+      setActiveIndex((current) => (current <= 0 ? totalOptions - 1 : current - 1));
       return;
     }
     if (event.key === "Enter" && activeIndex >= 0) {
       event.preventDefault();
-      const product = results[activeIndex];
-      setIsOpen(false);
-      router.push(productPagePathWithReturn(product.id, "/", locale));
+      if (activeIndex < categoryCount) {
+        const option = filteredCategories[activeIndex];
+        if (option) pickCategory(option.id);
+        return;
+      }
+      const product = results[activeIndex - categoryCount];
+      if (product) {
+        setIsOpen(false);
+        router.push(productPagePathWithReturn(product.id, "/", locale));
+      }
     }
   };
 
@@ -194,7 +201,7 @@ export function SearchAutocomplete({
           onKeyDown={handleInputKeyDown}
           role="combobox"
           aria-autocomplete="list"
-          aria-expanded={showCategoryMenu || showProductResults}
+          aria-expanded={showDropdown}
           aria-controls={listboxId}
           aria-activedescendant={
             activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
@@ -206,141 +213,163 @@ export function SearchAutocomplete({
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <Loader2 className="h-4 w-4 text-emerald-500 animate-spin" aria-hidden="true" />
+            <Loader2 className="h-4 w-4 animate-spin text-emerald-500" aria-hidden="true" />
           </div>
         )}
       </form>
 
-      {showCategoryMenu && (
-        <div className="absolute top-full left-0 right-0 z-[100] mt-2 max-h-[min(70vh,24rem)] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)]">
-          <div className="border-b border-slate-100 px-4 py-2.5">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              {ui.browseCategoriesTitle}
-            </p>
-            <p className="text-[11px] text-slate-400">
-              {formatUi(ui.browseCategoriesHint, { country: country.name })}
-            </p>
-          </div>
-          <ul id={listboxId} role="listbox" className="py-1">
-            {categoryOptions.map((option, index) => {
-              const active = activeIndex === index;
-              const selected = selectedCategoryId === option.id;
-              return (
-                <li
-                  key={option.id}
-                  id={`${listboxId}-option-${index}`}
-                  role="option"
-                  aria-selected={selected}
-                  onMouseEnter={() => setActiveIndex(index)}
+      {showDropdown && (
+        <div className="absolute top-full right-0 left-0 z-[100] mt-2 max-h-[min(70vh,28rem)] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)]">
+          {showCategoryPanel && (
+            <div className={showProductResults ? "border-b border-slate-100" : undefined}>
+              <div className="border-b border-slate-100 px-4 py-2.5">
+                <p className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                  {ui.browseCategoriesTitle}
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  {query.trim()
+                    ? ui.browseCategoriesFilterHint
+                    : formatUi(ui.browseCategoriesHint, { country: country.name })}
+                </p>
+              </div>
+              {filteredCategories.length === 0 ? (
+                <p className="px-4 py-3 text-sm text-slate-500">{ui.browseCategoriesNoMatch}</p>
+              ) : (
+                <ul
+                  id={!showProductResults ? listboxId : undefined}
+                  role="listbox"
+                  className="py-1"
                 >
-                  <button
-                    type="button"
-                    onClick={() => pickCategory(option.id)}
-                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                      active ? "bg-emerald-50" : "hover:bg-slate-50"
-                    }`}
-                  >
-                    <Layers
-                      className={`h-4 w-4 shrink-0 ${selected ? "text-emerald-700" : "text-slate-400"}`}
-                      aria-hidden="true"
-                    />
-                    <span
-                      className={`min-w-0 flex-1 truncate text-sm font-semibold ${
-                        selected ? "text-emerald-900" : "text-slate-800"
-                      }`}
-                    >
-                      {option.label}
-                    </span>
-                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
-                      {option.count}
-                    </span>
-                    {selected ? (
-                      <Check className="h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
-                    ) : (
-                      <span className="w-4" aria-hidden="true" />
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-
-      {showProductResults && (
-        <div className="absolute top-full left-0 right-0 z-[100] mt-2 max-h-[80vh] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)]">
-          {!isLoading && results.length === 0 ? (
-            <div role="status" className="p-4 text-center text-sm font-medium text-slate-500">
-              {formatUi(ui.searchNoProductsFor, { query: debouncedQuery })}
-            </div>
-          ) : (
-            <ul id={listboxId} role="listbox" className="py-2">
-              {results.map((product, index) => {
-                const bestOffer = sortOffersByTotalPrice(product.offers)[0];
-                const lowestTotal = bestOffer
-                  ? (bestOffer.totalPrice ?? computeTotalPrice(bestOffer))
-                  : null;
-
-                return (
-                  <li
-                    key={product.id}
-                    id={`${listboxId}-option-${index}`}
-                    role="option"
-                    aria-selected={activeIndex === index}
-                    onMouseEnter={() => setActiveIndex(index)}
-                  >
-                    <Link
-                      href={productPagePathWithReturn(product.id, "/", locale)}
-                      onClick={() => setIsOpen(false)}
-                      className={`flex items-center gap-4 border-b border-slate-100 px-4 py-3 transition-colors last:border-0 ${
-                        activeIndex === index ? "bg-emerald-50" : "hover:bg-slate-50"
-                      }`}
-                    >
-                      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-100 p-1">
-                        {product.image ? (
-                          <Image
-                            src={product.image}
-                            alt={product.title}
-                            fill
-                            sizes="48px"
-                            className="object-contain p-1"
+                  {filteredCategories.map((option, index) => {
+                    const active = activeIndex === index;
+                    const selected = selectedCategoryId === option.id;
+                    return (
+                      <li
+                        key={option.id}
+                        id={`${listboxId}-option-${index}`}
+                        role="option"
+                        aria-selected={selected}
+                        onMouseEnter={() => setActiveIndex(index)}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => pickCategory(option.id)}
+                          className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                            active ? "bg-emerald-50" : "hover:bg-slate-50"
+                          }`}
+                        >
+                          <Layers
+                            className={`h-4 w-4 shrink-0 ${selected ? "text-emerald-700" : "text-slate-400"}`}
+                            aria-hidden="true"
                           />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-[8px] font-bold uppercase text-slate-400">
-                            {ui.noImageLabel}
+                          <span
+                            className={`min-w-0 flex-1 truncate text-sm font-semibold ${
+                              selected ? "text-emerald-900" : "text-slate-800"
+                            }`}
+                          >
+                            {option.label}
+                          </span>
+                          <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                            {option.count}
+                          </span>
+                          {selected ? (
+                            <Check className="h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
+                          ) : (
+                            <span className="w-4" aria-hidden="true" />
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
+
+          {showProductResults && (
+            <div>
+              {showCategoryPanel && filteredCategories.length > 0 && (
+                <div className="border-b border-slate-100 px-4 py-2">
+                  <p className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+                    {ui.searchProductsSectionTitle}
+                  </p>
+                </div>
+              )}
+              {!isLoading && results.length === 0 ? (
+                <div role="status" className="p-4 text-center text-sm font-medium text-slate-500">
+                  {formatUi(ui.searchNoProductsFor, { query: debouncedQuery })}
+                </div>
+              ) : (
+                <ul id={listboxId} role="listbox" className="py-2">
+                  {results.map((product, index) => {
+                    const optionIndex = categoryCount + index;
+                    const bestOffer = sortOffersByTotalPrice(product.offers)[0];
+                    const lowestTotal = bestOffer
+                      ? (bestOffer.totalPrice ?? computeTotalPrice(bestOffer))
+                      : null;
+
+                    return (
+                      <li
+                        key={product.id}
+                        id={`${listboxId}-option-${optionIndex}`}
+                        role="option"
+                        aria-selected={activeIndex === optionIndex}
+                        onMouseEnter={() => setActiveIndex(optionIndex)}
+                      >
+                        <Link
+                          href={productPagePathWithReturn(product.id, "/", locale)}
+                          onClick={() => setIsOpen(false)}
+                          className={`flex items-center gap-4 border-b border-slate-100 px-4 py-3 transition-colors last:border-0 ${
+                            activeIndex === optionIndex ? "bg-emerald-50" : "hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-100 p-1">
+                            {product.image ? (
+                              <Image
+                                src={product.image}
+                                alt={product.title}
+                                fill
+                                sizes="48px"
+                                className="object-contain p-1"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-[8px] font-bold text-slate-400 uppercase">
+                                {ui.noImageLabel}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
 
-                      <div className="min-w-0 flex-1">
-                        <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
-                          {product.brand}
-                        </p>
-                        <p className="truncate text-sm font-semibold leading-tight text-slate-900">
-                          {product.title}
-                        </p>
-                        {lowestTotal != null && (
-                          <p className="mt-1 text-xs font-bold text-slate-700">
-                            {ui.searchFromPriceLabel} {country.currencySymbol}
-                            {lowestTotal.toLocaleString()}
-                          </p>
-                        )}
-                      </div>
-                    </Link>
+                          <div className="min-w-0 flex-1">
+                            <p className="mb-0.5 text-[10px] font-bold tracking-wider text-emerald-600 uppercase">
+                              {product.brand}
+                            </p>
+                            <p className="truncate text-sm leading-tight font-semibold text-slate-900">
+                              {product.title}
+                            </p>
+                            {lowestTotal != null && (
+                              <p className="mt-1 text-xs font-bold text-slate-700">
+                                {ui.searchFromPriceLabel} {country.currencySymbol}
+                                {lowestTotal.toLocaleString()}
+                              </p>
+                            )}
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+
+                  <li className="border-t border-slate-200 bg-slate-50 p-2">
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      className="w-full rounded-lg p-2 text-center text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100/50 hover:text-emerald-800"
+                    >
+                      {formatUi(ui.searchViewAllResults, { query: debouncedQuery })} →
+                    </button>
                   </li>
-                );
-              })}
-
-              <li className="border-t border-slate-200 bg-slate-50 p-2">
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="w-full rounded-lg p-2 text-center text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100/50 hover:text-emerald-800"
-                >
-                  {formatUi(ui.searchViewAllResults, { query: debouncedQuery })} →
-                </button>
-              </li>
-            </ul>
+                </ul>
+              )}
+            </div>
           )}
         </div>
       )}

@@ -137,28 +137,62 @@ export default function HomePageClient({
         "hub-fashion": homeUi.hubFashion,
         "hub-garden": homeUi.hubGarden,
         "hub-diy": homeUi.hubDiy,
+        "hub-auto": homeUi.hubAuto,
       }) as Record<string, string>,
     [homeUi]
   );
 
-  /** Only departments that have products in the current market (+ All). */
+  /**
+   * Browse search menu: All + occupied hubs + occupied leaf categories.
+   * Leaves make the list useful for live type-to-filter (not just 2 hubs on RO).
+   */
   const categoryOptions = useMemo((): BrowseCategoryOption[] => {
+    const leafCounts = catalogMeta?.categoryCounts ?? {};
     const allCount = catalogMeta?.feedProductCount ?? catalogMeta?.totalMatched ?? 0;
     const options: BrowseCategoryOption[] = [
       { id: ALL_CATEGORIES_ID, label: homeUi.hubAll, count: allCount },
     ];
+    const seen = new Set<string>([ALL_CATEGORIES_ID]);
     const order = marketHubOrderForCountry(userLocation.countryCode);
+
     for (const hubId of order) {
-      const count = hubCounts[hubId] ?? 0;
-      if (count <= 0) continue;
+      const hubCount = hubCounts[hubId] ?? 0;
+      if (hubCount <= 0) continue;
+
       options.push({
         id: hubId,
         label: hubLabels[hubId] ?? hubId,
-        count,
+        count: hubCount,
       });
+      seen.add(hubId);
+
+      const occupiedLeaves = (MARKET_HUB_LEAF_GROUPS[hubId] ?? [])
+        .map((leafId) => ({ id: leafId, count: leafCounts[leafId] ?? 0 }))
+        .filter((leaf) => leaf.count > 0)
+        .sort(
+          (a, b) =>
+            b.count - a.count ||
+            getLocalizedCategoryLabel(a.id, browseLocale).localeCompare(
+              getLocalizedCategoryLabel(b.id, browseLocale),
+              browseLocale
+            )
+        );
+
+      for (const leaf of occupiedLeaves) {
+        if (seen.has(leaf.id)) continue;
+        seen.add(leaf.id);
+        options.push({
+          id: leaf.id,
+          label: getLocalizedCategoryLabel(leaf.id, browseLocale),
+          count: leaf.count,
+        });
+      }
     }
+
     return options;
   }, [
+    browseLocale,
+    catalogMeta?.categoryCounts,
     catalogMeta?.feedProductCount,
     catalogMeta?.totalMatched,
     homeUi.hubAll,
@@ -375,8 +409,10 @@ export default function HomePageClient({
 
     const controller = new AbortController();
     const requestCountry = userLocation.countryCode;
-    // Client accumulates pages from offset 0, so the next page starts at loaded length.
-    const nextOffset = products.length;
+    const pageLimit = catalogMeta.limit ?? DEFAULT_PRODUCT_LIST_LIMIT;
+    // Advance by the server page window, not client array length (filters/dedupe
+    // would otherwise re-request the same OFFSET and stall after 1–2 screens).
+    const nextOffset = (catalogMeta.offset ?? 0) + pageLimit;
 
     async function loadMoreProducts() {
       try {
@@ -411,7 +447,18 @@ export default function HomePageClient({
           const appended = (data.products || []).filter((product) => !seen.has(product.id));
           return appended.length ? [...prev, ...appended] : prev;
         });
-        setCatalogMeta(data.meta || null);
+        setCatalogMeta((prev) => {
+          if (!data.meta) return prev;
+          return {
+            ...data.meta,
+            // Keep catalogue-wide counts from the first page when a later page is thin.
+            feedProductCount: data.meta.feedProductCount || prev?.feedProductCount || 0,
+            categoryCounts: data.meta.categoryCounts ?? prev?.categoryCounts,
+            brandOptions: data.meta.brandOptions?.length
+              ? data.meta.brandOptions
+              : prev?.brandOptions,
+          };
+        });
       } catch (error) {
         if (controller.signal.aborted) return;
         console.error("Failed to load more products:", error);
@@ -423,6 +470,7 @@ export default function HomePageClient({
   }, [
     catalogMeta?.hasMore,
     catalogMeta?.offset,
+    catalogMeta?.limit,
     visibleCount,
     products.length,
     isLoadingProducts,
@@ -653,6 +701,7 @@ export default function HomePageClient({
         categoryOptions={categoryOptions}
         selectedCategoryId={selectedCategory}
         onCategorySelect={handleCategoryChange}
+        categoryCounts={catalogMeta?.categoryCounts}
       />
 
       {/* Full-width desktop content — no phone-shell max-width */}

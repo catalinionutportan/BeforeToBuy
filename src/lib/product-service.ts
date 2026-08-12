@@ -161,7 +161,9 @@ export async function fetchMergedProductsForLocation(
           totalMatched,
           limit: limit ?? null,
           offset,
-          hasMore: limit == null ? false : offset + products.length < totalMatched,
+          // Use requested page size, not filtered row count — otherwise a short
+          // page (unmapped/no-offer drops) falsely ends infinite scroll.
+          hasMore: limit == null ? false : offset + limit < totalMatched,
           priceHistory: {
             enabled: true,
             backend: getPriceHistoryBackend(),
@@ -283,7 +285,7 @@ export async function fetchMergedProductsForLocation(
       totalMatched,
       limit: limit ?? null,
       offset,
-      hasMore: limit == null ? false : offset + products.length < totalMatched,
+      hasMore: limit == null ? false : offset + limit < totalMatched,
       priceHistory: {
         enabled: true,
         backend: getPriceHistoryBackend(),

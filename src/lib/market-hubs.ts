@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BookOpen,
+  Car,
   Flower2,
   Hammer,
   Home,
@@ -10,8 +11,8 @@ import {
 import type { CountryCode } from "@/types";
 
 /**
- * Top-level market hubs shown as sticky tabs.
- * Each hub aggregates existing product-type leaf IDs (or new fashion leaves).
+ * Top-level market hubs for browse (search menu + flyout).
+ * Each hub aggregates existing product-type leaf IDs.
  */
 export interface MarketHubTab {
   id: string;
@@ -49,13 +50,37 @@ export function shouldIgnoreLandingCategory(categoryId: string | null | undefine
 export function marketHubOrderForCountry(countryCode: CountryCode | string): readonly string[] {
   // RO: live home/DIY early so Rowenta + Scule365 stay easy to find.
   if (countryCode === "RO") {
-    return ["hub-home", "hub-diy", "hub-electronics", "hub-fashion", "hub-garden", "hub-books"];
+    return [
+      "hub-home",
+      "hub-diy",
+      "hub-auto",
+      "hub-electronics",
+      "hub-fashion",
+      "hub-garden",
+      "hub-books",
+    ];
   }
-  // CH: fashion (baby-walz) + DIY/auto (Reifen) before empty electronics.
+  // CH: fashion (baby-walz) + Auto (Reifen) before empty electronics.
   if (countryCode === "CH") {
-    return ["hub-fashion", "hub-diy", "hub-electronics", "hub-home", "hub-garden", "hub-books"];
+    return [
+      "hub-fashion",
+      "hub-auto",
+      "hub-diy",
+      "hub-electronics",
+      "hub-home",
+      "hub-garden",
+      "hub-books",
+    ];
   }
-  return ["hub-electronics", "hub-home", "hub-fashion", "hub-diy", "hub-garden", "hub-books"];
+  return [
+    "hub-electronics",
+    "hub-home",
+    "hub-fashion",
+    "hub-auto",
+    "hub-diy",
+    "hub-garden",
+    "hub-books",
+  ];
 }
 
 export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
@@ -303,7 +328,12 @@ export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
       "diy-measuring",
       "diy-workwear-safety",
       "diy-fasteners-consumables",
-      // Tyres / auto (Reifen.com CH) — discoverable without a separate Auto hub yet.
+    ],
+  },
+  {
+    id: "hub-auto",
+    icon: Car,
+    leafIds: [
       "auto-tires-wheels",
       "auto-batteries",
       "auto-oils-fluids",

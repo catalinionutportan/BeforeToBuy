@@ -23,9 +23,9 @@ describe("market hubs", () => {
     expect(shouldIgnoreLandingCategory("hub-fashion")).toBe(false);
   });
 
-  it("orders CH hubs with fashion and DIY before electronics", () => {
+  it("orders CH hubs with fashion and Auto before electronics", () => {
     expect(marketHubOrderForCountry("CH")[0]).toBe("hub-fashion");
-    expect(marketHubOrderForCountry("CH")[1]).toBe("hub-diy");
+    expect(marketHubOrderForCountry("CH")[1]).toBe("hub-auto");
   });
 
   it("matches demo products into the correct hub", () => {
@@ -56,9 +56,15 @@ describe("market hubs", () => {
     expect(
       productMatchesCategoryFilter(
         { title: "Tyre", description: "", brand: "A", category: "auto-tires-wheels" },
-        "hub-diy"
+        "hub-auto"
       )
     ).toBe(true);
+    expect(
+      productMatchesCategoryFilter(
+        { title: "Tyre", description: "", brand: "A", category: "auto-tires-wheels" },
+        "hub-diy"
+      )
+    ).toBe(false);
   });
 
   it("exposes top market hubs in usage order", () => {
@@ -69,6 +75,7 @@ describe("market hubs", () => {
       "hub-fashion",
       "hub-garden",
       "hub-diy",
+      "hub-auto",
     ]);
   });
 });
