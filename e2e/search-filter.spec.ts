@@ -47,16 +47,18 @@ test.describe("Search, filters and product handoff", () => {
   });
 
   test("filters by merchant domain and opens category menu", async ({ page }) => {
-    await page.getByLabel("Store domain").selectOption("rowenta.ro");
+    await page.getByLabel(/store domain/i).selectOption("rowenta.ro");
 
     await expect(page).toHaveURL(/domain=rowenta.ro/);
     await expect(page.locator("article").first()).toContainText(/rowenta/i);
 
     // Hub tabs were removed — categories live under the bag menu (iOS affordance).
+    // Scope by name: cookie banner is also role=dialog.
     await page.getByRole("button", { name: /^Menu$/i }).click();
-    await expect(page.getByRole("dialog")).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog")).toHaveCount(0);
+    const categoryMenu = page.getByRole("dialog", { name: /^Menu$/i });
+    await expect(categoryMenu).toBeVisible();
+    await categoryMenu.getByRole("button", { name: /^Close menu$/i }).click();
+    await expect(categoryMenu).toHaveCount(0);
   });
 
   test("opens accessible product details", async ({ page }) => {
