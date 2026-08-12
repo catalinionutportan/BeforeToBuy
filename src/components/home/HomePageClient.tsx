@@ -9,18 +9,18 @@ import { getActiveCouponsForCountry } from "@/lib/feed-parser";
 import type { ProductFetchMeta } from "@/lib/product-service";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { Header } from "@/components/Header";
-import { CategoryFlyoutMenu } from "@/components/CategoryFlyoutMenu";
-import { MarketHubTabs } from "@/components/MarketHubTabs";
 import { OfferFilters } from "@/components/OfferFilters";
 import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
 import { isActiveCollectionSelection } from "@/components/CollectionNavigation";
+import type { BrowseCategoryOption } from "@/components/BrowseCategoryOption";
 import { ALL_CATEGORIES_ID, productMatchesCategoryFilter } from "@/lib/categories";
 import {
   defaultMarketHubForCountry,
   isMarketHubId,
   MARKET_HUB_LEAF_GROUPS,
   MARKET_HUB_TABS,
+  marketHubOrderForCountry,
   shouldIgnoreLandingCategory,
 } from "@/lib/market-hubs";
 import {
@@ -85,7 +85,6 @@ export default function HomePageClient({
     initialProducts.length === 0 && !initialFetchFailed
   );
   const [isDisclosureOpen, setIsDisclosureOpen] = useState<boolean>(false);
-  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [catalogMeta, setCatalogMeta] = useState<ProductFetchMeta | null>(initialMeta);
   const [productFetchFailed, setProductFetchFailed] = useState<boolean>(initialFetchFailed);
   const skippedInitialCatalogRequest = useRef(false);
@@ -128,6 +127,45 @@ export default function HomePageClient({
     }
     return counts;
   }, [catalogMeta?.categoryCounts]);
+
+  const hubLabels = useMemo(
+    () =>
+      ({
+        "hub-electronics": homeUi.hubElectronics,
+        "hub-home": homeUi.hubHome,
+        "hub-books": homeUi.hubBooks,
+        "hub-fashion": homeUi.hubFashion,
+        "hub-garden": homeUi.hubGarden,
+        "hub-diy": homeUi.hubDiy,
+      }) as Record<string, string>,
+    [homeUi]
+  );
+
+  /** Only departments that have products in the current market (+ All). */
+  const categoryOptions = useMemo((): BrowseCategoryOption[] => {
+    const allCount = catalogMeta?.feedProductCount ?? catalogMeta?.totalMatched ?? 0;
+    const options: BrowseCategoryOption[] = [
+      { id: ALL_CATEGORIES_ID, label: homeUi.hubAll, count: allCount },
+    ];
+    const order = marketHubOrderForCountry(userLocation.countryCode);
+    for (const hubId of order) {
+      const count = hubCounts[hubId] ?? 0;
+      if (count <= 0) continue;
+      options.push({
+        id: hubId,
+        label: hubLabels[hubId] ?? hubId,
+        count,
+      });
+    }
+    return options;
+  }, [
+    catalogMeta?.feedProductCount,
+    catalogMeta?.totalMatched,
+    homeUi.hubAll,
+    hubCounts,
+    hubLabels,
+    userLocation.countryCode,
+  ]);
 
   // Read shareable browse state and respond to browser back/forward navigation.
   useEffect(() => {
@@ -610,27 +648,11 @@ export default function HomePageClient({
         locale={browseLocale}
         onLocaleChange={setBrowseLocale}
         availableLocales={availableLocales}
-        onOpenCategoryMenu={() => setIsCategoryMenuOpen(true)}
         selectedDomain={selectedDomain}
         onDomainChange={handleDomainChange}
-      />
-
-      <MarketHubTabs
-        selectedHub={selectedCategory}
-        onHubChange={handleCategoryChange}
-        locale={browseLocale}
-        hubCounts={hubCounts}
-        allCount={catalogMeta?.feedProductCount ?? catalogMeta?.totalMatched}
-        countryCode={userLocation.countryCode}
-      />
-
-      <CategoryFlyoutMenu
-        open={isCategoryMenuOpen}
-        onClose={() => setIsCategoryMenuOpen(false)}
-        selectedCategory={selectedCategory}
-        onCategoryChange={handleCategoryChange}
-        categoryCounts={catalogMeta?.categoryCounts}
-        locale={browseLocale}
+        categoryOptions={categoryOptions}
+        selectedCategoryId={selectedCategory}
+        onCategorySelect={handleCategoryChange}
       />
 
       {/* Full-width desktop content — no phone-shell max-width */}
@@ -647,22 +669,29 @@ export default function HomePageClient({
           </div>
 
           <div className="space-y-2">
-            <label className="inline-flex max-w-full items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">
-              <span className="text-slate-500">{homeUi.storeDomainLabel}</span>
-              <select
-                aria-label={homeUi.storeDomainLabel}
-                value={selectedDomain}
-                onChange={(event) => handleDomainChange(event.target.value)}
-                className="max-w-[12rem] min-w-0 bg-transparent text-[11px] font-bold text-slate-800 outline-none"
-              >
-                <option value="all">{homeUi.allStores}</option>
-                {currentCountryInfo.merchantDomains.map((merchant) => (
-                  <option key={merchant.id} value={merchant.domain}>
-                    {merchant.domain}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="inline-flex max-w-full items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">
+                <span className="text-slate-500">{homeUi.storeDomainLabel}</span>
+                <select
+                  aria-label={homeUi.storeDomainLabel}
+                  value={selectedDomain}
+                  onChange={(event) => handleDomainChange(event.target.value)}
+                  className="max-w-[12rem] min-w-0 bg-transparent text-[11px] font-bold text-slate-800 outline-none"
+                >
+                  <option value="all">{homeUi.allStores}</option>
+                  {currentCountryInfo.merchantDomains.map((merchant) => (
+                    <option key={merchant.id} value={merchant.domain}>
+                      {merchant.domain}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p className="rounded-xl border border-emerald-100 bg-emerald-50/80 px-2.5 py-1.5 text-[11px] font-bold text-emerald-900">
+                {formatUi(homeUi.itemsFound, {
+                  count: catalogMeta?.totalMatched ?? displayedProducts.length,
+                })}
+              </p>
+            </div>
             <OfferFilters
               criteria={activeOfferFilters}
               brandOptions={brandOptions}
@@ -671,12 +700,14 @@ export default function HomePageClient({
               onChange={handleOfferFiltersChange}
             />
 
-            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-1.5 shadow-xs shrink-0 ml-auto w-full sm:w-auto mt-2 sm:mt-0">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 pl-2">{homeUi.sortLabel}</span>
-              <select 
+            <div className="ml-auto mt-2 flex w-full shrink-0 items-center gap-2 rounded-lg border border-slate-200 bg-white p-1.5 shadow-xs sm:mt-0 sm:w-auto">
+              <span className="pl-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                {homeUi.sortLabel}
+              </span>
+              <select
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as SortOption)}
-                className="text-sm font-semibold text-slate-700 bg-transparent border-none outline-none focus:ring-0 cursor-pointer pr-4 w-full"
+                className="w-full cursor-pointer border-none bg-transparent pr-4 text-sm font-semibold text-slate-700 outline-none focus:ring-0"
               >
                 <option value="default">{homeUi.sortRelevance}</option>
                 <option value="price-asc">{homeUi.sortPriceAsc}</option>

@@ -68,6 +68,8 @@ export const enUi = {
     hubDiy: "DIY / Bricolaj",
     hubHome: "Home + Appliances",
     hubAll: "All",
+    browseCategoriesTitle: "Categories",
+    browseCategoriesHint: "Categories with products in {country}",
     menuTitle: "Menu",
     menuSubtitle: "Categories and subcategories",
     menuClose: "Close menu",

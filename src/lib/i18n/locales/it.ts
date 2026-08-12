@@ -70,6 +70,8 @@ export const itUi = {
     hubDiy: "Fai da te",
     hubHome: "Casa",
     hubAll: "Tutti",
+    browseCategoriesTitle: "Categorie",
+    browseCategoriesHint: "Categorie con prodotti in {country}",
     menuTitle: "Menu",
     menuSubtitle: "Categorie e sottocategorie",
     menuClose: "Chiudi menu",

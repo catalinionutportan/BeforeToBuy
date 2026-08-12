@@ -70,6 +70,8 @@ export const deUi = {
     hubDiy: "Baumarkt / DIY",
     hubHome: "Haushalt",
     hubAll: "Alle",
+    browseCategoriesTitle: "Kategorien",
+    browseCategoriesHint: "Kategorien mit Produkten in {country}",
     menuTitle: "Menü",
     menuSubtitle: "Kategorien und Unterkategorien",
     menuClose: "Menü schliessen",

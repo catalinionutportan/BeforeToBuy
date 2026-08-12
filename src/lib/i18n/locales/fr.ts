@@ -68,6 +68,8 @@ export const frUi = {
     hubDiy: "Bricolage",
     hubHome: "Maison",
     hubAll: "Tout",
+    browseCategoriesTitle: "Catégories",
+    browseCategoriesHint: "Catégories avec produits en {country}",
     menuTitle: "Menu",
     menuSubtitle: "Catégories et sous-catégories",
     menuClose: "Fermer le menu",

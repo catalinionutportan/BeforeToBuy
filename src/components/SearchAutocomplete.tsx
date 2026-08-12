@@ -4,14 +4,16 @@ import { useState, useEffect, useId, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Layers, Check } from "lucide-react";
 import { Product } from "@/types";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { productPagePathWithReturn } from "@/lib/seo/site-url";
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import type { SiteLocale } from "@/lib/i18n/locales";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
+import type { BrowseCategoryOption } from "@/components/BrowseCategoryOption";
 
 interface SearchAutocompleteProps {
   initialQuery?: string;
@@ -19,6 +21,10 @@ interface SearchAutocompleteProps {
   onSearchSubmit?: (query: string) => void;
   countryCode?: string;
   locale?: SiteLocale;
+  /** Occupied categories for the current market (shown when search is focused). */
+  categoryOptions?: BrowseCategoryOption[];
+  selectedCategoryId?: string;
+  onCategorySelect?: (categoryId: string) => void;
 }
 
 export function SearchAutocomplete({
@@ -27,6 +33,9 @@ export function SearchAutocomplete({
   onSearchSubmit,
   countryCode = DEFAULT_COUNTRY,
   locale = "en",
+  categoryOptions = [],
+  selectedCategoryId = ALL_CATEGORIES_ID,
+  onCategorySelect,
 }: SearchAutocompleteProps) {
   const router = useRouter();
   const listboxId = useId();
@@ -34,7 +43,7 @@ export function SearchAutocomplete({
   const resolvedPlaceholder = placeholder ?? ui.searchPlaceholder.replace("{country}", "");
   const [query, setQuery] = useState(initialQuery);
   const debouncedQuery = useDebouncedValue(query, 300);
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<Product[]>([]);
@@ -42,11 +51,17 @@ export function SearchAutocomplete({
   const containerRef = useRef<HTMLDivElement>(null);
   const country = COUNTRIES[countryCode as keyof typeof COUNTRIES] || COUNTRIES[DEFAULT_COUNTRY];
 
+  const showCategoryMenu =
+    isOpen &&
+    query.trim().length < 2 &&
+    categoryOptions.length > 0 &&
+    Boolean(onCategorySelect);
+  const showProductResults = isOpen && debouncedQuery.trim().length >= 2;
+
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
 
-  // Handle outside click to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -57,7 +72,6 @@ export function SearchAutocomplete({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch results when debounced query changes
   useEffect(() => {
     if (!debouncedQuery || debouncedQuery.trim().length < 2) {
       setResults([]);
@@ -90,8 +104,8 @@ export function SearchAutocomplete({
       }
     };
 
-    fetchSuggestions();
-    
+    void fetchSuggestions();
+
     return () => {
       controller.abort();
     };
@@ -105,13 +119,41 @@ export function SearchAutocomplete({
     }
   };
 
+  const pickCategory = (categoryId: string) => {
+    onCategorySelect?.(categoryId);
+    setIsOpen(false);
+    setActiveIndex(-1);
+  };
+
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Escape") {
       setIsOpen(false);
       setActiveIndex(-1);
       return;
     }
-    if (!isOpen || results.length === 0) return;
+
+    if (showCategoryMenu) {
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setActiveIndex((current) => (current + 1) % categoryOptions.length);
+        return;
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setActiveIndex((current) =>
+          current <= 0 ? categoryOptions.length - 1 : current - 1
+        );
+        return;
+      }
+      if (event.key === "Enter" && activeIndex >= 0) {
+        event.preventDefault();
+        const option = categoryOptions[activeIndex];
+        if (option) pickCategory(option.id);
+        return;
+      }
+    }
+
+    if (!showProductResults || results.length === 0) return;
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
@@ -142,15 +184,17 @@ export function SearchAutocomplete({
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
-            if (e.target.value.trim().length > 1) setIsOpen(true);
+            setIsOpen(true);
+            setActiveIndex(-1);
           }}
           onFocus={() => {
-            if (query.trim().length > 1) setIsOpen(true);
+            setIsOpen(true);
+            setActiveIndex(-1);
           }}
           onKeyDown={handleInputKeyDown}
           role="combobox"
           aria-autocomplete="list"
-          aria-expanded={isOpen && debouncedQuery.trim().length >= 2}
+          aria-expanded={showCategoryMenu || showProductResults}
           aria-controls={listboxId}
           aria-activedescendant={
             activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
@@ -167,19 +211,75 @@ export function SearchAutocomplete({
         )}
       </form>
 
-      {/* Dropdown Results */}
-      {isOpen && debouncedQuery.trim().length >= 2 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden z-[100] max-h-[80vh] overflow-y-auto">
+      {showCategoryMenu && (
+        <div className="absolute top-full left-0 right-0 z-[100] mt-2 max-h-[min(70vh,24rem)] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)]">
+          <div className="border-b border-slate-100 px-4 py-2.5">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              {ui.browseCategoriesTitle}
+            </p>
+            <p className="text-[11px] text-slate-400">
+              {formatUi(ui.browseCategoriesHint, { country: country.name })}
+            </p>
+          </div>
+          <ul id={listboxId} role="listbox" className="py-1">
+            {categoryOptions.map((option, index) => {
+              const active = activeIndex === index;
+              const selected = selectedCategoryId === option.id;
+              return (
+                <li
+                  key={option.id}
+                  id={`${listboxId}-option-${index}`}
+                  role="option"
+                  aria-selected={selected}
+                  onMouseEnter={() => setActiveIndex(index)}
+                >
+                  <button
+                    type="button"
+                    onClick={() => pickCategory(option.id)}
+                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                      active ? "bg-emerald-50" : "hover:bg-slate-50"
+                    }`}
+                  >
+                    <Layers
+                      className={`h-4 w-4 shrink-0 ${selected ? "text-emerald-700" : "text-slate-400"}`}
+                      aria-hidden="true"
+                    />
+                    <span
+                      className={`min-w-0 flex-1 truncate text-sm font-semibold ${
+                        selected ? "text-emerald-900" : "text-slate-800"
+                      }`}
+                    >
+                      {option.label}
+                    </span>
+                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600">
+                      {option.count}
+                    </span>
+                    {selected ? (
+                      <Check className="h-4 w-4 shrink-0 text-emerald-700" aria-hidden="true" />
+                    ) : (
+                      <span className="w-4" aria-hidden="true" />
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {showProductResults && (
+        <div className="absolute top-full left-0 right-0 z-[100] mt-2 max-h-[80vh] overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)]">
           {!isLoading && results.length === 0 ? (
-            <div role="status" className="p-4 text-center text-sm text-slate-500 font-medium">
+            <div role="status" className="p-4 text-center text-sm font-medium text-slate-500">
               {formatUi(ui.searchNoProductsFor, { query: debouncedQuery })}
             </div>
           ) : (
             <ul id={listboxId} role="listbox" className="py-2">
               {results.map((product, index) => {
                 const bestOffer = sortOffersByTotalPrice(product.offers)[0];
-                
-                const lowestTotal = bestOffer ? (bestOffer.totalPrice ?? computeTotalPrice(bestOffer)) : null;
+                const lowestTotal = bestOffer
+                  ? (bestOffer.totalPrice ?? computeTotalPrice(bestOffer))
+                  : null;
 
                 return (
                   <li
@@ -192,23 +292,35 @@ export function SearchAutocomplete({
                     <Link
                       href={productPagePathWithReturn(product.id, "/", locale)}
                       onClick={() => setIsOpen(false)}
-                      className={`flex items-center gap-4 px-4 py-3 transition-colors border-b border-slate-100 last:border-0 ${activeIndex === index ? "bg-emerald-50" : "hover:bg-slate-50"}`}
+                      className={`flex items-center gap-4 border-b border-slate-100 px-4 py-3 transition-colors last:border-0 ${
+                        activeIndex === index ? "bg-emerald-50" : "hover:bg-slate-50"
+                      }`}
                     >
-                      <div className="relative w-12 h-12 shrink-0 bg-slate-100 rounded-md overflow-hidden p-1 border border-slate-200">
+                      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-slate-200 bg-slate-100 p-1">
                         {product.image ? (
-                            <Image src={product.image} alt={product.title} fill sizes="48px" className="object-contain p-1" />
+                          <Image
+                            src={product.image}
+                            alt={product.title}
+                            fill
+                            sizes="48px"
+                            className="object-contain p-1"
+                          />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[8px] text-slate-400 font-bold uppercase">
+                          <div className="flex h-full w-full items-center justify-center text-[8px] font-bold uppercase text-slate-400">
                             {ui.noImageLabel}
                           </div>
                         )}
                       </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-0.5">{product.brand}</p>
-                        <p className="text-sm font-semibold text-slate-900 truncate leading-tight">{product.title}</p>
+
+                      <div className="min-w-0 flex-1">
+                        <p className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                          {product.brand}
+                        </p>
+                        <p className="truncate text-sm font-semibold leading-tight text-slate-900">
+                          {product.title}
+                        </p>
                         {lowestTotal != null && (
-                          <p className="text-xs font-bold text-slate-700 mt-1">
+                          <p className="mt-1 text-xs font-bold text-slate-700">
                             {ui.searchFromPriceLabel} {country.currencySymbol}
                             {lowestTotal.toLocaleString()}
                           </p>
@@ -218,11 +330,12 @@ export function SearchAutocomplete({
                   </li>
                 );
               })}
-              
-              <li className="bg-slate-50 border-t border-slate-200 p-2">
-                <button 
+
+              <li className="border-t border-slate-200 bg-slate-50 p-2">
+                <button
+                  type="button"
                   onClick={handleSubmit}
-                  className="w-full text-center text-xs font-bold text-emerald-700 hover:text-emerald-800 p-2 rounded-lg hover:bg-emerald-100/50 transition-colors"
+                  className="w-full rounded-lg p-2 text-center text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100/50 hover:text-emerald-800"
                 >
                   {formatUi(ui.searchViewAllResults, { query: debouncedQuery })} →
                 </button>

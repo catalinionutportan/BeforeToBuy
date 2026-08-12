@@ -70,6 +70,8 @@ export const roUi = {
     hubDiy: "Bricolaj",
     hubHome: "Casă + Electrocasnice",
     hubAll: "Toate",
+    browseCategoriesTitle: "Categorii",
+    browseCategoriesHint: "Categorii cu produse în {country}",
     menuTitle: "Meniu",
     menuSubtitle: "Categorii și subcategorii",
     menuClose: "Închide meniul",
