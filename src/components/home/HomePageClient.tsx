@@ -199,9 +199,11 @@ export default function HomePageClient({
     skippedInitialCatalogRequest.current = true;
 
     async function loadProductsAndCoupons() {
-      // Keep SSR products visible while refetching the same market.
-      const hasSsrCatalog = initialProducts.length > 0;
-      setIsLoadingProducts(!hasSsrCatalog);
+      // Keep SSR products visible only while refetching the *same* market on All.
+      // Country switches clear the grid — always show loading instead of the empty card.
+      const keepSsrVisible =
+        requestCountry === initialCountry && initialProducts.length > 0;
+      setIsLoadingProducts(!keepSsrVisible);
 
       try {
         const params = new URLSearchParams({
@@ -279,6 +281,7 @@ export default function HomePageClient({
   const changeCountry = useCallback(
     (countryCode: CountryCode) => {
       // Never display offers from the previous market while the new market loads.
+      setIsLoadingProducts(true);
       setProducts([]);
       setCatalogMeta(null);
       setVisibleCount(12);

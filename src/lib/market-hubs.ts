@@ -20,20 +20,26 @@ export interface MarketHubTab {
   leafIds: readonly string[];
 }
 
+/** Kept for hub identity checks; landing always uses All — see defaultMarketHubForCountry. */
 export const DEFAULT_MARKET_HUB_ID = "hub-electronics";
 
-/** Romania live catalogue is DIY + home appliances — start on All so nothing is hub-hidden. */
-export function defaultMarketHubForCountry(countryCode: CountryCode | string): string {
-  if (countryCode === "RO") return "all";
-  return DEFAULT_MARKET_HUB_ID;
+/**
+ * First paint / market switch: always show the full catalogue (All).
+ * Auto-selecting Electronics hid CH baby/tyre inventory and looked like a blank site.
+ */
+export function defaultMarketHubForCountry(_countryCode: CountryCode | string): string {
+  return "all";
 }
 
-/** Prefer live RO hubs first so Rowenta (home) and Scule365 (DIY) are easy to find. */
+/** Prefer live inventory hubs first per market. */
 export function marketHubOrderForCountry(countryCode: CountryCode | string): readonly string[] {
-  // Usage order: electronics → home/appliances → fashion → DIY → garden (books last).
-  // RO keeps live home/DIY early so Rowenta + Scule365 stay easy to find.
+  // RO: live home/DIY early so Rowenta + Scule365 stay easy to find.
   if (countryCode === "RO") {
     return ["hub-home", "hub-diy", "hub-electronics", "hub-fashion", "hub-garden", "hub-books"];
+  }
+  // CH: fashion (baby-walz) + DIY/auto (Reifen) before empty electronics.
+  if (countryCode === "CH") {
+    return ["hub-fashion", "hub-diy", "hub-electronics", "hub-home", "hub-garden", "hub-books"];
   }
   return ["hub-electronics", "hub-home", "hub-fashion", "hub-diy", "hub-garden", "hub-books"];
 }
@@ -283,6 +289,14 @@ export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
       "diy-measuring",
       "diy-workwear-safety",
       "diy-fasteners-consumables",
+      // Tyres / auto (Reifen.com CH) — discoverable without a separate Auto hub yet.
+      "auto-tires-wheels",
+      "auto-batteries",
+      "auto-oils-fluids",
+      "auto-lighting",
+      "auto-filters-brakes",
+      "auto-interior-care",
+      "auto-tools-chargers",
     ],
   },
 ] as const;
