@@ -18,6 +18,7 @@ import { isActiveCollectionSelection } from "@/components/CollectionNavigation";
 import { ALL_CATEGORIES_ID, productMatchesCategoryFilter } from "@/lib/categories";
 import {
   defaultMarketHubForCountry,
+  isMarketHubId,
   MARKET_HUB_LEAF_GROUPS,
   MARKET_HUB_TABS,
 } from "@/lib/market-hubs";
@@ -154,14 +155,42 @@ export default function HomePageClient({
     return () => window.removeEventListener("popstate", readBrowseState);
   }, [userLocation.countryCode]);
 
-  // When switching market without an explicit category URL, use country default hub.
+  const previousCountryRef = useRef(userLocation.countryCode);
+
+  // Country switch only: land on All and drop the previous market's hub from the URL.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("category")) return;
+    if (previousCountryRef.current === userLocation.countryCode) return;
+    previousCountryRef.current = userLocation.countryCode;
     const next = defaultMarketHubForCountry(userLocation.countryCode);
     setSelectedCategory(next);
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("category")) {
+      url.searchParams.delete("category");
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
   }, [userLocation.countryCode]);
+
+  // Sticky ?category=hub-electronics (or any empty hub) → jump to All once inventory is known.
+  useEffect(() => {
+    if (isLoadingProducts) return;
+    if (!isMarketHubId(selectedCategory)) return;
+    const marketTotal = catalogMeta?.feedProductCount ?? 0;
+    if (marketTotal <= 0) return;
+    if ((hubCounts[selectedCategory] ?? 0) > 0) return;
+    setSelectedCategory(ALL_CATEGORIES_ID);
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("category")) {
+      url.searchParams.delete("category");
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+  }, [
+    isLoadingProducts,
+    selectedCategory,
+    hubCounts,
+    catalogMeta?.feedProductCount,
+  ]);
 
   // Keep `q` shareable in the URL after debounce.
   useEffect(() => {
@@ -286,6 +315,7 @@ export default function HomePageClient({
       setCatalogMeta(null);
       setVisibleCount(12);
       setProductFetchFailed(false);
+      setSelectedCategory(ALL_CATEGORIES_ID);
       handleCountryChange(countryCode);
     },
     [handleCountryChange]
@@ -581,7 +611,7 @@ export default function HomePageClient({
         onHubChange={handleCategoryChange}
         locale={browseLocale}
         hubCounts={hubCounts}
-        allCount={catalogMeta?.totalMatched}
+        allCount={catalogMeta?.feedProductCount ?? catalogMeta?.totalMatched}
         countryCode={userLocation.countryCode}
       />
 
