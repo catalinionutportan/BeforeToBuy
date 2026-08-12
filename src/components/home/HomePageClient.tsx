@@ -21,6 +21,7 @@ import {
   isMarketHubId,
   MARKET_HUB_LEAF_GROUPS,
   MARKET_HUB_TABS,
+  shouldIgnoreLandingCategory,
 } from "@/lib/market-hubs";
 import {
   CATEGORY_UI,
@@ -134,9 +135,17 @@ export default function HomePageClient({
 
     const readBrowseState = () => {
       const params = new URLSearchParams(window.location.search);
-      setSelectedCategory(
-        params.get("category") || defaultMarketHubForCountry(userLocation.countryCode)
-      );
+      const rawCategory = params.get("category");
+      // Always start on All — never restore sticky empty Electronics from the URL.
+      const nextCategory = shouldIgnoreLandingCategory(rawCategory)
+        ? defaultMarketHubForCountry(userLocation.countryCode)
+        : rawCategory!;
+      setSelectedCategory(nextCategory);
+      if (shouldIgnoreLandingCategory(rawCategory) && rawCategory) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("category");
+        window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+      }
       setSearchInput(params.get("q") || "");
       const parsed = parseOfferFiltersFromSearchParams(params);
       setSelectedDomain(parsed.domain || "all");

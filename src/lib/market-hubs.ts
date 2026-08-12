@@ -20,15 +20,29 @@ export interface MarketHubTab {
   leafIds: readonly string[];
 }
 
-/** Kept for hub identity checks; landing always uses All — see defaultMarketHubForCountry. */
+/**
+ * Legacy sticky hub that used to be the homepage default.
+ * Never restore this from the URL on landing — it is empty on CH and looked like a blank site.
+ */
 export const DEFAULT_MARKET_HUB_ID = "hub-electronics";
+
+/** Homepage / market switch always starts on All (full catalogue). */
+export const LANDING_CATEGORY_ID = "all";
 
 /**
  * First paint / market switch: always show the full catalogue (All).
- * Auto-selecting Electronics hid CH baby/tyre inventory and looked like a blank site.
+ * Do not auto-select Electronics or any other hub.
  */
 export function defaultMarketHubForCountry(_countryCode: CountryCode | string): string {
-  return "all";
+  return LANDING_CATEGORY_ID;
+}
+
+/** True when a URL category should be ignored so landing stays on All. */
+export function shouldIgnoreLandingCategory(categoryId: string | null | undefined): boolean {
+  if (!categoryId) return true;
+  // Old default hub — never restore from ?category=
+  if (categoryId === DEFAULT_MARKET_HUB_ID) return true;
+  return false;
 }
 
 /** Prefer live inventory hubs first per market. */

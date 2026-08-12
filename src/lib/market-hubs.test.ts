@@ -2,19 +2,25 @@ import { describe, expect, it } from "vitest";
 import { productMatchesCategoryFilter } from "@/lib/categories";
 import {
   DEFAULT_MARKET_HUB_ID,
+  LANDING_CATEGORY_ID,
   MARKET_HUB_TABS,
   defaultMarketHubForCountry,
   isMarketHubId,
   marketHubOrderForCountry,
+  shouldIgnoreLandingCategory,
 } from "@/lib/market-hubs";
 
 describe("market hubs", () => {
   it("keeps electronics hub id valid but lands every market on All", () => {
     expect(DEFAULT_MARKET_HUB_ID).toBe("hub-electronics");
     expect(isMarketHubId(DEFAULT_MARKET_HUB_ID)).toBe(true);
+    expect(LANDING_CATEGORY_ID).toBe("all");
     expect(defaultMarketHubForCountry("RO")).toBe("all");
     expect(defaultMarketHubForCountry("CH")).toBe("all");
     expect(defaultMarketHubForCountry("GB")).toBe("all");
+    expect(shouldIgnoreLandingCategory("hub-electronics")).toBe(true);
+    expect(shouldIgnoreLandingCategory(null)).toBe(true);
+    expect(shouldIgnoreLandingCategory("hub-fashion")).toBe(false);
   });
 
   it("orders CH hubs with fashion and DIY before electronics", () => {
