@@ -33,6 +33,9 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.beforetobuy.com"),
     keywords: keywords,
     authors: [{ name: "PortanX - Catalin Portan", url: "https://portanx.com" }],
+    verification: {
+      google: "JWeHEz4HeyeNdCaIJdtL-jH-Sr-lBjyXOE7Dt7pOJ4g",
+    },
     openGraph: {
       ...defaultOpenGraph,
       ...localizedMetadata.openGraph,
