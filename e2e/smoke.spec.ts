@@ -174,17 +174,6 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(cspViolations, cspViolations.join("\n")).toEqual([]);
   });
 
-  test("products API has empty CH catalog until merchant approval", async ({ request }) => {
-    const response = await request.get("/api/products?country=CH");
-    expect(response.ok()).toBeTruthy();
-    const body = await response.json();
-    expect(body.products.length).toBe(0);
-    expect(body.meta.productionOfferCount).toBe(0);
-    expect(body.meta.sampleOfferCount).toBe(0);
-    expect(body.meta.feedProductCount).toBe(0);
-    expect(body.meta.mappingSummary?.total ?? 0).toBe(0);
-  });
-
   test("products API serves RO catalogue without remote CSV cost path", async ({ request }) => {
     const response = await request.get("/api/products?country=RO");
     expect(response.ok()).toBeTruthy();
@@ -276,17 +265,20 @@ test.describe("BeforeToBuy smoke E2E", () => {
     }
   });
 
-  test("products API exposes CH baby-walz sample/live catalogue", async ({ request }) => {
+  test("products API exposes CH baby-walz and Reifen.com sample/live catalogue", async ({
+    request,
+  }) => {
     const response = await request.get("/api/products?country=CH");
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
     expect(body.meta.feedMerchants?.["ch-babywalz"] ?? 0).toBeGreaterThan(0);
+    expect(body.meta.feedMerchants?.["ch-reifencom"] ?? 0).toBeGreaterThan(0);
     expect(body.meta.feedProductCount).toBeGreaterThan(0);
     expect(body.products?.length ?? 0).toBeGreaterThan(0);
     expect(body.meta.priceHistory?.enabled).toBe(true);
   });
 
-  test("mapping report API includes baby-walz for CH", async ({ request }) => {
+  test("mapping report API includes live CH merchants", async ({ request }) => {
     const response = await request.get("/api/mapping/report?country=CH", {
       headers: {
         Authorization: `Bearer ${process.env.INTERNAL_API_SECRET || "playwright-internal-api-secret-32chars!"}`,
@@ -296,6 +288,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     const body = await response.json();
     expect(body.summary.total).toBeGreaterThan(0);
     expect(body.summary.byMerchant["ch-babywalz"]).toBeTruthy();
+    expect(body.summary.byMerchant["ch-reifencom"]).toBeTruthy();
     expect(body.summary.byMerchant["ch-brack"]).toBeFalsy();
     expect(Array.isArray(body.reviewQueue)).toBeTruthy();
   });
