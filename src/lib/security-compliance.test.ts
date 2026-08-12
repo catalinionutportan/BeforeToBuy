@@ -48,6 +48,7 @@ describe("CSP builder", () => {
     expect(csp).not.toMatch(/style-src[^;]*nonce-/);
     expect(csp).toContain("img-src");
     expect(csp).toContain("https://www.rowenta.ro");
+    expect(csp).toContain("https://www.iubenda.com");
     expect(csp).not.toMatch(/img-src[^;]*\shttps:(;|$)/);
   });
 

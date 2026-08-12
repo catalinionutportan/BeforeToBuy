@@ -17,7 +17,9 @@ export function buildContentSecurityPolicy(options: {
   isDevelopment: boolean;
 }): string {
   const { nonce, isDevelopment } = options;
-  const imgSrc = ["'self'", "data:", "blob:", ...cspImgSrcHosts()].join(" ");
+  const imgSrc = ["'self'", "data:", "blob:", "https://www.iubenda.com", ...cspImgSrcHosts()].join(
+    " ",
+  );
 
   const scriptSrc = isDevelopment
     ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' 'unsafe-inline'`
