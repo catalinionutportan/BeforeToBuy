@@ -68,13 +68,14 @@ describe("Merchant Feed Processing", () => {
     expect(brackParsed.products.length).toBe(6);
   });
 
-  it("getFeedProducts skips disabled CH merchant feeds until approval", async () => {
+  it("getFeedProducts loads live CH sample catalogues (baby-walz + Reifen.com)", async () => {
     clearFeedCacheForTests();
     const result = await getFeedProducts("CH");
 
-    expect(result.products.length).toBe(0);
-    expect(result.sources).toEqual([]);
-    expect(result.merchantProductCounts).toEqual({});
+    expect(result.products.length).toBeGreaterThanOrEqual(6);
+    expect(result.merchantProductCounts["ch-babywalz"]).toBeGreaterThanOrEqual(3);
+    expect(result.merchantProductCounts["ch-reifencom"]).toBeGreaterThanOrEqual(3);
+    expect(result.merchantProductCounts["ch-brack"]).toBeUndefined();
   });
 
   it("keeps evoMAG and Scule365 registered but heavy/cache-only (offline import)", () => {
