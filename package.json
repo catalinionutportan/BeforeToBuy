@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@datadog/browser-rum": "^7.7.0",
-    "@datadog/browser-rum-nextjs": "^7.7.0",
+    "@datadog/browser-rum-nextjs": "^7.8.0",
     "@prisma/client": "^5.22.0",
     "@upstash/redis": "^1.38.2",
     "clsx": "^2.1.1",
