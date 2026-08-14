@@ -96,6 +96,7 @@ export const MERCHANT_STORE_HOSTS = [
 export const FEED_DOWNLOAD_HOSTS = [
   "2performant.com",
   "api.2performant.com",
+  "feeds.2performant.com",
   "productdata.awin.com",
   "www.scule365.ro",
   "scule365.ro",
