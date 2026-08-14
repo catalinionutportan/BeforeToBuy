@@ -99,6 +99,9 @@ describe("feed-url-policy", () => {
     expect(() =>
       assertFeedDownloadUrl("https://productdata.awin.com/datafeed/download/x")
     ).not.toThrow();
+    expect(() =>
+      assertFeedDownloadUrl("https://api.2performant.com/feed/example.csv")
+    ).not.toThrow();
     expect(() => assertFeedDownloadUrl("https://evil.example/feed.csv")).toThrow(
       /rejected/
     );
