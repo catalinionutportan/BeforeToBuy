@@ -8,9 +8,8 @@
  *
  * Do NOT restore a bulk 9-feed list and `--all` until the site is stable.
  *
- * evoMAG: import only small 2Performant *category* CSVs (VIDEO, Laptopuri, …).
- * Put multiple URLs in TWO_PERFORMANT_FEED_URL_RO_EVOMAG (comma-separated) so
- * stale cleanup keeps every slice in stock. Never use the full ~78k catalogue.
+ * evoMAG stays out of FEEDS (image CDN / broken photos). Do not add it back
+ * until images load reliably. Category-slice import is documented in pause-evomag.ts.
  */
 import { sync2PerformantFeed } from "./sync-feeds";
 import { prisma } from "../lib/db";
@@ -48,13 +47,6 @@ const FEEDS: FeedSpec[] = [
     envVar: "TWO_PERFORMANT_FEED_URL_RO_SCULE365",
     merchantId: "ro-scule365",
     storeName: "Scule365.ro",
-    countryCode: "RO",
-    currency: "RON",
-  },
-  {
-    envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG",
-    merchantId: "ro-evomag",
-    storeName: "evoMAG.ro",
     countryCode: "RO",
     currency: "RON",
   },
