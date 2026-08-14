@@ -114,12 +114,22 @@ async function main() {
   );
 
   const failures: string[] = [];
+  const skipped: string[] = [];
+  let imported = 0;
+
   for (const feed of selected) {
     console.log(`\n=== ${feed.storeName} (${feed.merchantId}) ===`);
     try {
       const feedUrls = parseFeedUrls(process.env[feed.envVar] || "");
       if (feedUrls.length === 0) {
-        throw new Error(`Missing required environment variable ${feed.envVar}.`);
+        // `--merchant=` is explicit: fail. `--all` skips unset secrets so one
+        // missing URL does not fail the nightly job.
+        if (merchantId) {
+          throw new Error(`Missing required environment variable ${feed.envVar}.`);
+        }
+        console.warn(`Skipping ${feed.storeName}: ${feed.envVar} is not set.`);
+        skipped.push(feed.envVar);
+        continue;
       }
       if (feedUrls.length > 1) {
         console.log(`Category slices: ${feedUrls.length}`);
@@ -131,6 +141,7 @@ async function main() {
         feed.countryCode,
         feed.currency
       );
+      imported += 1;
       console.log(`${feed.storeName}: ${written} offers synchronized.`);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
@@ -145,8 +156,22 @@ async function main() {
   ]);
   console.log(`\nDB totals → Product: ${productCount}, Offer: ${offerCount}`);
 
+  if (skipped.length > 0) {
+    console.warn(`Skipped ${skipped.length} feed(s) without URL:\n${skipped.join("\n")}`);
+  }
+
   if (failures.length > 0) {
     throw new Error(`Import failed for ${failures.length} feed(s):\n${failures.join("\n")}`);
+  }
+
+  if (imported === 0) {
+    throw new Error(
+      [
+        "No feeds imported — add these as GitHub Actions secrets:",
+        ...(skipped.length > 0 ? skipped : selected.map((feed) => feed.envVar)),
+        "Settings → Secrets and variables → Actions → New repository secret",
+      ].join("\n")
+    );
   }
 }
 

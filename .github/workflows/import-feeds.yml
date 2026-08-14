@@ -41,4 +41,5 @@ jobs:
           ALLOW_RO_IMPORT: '1'
           TWO_PERFORMANT_FEED_URL_RO_ROWENTA: ${{ secrets.TWO_PERFORMANT_FEED_URL_RO_ROWENTA }}
           TWO_PERFORMANT_FEED_URL_RO_SCULE365: ${{ secrets.TWO_PERFORMANT_FEED_URL_RO_SCULE365 }}
+          TWO_PERFORMANT_FEED_URL_RO_EVOMAG: ${{ secrets.TWO_PERFORMANT_FEED_URL_RO_EVOMAG }}
         run: npx tsx src/scripts/run-import.ts --all
