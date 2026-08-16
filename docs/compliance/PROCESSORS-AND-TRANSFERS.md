@@ -129,7 +129,10 @@ These integrations import product catalogues **server-to-server**. They are **no
 | feed-rowenta-2p | Rowenta.ro | 2Performant | Active import path | Confirm feed hosting region |
 | feed-scule365-2p | Scule365.ro | 2Performant | Active import path | Confirm feed hosting region |
 | feed-seentat-awin | Seentat UK | AWIN | Active import path | Confirm AWIN datafeed region |
+| feed-geepas-awin | Geepas UK | AWIN | Active import path | Confirm AWIN datafeed region |
+| feed-arlo-awin | Arlo Security UK | AWIN | Active import path | Confirm AWIN datafeed region |
 | feed-ottocast-awin | Ottocast US | AWIN | Active import path | Confirm AWIN datafeed region |
+| feed-belando-awin | Belando CH | AWIN | Active import path | Confirm AWIN datafeed region |
 | feed-evomag-2p | evoMAG | 2Performant | Soft-paused | Confirm re-enable criteria |
 
 ## CDN image hosts (public privacy — browser-facing)

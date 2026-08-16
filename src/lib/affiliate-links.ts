@@ -25,6 +25,12 @@ export const AFFILIATE_LINKS = {
   /** Reifen.com CH homepage — AWIN advertiser 11412 / publisher 3024371 (CHF catalogue). */
   reifencomAwin:
     "https://www.awin1.com/cread.php?awinmid=11412&awinaffid=3024371&ued=https%3A%2F%2Fwww.reifen.com%2Fde-ch",
+  /** Belando CH homepage — AWIN advertiser 13668 / publisher 3024371 (CHF beauty catalogue). */
+  belandoAwin:
+    "https://www.awin1.com/cread.php?awinmid=13668&awinaffid=3024371&ued=https%3A%2F%2Fbelando.ch%2F",
+  /** Arlo Security UK homepage — AWIN advertiser 122884 / publisher 3024371 (GBP catalogue). */
+  arloAwin:
+    "https://www.awin1.com/cread.php?awinmid=122884&awinaffid=3024371&ued=https%3A%2F%2Fwww.arlo.com%2Fen-gb",
 } as const;
 
 const SCULE365_2P_BASE =

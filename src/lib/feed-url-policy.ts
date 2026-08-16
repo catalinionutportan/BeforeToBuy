@@ -27,6 +27,8 @@ export const APPROVED_IMAGE_HOSTS = [
   "ottocast.com",
   "geepas.co.uk",
   "www.geepas.co.uk",
+  "www.arlo.com",
+  "arlo.com",
   "cdn.shopify.com",
   "images2.productserve.com",
   "static2.evomag.ro",
@@ -51,6 +53,8 @@ export const APPROVED_IMAGE_HOSTS = [
   "baby-walz.ch",
   "www.reifen.com",
   "reifen.com",
+  "www.belando.ch",
+  "belando.ch",
 ] as const;
 
 /** Affiliate network click hosts. */
@@ -74,6 +78,8 @@ export const MERCHANT_STORE_HOSTS = [
   "ottocast.com",
   "geepas.co.uk",
   "www.geepas.co.uk",
+  "www.arlo.com",
+  "arlo.com",
   "www.digitec.ch",
   "digitec.ch",
   "www.galaxus.ch",
@@ -90,6 +96,8 @@ export const MERCHANT_STORE_HOSTS = [
   "baby-walz.ch",
   "www.reifen.com",
   "reifen.com",
+  "www.belando.ch",
+  "belando.ch",
 ] as const;
 
 /** Remote feed download hosts (CSV/XML endpoints). */
@@ -132,6 +140,12 @@ export const COMMERCIAL_HOSTS_BY_FEED: Record<string, readonly string[]> = {
     "www.geepas.co.uk",
     "cdn.shopify.com",
   ],
+  "gb-arlo": [
+    "www.awin1.com",
+    "awin1.com",
+    "www.arlo.com",
+    "arlo.com",
+  ],
   "ch-digitec": ["www.digitec.ch", "digitec.ch"],
   "ch-galaxus": ["www.galaxus.ch", "galaxus.ch"],
   "ch-brack": ["www.awin1.com", "awin1.com", "www.brack.ch", "brack.ch"],
@@ -159,6 +173,12 @@ export const COMMERCIAL_HOSTS_BY_FEED: Record<string, readonly string[]> = {
     "awin1.com",
     "www.reifen.com",
     "reifen.com",
+  ],
+  "ch-belando": [
+    "www.awin1.com",
+    "awin1.com",
+    "www.belando.ch",
+    "belando.ch",
   ],
 };
 

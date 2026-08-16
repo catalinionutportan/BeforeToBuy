@@ -9,7 +9,9 @@ import {
   getMerchantDefaultCategory,
   getMerchantExactMatch,
   getMerchantPatternMatch,
+  isArloAllowedCategory,
   isBabywalzAllowedCategory,
+  isBelandoAllowedCategory,
   isReifencomAllowedCategory,
   isRowentaAllowedCategory,
   MAPPING_CONFIDENCE,
@@ -28,6 +30,12 @@ const BABYWALZ_FALLBACK_LEAF = "fashion-kids-baby";
 
 /** Reifen.com fallback when title/category is ambiguous. */
 const REIFENCOM_FALLBACK_LEAF = "auto-tires-wheels";
+
+/** Belando fallback when title/category is ambiguous. */
+const BELANDO_FALLBACK_LEAF = "fashion-beauty-hair-care";
+
+/** Arlo fallback when title/category is ambiguous. */
+const ARLO_FALLBACK_LEAF = "smart-home-security";
 
 /**
  * Maps merchant / affiliate feed categories + product text → BeforeToBuy subcategory id.
@@ -176,6 +184,40 @@ function clampReifencomToAutoCatalogue(result: CategoryMappingResult): CategoryM
   return result;
 }
 
+/** Force Belando into hair / beauty / styling-tool leaves only. */
+function clampBelandoToBeautyCatalogue(result: CategoryMappingResult): CategoryMappingResult {
+  if (result.categoryId === UNMAPPED_CATEGORY_ID || !isBelandoAllowedCategory(result.categoryId)) {
+    return {
+      ...result,
+      categoryId: BELANDO_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      proposedCategoryId:
+        result.categoryId !== UNMAPPED_CATEGORY_ID && result.categoryId !== BELANDO_FALLBACK_LEAF
+          ? result.categoryId
+          : result.proposedCategoryId,
+    };
+  }
+  return result;
+}
+
+/** Force Arlo into smart-home security only. */
+function clampArloToSecurityCatalogue(result: CategoryMappingResult): CategoryMappingResult {
+  if (result.categoryId === UNMAPPED_CATEGORY_ID || !isArloAllowedCategory(result.categoryId)) {
+    return {
+      ...result,
+      categoryId: ARLO_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      proposedCategoryId:
+        result.categoryId !== UNMAPPED_CATEGORY_ID && result.categoryId !== ARLO_FALLBACK_LEAF
+          ? result.categoryId
+          : result.proposedCategoryId,
+    };
+  }
+  return result;
+}
+
 export interface CategoryMappingInput {
   merchantId?: string;
   merchantCategory?: string;
@@ -217,6 +259,8 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     if (merchantId === "ro-rowenta") return clampRowentaToAppliances(scored);
     if (merchantId === "ch-babywalz") return clampBabywalzToBabyCatalogue(scored);
     if (merchantId === "ch-reifencom") return clampReifencomToAutoCatalogue(scored);
+    if (merchantId === "ch-belando") return clampBelandoToBeautyCatalogue(scored);
+    if (merchantId === "gb-arlo") return clampArloToSecurityCatalogue(scored);
     return scored;
   };
 
@@ -296,6 +340,22 @@ export function mapToBeforeToBuyCategoryWithMetadata(
   if (merchantId === "ch-reifencom") {
     return {
       categoryId: REIFENCOM_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: merchantCategory,
+    };
+  }
+  if (merchantId === "ch-belando") {
+    return {
+      categoryId: BELANDO_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: merchantCategory,
+    };
+  }
+  if (merchantId === "gb-arlo") {
+    return {
+      categoryId: ARLO_FALLBACK_LEAF,
       method: "merchant-default",
       confidence: MAPPING_CONFIDENCE.combinedPattern,
       rawCategory: merchantCategory,

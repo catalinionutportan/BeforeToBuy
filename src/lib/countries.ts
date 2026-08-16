@@ -338,6 +338,19 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Swiss tyre and rim shop (reifen.com). Live AWIN CHF product feed with affiliate deep links for tyres, rims, and complete wheels.",
   },
+  {
+    id: "ch-belando",
+    name: "Belando CH",
+    domain: "belando.ch",
+    websiteUrl: AFFILIATE_LINKS.belandoAwin,
+    countryCode: "CH",
+    affiliateNetwork: "AWIN Switzerland",
+    category: "Hair & Beauty",
+    status: "Live Feed",
+    badge: "AWIN + product feed 🇨🇭",
+    description:
+      "Swiss professional hair and beauty shop (Belando). Live AWIN CHF product feed with affiliate deep links for haircare, colour, cosmetics, and styling tools.",
+  },
   // --- Romania (RO) ---
   {
     id: "ro-rowenta",
@@ -392,6 +405,19 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Geepas UK kitchen and home appliances. Live AWIN GBP product feed with affiliate deep links.",
   },
+  {
+    id: "gb-arlo",
+    name: "Arlo Security UK",
+    domain: "arlo.com",
+    websiteUrl: AFFILIATE_LINKS.arloAwin,
+    countryCode: "GB",
+    affiliateNetwork: "AWIN UK",
+    category: "Smart Home Security",
+    status: "Live Feed",
+    badge: "AWIN + product feed 🇬🇧",
+    description:
+      "Arlo wireless security cameras, video doorbells, and smart-home kits. Live AWIN GBP product feed with affiliate deep links.",
+  },
   // --- United States (US) ---
   {
     id: "us-ottocast",
@@ -416,10 +442,10 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     flag: "🇨🇭",
     currency: "CHF",
     currencySymbol: "CHF ",
-    supportedStores: ["baby-walz.ch", "reifen.com"],
+    supportedStores: ["baby-walz.ch", "belando.ch", "reifen.com"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "CH"),
     affiliateNetworks: [
-      "AWIN Switzerland (baby-walz + Reifen.com) — live product feeds + homepage affiliates",
+      "AWIN Switzerland (baby-walz + Belando + Reifen.com) — live product feeds + homepage affiliates",
     ],
   },
   DE: {
@@ -465,10 +491,10 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     flag: "🇬🇧",
     currency: "GBP",
     currencySymbol: "£",
-    supportedStores: ["seentat.com", "geepas.co.uk"],
+    supportedStores: ["arlo.com", "seentat.com", "geepas.co.uk"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "GB"),
     affiliateNetworks: [
-      "AWIN UK (Seentat + Geepas) — live product feeds + homepage affiliates",
+      "AWIN UK (Seentat + Geepas + Arlo) — live product feeds + homepage affiliates",
     ],
   },
   US: {

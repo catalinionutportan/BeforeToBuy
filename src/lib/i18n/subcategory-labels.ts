@@ -402,6 +402,27 @@ export const SUBCATEGORY_LABELS: Record<string, Partial<Record<SiteLocale, strin
     it: "Accessori moda",
     ro: "Accesorii fashion",
   },
+  "fashion-beauty-hair-care": {
+    en: "Hair Care",
+    de: "Haarpflege",
+    fr: "Soins capillaires",
+    it: "Cura dei capelli",
+    ro: "Îngrijire păr",
+  },
+  "fashion-beauty-cosmetics": {
+    en: "Cosmetics & Skincare",
+    de: "Kosmetik + Hautpflege",
+    fr: "Cosmétiques & soins",
+    it: "Cosmetici e skincare",
+    ro: "Cosmetică & skincare",
+  },
+  "fashion-beauty-fragrance": {
+    en: "Fragrance",
+    de: "Düfte",
+    fr: "Parfums",
+    it: "Profumi",
+    ro: "Parfumuri",
+  },
   "fashion-apparel": {
     en: "Apparel",
     de: "Bekleidung",

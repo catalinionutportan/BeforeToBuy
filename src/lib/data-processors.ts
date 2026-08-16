@@ -170,11 +170,11 @@ const PROCESSOR_PURPOSES: Record<ProcessorRecord["id"], Record<SiteLocale, strin
     ro: "Tracking afiliat pentru linkurile Rowenta.ro și Scule365.ro cu consimțământ Afiliat",
   },
   awin: {
-    en: "Affiliate tracking for Seentat UK, Geepas UK, Ottocast US, and other joined AWIN programmes with Affiliate consent",
-    de: "Affiliate-Tracking für Seentat UK, Geepas UK, Ottocast US und weitere AWIN-Programme mit Affiliate-Einwilligung",
-    fr: "Suivi d'affiliation pour Seentat UK, Geepas UK, Ottocast US et autres programmes AWIN rejoints avec consentement Affiliation",
-    it: "Tracking affiliato per Seentat UK, Geepas UK, Ottocast US e altri programmi AWIN aderenti con consenso Affiliazione",
-    ro: "Tracking afiliat pentru Seentat UK, Geepas UK, Ottocast US și alte programe AWIN acceptate cu consimțământ Afiliat",
+    en: "Affiliate tracking for Seentat UK, Geepas UK, Arlo UK, Ottocast US, and other joined AWIN programmes with Affiliate consent",
+    de: "Affiliate-Tracking für Seentat UK, Geepas UK, Arlo UK, Ottocast US und weitere AWIN-Programme mit Affiliate-Einwilligung",
+    fr: "Suivi d'affiliation pour Seentat UK, Geepas UK, Arlo UK, Ottocast US et autres programmes AWIN rejoints avec consentement Affiliation",
+    it: "Tracking affiliato per Seentat UK, Geepas UK, Arlo UK, Ottocast US e altri programmi AWIN aderenti con consenso Affiliazione",
+    ro: "Tracking afiliat pentru Seentat UK, Geepas UK, Arlo UK, Ottocast US și alte programe AWIN acceptate cu consimțământ Afiliat",
   },
   "feed-rowenta-2p": {
     en: "Server-side catalogue import for Rowenta.ro",
@@ -204,6 +204,13 @@ const PROCESSOR_PURPOSES: Record<ProcessorRecord["id"], Record<SiteLocale, strin
     it: "Import catalogo lato server per Geepas UK",
     ro: "Import catalog server-side pentru Geepas UK",
   },
+  "feed-arlo-awin": {
+    en: "Server-side catalogue import for Arlo Security UK",
+    de: "Serverseitiger Katalogimport für Arlo Security UK",
+    fr: "Import catalogue côté serveur pour Arlo Security UK",
+    it: "Import catalogo lato server per Arlo Security UK",
+    ro: "Import catalog server-side pentru Arlo Security UK",
+  },
   "feed-ottocast-awin": {
     en: "Server-side catalogue import for Ottocast US",
     de: "Serverseitiger Katalogimport für Ottocast US",
@@ -224,6 +231,13 @@ const PROCESSOR_PURPOSES: Record<ProcessorRecord["id"], Record<SiteLocale, strin
     fr: "Import catalogue côté serveur pour Reifen.com CH",
     it: "Import catalogo lato server per Reifen.com CH",
     ro: "Import catalog server-side pentru Reifen.com CH",
+  },
+  "feed-belando-awin": {
+    en: "Server-side catalogue import for Belando CH",
+    de: "Serverseitiger Katalogimport für Belando CH",
+    fr: "Import catalogue côté serveur pour Belando CH",
+    it: "Import catalogo lato server per Belando CH",
+    ro: "Import catalog server-side pentru Belando CH",
   },
   "feed-evomag-2p": {
     en: "Soft-paused server-side catalogue import for evoMAG",

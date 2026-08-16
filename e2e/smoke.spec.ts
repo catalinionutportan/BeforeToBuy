@@ -249,9 +249,11 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(body.feedMerchantIds).not.toContain("ch-digitec");
     expect(body.feedMerchantIds).toContain("ch-babywalz");
     expect(body.feedMerchantIds).toContain("ch-reifencom");
+    expect(body.feedMerchantIds).toContain("ch-belando");
     expect(body.feedMerchantIds).toContain("gb-seentat");
     expect(body.feedMerchantIds).toContain("us-ottocast");
     expect(body.feedMerchantIds).toContain("gb-geepas");
+    expect(body.feedMerchantIds).toContain("gb-arlo");
     // FORCE_SAMPLE_FEEDS may enable RO samples — assert config presence, not a fragile count.
     if (body.feedMerchantIds.includes("ro-rowenta")) {
       expect(body.feedMerchantIds).toContain("ro-scule365");
@@ -273,6 +275,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     const body = await response.json();
     expect(body.meta.feedMerchants?.["ch-babywalz"] ?? 0).toBeGreaterThan(0);
     expect(body.meta.feedMerchants?.["ch-reifencom"] ?? 0).toBeGreaterThan(0);
+    expect(body.meta.feedMerchants?.["ch-belando"] ?? 0).toBeGreaterThan(0);
     expect(body.meta.feedProductCount).toBeGreaterThan(0);
     expect(body.products?.length ?? 0).toBeGreaterThan(0);
     expect(body.meta.priceHistory?.enabled).toBe(true);
@@ -289,6 +292,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(body.summary.total).toBeGreaterThan(0);
     expect(body.summary.byMerchant["ch-babywalz"]).toBeTruthy();
     expect(body.summary.byMerchant["ch-reifencom"]).toBeTruthy();
+    expect(body.summary.byMerchant["ch-belando"]).toBeTruthy();
     expect(body.summary.byMerchant["ch-brack"]).toBeFalsy();
     expect(Array.isArray(body.reviewQueue)).toBeTruthy();
   });
@@ -302,6 +306,8 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.getByRole("heading", { name: "Microspot.ch" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: /baby-walz/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Reifen\.com/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Belando/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Arlo/i })).toBeVisible();
     // RO live affiliates remain listed.
     await expect(page.getByRole("heading", { name: "Rowenta.ro" })).toBeVisible();
   });

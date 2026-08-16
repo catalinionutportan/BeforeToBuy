@@ -15,11 +15,13 @@ export const MAPPING_MERCHANT_IDS = [
   "ch-fust",
   "ch-babywalz",
   "ch-reifencom",
+  "ch-belando",
   "ro-scule365",
   "ro-rowenta",
   "ro-evomag",
   "gb-seentat",
   "gb-geepas",
+  "gb-arlo",
   "us-ottocast",
 ] as const;
 
@@ -323,6 +325,54 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       {
         patterns: /\b(schneekette|snow\s*chain|felgenbaum)\b/i,
         subcategoryId: "auto-tires-wheels",
+      },
+    ],
+  },
+  /**
+   * Belando CH — AWIN DE hair/beauty catalogue.
+   * Feed aisles are often brand folders ("Marken > Goldwell"); prefer category_name + title.
+   */
+  "ch-belando": {
+    exact: exactRules({
+      "cosmetics & skincare": "fashion-beauty-cosmetics",
+      cosmetics: "fashion-beauty-cosmetics",
+      skincare: "fashion-beauty-cosmetics",
+      kosmetik: "fashion-beauty-cosmetics",
+      hautpflege: "fashion-beauty-cosmetics",
+      "haircare products": "fashion-beauty-hair-care",
+      haircare: "fashion-beauty-hair-care",
+      haarpflege: "fashion-beauty-hair-care",
+      haarprodukte: "fashion-beauty-hair-care",
+      fragrance: "fashion-beauty-fragrance",
+      düfte: "fashion-beauty-fragrance",
+      duefte: "fashion-beauty-fragrance",
+      parfum: "fashion-beauty-fragrance",
+      "haircare appliances": "care-hair-styling",
+      "small appliances": "care-hair-styling",
+      haarstyling: "care-hair-styling",
+      "haare > haarstyling": "care-hair-styling",
+      gifts: "fashion-beauty-cosmetics",
+      "bodycare & fitness": "fashion-beauty-cosmetics",
+    }),
+    patterns: [
+      {
+        patterns:
+          /\b(föhn|foehn|haartrockner|glätteisen|glaetteisen|lockenstab|haarschneider|trimmer|babyliss)\b/i,
+        subcategoryId: "care-hair-styling",
+      },
+      {
+        patterns: /\b(parfum|duft|fragrance|eau\s+de\s+toilette|eau\s+de\s+parfum)\b/i,
+        subcategoryId: "fashion-beauty-fragrance",
+      },
+      {
+        patterns:
+          /\b(make[- ]?up|mascara|lipstick|nagellack|gesichtscreme|hautpflege|kosmetik|serum)\b/i,
+        subcategoryId: "fashion-beauty-cosmetics",
+      },
+      {
+        patterns:
+          /\b(shampoo|conditioner|haarmaske|haarkur|haaröl|haarol|haarfarbe|coloration|toner|tonspülung|tonspuelung|haarspray|haarwachs|haarschaum|styling\s*gel)\b/i,
+        subcategoryId: "fashion-beauty-hair-care",
       },
     ],
   },
@@ -845,6 +895,27 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
   },
 
   /**
+   * Arlo Security UK — small AWIN smart-home security catalogue (GBP).
+   * Feed aisles are "Security Equipment" / "Home Security".
+   */
+  "gb-arlo": {
+    exact: exactRules({
+      "security equipment": "smart-home-security",
+      "home security": "smart-home-security",
+      "smart home": "smart-home-security",
+      cameras: "smart-home-security",
+      doorbells: "smart-home-security",
+    }),
+    patterns: [
+      {
+        patterns:
+          /\b(arlo|security\s+camera|video\s+doorbell|floodlight|smart\s+hub|chime|wire-?free\s+camera)\b/i,
+        subcategoryId: "smart-home-security",
+      },
+    ],
+  },
+
+  /**
    * Ottocast US — small AWIN CarPlay / Android Auto catalogue (USD).
    * Feed aisle is typically "Automotive".
    */
@@ -968,6 +1039,26 @@ export function isReifencomAllowedCategory(categoryId: string): boolean {
   return REIFENCOM_ALLOWED_CATEGORY_IDS.has(categoryId);
 }
 
+/** Belando must stay in hair / beauty / styling-tool leaves. */
+export const BELANDO_ALLOWED_CATEGORY_IDS = new Set([
+  "fashion-beauty-hair-care",
+  "fashion-beauty-cosmetics",
+  "fashion-beauty-fragrance",
+  "care-hair-styling",
+  "care-shaving-hair-removal",
+]);
+
+export function isBelandoAllowedCategory(categoryId: string): boolean {
+  return BELANDO_ALLOWED_CATEGORY_IDS.has(categoryId);
+}
+
+/** Arlo must stay in smart-home security. */
+export const ARLO_ALLOWED_CATEGORY_IDS = new Set(["smart-home-security"]);
+
+export function isArloAllowedCategory(categoryId: string): boolean {
+  return ARLO_ALLOWED_CATEGORY_IDS.has(categoryId);
+}
+
 /**
  * Last-resort leaf when a merchant catalogue is specialised but feed rows
  * lack category labels and keyword inference failed.
@@ -976,8 +1067,10 @@ export function getMerchantDefaultCategory(merchantId: string | undefined): stri
   if (merchantId === "ro-scule365") return "diy-hand-tools";
   if (merchantId === "ro-rowenta") return "cleaning-vacuums";
   if (merchantId === "gb-geepas") return "kitchen-cooking-appliances";
+  if (merchantId === "gb-arlo") return "smart-home-security";
   if (merchantId === "ch-babywalz") return "fashion-kids-baby";
   if (merchantId === "ch-reifencom") return "auto-tires-wheels";
+  if (merchantId === "ch-belando") return "fashion-beauty-hair-care";
   return null;
 }
 

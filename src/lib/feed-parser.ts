@@ -178,8 +178,13 @@ function ingestAwinRow(
     return;
   }
 
+  const merchantAisle = (row.merchant_category || "").trim();
+  const taxonomyAisle = (row.category_name || "").trim();
+  // Belando brand folders ("Marken > Goldwell") are not product aisles — use AWIN taxonomy.
   const rawCategory =
-    (row.merchant_category || "").trim() || (row.category_name || "").trim() || undefined;
+    feedMerchantId === "ch-belando" && /^marken\s*>/i.test(merchantAisle)
+      ? taxonomyAisle || merchantAisle || undefined
+      : merchantAisle || taxonomyAisle || undefined;
 
   const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
     merchantId: feedMerchantId,

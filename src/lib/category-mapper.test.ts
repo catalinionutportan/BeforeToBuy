@@ -41,7 +41,7 @@ const BRACK_SAMPLE_ROWS = [
 describe('Category Mapper Functions', () => {
   it("merchant category rules validate without conflicts", () => {
     expect(validateMerchantCategoryRules()).toEqual([]);
-    expect(MAPPING_MERCHANT_IDS.length).toBe(14);
+    expect(MAPPING_MERCHANT_IDS.length).toBe(16);
   });
 
   it("Brack sample feed rows map with merchant-exact rules", () => {
@@ -289,6 +289,36 @@ describe('Category Mapper Functions', () => {
     ).toBe("auto-tires-wheels");
   });
 
+  it("Belando maps haircare aisles and keeps brand folders in beauty", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-belando",
+        merchantCategory: "Haircare Products",
+        title: "Wella Performance Haarspray 500 ml",
+      })
+    ).toBe("fashion-beauty-hair-care");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-belando",
+        merchantCategory: "Fragrance",
+        title: "Chanel Chance Eau de Toilette",
+      })
+    ).toBe("fashion-beauty-fragrance");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-belando",
+        merchantCategory: "Haircare Appliances",
+        title: "BaByliss Pro Hair Dryer",
+      })
+    ).toBe("care-hair-styling");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-belando",
+        title: "Samsung Galaxy S24 Ultra 256GB",
+      })
+    ).toBe("fashion-beauty-hair-care");
+  });
+
   it("baby-walz keeps strollers/clothes out of electronics", () => {
     expect(
       mapToBeforeToBuyCategory({
@@ -408,6 +438,29 @@ describe('Category Mapper Functions', () => {
         title: "Trotineta electrica Xiaomi",
       })
     ).toBe("mobility-escooters");
+  });
+
+  it("Arlo security aisles stay in smart-home security", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-arlo",
+        merchantCategory: "Security Equipment",
+        title: "Arlo Essential Wireless Security Camera",
+      })
+    ).toBe("smart-home-security");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-arlo",
+        merchantCategory: "Home Security",
+        title: "Arlo Video Doorbell Wire-Free",
+      })
+    ).toBe("smart-home-security");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-arlo",
+        title: "Samsung Galaxy S24 Ultra 256GB",
+      })
+    ).toBe("smart-home-security");
   });
 
   it("Ottocast Automotive aisle maps to in-car audio", () => {
