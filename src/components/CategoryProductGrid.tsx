@@ -32,7 +32,10 @@ export function CategoryProductGrid({
   const [sortOrder, setSortOrder] = useState<SortOption>("default");
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
-  const orderedProducts = useMemo(() => sortProductsForBrowse(products, sortOrder), [products, sortOrder]);
+  const orderedProducts = useMemo(
+    () => sortProductsForBrowse(products, sortOrder, { countryCode }),
+    [products, sortOrder, countryCode]
+  );
 
   useEffect(() => {
     setVisibleCount(INITIAL_VISIBLE);

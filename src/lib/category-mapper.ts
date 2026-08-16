@@ -39,6 +39,8 @@ const BELANDO_HAIR_APPLIANCE_RE =
   /\b(föhn|foehn|haartrockner|hair\s*dryer|glätteisen|glaetteisen|straightener|lockenstab|curling\s*iron|haarschneider|haarschneidemaschine|trimmer|warmluftbürste|warmluftbuerste)\b/i;
 const BELANDO_HAIR_CONSUMABLE_RE =
   /\b(shampoo|conditioner|lotion|creme|cream|serum|maske|haarspray|haaröl|haarol|öl)\b/i;
+const BELANDO_HAIR_ACCESSORY_RE =
+  /\b(aufsteckkamm|softstyler|kamm\s+für|für\s+die\s+wahl)\b/i;
 
 /** Arlo fallback when title/category is ambiguous. */
 const ARLO_FALLBACK_LEAF = "smart-home-security";
@@ -173,6 +175,45 @@ function clampBabywalzToBabyCatalogue(result: CategoryMappingResult): CategoryMa
   return result;
 }
 
+/** Clothes aisle is the dump — title wins for bikes, nursery, carriers, bags. */
+const BABYWALZ_TITLE_RULES: Array<{ re: RegExp; categoryId: string }> = [
+  {
+    re: /kinderwagen|buggy|sportwagen|kombikinderwagen|hüfttrage|huefttrage|babytrage|tragehilfe/i,
+    categoryId: "baby-strollers-travel",
+  },
+  {
+    re: /\b(autositz|babyschale|reboarder|kindersitz(?!garnitur))\b/i,
+    categoryId: "baby-car-seats",
+  },
+  {
+    re: /\b(hochstuhl|babybett|wickelkommode|wickelauflage|betthimmel|kindersitzgarnitur|spannbetttuch|stubenwagen|beistellbett)\b/i,
+    categoryId: "baby-nursery",
+  },
+  {
+    re: /\b(kinderfahrrad|laufrad|dreirad|scooter|kuscheltier|tonie|nachtlicht|kugelbahn)\b/i,
+    categoryId: "toys-electronic",
+  },
+  { re: /\b(rucksack|schulranzen|wet\s*bag)\b/i, categoryId: "fashion-bags" },
+  {
+    re: /\b(winterschuhe|hausschuhe|sneaker|stiefel)\b/i,
+    categoryId: "fashion-shoes-kids-sneakers",
+  },
+];
+
+function refineBabywalzCatalogue(
+  result: CategoryMappingResult,
+  title?: string
+): CategoryMappingResult {
+  const clamped = clampBabywalzToBabyCatalogue(result);
+  const text = title || "";
+  for (const rule of BABYWALZ_TITLE_RULES) {
+    if (rule.re.test(text)) {
+      return { ...clamped, categoryId: rule.categoryId, method: "merchant-pattern" };
+    }
+  }
+  return clamped;
+}
+
 /** Force Reifen.com into tyre / auto accessory leaves only. */
 function clampReifencomToAutoCatalogue(result: CategoryMappingResult): CategoryMappingResult {
   if (result.categoryId === UNMAPPED_CATEGORY_ID || !isReifencomAllowedCategory(result.categoryId)) {
@@ -210,8 +251,17 @@ function clampBelandoToBeautyCatalogue(
   // AWIN often labels shampoo / brushes as "Haircare Appliances".
   // "Föhn Lotion" is a consumable, not a dryer.
   const titleText = title || "";
+  const looksLikeAccessory = BELANDO_HAIR_ACCESSORY_RE.test(titleText);
   const looksLikeConsumable = BELANDO_HAIR_CONSUMABLE_RE.test(titleText);
   const looksLikeAppliance = BELANDO_HAIR_APPLIANCE_RE.test(titleText);
+  if (looksLikeAccessory) {
+    return {
+      ...result,
+      categoryId: BELANDO_FALLBACK_LEAF,
+      method: "merchant-default",
+      proposedCategoryId: result.categoryId,
+    };
+  }
   if (
     result.categoryId === "care-hair-styling" &&
     (looksLikeConsumable || !looksLikeAppliance)
@@ -227,9 +277,66 @@ function clampBelandoToBeautyCatalogue(
 }
 
 /**
- * Seentat brand aisles (DJI / Camera / Gaming) misfile drones vs action cameras.
- * Title wins: Mini/Avata/Air = drones; Osmo Action/GoPro = action; gimbals = accessories.
+ * Seentat aisles (Apple / Camera / Gaming / Personal Care / DJI) are too coarse.
+ * Title wins for the product types we keep seeing dumped in the wrong leaf.
  */
+const SEENTAT_TITLE_RULES: Array<{ re: RegExp; categoryId: string }> = [
+  {
+    re: /\b(hoverair|self-flying|antigravity)\b/i,
+    categoryId: "drones-quadcopters",
+  },
+  {
+    re: /\b(dji\s+(air|avata|mavic|mini|flip|neo|inspire|phantom|fpv)|\bdrone\b|quadcopter|avata\s*\d|mavic\s*\d)\b/i,
+    categoryId: "drones-quadcopters",
+  },
+  {
+    re: /\b(osmo\s+action|osmo\s+360|gopro|insta360|action\s+camera|ace\s+pro|osmo\s+pocket)\b/i,
+    categoryId: "photo-action",
+  },
+  {
+    re: /\b(osmo\s+mobile|gimbal|ronin|\brs\s*[45]\b|mount\s+adapter|teleconverter|extender|speedlight|speedlite|battery\s+power\s+pack|light\s+meter|cfexpress|memory\s+card|external\s+flash|hvl-)\b/i,
+    categoryId: "photo-bags",
+  },
+  {
+    re: /\b(rode\s+wireless|microphone\s+system)\b/i,
+    categoryId: "photo-bags",
+  },
+  { re: /\b(dslr|d850|d7500|5d\s+mark|reflex\s+camera)\b/i, categoryId: "photo-dslr" },
+  {
+    re: /\b(mirrorless|eos\s+r\d|eos\s+r\b|alpha\s*a?\d|om-1|om-5|pen\s+e-p|zv-e\d*|cinema\s+(camera|line)|body\s+only)\b/i,
+    categoryId: "photo-mirrorless",
+  },
+  { re: /\b(camera)\b/i, categoryId: "photo-compact" },
+  { re: /\b(lens|objektiv)\b/i, categoryId: "photo-lenses" },
+  { re: /\b(ipad|oneplus\s+pad|xiaomi\s+pad|redmi\s+pad|galaxy\s+tab|tablet)\b/i, categoryId: "mobile-tablets" },
+  { re: /\b(keyboard)\b/i, categoryId: "mobile-accessories" },
+  { re: /\b(airpods|headphones?|headset|quietcomfort|earbuds?|\bbuds\b)\b/i, categoryId: "audio-headphones" },
+  {
+    re: /\b(iphone|galaxy\s+[asmz]\d|pixel\s*\d|redmi(?!\s+(pad|buds))|smartphone|sim\s+free|nothing\s+phone|oneplus|huawei\s+(pura|mate|nova)|honor|oppo|vivo|\bpoco\b)\b/i,
+    categoryId: "mobile-smartphones",
+  },
+  { re: /\b(portable\s+audio\s+player|walkman|nw-)\b/i, categoryId: "audio-portable" },
+  { re: /\b(watch|smartwatch|g-shock)\b/i, categoryId: "wearables-smartwatch" },
+  { re: /\b(photography\s+kit)\b/i, categoryId: "mobile-accessories" },
+  { re: /\bmacbook\b/i, categoryId: "notebooks-laptops" },
+  { re: /\bmac\s+mini\b/i, categoryId: "notebooks-desktops" },
+  { re: /\bapple\s+tv\b/i, categoryId: "tv-televisions" },
+  { re: /\b(apple\s+pencil|airtag)\b/i, categoryId: "mobile-accessories" },
+  {
+    re: /\b(dyson\s+(airwrap|airstrait|supersonic)|hair\s+dryer|straightener)\b/i,
+    categoryId: "care-hair-styling",
+  },
+  { re: /\b(shaver|epilator|hair\s+remover)\b/i, categoryId: "care-shaving-hair-removal" },
+  { re: /\b(sonicare|toothbrush)\b/i, categoryId: "care-oral" },
+  { re: /\bforeo\b/i, categoryId: "fashion-beauty-cosmetics" },
+  { re: /\b(joy-con|dualsense|dock\s+set)\b/i, categoryId: "gaming-accessories" },
+  {
+    re: /\b(switch\s+2(\s+console)?|switch\s+oled|rog\s+xbox\s+ally|msi\s+claw|steam\s+deck)\b/i,
+    categoryId: "gaming-consoles",
+  },
+  { re: /\b(quest\s*\d|oculus)\b/i, categoryId: "gaming-vr" },
+];
+
 function refineSeentatElectronics(
   result: CategoryMappingResult,
   title?: string
@@ -238,22 +345,87 @@ function refineSeentatElectronics(
   const isOsmoHandheld = /\b(osmo\s+action|osmo\s+360|osmo\s+pocket|osmo\s+mobile|gimbal|ronin)\b/i.test(
     text
   );
-  if (
-    !isOsmoHandheld &&
-    /\b(dji\s+(air|avata|mavic|mini|flip|neo|inspire|phantom|fpv)|\bdrone\b|quadcopter|avata\s*\d|mavic\s*\d)\b/i.test(
-      text
-    )
-  ) {
-    return { ...result, categoryId: "drones-quadcopters", method: "merchant-pattern" };
+  for (const rule of SEENTAT_TITLE_RULES) {
+    if (rule.categoryId === "drones-quadcopters" && isOsmoHandheld) continue;
+    if (rule.re.test(text)) {
+      return { ...result, categoryId: rule.categoryId, method: "merchant-pattern" };
+    }
   }
-  if (/\b(osmo\s+action|osmo\s+360|gopro|insta360|action\s+camera|ace\s+pro)\b/i.test(text)) {
-    return { ...result, categoryId: "photo-action", method: "merchant-pattern" };
+  return result;
+}
+
+/**
+ * Geepas aisle is almost always "Kitchen Units", which keyword-matches
+ * furniture-kitchen. Title wins; leftover furniture / monitor / game dumps
+ * fall back to cooking appliances.
+ */
+const GEEPAS_TITLE_RULES: Array<{ re: RegExp; categoryId: string }> = [
+  { re: /\b(gift\s+card)\b/i, categoryId: "digital-gift-cards" },
+  { re: /\b(steam\s+iron|\biron\b|ironing|clothes\s+steamer)\b/i, categoryId: "laundry-ironing-sewing" },
+  {
+    re: /\b(heater|convector|halogen\s+heater|ceramic\s+ptc|tower\s+heater|radiator|gas\s+heater)\b/i,
+    categoryId: "climate-heating",
+  },
+  { re: /\b(heated.{0,24}blankets?|heated.{0,24}throws?|electric.{0,24}blankets?)\b/i, categoryId: "textiles-bedding" },
+  { re: /\b(vacuum|hepa|spot\s*clean|steam\s+mop)\b/i, categoryId: "cleaning-vacuums" },
+  {
+    re: /\b(hair\s+clipper|beard\s+trimmer|trimmer|shaver)\b/i,
+    categoryId: "care-shaving-hair-removal",
+  },
+  {
+    re: /\b(hair\s+dryer|straightener|hair\s+curler|styler)\b/i,
+    categoryId: "care-hair-styling",
+  },
+  { re: /\b(coffee|espresso|filter\s+coffee)\b/i, categoryId: "kitchen-coffee-machines" },
+  {
+    re: /\b(blender|mixer|food\s+processor|salad\s+maker|grater|chopper|mincer|grinder|juicer|juice|squeezer)\b/i,
+    categoryId: "kitchen-machines-mixers",
+  },
+  {
+    re: /\b(air\s*fryer|deep\s+fat\s+fryer|fryer|multicooker|rice\s+cooker|pressure\s+cooker|grill|barbeque|barbecue|\bbbq\b|crepe|popcorn|candy\s+floss|sausage\s+roll|food\s+warmer)\b/i,
+    categoryId: "kitchen-cooking-appliances",
+  },
+  { re: /\b(microwave)\b/i, categoryId: "kitchen-microwaves" },
+  {
+    re: /\b(toaster|kettle|waffle|sandwich\s+maker|egg\s+cooker|egg\s+boiler|breakfast|tea\s+urn|water\s+boiler|catering\s+urn|thermos|carafe|airpot|flask)\b/i,
+    categoryId: "kitchen-breakfast",
+  },
+  { re: /\b(tap|shattaf|bidet)\b/i, categoryId: "kitchen-water-treatment" },
+  { re: /\b(\bfan\b|cooler)\b/i, categoryId: "climate-cooling" },
+  { re: /\b(massager|massage\s+gun)\b/i, categoryId: "health-massage-recovery" },
+  { re: /\b(bluetooth\s+speaker|karaoke)\b/i, categoryId: "audio-speakers" },
+  { re: /\b(extension\s+leads?)\b/i, categoryId: "diy-electrical" },
+  { re: /\b(folding\s+chair|camping\s+bed|folding\s+table)\b/i, categoryId: "furniture-outdoor" },
+  {
+    re: /\b(saucepan|skillet|wok|dinnerware|utensil|canister|storage\s+set|paper\s+towel|kitchen\s+bin|chopping)\b/i,
+    categoryId: "kitchen-cooking-appliances",
+  },
+];
+
+const GEEPAS_AISLE_LEAKS = new Set([
+  "furniture-kitchen",
+  "notebooks-monitors",
+  "gaming-games",
+  "home-smart-home",
+  "peripherals-storage",
+]);
+
+function refineGeepasHome(
+  result: CategoryMappingResult,
+  title?: string
+): CategoryMappingResult {
+  const text = title || "";
+  for (const rule of GEEPAS_TITLE_RULES) {
+    if (rule.re.test(text)) {
+      return { ...result, categoryId: rule.categoryId, method: "merchant-pattern" };
+    }
   }
-  if (/\b(osmo\s+pocket)\b/i.test(text)) {
-    return { ...result, categoryId: "photo-action", method: "merchant-pattern" };
-  }
-  if (/\b(osmo\s+mobile|gimbal|ronin|\brs\s*[45]\b)\b/i.test(text)) {
-    return { ...result, categoryId: "photo-bags", method: "merchant-pattern" };
+  if (GEEPAS_AISLE_LEAKS.has(result.categoryId)) {
+    return {
+      ...result,
+      categoryId: "kitchen-cooking-appliances",
+      method: "merchant-default",
+    };
   }
   return result;
 }
@@ -314,11 +486,12 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     const scored = applyConfidenceThreshold(result);
     if (merchantId === "ro-scule365") return clampScule365ToDiy(scored);
     if (merchantId === "ro-rowenta") return clampRowentaToAppliances(scored);
-    if (merchantId === "ch-babywalz") return clampBabywalzToBabyCatalogue(scored);
+    if (merchantId === "ch-babywalz") return refineBabywalzCatalogue(scored, title);
     if (merchantId === "ch-reifencom") return clampReifencomToAutoCatalogue(scored);
     if (merchantId === "ch-belando") return clampBelandoToBeautyCatalogue(scored, title);
     if (merchantId === "gb-arlo") return clampArloToSecurityCatalogue(scored);
     if (merchantId === "gb-seentat") return refineSeentatElectronics(scored, title);
+    if (merchantId === "gb-geepas") return refineGeepasHome(scored, title);
     return scored;
   };
 
@@ -388,12 +561,12 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     };
   }
   if (merchantId === "ch-babywalz") {
-    return {
+    return finalize({
       categoryId: BABYWALZ_FALLBACK_LEAF,
       method: "merchant-default",
       confidence: MAPPING_CONFIDENCE.combinedPattern,
       rawCategory: merchantCategory,
-    };
+    });
   }
   if (merchantId === "ch-reifencom") {
     return {
@@ -511,12 +684,12 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     });
   }
 
-  return {
+  return finalize({
     categoryId: UNMAPPED_CATEGORY_ID,
     method: "unmapped",
     confidence: 0,
     rawCategory: merchantCategory,
-  };
+  });
 }
 
 export function mapToBeforeToBuyCategory(input: CategoryMappingInput): string {

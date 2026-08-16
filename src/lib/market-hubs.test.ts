@@ -65,6 +65,12 @@ describe("market hubs", () => {
         "hub-diy"
       )
     ).toBe(false);
+    expect(
+      productMatchesCategoryFilter(
+        { title: "Kuscheltier", description: "", brand: "A", category: "toys-electronic" },
+        "hub-fashion"
+      )
+    ).toBe(true);
   });
 
   it("exposes top market hubs in usage order", () => {

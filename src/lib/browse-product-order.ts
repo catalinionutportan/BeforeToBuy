@@ -31,6 +31,19 @@ export type BrowseSortOptions = {
   preserveApiOrder?: boolean;
 };
 
+/** CH landing: Belando beauty leads All / Fashion before the baby-walz dump. */
+const CH_LEAD_MERCHANT_IDS = new Set(["ch-belando"]);
+
+function merchantLeadRank(product: Product, countryCode?: string): number {
+  if ((countryCode || "").toUpperCase() !== "CH") return 1;
+  const fromOffer = product.offers?.some(
+    (offer) => offer.feedMerchantId && CH_LEAD_MERCHANT_IDS.has(offer.feedMerchantId)
+  );
+  if (fromOffer) return 0;
+  if (product.id.includes("ch-belando")) return 0;
+  return 1;
+}
+
 function hubRank(leafId: string, countryCode?: string): number {
   const hubId = getMarketHubIdForLeaf(leafId);
   if (!hubId) return 900;
@@ -64,6 +77,10 @@ export function sortProductsForBrowse(
     if (options.preserveApiOrder) {
       return 0;
     }
+
+    const aLead = merchantLeadRank(a, options.countryCode);
+    const bLead = merchantLeadRank(b, options.countryCode);
+    if (aLead !== bLead) return aLead - bLead;
 
     const aLeaf = resolveCategoryAlias(a.category);
     const bLeaf = resolveCategoryAlias(b.category);

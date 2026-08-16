@@ -49,6 +49,20 @@ describe("sortProductsForBrowse", () => {
     expect(sorted.map((p) => p.id)).toEqual(["phone", "watch", "vacuum", "dress"]);
   });
 
+  it("leads the CH All catalogue with Belando before baby-walz", () => {
+    const baby = product("body", "fashion-kids-baby");
+    baby.offers = [{ feedMerchantId: "ch-babywalz" } as Product["offers"][number]];
+    const belando = product("shampoo", "fashion-beauty-hair-care");
+    belando.offers = [{ feedMerchantId: "ch-belando" } as Product["offers"][number]];
+    const tyre = product("tyre", "auto-tires-wheels");
+    tyre.offers = [{ feedMerchantId: "ch-reifencom" } as Product["offers"][number]];
+
+    const sorted = sortProductsForBrowse([baby, tyre, belando], "default", {
+      countryCode: "CH",
+    });
+    expect(sorted.map((p) => p.id)).toEqual(["shampoo", "body", "tyre"]);
+  });
+
   it("keeps API order when searching across departments", () => {
     const sorted = sortProductsForBrowse(
       [

@@ -344,6 +344,13 @@ describe('Category Mapper Functions', () => {
         title: "Wella EIMI Perfect Setting Föhn Lotion 150 ml",
       })
     ).toBe("fashion-beauty-hair-care");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-belando",
+        merchantCategory: "Haircare Appliances",
+        title: "Aufsteckkamm 10mm für die Wahl Super Taper Haarschneidemaschine",
+      })
+    ).toBe("fashion-beauty-hair-care");
   });
 
   it("baby-walz keeps strollers/clothes out of electronics", () => {
@@ -373,6 +380,26 @@ describe('Category Mapper Functions', () => {
         title: "Babyschale Pebble 360",
       })
     ).toBe("baby-car-seats");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-babywalz",
+        merchantCategory: "Bekleidung",
+        title: "Kinderfahrrad Petitage 14 Zoll",
+      })
+    ).toBe("toys-electronic");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-babywalz",
+        merchantCategory: "Bekleidung",
+        title: "Kindersitzgarnitur Tisch & 2 Stühle",
+      })
+    ).toBe("baby-nursery");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-babywalz",
+        title: "Hüfttrage Upsie",
+      })
+    ).toBe("baby-strollers-travel");
   });
 
   it("Seentat UK merchant aisles map to electronics leaves", () => {
@@ -432,6 +459,102 @@ describe('Category Mapper Functions', () => {
         title: "DJI Osmo Mobile 7P Gimbal",
       })
     ).toBe("photo-bags");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Apple",
+        title: "Apple iPhone 17 Pro SIM Free",
+      })
+    ).toBe("mobile-smartphones");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Apple",
+        title: "Apple AirPods Pro 3 with MagSafe Charging Case MFHP4",
+      })
+    ).toBe("audio-headphones");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Computer",
+        title: "Apple MacBook Pro 14-inch M5 16+512GB - Silver MDE44ZP/A",
+      })
+    ).toBe("notebooks-laptops");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Camera",
+        title: "Canon EOS R5 II Mirrorless Camera Body Only",
+      })
+    ).toBe("photo-mirrorless");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Camera",
+        title: "Sony ZV-E10 VLOG Camera with 16-50mm Lens",
+      })
+    ).toBe("photo-mirrorless");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Personal Care",
+        title: "Braun Series 9 Pro Electric Shaver - 9675CC",
+      })
+    ).toBe("care-shaving-hair-removal");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Gaming",
+        title: "Nintendo Switch 2",
+      })
+    ).toBe("gaming-consoles");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Apple",
+        title: "Apple TV 4K 3rd Generation 2022",
+      })
+    ).toBe("tv-televisions");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Camera",
+        title: "Nikon D850 Digital Reflex Camera Body Only",
+      })
+    ).toBe("photo-dslr");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Gaming",
+        title: "STEAM Deck OLED",
+      })
+    ).toBe("gaming-consoles");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        title: "HUAWEI WATCH ULTIMATE 2 Global Version - Green",
+      })
+    ).toBe("wearables-smartwatch");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        title: "Xiaomi Redmi Pad 2 Global Version 11inch 8+256GB 4G",
+      })
+    ).toBe("mobile-tablets");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Mobile",
+        title: "Nothing Phone (3) 12+256GB 5G SIM Free",
+      })
+    ).toBe("mobile-smartphones");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Headphone",
+        title: "Xiaomi Redmi Buds 8 Pro True Wireless Earbuds - Black",
+      })
+    ).toBe("audio-headphones");
   });
 
   it("legacy global patterns still work without merchant id", () => {
@@ -557,6 +680,41 @@ describe('Category Mapper Functions', () => {
         title: "Geepas Electric Kettle 1.7L",
       })
     ).toBe("kitchen-breakfast");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-geepas",
+        merchantCategory: "Kitchen Units",
+        title: "2400W Digital Display Smart Ceramic Steam Iron",
+      })
+    ).toBe("laundry-ironing-sewing");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-geepas",
+        merchantCategory: "Kitchen Units",
+        title: "2000W Premium Oscillating Ceramic PTC Tower Heater",
+      })
+    ).toBe("climate-heating");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-geepas",
+        merchantCategory: "Kitchen Units",
+        title: "2-In-1 Stick & Hand HEPA Vacuum Cleaner With Touch Display",
+      })
+    ).toBe("cleaning-vacuums");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-geepas",
+        merchantCategory: "Kitchen Units",
+        title: "Engraved Rechargeable Vintage Beard Trimmer With LED Display",
+      })
+    ).toBe("care-shaving-hair-removal");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-geepas",
+        merchantCategory: "Kitchen Units",
+        title: "Geepas Gift Card - The Perfect Gift, Every Time",
+      })
+    ).toBe("digital-gift-cards");
   });
 
   it("evoMAG Sisteme PC feed aisles map to desktop / component leaves", () => {

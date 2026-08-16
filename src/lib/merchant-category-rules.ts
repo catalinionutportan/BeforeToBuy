@@ -256,7 +256,7 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     }),
     patterns: [
       {
-        patterns: /\b(kinderwagen|buggy|sportwagen|kombikinderwagen|jogger|reisesystem)\b/i,
+        patterns: /kinderwagen|buggy|sportwagen|kombikinderwagen|jogger|reisesystem|hüfttrage|huefttrage|babytrage|tragehilfe/i,
         subcategoryId: "baby-strollers-travel",
       },
       {
@@ -883,20 +883,44 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     // Broad aisle "Kitchen Units" must not be exact — title patterns refine leaves.
     exact: exactRules({}),
     patterns: [
+      { patterns: /\b(gift\s+card)\b/i, subcategoryId: "digital-gift-cards" },
+      { patterns: /\b(steam\s+iron|\biron\b|ironing|clothes\s+steamer)\b/i, subcategoryId: "laundry-ironing-sewing" },
+      {
+        patterns: /\b(heater|convector|halogen\s+heater|ceramic\s+ptc|tower\s+heater|radiator|gas\s+heater)\b/i,
+        subcategoryId: "climate-heating",
+      },
+      { patterns: /\b(heated.{0,24}blankets?|heated.{0,24}throws?|electric.{0,24}blankets?)\b/i, subcategoryId: "textiles-bedding" },
+      { patterns: /\b(vacuum|hepa|spot\s*clean|steam\s+mop)\b/i, subcategoryId: "cleaning-vacuums" },
+      {
+        patterns: /\b(hair\s+clipper|beard\s+trimmer|trimmer|shaver)\b/i,
+        subcategoryId: "care-shaving-hair-removal",
+      },
+      {
+        patterns: /\b(hair\s+dryer|straightener|hair\s+curler|styler)\b/i,
+        subcategoryId: "care-hair-styling",
+      },
       { patterns: /\b(coffee|espresso|filter\s+coffee)\b/i, subcategoryId: "kitchen-coffee-machines" },
       {
-        patterns: /\b(blender|mixer|food\s+processor|salad\s+maker|grater|chopper|mincer)\b/i,
+        patterns: /\b(blender|mixer|food\s+processor|salad\s+maker|grater|chopper|mincer|grinder|juicer|juice|squeezer)\b/i,
         subcategoryId: "kitchen-machines-mixers",
       },
       {
-        patterns: /\b(air\s*fryer|deep\s+fat\s+fryer|fryer|multicooker|rice\s+cooker|pressure\s+cooker)\b/i,
+        patterns:
+          /\b(air\s*fryer|deep\s+fat\s+fryer|fryer|multicooker|rice\s+cooker|pressure\s+cooker|grill|barbeque|barbecue|\bbbq\b|crepe|popcorn|candy\s+floss|sausage\s+roll|food\s+warmer)\b/i,
         subcategoryId: "kitchen-cooking-appliances",
       },
       { patterns: /\b(microwave)\b/i, subcategoryId: "kitchen-microwaves" },
       {
-        patterns: /\b(toaster|kettle|waffle|sandwich\s+maker|egg\s+cooker|breakfast)\b/i,
+        patterns:
+          /\b(toaster|kettle|waffle|sandwich\s+maker|egg\s+cooker|egg\s+boiler|breakfast|tea\s+urn|water\s+boiler|catering\s+urn|thermos|carafe|airpot|flask)\b/i,
         subcategoryId: "kitchen-breakfast",
       },
+      { patterns: /\b(tap|shattaf|bidet)\b/i, subcategoryId: "kitchen-water-treatment" },
+      { patterns: /\b(\bfan\b|cooler)\b/i, subcategoryId: "climate-cooling" },
+      { patterns: /\b(massager|massage\s+gun)\b/i, subcategoryId: "health-massage-recovery" },
+      { patterns: /\b(bluetooth\s+speaker|karaoke)\b/i, subcategoryId: "audio-speakers" },
+      { patterns: /\b(extension\s+leads?)\b/i, subcategoryId: "diy-electrical" },
+      { patterns: /\b(folding\s+chair|camping\s+bed|folding\s+table)\b/i, subcategoryId: "furniture-outdoor" },
     ],
   },
 

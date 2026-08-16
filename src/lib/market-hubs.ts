@@ -60,7 +60,7 @@ export function marketHubOrderForCountry(countryCode: CountryCode | string): rea
       "hub-books",
     ];
   }
-  // CH: fashion (baby-walz) + Auto (Reifen) before empty electronics.
+  // CH: Fashion first (Belando beauty + baby-walz). Auto (Reifen) next.
   if (countryCode === "CH") {
     return [
       "hub-fashion",
@@ -252,6 +252,9 @@ export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
     id: "hub-fashion",
     icon: Shirt,
     leafIds: [
+      "fashion-beauty-hair-care",
+      "fashion-beauty-cosmetics",
+      "fashion-beauty-fragrance",
       "fashion-women",
       "fashion-women-dresses",
       "fashion-women-tops",
@@ -293,15 +296,18 @@ export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
       "fashion-underwear",
       "fashion-bags",
       "fashion-accessories",
-      "fashion-beauty-hair-care",
-      "fashion-beauty-cosmetics",
-      "fashion-beauty-fragrance",
       "health-monitors-scales",
       "health-massage-recovery",
       "baby-monitoring-feeding",
       "baby-strollers-travel",
       "baby-car-seats",
       "baby-nursery",
+      "toys-rc-models",
+      "toys-building-sets",
+      "toys-electronic",
+      "toys-board-games",
+      "hobby-creative",
+      "toys-accessories",
     ],
   },
   {
