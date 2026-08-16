@@ -317,6 +317,33 @@ describe('Category Mapper Functions', () => {
         title: "Samsung Galaxy S24 Ultra 256GB",
       })
     ).toBe("fashion-beauty-hair-care");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-belando",
+        merchantCategory: "Haircare Appliances",
+        title: "Wella SP Balance Scalp Shampoo 250 ml",
+      })
+    ).toBe("fashion-beauty-hair-care");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-belando",
+        merchantCategory: "Haarstyling",
+        title: "Jaguar A-Line Haarschneidekamm",
+      })
+    ).toBe("fashion-beauty-hair-care");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-belando",
+        merchantCategory: "Small Appliances",
+        title: "Schwarzkopf Professional Paddle Brush",
+      })
+    ).toBe("fashion-beauty-hair-care");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-belando",
+        title: "Wella EIMI Perfect Setting Föhn Lotion 150 ml",
+      })
+    ).toBe("fashion-beauty-hair-care");
   });
 
   it("baby-walz keeps strollers/clothes out of electronics", () => {

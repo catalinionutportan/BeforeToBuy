@@ -347,17 +347,13 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       düfte: "fashion-beauty-fragrance",
       duefte: "fashion-beauty-fragrance",
       parfum: "fashion-beauty-fragrance",
-      "haircare appliances": "care-hair-styling",
-      "small appliances": "care-hair-styling",
-      haarstyling: "care-hair-styling",
-      "haare > haarstyling": "care-hair-styling",
       gifts: "fashion-beauty-cosmetics",
       "bodycare & fitness": "fashion-beauty-cosmetics",
     }),
     patterns: [
       {
         patterns:
-          /\b(föhn|foehn|haartrockner|glätteisen|glaetteisen|lockenstab|haarschneider|trimmer|babyliss)\b/i,
+          /\b(föhn|foehn|haartrockner|hair\s*dryer|glätteisen|glaetteisen|straightener|lockenstab|curling\s*iron|haarschneider|haarschneidemaschine|trimmer|warmluftbürste|warmluftbuerste)\b/i,
         subcategoryId: "care-hair-styling",
       },
       {
@@ -366,12 +362,12 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       },
       {
         patterns:
-          /\b(make[- ]?up|mascara|lipstick|nagellack|gesichtscreme|hautpflege|kosmetik|serum)\b/i,
+          /\b(make[- ]?up|mascara|lipstick|nagellack|gesichtscreme|hautpflege|kosmetik)\b/i,
         subcategoryId: "fashion-beauty-cosmetics",
       },
       {
         patterns:
-          /\b(shampoo|conditioner|haarmaske|haarkur|haaröl|haarol|haarfarbe|coloration|toner|tonspülung|tonspuelung|haarspray|haarwachs|haarschaum|styling\s*gel)\b/i,
+          /\b(shampoo|conditioner|haarmaske|haarkur|haaröl|haarol|haarfarbe|coloration|toner|tonspülung|tonspuelung|haarspray|haarwachs|haarschaum|styling\s*gel|lotion|maske|kamm|bürste|buerste|brush|creme|cream|serum)\b/i,
         subcategoryId: "fashion-beauty-hair-care",
       },
     ],

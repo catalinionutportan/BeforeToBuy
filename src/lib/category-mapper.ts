@@ -34,6 +34,12 @@ const REIFENCOM_FALLBACK_LEAF = "auto-tires-wheels";
 /** Belando fallback when title/category is ambiguous. */
 const BELANDO_FALLBACK_LEAF = "fashion-beauty-hair-care";
 
+/** Powered styling tools only — combs, brushes and shampoo stay in beauty. */
+const BELANDO_HAIR_APPLIANCE_RE =
+  /\b(föhn|foehn|haartrockner|hair\s*dryer|glätteisen|glaetteisen|straightener|lockenstab|curling\s*iron|haarschneider|haarschneidemaschine|trimmer|warmluftbürste|warmluftbuerste)\b/i;
+const BELANDO_HAIR_CONSUMABLE_RE =
+  /\b(shampoo|conditioner|lotion|creme|cream|serum|maske|haarspray|haaröl|haarol|öl)\b/i;
+
 /** Arlo fallback when title/category is ambiguous. */
 const ARLO_FALLBACK_LEAF = "smart-home-security";
 
@@ -185,7 +191,10 @@ function clampReifencomToAutoCatalogue(result: CategoryMappingResult): CategoryM
 }
 
 /** Force Belando into hair / beauty / styling-tool leaves only. */
-function clampBelandoToBeautyCatalogue(result: CategoryMappingResult): CategoryMappingResult {
+function clampBelandoToBeautyCatalogue(
+  result: CategoryMappingResult,
+  title?: string
+): CategoryMappingResult {
   if (result.categoryId === UNMAPPED_CATEGORY_ID || !isBelandoAllowedCategory(result.categoryId)) {
     return {
       ...result,
@@ -196,6 +205,22 @@ function clampBelandoToBeautyCatalogue(result: CategoryMappingResult): CategoryM
         result.categoryId !== UNMAPPED_CATEGORY_ID && result.categoryId !== BELANDO_FALLBACK_LEAF
           ? result.categoryId
           : result.proposedCategoryId,
+    };
+  }
+  // AWIN often labels shampoo / brushes as "Haircare Appliances".
+  // "Föhn Lotion" is a consumable, not a dryer.
+  const titleText = title || "";
+  const looksLikeConsumable = BELANDO_HAIR_CONSUMABLE_RE.test(titleText);
+  const looksLikeAppliance = BELANDO_HAIR_APPLIANCE_RE.test(titleText);
+  if (
+    result.categoryId === "care-hair-styling" &&
+    (looksLikeConsumable || !looksLikeAppliance)
+  ) {
+    return {
+      ...result,
+      categoryId: BELANDO_FALLBACK_LEAF,
+      method: "merchant-default",
+      proposedCategoryId: result.categoryId,
     };
   }
   return result;
@@ -259,7 +284,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     if (merchantId === "ro-rowenta") return clampRowentaToAppliances(scored);
     if (merchantId === "ch-babywalz") return clampBabywalzToBabyCatalogue(scored);
     if (merchantId === "ch-reifencom") return clampReifencomToAutoCatalogue(scored);
-    if (merchantId === "ch-belando") return clampBelandoToBeautyCatalogue(scored);
+    if (merchantId === "ch-belando") return clampBelandoToBeautyCatalogue(scored, title);
     if (merchantId === "gb-arlo") return clampArloToSecurityCatalogue(scored);
     return scored;
   };
