@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   SAFE_IMAGE_FALLBACK,
   assertFeedDownloadUrl,
+  rewriteStaleMerchantImageUrl,
   sanitizeCommercialUrl,
   sanitizeFeedImageUrl,
   sanitizeProductImageForRender,
@@ -20,6 +21,36 @@ describe("feed-url-policy", () => {
     if (result.ok) {
       expect(result.normalized).toContain("www.rowenta.ro");
     }
+  });
+
+  it("rewrites stale Seentat Magento media onto BunnyCDN", () => {
+    expect(
+      rewriteStaleMerchantImageUrl(
+        "https://www.seentat.com/media/catalog/product/x/i/xiaomi-17t-5g-12-256gb-blue-1_1.jpg"
+      )
+    ).toBe("https://seentat.b-cdn.net/Graphics/Product-Images/xiaomi-17t-5g-12-256gb-blue-1_1.jpg");
+    expect(
+      rewriteStaleMerchantImageUrl(
+        "https://www.seentat.com/media/catalog/product/t/e/test1.png"
+      )
+    ).toBe("https://seentat.b-cdn.net/Graphics/Product-Images/test1.jpg");
+
+    const result = validateFeedUrl(
+      "https://www.seentat.com/media/catalog/product/a/p/apple-airtag.jpg",
+      "image",
+      { feedMerchantId: "gb-seentat" }
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.normalized).toBe(
+        "https://seentat.b-cdn.net/Graphics/Product-Images/apple-airtag.jpg"
+      );
+    }
+    expect(
+      sanitizeProductImageForRender(
+        "https://www.seentat.com/media/catalog/product/n/i/nikon-speedlite-sb-5000-1.png"
+      )
+    ).toBe("https://seentat.b-cdn.net/Graphics/Product-Images/nikon-speedlite-sb-5000-1.jpg");
   });
 
   it("rejects HTTP image URLs", () => {

@@ -23,6 +23,7 @@ export const APPROVED_IMAGE_HOSTS = [
   "rowenta.ro",
   "www.seentat.com",
   "seentat.com",
+  "seentat.b-cdn.net",
   "www.ottocast.com",
   "ottocast.com",
   "geepas.co.uk",
@@ -251,6 +252,31 @@ export function parseStrictHttpsUrl(raw: string | null | undefined): FeedUrlVali
   return { ok: true, url, normalized: url.toString() };
 }
 
+/**
+ * Seentat moved Magento media to BunnyCDN. AWIN still ships the old
+ * /media/catalog/product/... paths, which now 404 on seentat.com.
+ */
+export function rewriteStaleMerchantImageUrl(raw: string): string {
+  const trimmed = raw.trim();
+  try {
+    const url = new URL(trimmed);
+    const host = url.hostname.toLowerCase();
+    if (
+      (host === "www.seentat.com" || host === "seentat.com") &&
+      /\/media\/catalog\/product\//i.test(url.pathname)
+    ) {
+      const file = url.pathname.split("/").filter(Boolean).pop();
+      if (file) {
+        const bunnyFile = file.replace(/\.png$/i, ".jpg");
+        return `https://seentat.b-cdn.net/Graphics/Product-Images/${bunnyFile}`;
+      }
+    }
+  } catch {
+    return trimmed;
+  }
+  return trimmed;
+}
+
 function allowlistForKind(kind: FeedUrlKind, feedMerchantId?: string): readonly string[] {
   if (kind === "image") return APPROVED_IMAGE_HOSTS;
   if (kind === "feed-download") {
@@ -271,7 +297,9 @@ export function validateFeedUrl(
   kind: FeedUrlKind,
   options?: { feedMerchantId?: string }
 ): FeedUrlValidation {
-  const parsed = parseStrictHttpsUrl(raw);
+  const candidate =
+    kind === "image" && raw?.trim() ? rewriteStaleMerchantImageUrl(raw) : raw;
+  const parsed = parseStrictHttpsUrl(candidate);
   if (!parsed.ok) return parsed;
 
   const allowlist = allowlistForKind(kind, options?.feedMerchantId);
