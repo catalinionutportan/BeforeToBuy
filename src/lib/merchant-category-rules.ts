@@ -834,7 +834,6 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       accessory: "mobile-accessories",
       apple: "mobile-accessories",
       "personal care": "care-hair-styling",
-      dji: "drones-quadcopters",
       insta360: "photo-action",
       // AWIN category_name
       cameras: "photo-compact",
@@ -854,6 +853,17 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "mp3 players": "audio-portable",
     }),
     patterns: [
+      {
+        patterns:
+          /\b(dji\s+(air|avata|mavic|mini|flip|neo|inspire|phantom|fpv)|\bdrone\b|quadcopter|avata\s*\d|mavic\s*\d)\b/i,
+        subcategoryId: "drones-quadcopters",
+      },
+      {
+        patterns: /\b(osmo\s+action|osmo\s+360|gopro|insta360|action\s+camera|ace\s+pro)\b/i,
+        subcategoryId: "photo-action",
+      },
+      { patterns: /\b(osmo\s+pocket)\b/i, subcategoryId: "photo-action" },
+      { patterns: /\b(osmo\s+mobile|gimbal|ronin|\brs\s*[45]\b)\b/i, subcategoryId: "photo-bags" },
       { patterns: /\b(iphone|galaxy\s+[asmz]\d|pixel\s*\d|smartphone)\b/i, subcategoryId: "mobile-smartphones" },
       { patterns: /\b(ipad|galaxy\s+tab|tablet)\b/i, subcategoryId: "mobile-tablets" },
       { patterns: /\b(macbook|laptop|notebook)\b/i, subcategoryId: "notebooks-laptops" },

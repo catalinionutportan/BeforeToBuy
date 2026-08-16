@@ -397,6 +397,41 @@ describe('Category Mapper Functions', () => {
         title: "Kodak PIXPRO FZ55",
       })
     ).toBe("photo-compact");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Camera",
+        title: "DJI Mini 3 Fly More Combo with DJI RC",
+      })
+    ).toBe("drones-quadcopters");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Gaming",
+        title: "DJI Air 3S Drone (DJI RC-N3)",
+      })
+    ).toBe("drones-quadcopters");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "DJI",
+        title: "DJI Osmo Action 6 Standard Combo - Black",
+      })
+    ).toBe("photo-action");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Camera",
+        title: "GoPro HERO13 BLACK",
+      })
+    ).toBe("photo-action");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Accessory",
+        title: "DJI Osmo Mobile 7P Gimbal",
+      })
+    ).toBe("photo-bags");
   });
 
   it("legacy global patterns still work without merchant id", () => {

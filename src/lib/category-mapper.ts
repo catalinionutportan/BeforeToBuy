@@ -226,6 +226,38 @@ function clampBelandoToBeautyCatalogue(
   return result;
 }
 
+/**
+ * Seentat brand aisles (DJI / Camera / Gaming) misfile drones vs action cameras.
+ * Title wins: Mini/Avata/Air = drones; Osmo Action/GoPro = action; gimbals = accessories.
+ */
+function refineSeentatElectronics(
+  result: CategoryMappingResult,
+  title?: string
+): CategoryMappingResult {
+  const text = title || "";
+  const isOsmoHandheld = /\b(osmo\s+action|osmo\s+360|osmo\s+pocket|osmo\s+mobile|gimbal|ronin)\b/i.test(
+    text
+  );
+  if (
+    !isOsmoHandheld &&
+    /\b(dji\s+(air|avata|mavic|mini|flip|neo|inspire|phantom|fpv)|\bdrone\b|quadcopter|avata\s*\d|mavic\s*\d)\b/i.test(
+      text
+    )
+  ) {
+    return { ...result, categoryId: "drones-quadcopters", method: "merchant-pattern" };
+  }
+  if (/\b(osmo\s+action|osmo\s+360|gopro|insta360|action\s+camera|ace\s+pro)\b/i.test(text)) {
+    return { ...result, categoryId: "photo-action", method: "merchant-pattern" };
+  }
+  if (/\b(osmo\s+pocket)\b/i.test(text)) {
+    return { ...result, categoryId: "photo-action", method: "merchant-pattern" };
+  }
+  if (/\b(osmo\s+mobile|gimbal|ronin|\brs\s*[45]\b)\b/i.test(text)) {
+    return { ...result, categoryId: "photo-bags", method: "merchant-pattern" };
+  }
+  return result;
+}
+
 /** Force Arlo into smart-home security only. */
 function clampArloToSecurityCatalogue(result: CategoryMappingResult): CategoryMappingResult {
   if (result.categoryId === UNMAPPED_CATEGORY_ID || !isArloAllowedCategory(result.categoryId)) {
@@ -286,6 +318,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     if (merchantId === "ch-reifencom") return clampReifencomToAutoCatalogue(scored);
     if (merchantId === "ch-belando") return clampBelandoToBeautyCatalogue(scored, title);
     if (merchantId === "gb-arlo") return clampArloToSecurityCatalogue(scored);
+    if (merchantId === "gb-seentat") return refineSeentatElectronics(scored, title);
     return scored;
   };
 
