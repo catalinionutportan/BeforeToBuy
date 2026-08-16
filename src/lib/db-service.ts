@@ -260,6 +260,97 @@ async function queryProductIdsByMinOfferTotal(
   return rows.map((row) => row.id);
 }
 
+/**
+ * CH All / Fashion first page must be Belando, not the latest baby-walz remap.
+ * Client-side sort cannot fix this: the API only returns the current OFFSET page.
+ */
+async function queryProductIdsByChLead(
+  countryCode: string,
+  query: string | undefined,
+  category: string | undefined,
+  filters: OfferFilterCriteria,
+  take: number,
+  skip: number
+): Promise<string[]> {
+  const categoryIds = expandCategoryFilterToDbIds(category);
+
+  const categorySql = categoryIds?.length
+    ? Prisma.sql`AND p.category IN (${Prisma.join(categoryIds)})`
+    : Prisma.empty;
+
+  const trimmedQuery = query?.trim();
+  const queryPattern = trimmedQuery ? `%${trimmedQuery}%` : null;
+  const querySql = queryPattern
+    ? Prisma.sql`AND (
+        p.title ILIKE ${queryPattern}
+        OR p.brand ILIKE ${queryPattern}
+        OR p.description ILIKE ${queryPattern}
+        OR p.gtin ILIKE ${queryPattern}
+      )`
+    : Prisma.empty;
+
+  const brandSql = filters.brand
+    ? Prisma.sql`AND LOWER(p.brand) = LOWER(${filters.brand.trim()})`
+    : Prisma.empty;
+
+  const gtinSql = filters.hasGtinOnly ? Prisma.sql`AND p.gtin IS NOT NULL` : Prisma.empty;
+
+  const offerClauses: Prisma.Sql[] = [Prisma.sql`o."inStock" = true`];
+  if (filters.domain && filters.domain !== "all") {
+    const domain = filters.domain.trim();
+    const token = domain.split(".")[0] || domain;
+    offerClauses.push(
+      Prisma.sql`(o."storeName" ILIKE ${`%${token}%`} OR o."purchaseUrl" ILIKE ${`%${domain}%`})`
+    );
+  }
+  if (filters.freeDeliveryOnly) {
+    offerClauses.push(Prisma.sql`o."deliveryCost" IS NOT NULL AND o."deliveryCost" <= 0`);
+  }
+  if (filters.minTotalPrice != null) {
+    offerClauses.push(
+      Prisma.sql`COALESCE(o."totalPrice", o.price + COALESCE(o."deliveryCost", 0)) >= ${filters.minTotalPrice}`
+    );
+  }
+  if (filters.maxTotalPrice != null) {
+    offerClauses.push(
+      Prisma.sql`COALESCE(o."totalPrice", o.price + COALESCE(o."deliveryCost", 0)) <= ${filters.maxTotalPrice}`
+    );
+  }
+  const offerWhereSql = Prisma.join(offerClauses, " AND ");
+
+  const rows = await prisma.$queryRaw<{ id: string }[]>`
+    SELECT p.id
+    FROM "Product" p
+    WHERE ${countryCode} = ANY(p."targetCountries")
+      AND EXISTS (
+        SELECT 1 FROM "Offer" o
+        WHERE o."productId" = p.id AND ${offerWhereSql}
+      )
+    ${categorySql}
+    ${querySql}
+    ${brandSql}
+    ${gtinSql}
+    ORDER BY
+      CASE WHEN EXISTS (
+        SELECT 1 FROM "Offer" o
+        WHERE o."productId" = p.id AND o."feedMerchantId" = 'ch-belando'
+      ) THEN 0 ELSE 1 END,
+      CASE p.category
+        WHEN 'fashion-beauty-hair-care' THEN 0
+        WHEN 'fashion-beauty-cosmetics' THEN 1
+        WHEN 'fashion-beauty-fragrance' THEN 2
+        WHEN 'care-hair-styling' THEN 3
+        ELSE 20
+      END,
+      p."updatedAt" DESC,
+      p.id ASC
+    LIMIT ${take}
+    OFFSET ${skip}
+  `;
+
+  return rows.map((row) => row.id);
+}
+
 /** Fetch filtered products directly from Supabase DB */
 export async function getProductsFromDb(
   countryCode: string,
@@ -278,6 +369,8 @@ export async function getProductsFromDb(
   const take = limit == null ? 100 : Math.max(0, Math.floor(limit));
   const skip = Math.max(0, Math.floor(offset || 0));
   const sortByOfferTotal = sort === "price-asc" || sort === "price-desc";
+  const sortByChLead =
+    !sortByOfferTotal && countryCode.toUpperCase() === "CH" && !query?.trim();
 
   // Secondary id keeps OFFSET pages stable (updatedAt ties otherwise skip/dup rows).
   const orderBy: Prisma.ProductOrderByWithRelationInput[] = [
@@ -296,12 +389,14 @@ export async function getProductsFromDb(
         take,
         skip
       )
-    : Promise.resolve(null);
+    : sortByChLead
+      ? queryProductIdsByChLead(countryCode, query, category, filters, take, skip)
+      : Promise.resolve(null);
 
   const [pricedIds, productsDefault, total, countMaps, countryTotal, brandRows] =
     await Promise.all([
       pricedIdsPromise,
-      sortByOfferTotal
+      sortByOfferTotal || sortByChLead
         ? Promise.resolve([] as PrismaProductWithOffers[])
         : prisma.product.findMany({
             where: whereClause,
@@ -327,7 +422,7 @@ export async function getProductsFromDb(
     ]);
 
   let pageProducts: PrismaProductWithOffers[];
-  if (sortByOfferTotal && pricedIds) {
+  if (pricedIds) {
     if (pricedIds.length === 0) {
       pageProducts = [];
     } else {

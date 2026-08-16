@@ -98,4 +98,22 @@ describe("getProductsFromDb price sort", () => {
     const last = await getProductsFromDb("RO", undefined, undefined, 2, 9, "price-asc");
     expect(9 + last.products.length < last.totalMatched).toBe(false);
   });
+
+  it("orders the CH default page with Belando ids from SQL, not updatedAt", async () => {
+    queryRaw.mockResolvedValue([{ id: "prod-ch-belando-1" }, { id: "prod-ch-babywalz-1" }]);
+    findMany
+      .mockResolvedValueOnce([{ brand: "Wella" }])
+      .mockResolvedValueOnce([
+        mockProduct("prod-ch-babywalz-1", 20),
+        mockProduct("prod-ch-belando-1", 15),
+      ]);
+
+    const page = await getProductsFromDb("CH", undefined, undefined, 2, 0);
+
+    expect(queryRaw).toHaveBeenCalledTimes(1);
+    expect(page.products.map((product) => product.id)).toEqual([
+      "prod-ch-belando-1",
+      "prod-ch-babywalz-1",
+    ]);
+  });
 });
