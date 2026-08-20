@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const queryRaw = vi.fn();
 const findMany = vi.fn();
+const findFirst = vi.fn();
 const count = vi.fn();
 const groupBy = vi.fn();
 
@@ -10,6 +11,7 @@ vi.mock("@/lib/db", () => ({
     $queryRaw: (...args: unknown[]) => queryRaw(...args),
     product: {
       findMany: (...args: unknown[]) => findMany(...args),
+      findFirst: (...args: unknown[]) => findFirst(...args),
       count: (...args: unknown[]) => count(...args),
       groupBy: (...args: unknown[]) => groupBy(...args),
     },
@@ -62,6 +64,7 @@ describe("getProductsFromDb price sort", () => {
     vi.clearAllMocks();
     groupBy.mockResolvedValue([]);
     count.mockResolvedValue(6);
+    findFirst.mockResolvedValue(null);
   });
 
   it("orders globally by min offer total even when cheapest id is after the first id page", async () => {

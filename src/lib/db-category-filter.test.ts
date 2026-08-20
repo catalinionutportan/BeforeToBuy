@@ -25,6 +25,7 @@ describe("expandCategoryFilterToDbIds", () => {
   it("expands Auto hub to tyre leaves", () => {
     const ids = expandCategoryFilterToDbIds("hub-auto");
     expect(ids).toContain("auto-tires-wheels");
+    expect(ids).toContain("auto-complete-wheels");
     expect(ids).toContain("auto-batteries");
     expect(ids).not.toContain("diy-power-tools");
   });

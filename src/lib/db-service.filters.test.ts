@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const queryRaw = vi.fn();
 const findMany = vi.fn();
+const findFirst = vi.fn();
 const count = vi.fn();
 const groupBy = vi.fn();
 
@@ -10,6 +11,7 @@ vi.mock("@/lib/db", () => ({
     $queryRaw: (...args: unknown[]) => queryRaw(...args),
     product: {
       findMany: (...args: unknown[]) => findMany(...args),
+      findFirst: (...args: unknown[]) => findFirst(...args),
       count: (...args: unknown[]) => count(...args),
       groupBy: (...args: unknown[]) => groupBy(...args),
     },
@@ -61,6 +63,7 @@ describe("getProductsFromDb offer visibility", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     groupBy.mockResolvedValue([]);
+    findFirst.mockResolvedValue(null);
   });
 
   it("drops products whose visible offers were filtered out after fetch", async () => {

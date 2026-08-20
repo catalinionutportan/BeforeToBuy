@@ -268,6 +268,29 @@ describe('Category Mapper Functions', () => {
     expect(report.reviewQueue[0]?.productId).toBe("feed-2");
   });
 
+  it("Reifen.com maps rims and complete wheels off the tyre leaf", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-reifencom",
+        merchantCategory: "Kompletträder",
+        title: "Komplettrad 17 Zoll Michelin + AEZ",
+      })
+    ).toBe("auto-complete-wheels");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-reifencom",
+        merchantCategory: "Felgen",
+        title: "20 Ludwig 7 5x17 5x112 ET35 MB66 6",
+      })
+    ).toBe("auto-complete-wheels");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-reifencom",
+        title: "17 Fritz 9 0x21 5x112 ET45 MB66 6",
+      })
+    ).toBe("auto-complete-wheels");
+  });
+
   it("Reifen.com keeps tyre codes out of electronics", () => {
     expect(
       mapToBeforeToBuyCategory({

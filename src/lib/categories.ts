@@ -29,6 +29,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { MARKET_HUB_LEAF_GROUPS, getMarketHubById } from "@/lib/market-hubs";
+import { resolveAutoLeafFromTitle } from "@/lib/reifen-wheel-split";
 
 export interface ShoppingSubcategory {
   id: string;
@@ -983,13 +984,23 @@ export const SHOPPING_CATEGORIES: ShoppingCategory[] = [
         "accesorii auto",
         "phone holder car",
       ]),
-      subcategory("auto-tires-wheels", "Tires & Wheels", "Reifen + Felgen", [
+      subcategory("auto-tires-wheels", "Tires", "Reifen", [
         "tire",
         "tyre",
-        "wheel rim",
         "anvelope",
         "cauciucuri",
+        "sommerreifen",
+        "winterreifen",
+      ]),
+      subcategory("auto-complete-wheels", "Complete Wheels", "Kompletträder", [
+        "komplettrad",
+        "kompletträder",
+        "complete wheel",
+        "wheel rim",
+        "alufelge",
+        "felge",
         "jante",
+        "roata completa",
       ]),
       subcategory("auto-batteries", "Car Batteries", "Autobatterien", [
         "car battery",
@@ -1422,7 +1433,10 @@ export function productMatchesCategoryFilter(
 ): boolean {
   if (!categoryFilter || categoryFilter === ALL_CATEGORIES_ID) return true;
 
-  const productCategory = resolveCategoryAlias(product.category);
+  const productCategory = resolveAutoLeafFromTitle(
+    resolveCategoryAlias(product.category),
+    product.title
+  );
   const resolvedFilter = resolveCategoryAlias(categoryFilter);
 
   // Top market hubs (Electronics / Books / Fashion / Garden / DIY).

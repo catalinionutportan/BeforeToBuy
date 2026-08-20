@@ -298,9 +298,12 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
   "ch-reifencom": {
     exact: exactRules({
       reifen: "auto-tires-wheels",
-      felgen: "auto-tires-wheels",
-      kompletträder: "auto-tires-wheels",
-      kompletraeder: "auto-tires-wheels",
+      felgen: "auto-complete-wheels",
+      alufelgen: "auto-complete-wheels",
+      alufelge: "auto-complete-wheels",
+      kompletträder: "auto-complete-wheels",
+      kompletraeder: "auto-complete-wheels",
+      komplettrad: "auto-complete-wheels",
       winterreifen: "auto-tires-wheels",
       sommerreifen: "auto-tires-wheels",
       ganzjahresreifen: "auto-tires-wheels",
@@ -315,7 +318,16 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
     patterns: [
       {
         patterns:
-          /\b(reifen|felgen?|komplettrad|kompletträder|tyre|tire|rim|blizzak|pilot\s+sport|all\s*terrain|wintercontact|sommerreifen|winterreifen)\b/i,
+          /\b(komplettrad|kompletträder|kompletraeder|complete\s+wheels?|alufelge|felgen?|rim)\b/i,
+        subcategoryId: "auto-complete-wheels",
+      },
+      {
+        patterns: /\bET\s?\d{2,3}\b/i,
+        subcategoryId: "auto-complete-wheels",
+      },
+      {
+        patterns:
+          /\b(reifen|tyre|tire|blizzak|pilot\s+sport|all\s*terrain|wintercontact|sommerreifen|winterreifen)\b/i,
         subcategoryId: "auto-tires-wheels",
       },
       {
@@ -1130,6 +1142,7 @@ export function isBabywalzAllowedCategory(categoryId: string): boolean {
 /** Reifen.com must stay in tyre/auto leaves — tire codes like TV/TT/Shredder must not hit electronics. */
 export const REIFENCOM_ALLOWED_CATEGORY_IDS = new Set([
   "auto-tires-wheels",
+  "auto-complete-wheels",
   "auto-interior-care",
   "auto-oils-fluids",
   "auto-tools-chargers",

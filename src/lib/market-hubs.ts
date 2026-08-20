@@ -345,6 +345,7 @@ export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
     icon: Car,
     leafIds: [
       "auto-tires-wheels",
+      "auto-complete-wheels",
       "auto-batteries",
       "auto-oils-fluids",
       "auto-lighting",

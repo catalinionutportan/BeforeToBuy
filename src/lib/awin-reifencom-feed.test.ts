@@ -24,6 +24,10 @@ describe("AWIN Reifen.com CH feed", () => {
     expect(first?.offers[0]?.currency).toBe("CHF");
     expect(first?.offers[0]?.inStock).toBe(true);
     expect(first?.category).toBe("auto-tires-wheels");
+    const felge = parsed.products.find((product) =>
+      product.title.toLowerCase().includes("alufelge")
+    );
+    expect(felge?.category).toBe("auto-complete-wheels");
   });
 
   it("registers enabled Reifen.com feed with AWIN feed id (no hardcoded API key)", () => {

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { resolveShortcutBoards, buildCategoryCoverMap } from "@/lib/browse-shortcut-boards";
+import {
+  resolveShortcutBoards,
+  buildCategoryCoverMap,
+  groupShortcutBoardColumns,
+} from "@/lib/browse-shortcut-boards";
 
 describe("browse shortcut boards", () => {
   it("builds CH electronics + baby boards only from occupied leaves", () => {
@@ -13,12 +17,14 @@ describe("browse shortcut boards", () => {
       "baby-nursery": 18,
       "fashion-beauty-hair-care": 12,
       "auto-tires-wheels": 80,
+      "auto-complete-wheels": 12,
       "auto-oils-fluids": 6,
     });
 
     expect(boards.map((board) => board.id)).toEqual(["electronics", "auto", "baby", "beauty"]);
     expect(boards[1]?.tiles.map((tile) => tile.categoryId)).toEqual([
       "auto-tires-wheels",
+      "auto-complete-wheels",
       "auto-oils-fluids",
     ]);
     expect(boards[0]?.tiles.map((tile) => tile.categoryId)).toEqual([
@@ -81,6 +87,19 @@ describe("browse shortcut boards", () => {
     expect(boards.map((board) => board.id)).toEqual(["electronics", "baby"]);
     expect(boards[0]?.tiles).toEqual([{ categoryId: "notebooks-laptops", count: 73 }]);
     expect(boards[0]?.featured).toBe(false);
+  });
+
+  it("stacks Beauty above Auto so the CH grid stays three even columns", () => {
+    const boards = resolveShortcutBoards("CH", {
+      "notebooks-laptops": 10,
+      "auto-tires-wheels": 8,
+      "auto-complete-wheels": 4,
+      "baby-strollers-travel": 6,
+      "fashion-beauty-hair-care": 5,
+    });
+    expect(groupShortcutBoardColumns(boards).map((column) => column.map((board) => board.id))).toEqual(
+      [["electronics"], ["beauty", "auto"], ["baby"]]
+    );
   });
 
   it("keeps the first product image per occupied leaf", () => {

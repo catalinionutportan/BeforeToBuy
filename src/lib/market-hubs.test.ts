@@ -91,6 +91,28 @@ describe("market hubs", () => {
     ).toBe(false);
     expect(
       productMatchesCategoryFilter(
+        {
+          title: "20 Ludwig 7 5x17 5x112 ET35 MB66 6",
+          description: "",
+          brand: "A",
+          category: "auto-tires-wheels",
+        },
+        "auto-complete-wheels"
+      )
+    ).toBe(true);
+    expect(
+      productMatchesCategoryFilter(
+        {
+          title: "20 Ludwig 7 5x17 5x112 ET35 MB66 6",
+          description: "",
+          brand: "A",
+          category: "auto-tires-wheels",
+        },
+        "auto-tires-wheels"
+      )
+    ).toBe(false);
+    expect(
+      productMatchesCategoryFilter(
         { title: "Kuscheltier", description: "", brand: "A", category: "toys-electronic" },
         "hub-fashion"
       )

@@ -6,6 +6,11 @@ import { expandCategoryFilterToDbIds } from "@/lib/db-category-filter";
 import type { OfferFilterCriteria } from "@/lib/offers/offer-filters";
 import { sanitizeProductImageForRender, SAFE_IMAGE_FALLBACK } from "@/lib/feed-url-policy";
 import { buildCategoryCoverMap } from "@/lib/browse-shortcut-boards";
+import {
+  AUTO_COMPLETE_WHEELS_LEAF,
+  AUTO_TIRES_LEAF,
+  resolveAutoLeafFromTitle,
+} from "@/lib/reifen-wheel-split";
 
 type PrismaProductWithOffers = Prisma.ProductGetPayload<{ include: { offers: true } }>;
 
@@ -58,7 +63,7 @@ export function mapPrismaProduct(p: PrismaProductWithOffers): Product {
     description: p.description || "",
     gtin: p.gtin || undefined,
     brand: p.brand || "",
-    category: resolveCategoryAlias(p.category),
+    category: resolveAutoLeafFromTitle(resolveCategoryAlias(p.category), p.title),
     image: sanitizeProductImageForRender(normalizeProductImageUrl(p.image) || p.image || ""),
     catalogSource: p.catalogSource as Product["catalogSource"],
     targetCountries: (p.targetCountries || []) as CountryCode[],
@@ -107,6 +112,56 @@ function buildOfferWhere(filters: OfferFilterCriteria = {}): Prisma.OfferWhereIn
   return and.length > 0 ? { AND: and } : undefined;
 }
 
+const REIFEN_RIM_TITLE_OR: Prisma.ProductWhereInput[] = [
+  { title: { contains: " ET", mode: "insensitive" } },
+  { title: { contains: "komplettrad", mode: "insensitive" } },
+  { title: { contains: "kompletraeder", mode: "insensitive" } },
+  { title: { contains: "kompletträder", mode: "insensitive" } },
+];
+
+function reifenTitleSplitWhere(
+  category?: string
+): Prisma.ProductWhereInput | undefined {
+  const resolved = category ? resolveCategoryAlias(category) : "";
+  if (resolved === AUTO_COMPLETE_WHEELS_LEAF) {
+    return {
+      OR: [{ category: AUTO_COMPLETE_WHEELS_LEAF }, ...REIFEN_RIM_TITLE_OR],
+    };
+  }
+  if (resolved === AUTO_TIRES_LEAF) {
+    return {
+      category: AUTO_TIRES_LEAF,
+      NOT: { OR: REIFEN_RIM_TITLE_OR },
+    };
+  }
+  return undefined;
+}
+
+function categoryConstraintSql(category?: string): Prisma.Sql {
+  const resolved = category ? resolveCategoryAlias(category) : "";
+  if (resolved === AUTO_COMPLETE_WHEELS_LEAF) {
+    return Prisma.sql`AND (
+      p.category = ${AUTO_COMPLETE_WHEELS_LEAF}
+      OR p.title ILIKE ${"% ET%"}
+      OR p.title ILIKE ${"%komplettrad%"}
+      OR p.title ILIKE ${"%kompletraeder%"}
+      OR p.title ILIKE ${"%kompletträder%"}
+    )`;
+  }
+  if (resolved === AUTO_TIRES_LEAF) {
+    return Prisma.sql`AND p.category = ${AUTO_TIRES_LEAF}
+      AND p.title NOT ILIKE ${"% ET%"}
+      AND p.title NOT ILIKE ${"%komplettrad%"}
+      AND p.title NOT ILIKE ${"%kompletraeder%"}
+      AND p.title NOT ILIKE ${"%kompletträder%"}`;
+  }
+  const categoryIds = expandCategoryFilterToDbIds(category);
+  if (categoryIds?.length) {
+    return Prisma.sql`AND p.category IN (${Prisma.join(categoryIds)})`;
+  }
+  return Prisma.empty;
+}
+
 function buildWhere(
   countryCode: string,
   query?: string,
@@ -118,18 +173,27 @@ function buildWhere(
   };
 
   const categoryIds = expandCategoryFilterToDbIds(category);
-  if (categoryIds) {
+  const titleSplit = reifenTitleSplitWhere(category);
+  if (titleSplit) {
+    Object.assign(where, titleSplit);
+  } else if (categoryIds) {
     where.category = { in: categoryIds };
   }
 
   if (query?.trim()) {
     const contains = { contains: query.trim(), mode: "insensitive" as const };
-    where.OR = [
+    const searchOr: Prisma.ProductWhereInput[] = [
       { title: contains },
       { brand: contains },
       { description: contains },
       { gtin: contains },
     ];
+    if (where.OR) {
+      where.AND = [{ OR: where.OR }, { OR: searchOr }];
+      delete where.OR;
+    } else {
+      where.OR = searchOr;
+    }
   }
 
   if (filters.brand) {
@@ -173,6 +237,28 @@ export async function getCategoryCountsFromDb(countryCode: string): Promise<{
       categoryCounts[parentId] = (categoryCounts[parentId] ?? 0) + n;
     }
   }
+
+  const tiresInCatalog = leafCounts[AUTO_TIRES_LEAF] ?? 0;
+  if (tiresInCatalog > 0) {
+    const rimAmongTires = await prisma.product.count({
+      where: {
+        targetCountries: { has: countryCode },
+        category: AUTO_TIRES_LEAF,
+        offers: { some: { inStock: true } },
+        OR: REIFEN_RIM_TITLE_OR,
+      },
+    });
+    const move = Math.min(rimAmongTires, tiresInCatalog);
+    if (move > 0) {
+      leafCounts[AUTO_TIRES_LEAF] = tiresInCatalog - move;
+      categoryCounts[AUTO_TIRES_LEAF] = (categoryCounts[AUTO_TIRES_LEAF] ?? 0) - move;
+      leafCounts[AUTO_COMPLETE_WHEELS_LEAF] =
+        (leafCounts[AUTO_COMPLETE_WHEELS_LEAF] ?? 0) + move;
+      categoryCounts[AUTO_COMPLETE_WHEELS_LEAF] =
+        (categoryCounts[AUTO_COMPLETE_WHEELS_LEAF] ?? 0) + move;
+    }
+  }
+
   return { categoryCounts, leafCounts };
 }
 
@@ -188,21 +274,35 @@ function usableCoverImage(image: string | null | undefined): string | undefined 
 export async function getCategoryCoverImagesFromDb(
   countryCode: string
 ): Promise<Record<string, string>> {
-  const rows = await prisma.product.findMany({
-    where: {
-      targetCountries: { has: countryCode },
-      image: { startsWith: "http" },
-      offers: { some: { inStock: true } },
-    },
-    distinct: ["category"],
-    select: { category: true, image: true },
-  });
-  return buildCategoryCoverMap(
+  const [rows, wheelCover] = await Promise.all([
+    prisma.product.findMany({
+      where: {
+        targetCountries: { has: countryCode },
+        image: { startsWith: "http" },
+        offers: { some: { inStock: true } },
+      },
+      distinct: ["category"],
+      select: { category: true, image: true },
+    }),
+    prisma.product.findFirst({
+      where: {
+        targetCountries: { has: countryCode },
+        image: { startsWith: "http" },
+        offers: { some: { inStock: true } },
+        OR: [{ category: AUTO_COMPLETE_WHEELS_LEAF }, ...REIFEN_RIM_TITLE_OR],
+      },
+      select: { image: true },
+    }),
+  ]);
+  const covers = buildCategoryCoverMap(
     rows.map((row) => ({
       category: row.category,
       image: usableCoverImage(row.image),
     }))
   );
+  const wheelImage = usableCoverImage(wheelCover?.image);
+  if (wheelImage) covers[AUTO_COMPLETE_WHEELS_LEAF] = wheelImage;
+  return covers;
 }
 
 /** Global price sort via SQL MIN(offer total) — no in-memory scan cap. */
@@ -215,12 +315,8 @@ async function queryProductIdsByMinOfferTotal(
   take: number,
   skip: number
 ): Promise<string[]> {
-  const categoryIds = expandCategoryFilterToDbIds(category);
   const orderDir = sort === "price-desc" ? Prisma.raw("DESC") : Prisma.raw("ASC");
-
-  const categorySql = categoryIds?.length
-    ? Prisma.sql`AND p.category IN (${Prisma.join(categoryIds)})`
-    : Prisma.empty;
+  const categorySql = categoryConstraintSql(category);
 
   const trimmedQuery = query?.trim();
   const queryPattern = trimmedQuery ? `%${trimmedQuery}%` : null;
@@ -302,11 +398,7 @@ async function queryProductIdsByChLead(
   take: number,
   skip: number
 ): Promise<string[]> {
-  const categoryIds = expandCategoryFilterToDbIds(category);
-
-  const categorySql = categoryIds?.length
-    ? Prisma.sql`AND p.category IN (${Prisma.join(categoryIds)})`
-    : Prisma.empty;
+  const categorySql = categoryConstraintSql(category);
 
   const trimmedQuery = query?.trim();
   const queryPattern = trimmedQuery ? `%${trimmedQuery}%` : null;

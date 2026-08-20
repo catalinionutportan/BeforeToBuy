@@ -69,6 +69,7 @@ const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
     titleKey: "hubAuto",
     tileIds: [
       "auto-tires-wheels",
+      "auto-complete-wheels",
       "auto-batteries",
       "auto-oils-fluids",
       "auto-lighting",
@@ -232,6 +233,44 @@ export function shortcutBoardDefinitionsForCountry(
   if (countryCode === "CH") return CH_BOARDS;
   if (countryCode === "RO") return RO_BOARDS;
   return genericBoardsForCountry(countryCode);
+}
+
+/**
+ * Short CH aisles share a column so Auto does not leave a hole under
+ * Electronics. Beauty sits on top; Auto fills the space below.
+ */
+const STACK_GROUP: Partial<Record<ShortcutBoardId, string>> = {
+  beauty: "ch-beauty-auto",
+  auto: "ch-beauty-auto",
+};
+
+const STACK_ORDER: Record<string, readonly ShortcutBoardId[]> = {
+  "ch-beauty-auto": ["beauty", "auto"],
+};
+
+/** Pack stacked aisles into grid columns without changing board order for counts. */
+export function groupShortcutBoardColumns(
+  boards: VisibleShortcutBoard[]
+): VisibleShortcutBoard[][] {
+  const byId = new Map(boards.map((board) => [board.id, board]));
+  const emitted = new Set<ShortcutBoardId>();
+  const columns: VisibleShortcutBoard[][] = [];
+
+  for (const board of boards) {
+    if (emitted.has(board.id)) continue;
+    const group = STACK_GROUP[board.id];
+    if (!group) {
+      emitted.add(board.id);
+      columns.push([board]);
+      continue;
+    }
+    const stacked = (STACK_ORDER[group] ?? [board.id])
+      .map((id) => byId.get(id))
+      .filter((item): item is VisibleShortcutBoard => Boolean(item));
+    for (const item of stacked) emitted.add(item.id);
+    if (stacked.length > 0) columns.push(stacked);
+  }
+  return columns;
 }
 
 /**
