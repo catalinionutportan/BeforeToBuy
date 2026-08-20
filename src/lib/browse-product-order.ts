@@ -31,8 +31,8 @@ export type BrowseSortOptions = {
   preserveApiOrder?: boolean;
 };
 
-/** CH landing: Belando beauty leads All / Fashion before the baby-walz dump. */
-const CH_LEAD_MERCHANT_IDS = new Set(["ch-belando"]);
+/** CH landing: Acer notebooks lead All / Electronics before beauty and baby-walz. */
+const CH_LEAD_MERCHANT_IDS = new Set(["ch-acer"]);
 
 function merchantLeadRank(product: Product, countryCode?: string): number {
   if ((countryCode || "").toUpperCase() !== "CH") return 1;
@@ -40,7 +40,7 @@ function merchantLeadRank(product: Product, countryCode?: string): number {
     (offer) => offer.feedMerchantId && CH_LEAD_MERCHANT_IDS.has(offer.feedMerchantId)
   );
   if (fromOffer) return 0;
-  if (product.id.includes("ch-belando")) return 0;
+  if (product.id.includes("ch-acer")) return 0;
   return 1;
 }
 

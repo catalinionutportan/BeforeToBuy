@@ -99,20 +99,20 @@ describe("getProductsFromDb price sort", () => {
     expect(9 + last.products.length < last.totalMatched).toBe(false);
   });
 
-  it("orders the CH default page with Belando ids from SQL, not updatedAt", async () => {
-    queryRaw.mockResolvedValue([{ id: "prod-ch-belando-1" }, { id: "prod-ch-babywalz-1" }]);
+  it("orders the CH default page with Acer ids from SQL, not updatedAt", async () => {
+    queryRaw.mockResolvedValue([{ id: "prod-ch-acer-1" }, { id: "prod-ch-babywalz-1" }]);
     findMany
-      .mockResolvedValueOnce([{ brand: "Wella" }])
+      .mockResolvedValueOnce([{ brand: "Acer" }])
       .mockResolvedValueOnce([
         mockProduct("prod-ch-babywalz-1", 20),
-        mockProduct("prod-ch-belando-1", 15),
+        mockProduct("prod-ch-acer-1", 15),
       ]);
 
     const page = await getProductsFromDb("CH", undefined, undefined, 2, 0);
 
     expect(queryRaw).toHaveBeenCalledTimes(1);
     expect(page.products.map((product) => product.id)).toEqual([
-      "prod-ch-belando-1",
+      "prod-ch-acer-1",
       "prod-ch-babywalz-1",
     ]);
   });

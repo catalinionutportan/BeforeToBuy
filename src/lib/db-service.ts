@@ -261,7 +261,7 @@ async function queryProductIdsByMinOfferTotal(
 }
 
 /**
- * CH All / Fashion first page must be Belando, not the latest baby-walz remap.
+ * CH All first page must be Acer hardware, not Belando or the latest baby-walz remap.
  * Client-side sort cannot fix this: the API only returns the current OFFSET page.
  */
 async function queryProductIdsByChLead(
@@ -333,13 +333,14 @@ async function queryProductIdsByChLead(
     ORDER BY
       CASE WHEN EXISTS (
         SELECT 1 FROM "Offer" o
-        WHERE o."productId" = p.id AND o."feedMerchantId" = 'ch-belando'
+        WHERE o."productId" = p.id AND o."feedMerchantId" = 'ch-acer'
       ) THEN 0 ELSE 1 END,
       CASE p.category
-        WHEN 'fashion-beauty-hair-care' THEN 0
-        WHEN 'fashion-beauty-cosmetics' THEN 1
-        WHEN 'fashion-beauty-fragrance' THEN 2
-        WHEN 'care-hair-styling' THEN 3
+        WHEN 'notebooks-laptops' THEN 0
+        WHEN 'notebooks-desktops' THEN 1
+        WHEN 'notebooks-monitors' THEN 2
+        WHEN 'tv-projectors' THEN 3
+        WHEN 'notebooks-tablets-pc' THEN 4
         ELSE 20
       END,
       p."updatedAt" DESC,

@@ -49,18 +49,20 @@ describe("sortProductsForBrowse", () => {
     expect(sorted.map((p) => p.id)).toEqual(["phone", "watch", "vacuum", "dress"]);
   });
 
-  it("leads the CH All catalogue with Belando before baby-walz", () => {
+  it("leads the CH All catalogue with Acer before Belando and baby-walz", () => {
     const baby = product("body", "fashion-kids-baby");
     baby.offers = [{ feedMerchantId: "ch-babywalz" } as Product["offers"][number]];
     const belando = product("shampoo", "fashion-beauty-hair-care");
     belando.offers = [{ feedMerchantId: "ch-belando" } as Product["offers"][number]];
+    const acer = product("laptop", "notebooks-laptops");
+    acer.offers = [{ feedMerchantId: "ch-acer" } as Product["offers"][number]];
     const tyre = product("tyre", "auto-tires-wheels");
     tyre.offers = [{ feedMerchantId: "ch-reifencom" } as Product["offers"][number]];
 
-    const sorted = sortProductsForBrowse([baby, tyre, belando], "default", {
+    const sorted = sortProductsForBrowse([baby, tyre, belando, acer], "default", {
       countryCode: "CH",
     });
-    expect(sorted.map((p) => p.id)).toEqual(["shampoo", "body", "tyre"]);
+    expect(sorted.map((p) => p.id)).toEqual(["laptop", "shampoo", "body", "tyre"]);
   });
 
   it("keeps API order when searching across departments", () => {
