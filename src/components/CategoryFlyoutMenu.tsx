@@ -61,6 +61,16 @@ function departmentHasInventory(
   return category.subcategories.some((sub) => nodeHasInventory(sub, counts));
 }
 
+function nodeContainsSelected(
+  node: ShoppingSubcategory,
+  selectedCategory: string
+): boolean {
+  if (node.id === selectedCategory) return true;
+  return Boolean(
+    node.children?.some((child) => nodeContainsSelected(child, selectedCategory))
+  );
+}
+
 /** Desktop menu type scales with viewport; stays large on wide screens. */
 const DESKTOP_MENU_TEXT =
   "text-[clamp(0.95rem,0.55vw+0.72rem,1.125rem)] leading-snug";
