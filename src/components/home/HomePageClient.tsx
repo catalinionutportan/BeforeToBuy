@@ -23,6 +23,8 @@ import {
   resolveOccupiedBrowseCategory,
   shouldIgnoreLandingCategory,
 } from "@/lib/market-hubs";
+import { resolveShortcutBoards } from "@/lib/browse-shortcut-boards";
+import { BrowseShortcutBoards } from "@/components/home/BrowseShortcutBoards";
 import {
   CATEGORY_UI,
   formatCategoryUi,
@@ -755,6 +757,15 @@ export default function HomePageClient({
     !filtersActiveBeyondCategory;
 
   const showBrowseSkeleton = isLoadingProducts && displayedProducts.length === 0;
+  const shortcutBoards = useMemo(
+    () => resolveShortcutBoards(userLocation.countryCode, catalogMeta?.categoryCounts),
+    [userLocation.countryCode, catalogMeta?.categoryCounts]
+  );
+  const showShortcutBoards =
+    browseCategory === ALL_CATEGORIES_ID &&
+    !isSearching &&
+    !filtersActiveBeyondCategory &&
+    shortcutBoards.length > 0;
 
   return (
     <div className="w-full bg-slate-50 font-sans">
@@ -789,6 +800,15 @@ export default function HomePageClient({
               {homeUi.shortPitch2} {homeUi.shortPitch3}
             </p>
           </div>
+
+          {showShortcutBoards ? (
+            <BrowseShortcutBoards
+              boards={shortcutBoards}
+              products={products}
+              locale={browseLocale}
+              onSelect={handleCategoryChange}
+            />
+          ) : null}
 
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <label className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">

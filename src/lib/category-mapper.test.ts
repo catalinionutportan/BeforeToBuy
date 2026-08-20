@@ -388,6 +388,12 @@ describe('Category Mapper Functions', () => {
         title: "Samsung Galaxy S24 Ultra 256GB",
       })
     ).toBe("notebooks-laptops");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-acer",
+        title: "Acer höhenverstellbarer Schreibtisch",
+      })
+    ).toBe("office-home");
   });
 
   it("baby-walz keeps strollers/clothes out of electronics", () => {

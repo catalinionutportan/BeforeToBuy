@@ -1,0 +1,249 @@
+import { MARKET_HUB_LEAF_GROUPS, marketHubOrderForCountry } from "@/lib/market-hubs";
+import type { CountryCode } from "@/types";
+
+export type ShortcutBoardId =
+  | "electronics"
+  | "baby"
+  | "beauty"
+  | "home"
+  | "diy"
+  | "auto"
+  | "fashion";
+
+export type ShortcutBoardTitleKey =
+  | "hubElectronics"
+  | "hubHome"
+  | "hubDiy"
+  | "hubAuto"
+  | "hubFashion"
+  | "shortcutBoardBaby"
+  | "shortcutBoardBeauty";
+
+export interface ShortcutBoardDefinition {
+  id: ShortcutBoardId;
+  hubId: string;
+  titleKey: ShortcutBoardTitleKey;
+  tileIds: readonly string[];
+  /** First occupied tile is rendered larger (presentation card). */
+  featured?: boolean;
+  /** Top up tiles from other occupied leaves in the same hub. */
+  fillFromHub?: boolean;
+}
+
+export interface VisibleShortcutTile {
+  categoryId: string;
+  count: number;
+}
+
+export interface VisibleShortcutBoard {
+  id: ShortcutBoardId;
+  hubId: string;
+  titleKey: ShortcutBoardTitleKey;
+  featured: boolean;
+  tiles: VisibleShortcutTile[];
+}
+
+const MAX_BOARDS = 4;
+const MAX_TILES = 6;
+
+const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
+  {
+    id: "electronics",
+    hubId: "hub-electronics",
+    titleKey: "hubElectronics",
+    tileIds: [
+      "notebooks-laptops",
+      "notebooks-desktops",
+      "notebooks-monitors",
+      "tv-projectors",
+      "notebooks-tablets-pc",
+      "office-home",
+    ],
+    fillFromHub: true,
+  },
+  {
+    // Reifen.com is CH-only for now — do not add this board to RO/GB/US.
+    id: "auto",
+    hubId: "hub-auto",
+    titleKey: "hubAuto",
+    tileIds: [
+      "auto-tires-wheels",
+      "auto-batteries",
+      "auto-oils-fluids",
+      "auto-lighting",
+      "auto-filters-brakes",
+      "auto-interior-care",
+      "auto-tools-chargers",
+    ],
+    fillFromHub: true,
+  },
+  {
+    id: "baby",
+    hubId: "hub-fashion",
+    titleKey: "shortcutBoardBaby",
+    tileIds: [
+      "baby-strollers-travel",
+      "baby-car-seats",
+      "baby-nursery",
+      "baby-monitoring-feeding",
+      "fashion-kids-baby",
+    ],
+    featured: true,
+    fillFromHub: false,
+  },
+  {
+    id: "beauty",
+    hubId: "hub-fashion",
+    titleKey: "shortcutBoardBeauty",
+    tileIds: [
+      "fashion-beauty-hair-care",
+      "fashion-beauty-cosmetics",
+      "fashion-beauty-fragrance",
+      "care-hair-styling",
+    ],
+    fillFromHub: false,
+  },
+];
+
+const RO_BOARDS: readonly ShortcutBoardDefinition[] = [
+  {
+    id: "home",
+    hubId: "hub-home",
+    titleKey: "hubHome",
+    tileIds: [
+      "cleaning-vacuums",
+      "cleaning-stick-vacuums",
+      "cleaning-robots",
+      "care-hair-styling",
+      "laundry-ironing-sewing",
+      "climate-heating",
+    ],
+    fillFromHub: true,
+  },
+  {
+    id: "diy",
+    hubId: "hub-diy",
+    titleKey: "hubDiy",
+    tileIds: [
+      "diy-power-tools",
+      "diy-hand-tools",
+      "diy-electrical",
+      "diy-sanders",
+      "diy-batteries-chargers",
+      "diy-measuring",
+    ],
+    fillFromHub: true,
+  },
+];
+
+const HUB_TITLE_KEY: Record<string, ShortcutBoardTitleKey> = {
+  "hub-electronics": "hubElectronics",
+  "hub-home": "hubHome",
+  "hub-diy": "hubDiy",
+  "hub-auto": "hubAuto",
+  "hub-fashion": "hubFashion",
+};
+
+const HUB_BOARD_ID: Record<string, ShortcutBoardId> = {
+  "hub-electronics": "electronics",
+  "hub-home": "home",
+  "hub-diy": "diy",
+  "hub-auto": "auto",
+  "hub-fashion": "fashion",
+};
+
+function leafCount(categoryCounts: Record<string, number>, leafId: string): number {
+  return categoryCounts[leafId] ?? 0;
+}
+
+function occupiedTiles(
+  tileIds: readonly string[],
+  categoryCounts: Record<string, number>
+): VisibleShortcutTile[] {
+  const seen = new Set<string>();
+  const tiles: VisibleShortcutTile[] = [];
+  for (const categoryId of tileIds) {
+    if (seen.has(categoryId)) continue;
+    const count = leafCount(categoryCounts, categoryId);
+    if (count <= 0) continue;
+    seen.add(categoryId);
+    tiles.push({ categoryId, count });
+    if (tiles.length >= MAX_TILES) break;
+  }
+  return tiles;
+}
+
+function fillFromHubLeaves(
+  hubId: string,
+  categoryCounts: Record<string, number>,
+  already: VisibleShortcutTile[]
+): VisibleShortcutTile[] {
+  const tiles = [...already];
+  const seen = new Set(tiles.map((tile) => tile.categoryId));
+  for (const leafId of MARKET_HUB_LEAF_GROUPS[hubId] ?? []) {
+    if (tiles.length >= MAX_TILES) break;
+    if (seen.has(leafId)) continue;
+    const count = leafCount(categoryCounts, leafId);
+    if (count <= 0) continue;
+    seen.add(leafId);
+    tiles.push({ categoryId: leafId, count });
+  }
+  return tiles;
+}
+
+function resolveBoard(
+  definition: ShortcutBoardDefinition,
+  categoryCounts: Record<string, number>
+): VisibleShortcutBoard | null {
+  let tiles = occupiedTiles(definition.tileIds, categoryCounts);
+  if (definition.fillFromHub !== false) {
+    tiles = fillFromHubLeaves(definition.hubId, categoryCounts, tiles);
+  }
+  if (tiles.length === 0) return null;
+  return {
+    id: definition.id,
+    hubId: definition.hubId,
+    titleKey: definition.titleKey,
+    featured: Boolean(definition.featured),
+    tiles,
+  };
+}
+
+function genericBoardsForCountry(countryCode: CountryCode): ShortcutBoardDefinition[] {
+  return marketHubOrderForCountry(countryCode)
+    .filter((hubId) => HUB_TITLE_KEY[hubId])
+    .map((hubId) => ({
+      id: HUB_BOARD_ID[hubId] ?? "electronics",
+      hubId,
+      titleKey: HUB_TITLE_KEY[hubId]!,
+      tileIds: MARKET_HUB_LEAF_GROUPS[hubId] ?? [],
+      fillFromHub: true,
+    }));
+}
+
+export function shortcutBoardDefinitionsForCountry(
+  countryCode: CountryCode
+): readonly ShortcutBoardDefinition[] {
+  if (countryCode === "CH") return CH_BOARDS;
+  if (countryCode === "RO") return RO_BOARDS;
+  return genericBoardsForCountry(countryCode);
+}
+
+/**
+ * Department shortcut boards with inventory. Empty aisles are dropped so the
+ * homepage never advertises a tile that opens the zero-offer card.
+ */
+export function resolveShortcutBoards(
+  countryCode: CountryCode,
+  categoryCounts: Record<string, number> | undefined
+): VisibleShortcutBoard[] {
+  if (!categoryCounts) return [];
+  const boards: VisibleShortcutBoard[] = [];
+  for (const definition of shortcutBoardDefinitionsForCountry(countryCode)) {
+    const board = resolveBoard(definition, categoryCounts);
+    if (!board) continue;
+    boards.push(board);
+    if (boards.length >= MAX_BOARDS) break;
+  }
+  return boards;
+}

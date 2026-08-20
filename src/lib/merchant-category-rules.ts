@@ -978,6 +978,11 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
         subcategoryId: "notebooks-tablets-pc",
       },
       {
+        patterns:
+          /\b(stehschreibtisch|schreibtisch|höhenverstellbar|hoehenverstellbar|standing\s+desk|office\s+desk|bürotisch|buerotisch)\b/i,
+        subcategoryId: "office-home",
+      },
+      {
         patterns: /\b(docking|dock\b|usb-?c\s+hub)\b/i,
         subcategoryId: "computers-docks",
       },
@@ -1169,6 +1174,7 @@ export const ACER_ALLOWED_CATEGORY_IDS = new Set([
   "peripherals-keyboard-mouse",
   "peripherals-storage",
   "peripherals-webcam",
+  "office-home",
 ]);
 
 export function isAcerAllowedCategory(categoryId: string): boolean {
