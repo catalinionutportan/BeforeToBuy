@@ -56,6 +56,11 @@ export const APPROVED_IMAGE_HOSTS = [
   "reifen.com",
   "www.belando.ch",
   "belando.ch",
+  "store.acer.com",
+  "www.acer.com",
+  "acer.com",
+  "images.acer.com",
+  "static.acer.com",
 ] as const;
 
 /** Affiliate network click hosts. */
@@ -99,6 +104,9 @@ export const MERCHANT_STORE_HOSTS = [
   "reifen.com",
   "www.belando.ch",
   "belando.ch",
+  "store.acer.com",
+  "www.acer.com",
+  "acer.com",
 ] as const;
 
 /** Remote feed download hosts (CSV/XML endpoints). */
@@ -180,6 +188,13 @@ export const COMMERCIAL_HOSTS_BY_FEED: Record<string, readonly string[]> = {
     "awin1.com",
     "www.belando.ch",
     "belando.ch",
+  ],
+  "ch-acer": [
+    "www.awin1.com",
+    "awin1.com",
+    "store.acer.com",
+    "www.acer.com",
+    "acer.com",
   ],
 };
 

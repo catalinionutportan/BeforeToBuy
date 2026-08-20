@@ -197,6 +197,20 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     cacheOnly: true,
   },
   {
+    provider: "AWIN",
+    country: "CH",
+    merchantId: "ch-acer",
+    merchantName: "Acer CH",
+    envVar: "AWIN_FEED_URL_CH_ACER",
+    awinFeedId: "57565",
+    awinLanguage: "de",
+    sampleFile: "sample-awin-acer-ch.csv",
+    sampleFormat: "csv",
+    categoryHint: "notebooks-laptops",
+    // ~194 SKUs — CH is DB-first; never download CSV on visitor requests.
+    cacheOnly: true,
+  },
+  {
     provider: "TWO_PERFORMANT",
     country: "RO",
     merchantId: "ro-rowenta",

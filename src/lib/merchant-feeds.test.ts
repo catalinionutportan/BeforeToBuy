@@ -76,6 +76,7 @@ describe("Merchant Feed Processing", () => {
     expect(result.merchantProductCounts["ch-babywalz"]).toBeGreaterThanOrEqual(3);
     expect(result.merchantProductCounts["ch-reifencom"]).toBeGreaterThanOrEqual(3);
     expect(result.merchantProductCounts["ch-belando"]).toBeGreaterThanOrEqual(3);
+    expect(result.merchantProductCounts["ch-acer"]).toBeGreaterThanOrEqual(3);
     expect(result.merchantProductCounts["ch-brack"]).toBeUndefined();
   });
 

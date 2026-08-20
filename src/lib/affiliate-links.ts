@@ -28,6 +28,9 @@ export const AFFILIATE_LINKS = {
   /** Belando CH homepage — AWIN advertiser 13668 / publisher 3024371 (CHF beauty catalogue). */
   belandoAwin:
     "https://www.awin1.com/cread.php?awinmid=13668&awinaffid=3024371&ued=https%3A%2F%2Fbelando.ch%2F",
+  /** Acer CH homepage — AWIN advertiser 23364 / publisher 3024371 (CHF notebooks catalogue). */
+  acerAwin:
+    "https://www.awin1.com/cread.php?awinmid=23364&awinaffid=3024371&ued=https%3A%2F%2Fstore.acer.com%2Fde-ch%2F",
   /** Arlo Security UK homepage — AWIN advertiser 122884 / publisher 3024371 (GBP catalogue). */
   arloAwin:
     "https://www.awin1.com/cread.php?awinmid=122884&awinaffid=3024371&ued=https%3A%2F%2Fwww.arlo.com%2Fen-gb",

@@ -14,6 +14,7 @@ describe('Merchant Integrations', () => {
   it("CH pending merchants stay disabled; baby-walz and Reifen.com are live CH feeds", () => {
     const chFeeds = MERCHANT_FEEDS.filter((feed) => feed.country === "CH");
     expect(chFeeds.map((feed) => feed.merchantId).sort()).toEqual([
+      "ch-acer",
       "ch-babywalz",
       "ch-belando",
       "ch-brack",
@@ -24,7 +25,7 @@ describe('Merchant Integrations', () => {
       "ch-mediamarkt",
       "ch-reifencom",
     ]);
-    const liveIds = new Set(["ch-babywalz", "ch-belando", "ch-reifencom"]);
+    const liveIds = new Set(["ch-acer", "ch-babywalz", "ch-belando", "ch-reifencom"]);
     for (const id of liveIds) {
       const feed = chFeeds.find((item) => item.merchantId === id);
       expect(feed?.enabled).not.toBe(false);
@@ -33,6 +34,7 @@ describe('Merchant Integrations', () => {
     expect(chFeeds.find((f) => f.merchantId === "ch-babywalz")?.awinFeedId).toBe("23813");
     expect(chFeeds.find((f) => f.merchantId === "ch-reifencom")?.awinFeedId).toBe("24181");
     expect(chFeeds.find((f) => f.merchantId === "ch-belando")?.awinFeedId).toBe("93845");
+    expect(chFeeds.find((f) => f.merchantId === "ch-acer")?.awinFeedId).toBe("57565");
     expect(
       chFeeds.filter((feed) => !liveIds.has(feed.merchantId)).every((feed) => feed.enabled === false)
     ).toBe(true);
@@ -157,9 +159,11 @@ describe('Merchant Integrations', () => {
           "ch-babywalz",
           "ch-reifencom",
           "ch-belando",
+          "ch-acer",
         ])
       );
       expect(summary.feedMerchantIds.filter((id) => id.startsWith("ch-")).sort()).toEqual([
+        "ch-acer",
         "ch-babywalz",
         "ch-belando",
         "ch-reifencom",

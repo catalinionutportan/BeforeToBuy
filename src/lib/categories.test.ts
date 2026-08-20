@@ -219,7 +219,7 @@ describe('Category and Collection Logic', () => {
       ALL_MERCHANT_DOMAINS.filter((m) => m.countryCode === "CH")
         .map((m) => m.id)
         .sort()
-    ).toEqual(["ch-babywalz", "ch-belando", "ch-reifencom"]);
+    ).toEqual(["ch-acer", "ch-babywalz", "ch-belando", "ch-reifencom"]);
 
     const pendingIds = new Set(CH_MERCHANTS_PENDING_APPROVAL.map((m) => m.id));
     expect(pendingIds.has("ch-babywalz")).toBeFalsy();
@@ -234,6 +234,7 @@ describe('Category and Collection Logic', () => {
 
   it("public registry exposes live CH, RO, Seentat UK, Geepas UK, Arlo UK, and Ottocast US", () => {
     expect(ALL_MERCHANT_DOMAINS.map((m) => m.id).sort()).toEqual([
+      "ch-acer",
       "ch-babywalz",
       "ch-belando",
       "ch-reifencom",

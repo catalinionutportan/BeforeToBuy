@@ -41,7 +41,7 @@ const BRACK_SAMPLE_ROWS = [
 describe('Category Mapper Functions', () => {
   it("merchant category rules validate without conflicts", () => {
     expect(validateMerchantCategoryRules()).toEqual([]);
-    expect(MAPPING_MERCHANT_IDS.length).toBe(16);
+    expect(MAPPING_MERCHANT_IDS.length).toBe(17);
   });
 
   it("Brack sample feed rows map with merchant-exact rules", () => {
@@ -351,6 +351,43 @@ describe('Category Mapper Functions', () => {
         title: "Aufsteckkamm 10mm für die Wahl Super Taper Haarschneidemaschine",
       })
     ).toBe("fashion-beauty-hair-care");
+  });
+
+  it("Acer CH maps notebooks, desktops, monitors and projectors", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-acer",
+        merchantCategory: "Notebooks",
+        title: "Acer Swift Go 14 OLED",
+      })
+    ).toBe("notebooks-laptops");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-acer",
+        merchantCategory: "Desktop-PCs",
+        title: "Acer Aspire TC Desktop",
+      })
+    ).toBe("notebooks-desktops");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-acer",
+        merchantCategory: "Monitore",
+        title: "Acer Nitro XV240 Y3",
+      })
+    ).toBe("notebooks-monitors");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-acer",
+        merchantCategory: "Projektoren",
+        title: "Acer H6546BD Beamer",
+      })
+    ).toBe("tv-projectors");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-acer",
+        title: "Samsung Galaxy S24 Ultra 256GB",
+      })
+    ).toBe("notebooks-laptops");
   });
 
   it("baby-walz keeps strollers/clothes out of electronics", () => {

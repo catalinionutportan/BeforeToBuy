@@ -16,6 +16,7 @@ export const MAPPING_MERCHANT_IDS = [
   "ch-babywalz",
   "ch-reifencom",
   "ch-belando",
+  "ch-acer",
   "ro-scule365",
   "ro-rowenta",
   "ro-evomag",
@@ -925,6 +926,73 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
   },
 
   /**
+   * Acer CH — AWIN DE notebooks / desktops / monitors / projectors catalogue.
+   * Clamp keeps rows in electronics computer + projector leaves.
+   */
+  "ch-acer": {
+    exact: exactRules({
+      notebooks: "notebooks-laptops",
+      notebook: "notebooks-laptops",
+      laptops: "notebooks-laptops",
+      laptop: "notebooks-laptops",
+      "notebooks & laptops": "notebooks-laptops",
+      "computers & electronics": "notebooks-laptops",
+      "desktop-pcs": "notebooks-desktops",
+      "desktop pcs": "notebooks-desktops",
+      desktops: "notebooks-desktops",
+      desktop: "notebooks-desktops",
+      pcs: "notebooks-desktops",
+      "all-in-one": "notebooks-desktops",
+      monitore: "notebooks-monitors",
+      monitors: "notebooks-monitors",
+      monitor: "notebooks-monitors",
+      displays: "notebooks-monitors",
+      projektoren: "tv-projectors",
+      projectors: "tv-projectors",
+      projector: "tv-projectors",
+      beamer: "tv-projectors",
+      tablets: "notebooks-tablets-pc",
+      tablet: "notebooks-tablets-pc",
+      zubehör: "peripherals-accessories",
+      zubehoer: "peripherals-accessories",
+      accessories: "peripherals-accessories",
+      "computer accessories": "peripherals-accessories",
+      "docking stations": "computers-docks",
+      docking: "computers-docks",
+    }),
+    patterns: [
+      {
+        patterns: /\b(projektor|projector|beamer)\b/i,
+        subcategoryId: "tv-projectors",
+      },
+      {
+        patterns: /\b(monitor|monitore|display)\b/i,
+        subcategoryId: "notebooks-monitors",
+      },
+      {
+        patterns: /\b(desktop|veriton|aspire\s+tc|predator\s+orion|all-?in-?one)\b/i,
+        subcategoryId: "notebooks-desktops",
+      },
+      {
+        patterns: /\b(tablet|iconia)\b/i,
+        subcategoryId: "notebooks-tablets-pc",
+      },
+      {
+        patterns: /\b(docking|dock\b|usb-?c\s+hub)\b/i,
+        subcategoryId: "computers-docks",
+      },
+      {
+        patterns: /\b(notebook|laptop|ultrabook|chromebook|swift|spin|travelmate|aspire)\b/i,
+        subcategoryId: "notebooks-laptops",
+      },
+      {
+        patterns: /\b(zubehör|zubehoer|tasche|sleeve|adapter|ladegerät|ladegeraet|maus|tastatur)\b/i,
+        subcategoryId: "peripherals-accessories",
+      },
+    ],
+  },
+
+  /**
    * Arlo Security UK — small AWIN smart-home security catalogue (GBP).
    * Feed aisles are "Security Equipment" / "Home Security".
    */
@@ -1089,6 +1157,24 @@ export function isArloAllowedCategory(categoryId: string): boolean {
   return ARLO_ALLOWED_CATEGORY_IDS.has(categoryId);
 }
 
+/** Acer CH stays in computer + projector electronics leaves. */
+export const ACER_ALLOWED_CATEGORY_IDS = new Set([
+  "notebooks-laptops",
+  "notebooks-desktops",
+  "notebooks-monitors",
+  "notebooks-tablets-pc",
+  "tv-projectors",
+  "peripherals-accessories",
+  "computers-docks",
+  "peripherals-keyboard-mouse",
+  "peripherals-storage",
+  "peripherals-webcam",
+]);
+
+export function isAcerAllowedCategory(categoryId: string): boolean {
+  return ACER_ALLOWED_CATEGORY_IDS.has(categoryId);
+}
+
 /**
  * Last-resort leaf when a merchant catalogue is specialised but feed rows
  * lack category labels and keyword inference failed.
@@ -1101,6 +1187,7 @@ export function getMerchantDefaultCategory(merchantId: string | undefined): stri
   if (merchantId === "ch-babywalz") return "fashion-kids-baby";
   if (merchantId === "ch-reifencom") return "auto-tires-wheels";
   if (merchantId === "ch-belando") return "fashion-beauty-hair-care";
+  if (merchantId === "ch-acer") return "notebooks-laptops";
   return null;
 }
 

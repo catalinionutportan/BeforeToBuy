@@ -12,6 +12,7 @@ import {
   isArloAllowedCategory,
   isBabywalzAllowedCategory,
   isBelandoAllowedCategory,
+  isAcerAllowedCategory,
   isReifencomAllowedCategory,
   isRowentaAllowedCategory,
   MAPPING_CONFIDENCE,
@@ -44,6 +45,9 @@ const BELANDO_HAIR_ACCESSORY_RE =
 
 /** Arlo fallback when title/category is ambiguous. */
 const ARLO_FALLBACK_LEAF = "smart-home-security";
+
+/** Acer fallback when title/category is ambiguous. */
+const ACER_FALLBACK_LEAF = "notebooks-laptops";
 
 /**
  * Maps merchant / affiliate feed categories + product text → BeforeToBuy subcategory id.
@@ -447,6 +451,23 @@ function clampArloToSecurityCatalogue(result: CategoryMappingResult): CategoryMa
   return result;
 }
 
+/** Force Acer into computer / projector electronics leaves. */
+function clampAcerToElectronicsCatalogue(result: CategoryMappingResult): CategoryMappingResult {
+  if (result.categoryId === UNMAPPED_CATEGORY_ID || !isAcerAllowedCategory(result.categoryId)) {
+    return {
+      ...result,
+      categoryId: ACER_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      proposedCategoryId:
+        result.categoryId !== UNMAPPED_CATEGORY_ID && result.categoryId !== ACER_FALLBACK_LEAF
+          ? result.categoryId
+          : result.proposedCategoryId,
+    };
+  }
+  return result;
+}
+
 export interface CategoryMappingInput {
   merchantId?: string;
   merchantCategory?: string;
@@ -489,6 +510,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     if (merchantId === "ch-babywalz") return refineBabywalzCatalogue(scored, title);
     if (merchantId === "ch-reifencom") return clampReifencomToAutoCatalogue(scored);
     if (merchantId === "ch-belando") return clampBelandoToBeautyCatalogue(scored, title);
+    if (merchantId === "ch-acer") return clampAcerToElectronicsCatalogue(scored);
     if (merchantId === "gb-arlo") return clampArloToSecurityCatalogue(scored);
     if (merchantId === "gb-seentat") return refineSeentatElectronics(scored, title);
     if (merchantId === "gb-geepas") return refineGeepasHome(scored, title);
@@ -579,6 +601,14 @@ export function mapToBeforeToBuyCategoryWithMetadata(
   if (merchantId === "ch-belando") {
     return {
       categoryId: BELANDO_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: merchantCategory,
+    };
+  }
+  if (merchantId === "ch-acer") {
+    return {
+      categoryId: ACER_FALLBACK_LEAF,
       method: "merchant-default",
       confidence: MAPPING_CONFIDENCE.combinedPattern,
       rawCategory: merchantCategory,

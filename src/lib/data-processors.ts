@@ -170,11 +170,11 @@ const PROCESSOR_PURPOSES: Record<ProcessorRecord["id"], Record<SiteLocale, strin
     ro: "Tracking afiliat pentru linkurile Rowenta.ro și Scule365.ro cu consimțământ Afiliat",
   },
   awin: {
-    en: "Affiliate tracking for Seentat UK, Geepas UK, Arlo UK, Ottocast US, and other joined AWIN programmes with Affiliate consent",
-    de: "Affiliate-Tracking für Seentat UK, Geepas UK, Arlo UK, Ottocast US und weitere AWIN-Programme mit Affiliate-Einwilligung",
-    fr: "Suivi d'affiliation pour Seentat UK, Geepas UK, Arlo UK, Ottocast US et autres programmes AWIN rejoints avec consentement Affiliation",
-    it: "Tracking affiliato per Seentat UK, Geepas UK, Arlo UK, Ottocast US e altri programmi AWIN aderenti con consenso Affiliazione",
-    ro: "Tracking afiliat pentru Seentat UK, Geepas UK, Arlo UK, Ottocast US și alte programe AWIN acceptate cu consimțământ Afiliat",
+    en: "Affiliate tracking for Seentat UK, Geepas UK, Arlo UK, Ottocast US, Acer CH, and other joined AWIN programmes with Affiliate consent",
+    de: "Affiliate-Tracking für Seentat UK, Geepas UK, Arlo UK, Ottocast US, Acer CH und weitere AWIN-Programme mit Affiliate-Einwilligung",
+    fr: "Suivi d'affiliation pour Seentat UK, Geepas UK, Arlo UK, Ottocast US, Acer CH et autres programmes AWIN rejoints avec consentement Affiliation",
+    it: "Tracking affiliato per Seentat UK, Geepas UK, Arlo UK, Ottocast US, Acer CH e altri programmi AWIN aderenti con consenso Affiliazione",
+    ro: "Tracking afiliat pentru Seentat UK, Geepas UK, Arlo UK, Ottocast US, Acer CH și alte programe AWIN acceptate cu consimțământ Afiliat",
   },
   "feed-rowenta-2p": {
     en: "Server-side catalogue import for Rowenta.ro",
@@ -238,6 +238,13 @@ const PROCESSOR_PURPOSES: Record<ProcessorRecord["id"], Record<SiteLocale, strin
     fr: "Import catalogue côté serveur pour Belando CH",
     it: "Import catalogo lato server per Belando CH",
     ro: "Import catalog server-side pentru Belando CH",
+  },
+  "feed-acer-awin": {
+    en: "Server-side catalogue import for Acer CH",
+    de: "Serverseitiger Katalogimport für Acer CH",
+    fr: "Import catalogue côté serveur pour Acer CH",
+    it: "Import catalogo lato server per Acer CH",
+    ro: "Import catalog server-side pentru Acer CH",
   },
   "feed-evomag-2p": {
     en: "Soft-paused server-side catalogue import for evoMAG",

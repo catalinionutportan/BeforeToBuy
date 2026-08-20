@@ -351,6 +351,19 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Swiss professional hair and beauty shop (Belando). Live AWIN CHF product feed with affiliate deep links for haircare, colour, cosmetics, and styling tools.",
   },
+  {
+    id: "ch-acer",
+    name: "Acer CH",
+    domain: "store.acer.com",
+    websiteUrl: AFFILIATE_LINKS.acerAwin,
+    countryCode: "CH",
+    affiliateNetwork: "AWIN Switzerland",
+    category: "Notebooks & PCs",
+    status: "Live Feed",
+    badge: "AWIN + product feed 🇨🇭",
+    description:
+      "Acer Switzerland store — notebooks, desktops, monitors, and projectors. Live AWIN CHF product feed with affiliate deep links.",
+  },
   // --- Romania (RO) ---
   {
     id: "ro-rowenta",
@@ -442,10 +455,10 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     flag: "🇨🇭",
     currency: "CHF",
     currencySymbol: "CHF ",
-    supportedStores: ["baby-walz.ch", "belando.ch", "reifen.com"],
+    supportedStores: ["baby-walz.ch", "belando.ch", "reifen.com", "store.acer.com"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "CH"),
     affiliateNetworks: [
-      "AWIN Switzerland (baby-walz + Belando + Reifen.com) — live product feeds + homepage affiliates",
+      "AWIN Switzerland (baby-walz + Belando + Reifen.com + Acer) — live product feeds + homepage affiliates",
     ],
   },
   DE: {
