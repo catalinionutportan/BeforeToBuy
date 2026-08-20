@@ -139,7 +139,14 @@ export async function fetchMergedProductsForLocation(
           count + product.offers.filter((offer) => offer.source === "sample").length,
         0
       );
-      const priceHistoryStats = await getPriceHistoryStats();
+      const priceHistoryStats = includePriceHistory
+        ? await getPriceHistoryStats()
+        : {
+            trackedOffers: 0,
+            totalPoints: 0,
+            lastSnapshotAt: undefined as string | undefined,
+            backend: getPriceHistoryBackend(),
+          };
       const gtinLinkedProductCount = countGtinLinkedProducts(matchedProducts);
 
       return {
@@ -263,7 +270,14 @@ export async function fetchMergedProductsForLocation(
   ).length;
   const mappingReport = buildMappingReport(feedResult.mappingLog);
   const feedMerchants = feedResult.merchantProductCounts;
-  const priceHistoryStats = await getPriceHistoryStats();
+  const priceHistoryStats = includePriceHistory
+    ? await getPriceHistoryStats()
+    : {
+        trackedOffers: 0,
+        totalPoints: 0,
+        lastSnapshotAt: undefined as string | undefined,
+        backend: getPriceHistoryBackend(),
+      };
   const gtinLinkedProductCount = countGtinLinkedProducts(matchedProducts);
   const priceTrendSample = includePriceHistory
     ? products

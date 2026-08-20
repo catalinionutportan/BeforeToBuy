@@ -3,8 +3,17 @@ import { Prisma, type Offer as PrismaOffer } from "@prisma/client";
 import type { CountryCode, Product, Offer } from "@/types";
 import { getParentCategoryId, resolveCategoryAlias } from "@/lib/categories";
 import { expandCategoryFilterToDbIds } from "@/lib/db-category-filter";
-import type { OfferFilterCriteria } from "@/lib/offers/offer-filters";
+import {
+  hasActiveOfferFilters,
+  type OfferFilterCriteria,
+} from "@/lib/offers/offer-filters";
 import { sanitizeProductImageForRender, SAFE_IMAGE_FALLBACK } from "@/lib/feed-url-policy";
+import {
+  getCachedBrowseMeta,
+  getCachedChLeadIds,
+  setCachedBrowseMeta,
+  setCachedChLeadIds,
+} from "@/lib/catalog-browse-cache";
 import { buildCategoryCoverMap } from "@/lib/browse-shortcut-boards";
 import {
   AUTO_COMPLETE_WHEELS_LEAF,
@@ -418,9 +427,68 @@ async function queryProductIdsByMinOfferTotal(
   return rows.map((row) => row.id);
 }
 
+const CH_LEAD_MERCHANT_ID = "ch-acer";
+
+function isUnfilteredBrowse(
+  query: string | undefined,
+  category: string | undefined,
+  filters: OfferFilterCriteria
+): boolean {
+  return !query?.trim() && !category && !hasActiveOfferFilters(filters);
+}
+
+/** Same category priority as the full CH lead ORDER BY (Acer laptops first). */
+const CH_LEAD_CATEGORY_ORDER = Prisma.sql`
+  CASE p.category
+    WHEN 'notebooks-laptops' THEN 0
+    WHEN 'notebooks-desktops' THEN 1
+    WHEN 'notebooks-monitors' THEN 2
+    WHEN 'tv-projectors' THEN 3
+    WHEN 'notebooks-tablets-pc' THEN 4
+    ELSE 20
+  END
+`;
+
+async function queryChLeadSlice(
+  countryCode: string,
+  acerOnly: boolean,
+  take: number,
+  skip: number
+): Promise<string[]> {
+  const acerClause = acerOnly
+    ? Prisma.sql`AND EXISTS (
+        SELECT 1 FROM "Offer" o
+        WHERE o."productId" = p.id
+          AND o."inStock" = true
+          AND o."feedMerchantId" = ${CH_LEAD_MERCHANT_ID}
+      )`
+    : Prisma.sql`AND EXISTS (
+        SELECT 1 FROM "Offer" o
+        WHERE o."productId" = p.id AND o."inStock" = true
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM "Offer" o
+        WHERE o."productId" = p.id AND o."feedMerchantId" = ${CH_LEAD_MERCHANT_ID}
+      )`;
+
+  const rows = await prisma.$queryRaw<{ id: string }[]>`
+    SELECT p.id
+    FROM "Product" p
+    WHERE ${countryCode} = ANY(p."targetCountries")
+    ${acerClause}
+    ORDER BY ${CH_LEAD_CATEGORY_ORDER}, p."updatedAt" DESC, p.id ASC
+    LIMIT ${take}
+    OFFSET ${skip}
+  `;
+  return rows.map((row) => row.id);
+}
+
 /**
  * CH All first page must be Acer hardware, not Belando or the latest baby-walz remap.
  * Client-side sort cannot fix this: the API only returns the current OFFSET page.
+ *
+ * Unfiltered pages query Acer first (small merchant set) instead of sorting all
+ * ~86k CH rows with a per-row EXISTS CASE.
  */
 async function queryProductIdsByChLead(
   countryCode: string,
@@ -430,6 +498,44 @@ async function queryProductIdsByChLead(
   take: number,
   skip: number
 ): Promise<string[]> {
+  if (isUnfilteredBrowse(query, category, filters)) {
+    const cached = await getCachedChLeadIds(countryCode, take, skip);
+    if (cached) return cached;
+
+    const acerIds = await queryChLeadSlice(countryCode, true, take, skip);
+    let ids = acerIds;
+    if (acerIds.length < take) {
+      const acerCount =
+        skip === 0
+          ? acerIds.length
+          : Number(
+              (
+                await prisma.$queryRaw<[{ n: number }]>`
+                  SELECT COUNT(*)::int AS n
+                  FROM "Product" p
+                  WHERE ${countryCode} = ANY(p."targetCountries")
+                    AND EXISTS (
+                      SELECT 1 FROM "Offer" o
+                      WHERE o."productId" = p.id
+                        AND o."inStock" = true
+                        AND o."feedMerchantId" = ${CH_LEAD_MERCHANT_ID}
+                    )
+                `
+              )[0]?.n ?? 0
+            );
+      const rest = await queryChLeadSlice(
+        countryCode,
+        false,
+        take - acerIds.length,
+        Math.max(0, skip - acerCount)
+      );
+      ids = [...acerIds, ...rest];
+    }
+
+    await setCachedChLeadIds(countryCode, take, skip, ids);
+    return ids;
+  }
+
   const categorySql = categoryConstraintSql(category);
 
   const trimmedQuery = query?.trim();
@@ -487,16 +593,9 @@ async function queryProductIdsByChLead(
     ORDER BY
       CASE WHEN EXISTS (
         SELECT 1 FROM "Offer" o
-        WHERE o."productId" = p.id AND o."feedMerchantId" = 'ch-acer'
+        WHERE o."productId" = p.id AND o."feedMerchantId" = ${CH_LEAD_MERCHANT_ID}
       ) THEN 0 ELSE 1 END,
-      CASE p.category
-        WHEN 'notebooks-laptops' THEN 0
-        WHEN 'notebooks-desktops' THEN 1
-        WHEN 'notebooks-monitors' THEN 2
-        WHEN 'tv-projectors' THEN 3
-        WHEN 'notebooks-tablets-pc' THEN 4
-        ELSE 20
-      END,
+      ${CH_LEAD_CATEGORY_ORDER},
       p."updatedAt" DESC,
       p.id ASC
     LIMIT ${take}
@@ -548,6 +647,9 @@ export async function getProductsFromDb(
       ? queryProductIdsByChLead(countryCode, query, category, filters, take, skip)
       : Promise.resolve(null);
 
+  const cachedMeta = await getCachedBrowseMeta(countryCode);
+  const unfilteredBrowse = isUnfilteredBrowse(query, category, filters);
+
   const [pricedIds, productsDefault, total, countMaps, countryTotal, brandRows, categoryCovers] =
     await Promise.all([
       pricedIdsPromise,
@@ -560,21 +662,34 @@ export async function getProductsFromDb(
             skip,
             orderBy,
           }),
-      prisma.product.count({ where: whereClause }),
-      getCategoryCountsFromDb(countryCode),
-      prisma.product.count({
-        where: {
-          targetCountries: { has: countryCode },
-          offers: { some: { inStock: true } },
-        },
-      }),
-      prisma.product.findMany({
-        where: { ...brandWhere, brand: { not: null } },
-        select: { brand: true },
-        distinct: ["brand"],
-        orderBy: { brand: "asc" },
-      }),
-      getCategoryCoverImagesFromDb(countryCode),
+      cachedMeta && unfilteredBrowse
+        ? Promise.resolve(cachedMeta.countryProductCount)
+        : prisma.product.count({ where: whereClause }),
+      cachedMeta
+        ? Promise.resolve({
+            categoryCounts: cachedMeta.categoryCounts,
+            leafCounts: cachedMeta.leafCounts,
+          })
+        : getCategoryCountsFromDb(countryCode),
+      cachedMeta
+        ? Promise.resolve(cachedMeta.countryProductCount)
+        : prisma.product.count({
+            where: {
+              targetCountries: { has: countryCode },
+              offers: { some: { inStock: true } },
+            },
+          }),
+      cachedMeta
+        ? Promise.resolve(cachedMeta.brandOptions.map((brand) => ({ brand })))
+        : prisma.product.findMany({
+            where: { ...brandWhere, brand: { not: null } },
+            select: { brand: true },
+            distinct: ["brand"],
+            orderBy: { brand: "asc" },
+          }),
+      cachedMeta
+        ? Promise.resolve(cachedMeta.categoryCovers)
+        : getCategoryCoverImagesFromDb(countryCode),
     ]);
 
   let pageProducts: PrismaProductWithOffers[];
@@ -601,6 +716,27 @@ export async function getProductsFromDb(
     .map(mapPrismaProduct)
     .filter((product) => product.offers.length > 0);
 
+  const brandOptions = cachedMeta
+    ? cachedMeta.brandOptions
+    : Array.from(
+        new Map(
+          brandRows
+            .map((row) => row.brand?.trim())
+            .filter((brand): brand is string => Boolean(brand))
+            .map((brand) => [brand.toLocaleLowerCase(), brand] as const)
+        ).values()
+      ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+
+  if (!cachedMeta && unfilteredBrowse) {
+    await setCachedBrowseMeta(countryCode, {
+      categoryCounts: countMaps.categoryCounts,
+      leafCounts: countMaps.leafCounts,
+      categoryCovers,
+      countryProductCount: countryTotal,
+      brandOptions,
+    });
+  }
+
   return {
     products,
     totalMatched: total,
@@ -608,14 +744,7 @@ export async function getProductsFromDb(
     leafCounts: countMaps.leafCounts,
     categoryCovers,
     countryProductCount: countryTotal,
-    brandOptions: Array.from(
-      new Map(
-        brandRows
-          .map((row) => row.brand?.trim())
-          .filter((brand): brand is string => Boolean(brand))
-          .map((brand) => [brand.toLocaleLowerCase(), brand] as const)
-      ).values()
-    ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })),
+    brandOptions,
   };
 }
 

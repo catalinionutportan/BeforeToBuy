@@ -22,6 +22,7 @@ vi.mock("@/lib/db-category-filter", () => ({
   expandCategoryFilterToDbIds: () => undefined,
 }));
 
+import { resetCatalogBrowseCacheForTests } from "@/lib/catalog-browse-cache";
 import { getProductsFromDb } from "@/lib/db-service";
 
 function mockProduct(id: string, minTotal: number) {
@@ -62,6 +63,7 @@ function mockProduct(id: string, minTotal: number) {
 describe("getProductsFromDb price sort", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetCatalogBrowseCacheForTests();
     groupBy.mockResolvedValue([]);
     count.mockResolvedValue(6);
     findFirst.mockResolvedValue(null);
@@ -96,10 +98,7 @@ describe("getProductsFromDb price sort", () => {
     expect(7 + page.products.length < page.totalMatched).toBe(true);
 
     queryRaw.mockResolvedValue([{ id: "prod-k" }]);
-    findMany
-      .mockResolvedValueOnce([{ brand: "Brand" }])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([mockProduct("prod-k", 100)]);
+    findMany.mockResolvedValueOnce([mockProduct("prod-k", 100)]);
 
     const last = await getProductsFromDb("RO", undefined, undefined, 2, 9, "price-asc");
     expect(9 + last.products.length < last.totalMatched).toBe(false);
@@ -122,5 +121,44 @@ describe("getProductsFromDb price sort", () => {
       "prod-ch-acer-1",
       "prod-ch-babywalz-1",
     ]);
+  });
+
+  it("fills the CH first page with non-Acer ids after a short Acer slice", async () => {
+    queryRaw
+      .mockResolvedValueOnce([{ id: "prod-ch-acer-1" }])
+      .mockResolvedValueOnce([{ id: "prod-ch-babywalz-1" }]);
+    findMany
+      .mockResolvedValueOnce([{ brand: "Acer" }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        mockProduct("prod-ch-babywalz-1", 20),
+        mockProduct("prod-ch-acer-1", 15),
+      ]);
+
+    const page = await getProductsFromDb("CH", undefined, undefined, 2, 0);
+
+    expect(queryRaw).toHaveBeenCalledTimes(2);
+    expect(page.products.map((product) => product.id)).toEqual([
+      "prod-ch-acer-1",
+      "prod-ch-babywalz-1",
+    ]);
+  });
+
+  it("reuses cached browse meta on the next unfiltered CH page", async () => {
+    queryRaw.mockResolvedValue([{ id: "prod-ch-acer-1" }]);
+    findMany
+      .mockResolvedValueOnce([{ brand: "Acer" }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([mockProduct("prod-ch-acer-1", 15)])
+      .mockResolvedValueOnce([mockProduct("prod-ch-acer-1", 15)]);
+
+    await getProductsFromDb("CH", undefined, undefined, 1, 0);
+    const groupByAfterFirst = groupBy.mock.calls.length;
+    expect(groupByAfterFirst).toBeGreaterThan(0);
+
+    await getProductsFromDb("CH", undefined, undefined, 1, 0);
+
+    expect(groupBy.mock.calls.length).toBe(groupByAfterFirst);
+    expect(queryRaw).toHaveBeenCalledTimes(1);
   });
 });

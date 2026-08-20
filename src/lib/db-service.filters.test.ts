@@ -22,6 +22,7 @@ vi.mock("@/lib/db-category-filter", () => ({
   expandCategoryFilterToDbIds: () => undefined,
 }));
 
+import { resetCatalogBrowseCacheForTests } from "@/lib/catalog-browse-cache";
 import { getProductsFromDb } from "@/lib/db-service";
 
 function mockProduct(id: string, deliveryCost: number | null) {
@@ -62,6 +63,7 @@ function mockProduct(id: string, deliveryCost: number | null) {
 describe("getProductsFromDb offer visibility", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetCatalogBrowseCacheForTests();
     groupBy.mockResolvedValue([]);
     findFirst.mockResolvedValue(null);
   });
