@@ -84,6 +84,7 @@ export const roUi = {
     menuSeeAllInDepartment: "Vezi tot din această categorie",
     menuPickCategory: "Alege o categorie în stânga",
     menuOpen: "Meniu",
+    logoHomeAria: "Acasă — toate produsele",
     menuBack: "Înapoi",
     scrollForMoreProducts: "Derulează pentru mai multe produse…",
     endOfCatalog: "Ai ajuns la finalul catalogului demo",

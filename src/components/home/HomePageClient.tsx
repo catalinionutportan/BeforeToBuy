@@ -726,6 +726,7 @@ export default function HomePageClient({
         selectedCategoryId={selectedCategory}
         onCategorySelect={handleCategoryChange}
         categoryCounts={catalogMeta?.categoryCounts}
+        onGoHome={resetAllFilters}
       />
 
       {/* Full-width desktop content — no phone-shell max-width */}

@@ -84,6 +84,7 @@ export const deUi = {
     menuSeeAllInDepartment: "Alles in dieser Kategorie",
     menuPickCategory: "Links eine Kategorie wählen",
     menuOpen: "Menü",
+    logoHomeAria: "Startseite — alle Produkte",
     menuBack: "Zurück",
     scrollForMoreProducts: "Weiter scrollen für mehr Produkte…",
     endOfCatalog: "Ende des Demo-Katalogs erreicht",

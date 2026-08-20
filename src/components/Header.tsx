@@ -33,6 +33,8 @@ interface HeaderProps {
   onCategorySelect?: (categoryId: string) => void;
   /** Leaf/department counts for the iOS-style category flyout under the bag. */
   categoryCounts?: Record<string, number>;
+  /** Reset browse to All products (bag / wordmark on `/`). */
+  onGoHome?: () => void;
 }
 
 /**
@@ -52,6 +54,7 @@ export function Header({
   selectedCategoryId = ALL_CATEGORIES_ID,
   onCategorySelect,
   categoryCounts,
+  onGoHome,
 }: HeaderProps) {
   const pathname = usePathname();
   const ui = HOME_UI[locale];
@@ -62,12 +65,17 @@ export function Header({
       ? formatUi(ui.searchPlaceholderDomain, { domain: selectedDomain })
       : formatUi(ui.searchPlaceholder, { country: userLocation.countryName });
 
-  function goToBrowseTop(event: MouseEvent<HTMLAnchorElement>) {
-    if (isBrowsePath(pathname)) {
-      event.preventDefault();
-      clearBrowseScrollY();
-      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  function goHome(event: MouseEvent<HTMLAnchorElement>) {
+    if (!isBrowsePath(pathname)) return;
+    event.preventDefault();
+    clearBrowseScrollY();
+    if (onGoHome) {
+      onGoHome();
+    } else {
+      onCategorySelect?.(ALL_CATEGORIES_ID);
+      onSearchChange("");
     }
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }
 
   function openCategoryMenu() {
@@ -84,7 +92,7 @@ export function Header({
       <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200 bg-white/95 shadow-xs backdrop-blur-md">
         <div className="w-full min-w-0 px-3 pt-1.5 pb-2 sm:px-8 lg:px-12">
           <div className="flex min-w-0 items-start justify-between gap-2">
-            <Link href={homeHref} className="min-w-0 pt-0.5" onClick={goToBrowseTop}>
+            <Link href={homeHref} className="min-w-0 pt-0.5" onClick={goHome}>
               <h1 className="truncate text-[clamp(1rem,0.4vw+0.9rem,1.125rem)] font-extrabold leading-none tracking-tight text-slate-900">
                 BeforeToBuy
               </h1>
@@ -121,9 +129,9 @@ export function Header({
               <Link
                 href={homeHref}
                 className="relative block h-11 w-11 sm:h-12 sm:w-12"
-                aria-label="BeforeToBuy — top of page"
-                title="Top of page"
-                onClick={goToBrowseTop}
+                aria-label={ui.logoHomeAria}
+                title={ui.logoHomeAria}
+                onClick={goHome}
               >
                 <Image
                   src="/beforetobuy-mark.png"

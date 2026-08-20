@@ -82,6 +82,7 @@ export const frUi = {
     menuSeeAllInDepartment: "Tout voir dans cette catégorie",
     menuPickCategory: "Choisissez une catégorie à gauche",
     menuOpen: "Menu",
+    logoHomeAria: "Accueil — tous les produits",
     menuBack: "Retour",
     scrollForMoreProducts: "Faites défiler pour plus de produits…",
     endOfCatalog: "Fin du catalogue démo",

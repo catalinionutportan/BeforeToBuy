@@ -84,6 +84,7 @@ export const itUi = {
     menuSeeAllInDepartment: "Vedi tutto in questa categoria",
     menuPickCategory: "Scegli una categoria a sinistra",
     menuOpen: "Menu",
+    logoHomeAria: "Home — tutti i prodotti",
     menuBack: "Indietro",
     scrollForMoreProducts: "Scorri per altri prodotti…",
     endOfCatalog: "Fine del catalogo demo",
