@@ -8,6 +8,7 @@ import {
 import type { SiteLocale } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { productMatchesCategoryFilter } from "@/lib/categories";
+import { AUTO_COMPLETE_WHEELS_LEAF, isReifenHostedImage } from "@/lib/reifen-wheel-split";
 import type { Product } from "@/types";
 
 interface BrowseShortcutBoardsProps {
@@ -24,10 +25,16 @@ function coverImageForCategory(
   categoryCovers?: Record<string, string>
 ): string | undefined {
   const fromCatalog = categoryCovers?.[categoryId]?.trim();
-  if (fromCatalog) return fromCatalog;
-  return products.find(
-    (product) => product.image && productMatchesCategoryFilter(product, categoryId)
+  if (fromCatalog && (categoryId !== AUTO_COMPLETE_WHEELS_LEAF || isReifenHostedImage(fromCatalog))) {
+    return fromCatalog;
+  }
+  const fromProducts = products.find(
+    (product) =>
+      product.image &&
+      productMatchesCategoryFilter(product, categoryId) &&
+      (categoryId !== AUTO_COMPLETE_WHEELS_LEAF || isReifenHostedImage(product.image))
   )?.image;
+  return fromProducts;
 }
 
 function boardTitle(board: VisibleShortcutBoard, locale: SiteLocale): string {
