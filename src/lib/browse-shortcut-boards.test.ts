@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveShortcutBoards } from "@/lib/browse-shortcut-boards";
+import { resolveShortcutBoards, buildCategoryCoverMap } from "@/lib/browse-shortcut-boards";
 
 describe("browse shortcut boards", () => {
   it("builds CH electronics + baby boards only from occupied leaves", () => {
@@ -62,5 +62,38 @@ describe("browse shortcut boards", () => {
       "baby-strollers-travel": 4,
     });
     expect(boards.map((board) => board.id)).toEqual(["electronics", "baby"]);
+  });
+
+  it("drops tiles and boards that have no product photo", () => {
+    const boards = resolveShortcutBoards(
+      "CH",
+      {
+        "notebooks-laptops": 73,
+        "baby-strollers-travel": 40,
+        "auto-tires-wheels": 80,
+        "fashion-beauty-hair-care": 12,
+      },
+      {
+        "notebooks-laptops": "https://images2.productserve.com/laptop.jpg",
+        "baby-strollers-travel": "https://images2.productserve.com/stroller.jpg",
+      }
+    );
+    expect(boards.map((board) => board.id)).toEqual(["electronics", "baby"]);
+    expect(boards[0]?.tiles).toEqual([{ categoryId: "notebooks-laptops", count: 73 }]);
+    expect(boards[0]?.featured).toBe(true);
+  });
+
+  it("keeps the first product image per occupied leaf", () => {
+    expect(
+      buildCategoryCoverMap([
+        { category: "cleaning-stick-vacuums", image: "https://cdn.example/stick.jpg" },
+        { category: "cleaning-stick-vacuums", image: "https://cdn.example/other.jpg" },
+        { category: "diy-power-tools", image: "  " },
+        { category: "diy-power-tools", image: "https://cdn.example/saw.jpg" },
+      ])
+    ).toEqual({
+      "cleaning-stick-vacuums": "https://cdn.example/stick.jpg",
+      "diy-power-tools": "https://cdn.example/saw.jpg",
+    });
   });
 });

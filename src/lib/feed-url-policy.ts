@@ -32,6 +32,8 @@ export const APPROVED_IMAGE_HOSTS = [
   "arlo.com",
   "cdn.shopify.com",
   "images2.productserve.com",
+  "images1.productserve.com",
+  "images.productserve.com",
   "static2.evomag.ro",
   "www.evomag.ro",
   "evomag.ro",

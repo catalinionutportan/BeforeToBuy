@@ -70,7 +70,8 @@ describe("getProductsFromDb offer visibility", () => {
         mockProduct("with-offers", 0),
         { ...mockProduct("empty", 0), offers: [] },
       ])
-      .mockResolvedValueOnce([{ brand: "Brand" }]);
+      .mockResolvedValueOnce([{ brand: "Brand" }])
+      .mockResolvedValueOnce([]);
 
     const page = await getProductsFromDb("RO", undefined, undefined, 10, 0);
 
@@ -83,7 +84,8 @@ describe("getProductsFromDb offer visibility", () => {
     count.mockResolvedValue(3);
     findMany
       .mockResolvedValueOnce([mockProduct("free", 0)])
-      .mockResolvedValueOnce([{ brand: "Brand" }]);
+      .mockResolvedValueOnce([{ brand: "Brand" }])
+      .mockResolvedValueOnce([]);
 
     const page = await getProductsFromDb("RO", undefined, undefined, 1, 0, undefined, {
       freeDeliveryOnly: true,
@@ -104,6 +106,7 @@ describe("getProductsFromDb offer visibility", () => {
     queryRaw.mockResolvedValue([{ id: "free" }]);
     findMany
       .mockResolvedValueOnce([{ brand: "Brand" }])
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([mockProduct("free", 0)]);
 
     await getProductsFromDb("RO", undefined, undefined, 5, 0, "price-asc", {

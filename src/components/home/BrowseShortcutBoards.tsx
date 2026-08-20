@@ -1,58 +1,11 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
-import {
-  Armchair,
-  Baby,
-  Battery,
-  Car,
-  Computer,
-  Droplets,
-  Hammer,
-  Home,
-  Laptop,
-  Lightbulb,
-  Monitor,
-  Projector,
-  Sparkles,
-  Tablet,
-  Wrench,
-} from "lucide-react";
 import { getLocalizedCategoryLabel } from "@/lib/category-i18n";
 import type { VisibleShortcutBoard } from "@/lib/browse-shortcut-boards";
 import type { SiteLocale } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { productMatchesCategoryFilter } from "@/lib/categories";
 import type { Product } from "@/types";
-
-const TILE_ICONS: Record<string, LucideIcon> = {
-  "notebooks-laptops": Laptop,
-  "notebooks-desktops": Computer,
-  "notebooks-monitors": Monitor,
-  "tv-projectors": Projector,
-  "notebooks-tablets-pc": Tablet,
-  "office-home": Armchair,
-  "baby-strollers-travel": Baby,
-  "baby-car-seats": Car,
-  "baby-nursery": Home,
-  "baby-monitoring-feeding": Baby,
-  "fashion-kids-baby": Baby,
-  "fashion-beauty-hair-care": Sparkles,
-  "fashion-beauty-cosmetics": Sparkles,
-  "fashion-beauty-fragrance": Sparkles,
-  "care-hair-styling": Sparkles,
-  "auto-tires-wheels": Car,
-  "auto-batteries": Battery,
-  "auto-oils-fluids": Droplets,
-  "auto-lighting": Lightbulb,
-  "auto-filters-brakes": Wrench,
-  "auto-interior-care": Sparkles,
-  "auto-tools-chargers": Wrench,
-  "diy-power-tools": Hammer,
-  "diy-hand-tools": Hammer,
-  "cleaning-vacuums": Home,
-  "cleaning-stick-vacuums": Home,
-};
 
 const BOARD_TONE: Record<string, string> = {
   electronics: "from-sky-50 via-white to-white border-sky-100",
@@ -67,11 +20,18 @@ const BOARD_TONE: Record<string, string> = {
 interface BrowseShortcutBoardsProps {
   boards: VisibleShortcutBoard[];
   products: Product[];
+  categoryCovers?: Record<string, string>;
   locale: SiteLocale;
   onSelect: (categoryId: string) => void;
 }
 
-function coverImageForCategory(products: Product[], categoryId: string): string | undefined {
+function coverImageForCategory(
+  products: Product[],
+  categoryId: string,
+  categoryCovers?: Record<string, string>
+): string | undefined {
+  const fromCatalog = categoryCovers?.[categoryId]?.trim();
+  if (fromCatalog) return fromCatalog;
   return products.find(
     (product) => product.image && productMatchesCategoryFilter(product, categoryId)
   )?.image;
@@ -85,11 +45,24 @@ function boardTitle(board: VisibleShortcutBoard, locale: SiteLocale): string {
 export function BrowseShortcutBoards({
   boards,
   products,
+  categoryCovers,
   locale,
   onSelect,
 }: BrowseShortcutBoardsProps) {
   const ui = HOME_UI[locale];
-  if (boards.length === 0) return null;
+  const boardsWithPhotos = boards
+    .map((board) => ({
+      ...board,
+      tiles: board.tiles.filter((tile) =>
+        Boolean(coverImageForCategory(products, tile.categoryId, categoryCovers))
+      ),
+    }))
+    .filter((board) => board.tiles.length > 0)
+    .map((board) => ({
+      ...board,
+      featured: board.featured || board.tiles.length === 1,
+    }));
+  if (boardsWithPhotos.length === 0) return null;
 
   return (
     <section className="space-y-2" aria-label={ui.shortcutBoardsTitle}>
@@ -97,7 +70,7 @@ export function BrowseShortcutBoards({
         {ui.shortcutBoardsTitle}
       </p>
       <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
-        {boards.map((board) => (
+        {boardsWithPhotos.map((board) => (
           <article
             key={board.id}
             className={`rounded-2xl border bg-gradient-to-b p-3 shadow-xs ${BOARD_TONE[board.id] ?? "from-slate-50 to-white border-slate-200"}`}
@@ -118,8 +91,8 @@ export function BrowseShortcutBoards({
             <div className="grid grid-cols-2 gap-2">
               {board.tiles.map((tile, index) => {
                 const featured = board.featured && index === 0;
-                const Icon = TILE_ICONS[tile.categoryId] ?? Sparkles;
-                const image = coverImageForCategory(products, tile.categoryId);
+                const image = coverImageForCategory(products, tile.categoryId, categoryCovers);
+                if (!image) return null;
                 const label = getLocalizedCategoryLabel(tile.categoryId, locale);
                 return (
                   <button
@@ -132,25 +105,19 @@ export function BrowseShortcutBoards({
                   >
                     <div
                       className={`relative w-full overflow-hidden bg-slate-50 ${
-                        featured ? "h-20 sm:h-24" : "h-14"
+                        featured ? "h-24 sm:h-28" : "h-16"
                       }`}
                     >
-                      {image ? (
-                        // Native img: product URLs are already sanitized at ingest.
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={image}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          referrerPolicy="no-referrer"
-                          className="h-full w-full object-contain object-center p-1.5"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-slate-300">
-                          <Icon className={featured ? "h-8 w-8" : "h-6 w-6"} aria-hidden />
-                        </div>
-                      )}
+                      {/* Native img: product URLs are already sanitized at ingest. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={image}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        className="h-full w-full object-contain object-center p-1.5"
+                      />
                     </div>
                     <div className="flex min-w-0 items-start justify-between gap-1 px-2 py-1.5">
                       <span className="line-clamp-2 text-[11px] font-bold leading-tight text-slate-800 group-hover:text-slate-950">

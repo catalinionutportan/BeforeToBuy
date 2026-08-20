@@ -1,4 +1,5 @@
 import { MARKET_HUB_LEAF_GROUPS, marketHubOrderForCountry } from "@/lib/market-hubs";
+import { resolveCategoryAlias } from "@/lib/categories";
 import type { CountryCode } from "@/types";
 
 export type ShortcutBoardId =
@@ -193,18 +194,22 @@ function fillFromHubLeaves(
 
 function resolveBoard(
   definition: ShortcutBoardDefinition,
-  categoryCounts: Record<string, number>
+  categoryCounts: Record<string, number>,
+  categoryCovers?: Record<string, string>
 ): VisibleShortcutBoard | null {
   let tiles = occupiedTiles(definition.tileIds, categoryCounts);
   if (definition.fillFromHub !== false) {
     tiles = fillFromHubLeaves(definition.hubId, categoryCounts, tiles);
+  }
+  if (categoryCovers) {
+    tiles = tiles.filter((tile) => Boolean(categoryCovers[tile.categoryId]));
   }
   if (tiles.length === 0) return null;
   return {
     id: definition.id,
     hubId: definition.hubId,
     titleKey: definition.titleKey,
-    featured: Boolean(definition.featured),
+    featured: Boolean(definition.featured) || tiles.length === 1,
     tiles,
   };
 }
@@ -235,15 +240,30 @@ export function shortcutBoardDefinitionsForCountry(
  */
 export function resolveShortcutBoards(
   countryCode: CountryCode,
-  categoryCounts: Record<string, number> | undefined
+  categoryCounts: Record<string, number> | undefined,
+  categoryCovers?: Record<string, string>
 ): VisibleShortcutBoard[] {
   if (!categoryCounts) return [];
   const boards: VisibleShortcutBoard[] = [];
   for (const definition of shortcutBoardDefinitionsForCountry(countryCode)) {
-    const board = resolveBoard(definition, categoryCounts);
+    const board = resolveBoard(definition, categoryCounts, categoryCovers);
     if (!board) continue;
     boards.push(board);
     if (boards.length >= MAX_BOARDS) break;
   }
   return boards;
+}
+
+/** First usable image per leaf. Later rows for the same aisle are ignored. */
+export function buildCategoryCoverMap(
+  rows: Array<{ category: string; image?: string | null }>
+): Record<string, string> {
+  const covers: Record<string, string> = {};
+  for (const row of rows) {
+    const image = row.image?.trim();
+    if (!image) continue;
+    const leafId = resolveCategoryAlias(row.category);
+    if (!covers[leafId]) covers[leafId] = image;
+  }
+  return covers;
 }

@@ -2,6 +2,7 @@ import { Product, UserLocation } from "@/types";
 import { fetchProductsForLocation } from "@/lib/api-aggregator";
 import { buildMappingReport } from "@/lib/mapping-log";
 import { getProductsFromDb } from "@/lib/db-service";
+import { buildCategoryCoverMap } from "@/lib/browse-shortcut-boards";
 import { getFeedProducts } from "@/lib/merchant-feeds";
 import {
   attachOfferTimestamps,
@@ -150,6 +151,7 @@ export async function fetchMergedProductsForLocation(
           feedProductCount: dbResult.countryProductCount,
           unmappedProductCount: 0,
           categoryCounts,
+          categoryCovers: dbResult.categoryCovers,
           collectionCounts,
           feedSources: ["remote"] as Array<"remote" | "sample">,
           hasProductionFeed: true,
@@ -205,6 +207,12 @@ export async function fetchMergedProductsForLocation(
     if (parentId) counts[parentId] = (counts[parentId] ?? 0) + 1;
     return counts;
   }, {});
+  const categoryCovers = buildCategoryCoverMap(
+    visibleProducts.map((product) => ({
+      category: product.category,
+      image: product.image,
+    }))
+  );
   const collectionCounts = COMPARISON_COLLECTION_FILTERS.reduce<Record<string, number>>(
     (counts, collection) => {
       counts[collection.id] = visibleProducts.filter((product) =>
@@ -274,6 +282,7 @@ export async function fetchMergedProductsForLocation(
       feedProductCount: feedResult.products.length,
       unmappedProductCount,
       categoryCounts,
+      categoryCovers,
       collectionCounts,
       feedSources: feedResult.sources,
       hasProductionFeed: feedResult.sources.includes("remote"),

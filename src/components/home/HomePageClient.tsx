@@ -407,6 +407,10 @@ export default function HomePageClient({
             ...next,
             feedProductCount: next.feedProductCount || prev?.feedProductCount || 0,
             categoryCounts: nextCountsEmpty ? prevCounts : { ...prevCounts, ...nextCounts },
+            categoryCovers: {
+              ...(prev?.categoryCovers ?? {}),
+              ...(next.categoryCovers ?? {}),
+            },
             brandOptions:
               next.brandOptions.length > 0
                 ? next.brandOptions
@@ -518,6 +522,10 @@ export default function HomePageClient({
             // Keep catalogue-wide counts from the first page when a later page is thin.
             feedProductCount: next.feedProductCount || prev?.feedProductCount || 0,
             categoryCounts: next.categoryCounts ?? prev?.categoryCounts ?? {},
+            categoryCovers: {
+              ...(prev?.categoryCovers ?? {}),
+              ...(next.categoryCovers ?? {}),
+            },
             brandOptions:
               next.brandOptions.length > 0
                 ? next.brandOptions
@@ -758,8 +766,13 @@ export default function HomePageClient({
 
   const showBrowseSkeleton = isLoadingProducts && displayedProducts.length === 0;
   const shortcutBoards = useMemo(
-    () => resolveShortcutBoards(userLocation.countryCode, catalogMeta?.categoryCounts),
-    [userLocation.countryCode, catalogMeta?.categoryCounts]
+    () =>
+      resolveShortcutBoards(
+        userLocation.countryCode,
+        catalogMeta?.categoryCounts,
+        catalogMeta?.categoryCovers
+      ),
+    [userLocation.countryCode, catalogMeta?.categoryCounts, catalogMeta?.categoryCovers]
   );
   const showShortcutBoards =
     browseCategory === ALL_CATEGORIES_ID &&
@@ -805,6 +818,7 @@ export default function HomePageClient({
             <BrowseShortcutBoards
               boards={shortcutBoards}
               products={products}
+              categoryCovers={catalogMeta?.categoryCovers}
               locale={browseLocale}
               onSelect={handleCategoryChange}
             />

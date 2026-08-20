@@ -4,7 +4,8 @@ import type { CountryCode, Product, Offer } from "@/types";
 import { getParentCategoryId, resolveCategoryAlias } from "@/lib/categories";
 import { expandCategoryFilterToDbIds } from "@/lib/db-category-filter";
 import type { OfferFilterCriteria } from "@/lib/offers/offer-filters";
-import { sanitizeProductImageForRender } from "@/lib/feed-url-policy";
+import { sanitizeProductImageForRender, SAFE_IMAGE_FALLBACK } from "@/lib/feed-url-policy";
+import { buildCategoryCoverMap } from "@/lib/browse-shortcut-boards";
 
 type PrismaProductWithOffers = Prisma.ProductGetPayload<{ include: { offers: true } }>;
 
@@ -173,6 +174,35 @@ export async function getCategoryCountsFromDb(countryCode: string): Promise<{
     }
   }
   return { categoryCounts, leafCounts };
+}
+
+function usableCoverImage(image: string | null | undefined): string | undefined {
+  const normalized = normalizeProductImageUrl(image);
+  if (!normalized) return undefined;
+  const sanitized = sanitizeProductImageForRender(normalized);
+  if (!sanitized || sanitized === SAFE_IMAGE_FALLBACK) return undefined;
+  return sanitized;
+}
+
+/** One product photo per leaf so homepage aisle tiles are not empty. */
+export async function getCategoryCoverImagesFromDb(
+  countryCode: string
+): Promise<Record<string, string>> {
+  const rows = await prisma.product.findMany({
+    where: {
+      targetCountries: { has: countryCode },
+      image: { startsWith: "http" },
+      offers: { some: { inStock: true } },
+    },
+    distinct: ["category"],
+    select: { category: true, image: true },
+  });
+  return buildCategoryCoverMap(
+    rows.map((row) => ({
+      category: row.category,
+      image: usableCoverImage(row.image),
+    }))
+  );
 }
 
 /** Global price sort via SQL MIN(offer total) — no in-memory scan cap. */
@@ -394,7 +424,7 @@ export async function getProductsFromDb(
       ? queryProductIdsByChLead(countryCode, query, category, filters, take, skip)
       : Promise.resolve(null);
 
-  const [pricedIds, productsDefault, total, countMaps, countryTotal, brandRows] =
+  const [pricedIds, productsDefault, total, countMaps, countryTotal, brandRows, categoryCovers] =
     await Promise.all([
       pricedIdsPromise,
       sortByOfferTotal || sortByChLead
@@ -420,6 +450,7 @@ export async function getProductsFromDb(
         distinct: ["brand"],
         orderBy: { brand: "asc" },
       }),
+      getCategoryCoverImagesFromDb(countryCode),
     ]);
 
   let pageProducts: PrismaProductWithOffers[];
@@ -451,6 +482,7 @@ export async function getProductsFromDb(
     totalMatched: total,
     categoryCounts: countMaps.categoryCounts,
     leafCounts: countMaps.leafCounts,
+    categoryCovers,
     countryProductCount: countryTotal,
     brandOptions: Array.from(
       new Map(

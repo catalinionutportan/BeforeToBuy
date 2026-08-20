@@ -68,6 +68,7 @@ describe("getProductsFromDb price sort", () => {
     queryRaw.mockResolvedValue([{ id: "prod-cheapest" }, { id: "prod-a" }]);
     findMany
       .mockResolvedValueOnce([{ brand: "Brand" }])
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([mockProduct("prod-cheapest", 1), mockProduct("prod-a", 50)]);
 
     const page = await getProductsFromDb("RO", undefined, undefined, 2, 0, "price-asc");
@@ -83,6 +84,7 @@ describe("getProductsFromDb price sort", () => {
     queryRaw.mockResolvedValue([{ id: "prod-i" }, { id: "prod-j" }]);
     findMany
       .mockResolvedValueOnce([{ brand: "Brand" }])
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([mockProduct("prod-i", 90), mockProduct("prod-j", 95)]);
 
     const page = await getProductsFromDb("RO", undefined, undefined, 2, 7, "price-asc");
@@ -93,6 +95,7 @@ describe("getProductsFromDb price sort", () => {
     queryRaw.mockResolvedValue([{ id: "prod-k" }]);
     findMany
       .mockResolvedValueOnce([{ brand: "Brand" }])
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([mockProduct("prod-k", 100)]);
 
     const last = await getProductsFromDb("RO", undefined, undefined, 2, 9, "price-asc");
@@ -103,6 +106,7 @@ describe("getProductsFromDb price sort", () => {
     queryRaw.mockResolvedValue([{ id: "prod-ch-acer-1" }, { id: "prod-ch-babywalz-1" }]);
     findMany
       .mockResolvedValueOnce([{ brand: "Acer" }])
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
         mockProduct("prod-ch-babywalz-1", 20),
         mockProduct("prod-ch-acer-1", 15),
