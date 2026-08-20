@@ -8,6 +8,7 @@ import {
   isMarketHubId,
   marketHubOrderForCountry,
   selectionHasCatalogOffers,
+  resolveOccupiedBrowseCategory,
   shouldIgnoreLandingCategory,
 } from "@/lib/market-hubs";
 
@@ -32,6 +33,18 @@ describe("market hubs", () => {
     expect(selectionHasCatalogOffers("mobile-feature-phones", counts)).toBe(false);
     expect(selectionHasCatalogOffers("hub-diy", counts)).toBe(false);
     expect(selectionHasCatalogOffers("mobile-feature-phones", undefined)).toBe(true);
+  });
+
+  it("falls empty aisles back to All when the market already has products", () => {
+    const counts = { "notebooks-laptops": 73 };
+    expect(resolveOccupiedBrowseCategory("mobile-feature-phones", counts, 194)).toBe("all");
+    expect(resolveOccupiedBrowseCategory("notebooks-laptops", counts, 194)).toBe("notebooks-laptops");
+    expect(resolveOccupiedBrowseCategory("hub-electronics", counts, 194)).toBe("hub-electronics");
+    expect(resolveOccupiedBrowseCategory("mobile-feature-phones", undefined, 0)).toBe(
+      "mobile-feature-phones"
+    );
+    expect(resolveOccupiedBrowseCategory("mobile-feature-phones", undefined, 194)).toBe("all");
+    expect(resolveOccupiedBrowseCategory("notebooks-laptops", undefined, 194)).toBe("all");
   });
 
   it("orders CH hubs with fashion and Auto before electronics", () => {

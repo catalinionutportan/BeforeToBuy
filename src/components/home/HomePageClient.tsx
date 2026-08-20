@@ -20,7 +20,7 @@ import {
   MARKET_HUB_LEAF_GROUPS,
   MARKET_HUB_TABS,
   marketHubOrderForCountry,
-  selectionHasCatalogOffers,
+  resolveOccupiedBrowseCategory,
   shouldIgnoreLandingCategory,
 } from "@/lib/market-hubs";
 import {
@@ -201,6 +201,20 @@ export default function HomePageClient({
     userLocation.countryCode,
   ]);
 
+  const inventoryCounts = catalogMeta?.categoryCounts ?? initialMeta?.categoryCounts;
+  const marketProductCount = Math.max(
+    catalogMeta?.feedProductCount ?? 0,
+    userLocation.countryCode === initialCountry
+      ? (initialMeta?.feedProductCount ?? initialProducts.length)
+      : 0,
+    products.length
+  );
+  const browseCategory = resolveOccupiedBrowseCategory(
+    selectedCategory,
+    inventoryCounts,
+    marketProductCount
+  );
+
   // Read shareable browse state and respond to browser back/forward navigation.
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -208,19 +222,18 @@ export default function HomePageClient({
     const readBrowseState = () => {
       const params = new URLSearchParams(window.location.search);
       const rawCategory = params.get("category");
-      // Always start on All — never restore sticky empty Electronics / empty leaves.
-      let nextCategory = shouldIgnoreLandingCategory(rawCategory)
-        ? defaultMarketHubForCountry(userLocation.countryCode)
-        : rawCategory!;
-      if (!selectionHasCatalogOffers(nextCategory, catalogMeta?.categoryCounts ?? initialMeta?.categoryCounts)) {
-        nextCategory = defaultMarketHubForCountry(userLocation.countryCode);
-      }
+      const landingCategory = defaultMarketHubForCountry(userLocation.countryCode);
+      const nextCategory = shouldIgnoreLandingCategory(rawCategory)
+        ? landingCategory
+        : resolveOccupiedBrowseCategory(
+            rawCategory,
+            catalogMeta?.categoryCounts ?? initialMeta?.categoryCounts,
+            catalogMeta?.feedProductCount ||
+              initialMeta?.feedProductCount ||
+              initialProducts.length
+          );
       setSelectedCategory(nextCategory);
-      if (
-        rawCategory &&
-        (shouldIgnoreLandingCategory(rawCategory) ||
-          !selectionHasCatalogOffers(rawCategory, catalogMeta?.categoryCounts ?? initialMeta?.categoryCounts))
-      ) {
+      if (rawCategory && nextCategory === landingCategory) {
         const url = new URL(window.location.href);
         url.searchParams.delete("category");
         window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
@@ -259,28 +272,19 @@ export default function HomePageClient({
     }
   }, [userLocation.countryCode]);
 
-  // Sticky empty hub/leaf (Feature Phones on CH, etc.) → All once inventory is known.
+  // Empty aisle in the URL / menu → All as soon as the market has products.
   useEffect(() => {
-    if (isLoadingProducts) return;
-    if (selectedCategory === ALL_CATEGORIES_ID) return;
+    if (browseCategory === selectedCategory) return;
     if (debouncedSearchQuery.trim()) return;
-    const marketTotal = catalogMeta?.feedProductCount ?? 0;
-    if (marketTotal <= 0) return;
-    if (selectionHasCatalogOffers(selectedCategory, catalogMeta?.categoryCounts)) return;
-    setSelectedCategory(ALL_CATEGORIES_ID);
+    setSelectedCategory(browseCategory);
     if (typeof window === "undefined") return;
+    if (browseCategory !== ALL_CATEGORIES_ID) return;
     const url = new URL(window.location.href);
     if (url.searchParams.has("category")) {
       url.searchParams.delete("category");
       window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
     }
-  }, [
-    isLoadingProducts,
-    selectedCategory,
-    catalogMeta?.categoryCounts,
-    catalogMeta?.feedProductCount,
-    debouncedSearchQuery,
-  ]);
+  }, [browseCategory, selectedCategory, debouncedSearchQuery]);
 
   // Keep `q` shareable in the URL after debounce.
   useEffect(() => {
@@ -304,7 +308,7 @@ export default function HomePageClient({
       !skippedInitialCatalogRequest.current &&
       requestCountry === initialCountry &&
       !debouncedSearchQuery.trim() &&
-      selectedCategory === ALL_CATEGORIES_ID &&
+      browseCategory === ALL_CATEGORIES_ID &&
       !hasActiveOfferFilters(activeOfferFilters) &&
       sortOrder === "default" &&
       initialMeta !== null;
@@ -315,17 +319,30 @@ export default function HomePageClient({
       setIsLoadingProducts(false);
       return () => controller.abort();
     }
+
+    // Sticky empty aisle mapped to All: keep the SSR/current catalogue. Never
+    // fetch the empty leaf (that used to replace the grid with 0 rows).
+    if (
+      skippedInitialCatalogRequest.current &&
+      browseCategory === ALL_CATEGORIES_ID &&
+      selectedCategory !== ALL_CATEGORIES_ID &&
+      products.length > 0 &&
+      !debouncedSearchQuery.trim() &&
+      requestCountry === initialCountry
+    ) {
+      setIsLoadingProducts(false);
+      return () => controller.abort();
+    }
+
     skippedInitialCatalogRequest.current = true;
 
     async function loadProductsAndCoupons() {
-      // Keep the current grid only when it already matches this browse selection.
-      // Switching to an empty leaf used to skip the skeleton and flash "No offers".
       const keepGridVisible =
         requestCountry === initialCountry &&
         products.length > 0 &&
         !debouncedSearchQuery.trim() &&
-        (selectedCategory === ALL_CATEGORIES_ID ||
-          products.some((product) => productMatchesCategoryFilter(product, selectedCategory)));
+        (browseCategory === ALL_CATEGORIES_ID ||
+          products.some((product) => productMatchesCategoryFilter(product, browseCategory)));
       setIsLoadingProducts(!keepGridVisible);
 
       try {
@@ -339,8 +356,8 @@ export default function HomePageClient({
         if (debouncedSearchQuery.trim()) {
           params.set("q", debouncedSearchQuery.trim());
         }
-        if (selectedCategory && selectedCategory !== ALL_CATEGORIES_ID) {
-          params.set("category", selectedCategory);
+        if (browseCategory && browseCategory !== ALL_CATEGORIES_ID) {
+          params.set("category", browseCategory);
         }
         writeOfferFiltersToParams(params, activeOfferFilters);
         if (sortOrder !== "default") params.set("sort", sortOrder);
@@ -366,8 +383,38 @@ export default function HomePageClient({
         if (controller.signal.aborted) return;
 
         const nextProducts = data.products || [];
-        setProducts(nextProducts);
-        setCatalogMeta(data.meta || null);
+        setProducts((prev) => {
+          if (
+            nextProducts.length === 0 &&
+            prev.length > 0 &&
+            !debouncedSearchQuery.trim() &&
+            !hasActiveOfferFilters(activeOfferFilters)
+          ) {
+            return prev;
+          }
+          return nextProducts;
+        });
+        setCatalogMeta((prev) => {
+          const next = data.meta;
+          if (!next) return prev;
+          const nextCounts = next.categoryCounts ?? {};
+          const prevCounts = prev?.categoryCounts ?? {};
+          const nextCountsEmpty = Object.keys(nextCounts).length === 0;
+          return {
+            ...prev,
+            ...next,
+            feedProductCount: next.feedProductCount || prev?.feedProductCount || 0,
+            categoryCounts: nextCountsEmpty ? prevCounts : { ...prevCounts, ...nextCounts },
+            brandOptions:
+              next.brandOptions.length > 0
+                ? next.brandOptions
+                : (prev?.brandOptions ?? []),
+            totalMatched:
+              next.totalMatched > 0 || nextProducts.length > 0
+                ? next.totalMatched
+                : prev?.totalMatched ?? next.totalMatched,
+          };
+        });
         setProductFetchFailed(false);
       } catch (error) {
         if (controller.signal.aborted) return;
@@ -390,6 +437,7 @@ export default function HomePageClient({
     userLocation,
     debouncedSearchQuery,
     browseLocale,
+    browseCategory,
     selectedCategory,
     activeOfferFilters,
     sortOrder,
@@ -438,8 +486,8 @@ export default function HomePageClient({
         if (debouncedSearchQuery.trim()) {
           params.set("q", debouncedSearchQuery.trim());
         }
-        if (selectedCategory && selectedCategory !== ALL_CATEGORIES_ID) {
-          params.set("category", selectedCategory);
+        if (browseCategory && browseCategory !== ALL_CATEGORIES_ID) {
+          params.set("category", browseCategory);
         }
         writeOfferFiltersToParams(params, activeOfferFilters);
         if (sortOrder !== "default") params.set("sort", sortOrder);
@@ -494,7 +542,7 @@ export default function HomePageClient({
     userLocation,
     browseLocale,
     debouncedSearchQuery,
-    selectedCategory,
+    browseCategory,
     activeOfferFilters,
     sortOrder,
   ]);
@@ -525,14 +573,19 @@ export default function HomePageClient({
 
   const handleCategoryChange = useCallback(
     (categoryId: string) => {
-      setSelectedCategory(categoryId);
-      syncBrowseUrl(categoryId, selectedDomain, offerFilters);
+      const next = resolveOccupiedBrowseCategory(
+        categoryId,
+        inventoryCounts,
+        marketProductCount
+      );
+      setSelectedCategory(next);
+      syncBrowseUrl(next, selectedDomain, offerFilters);
       // Stay at the top of browse results after filtering (do not keep footer scroll).
       if (typeof window !== "undefined") {
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       }
     },
-    [syncBrowseUrl, selectedDomain, offerFilters]
+    [syncBrowseUrl, selectedDomain, offerFilters, inventoryCounts, marketProductCount]
   );
 
   const handleOfferFiltersChange = useCallback(
@@ -593,8 +646,8 @@ export default function HomePageClient({
 
   const browseReturnTo = useMemo(() => {
     const params = new URLSearchParams();
-    if (selectedCategory && selectedCategory !== ALL_CATEGORIES_ID) {
-      params.set("category", selectedCategory);
+    if (browseCategory && browseCategory !== ALL_CATEGORIES_ID) {
+      params.set("category", browseCategory);
     }
     if (debouncedSearchQuery.trim()) {
       params.set("q", debouncedSearchQuery.trim());
@@ -604,11 +657,11 @@ export default function HomePageClient({
     }
     const qs = params.toString();
     return qs ? `/?${qs}` : "/";
-  }, [selectedCategory, debouncedSearchQuery, selectedDomain]);
+  }, [browseCategory, debouncedSearchQuery, selectedDomain]);
   const categoryFilteredProducts = useMemo(
     () =>
-      products.filter((product) => productMatchesCategoryFilter(product, selectedCategory)),
-    [products, selectedCategory]
+      products.filter((product) => productMatchesCategoryFilter(product, browseCategory)),
+    [products, browseCategory]
   );
   const isSearching = debouncedSearchQuery.trim().length > 0;
   const displayedProducts = useMemo(
@@ -638,7 +691,7 @@ export default function HomePageClient({
 
   useEffect(() => {
     setVisibleCount(12);
-  }, [selectedCategory, selectedDomain, offerFilters, debouncedSearchQuery, userLocation.countryCode]);
+  }, [browseCategory, selectedDomain, offerFilters, debouncedSearchQuery, userLocation.countryCode]);
 
   // After closing a product modal, expand lazy rows BEFORE pinning scroll so
   // we never land past the short 12-card document end.
@@ -694,19 +747,14 @@ export default function HomePageClient({
   }, [displayedProducts.length, visibleCount]);
 
   const showCategoryEmptyState =
+    marketProductCount <= 0 &&
     !isLoadingProducts &&
     displayedProducts.length === 0 &&
-    selectedCategory !== ALL_CATEGORIES_ID &&
+    browseCategory !== ALL_CATEGORIES_ID &&
     debouncedSearchQuery.trim() === "" &&
-    !filtersActiveBeyondCategory &&
-    selectionHasCatalogOffers(selectedCategory, catalogMeta?.categoryCounts);
+    !filtersActiveBeyondCategory;
 
-  const showBrowseSkeleton =
-    isLoadingProducts ||
-    (selectedCategory !== ALL_CATEGORIES_ID &&
-      !debouncedSearchQuery.trim() &&
-      Boolean(catalogMeta?.feedProductCount) &&
-      !selectionHasCatalogOffers(selectedCategory, catalogMeta?.categoryCounts));
+  const showBrowseSkeleton = isLoadingProducts && displayedProducts.length === 0;
 
   return (
     <div className="w-full bg-slate-50 font-sans">
@@ -723,7 +771,7 @@ export default function HomePageClient({
         selectedDomain={selectedDomain}
         onDomainChange={handleDomainChange}
         categoryOptions={categoryOptions}
-        selectedCategoryId={selectedCategory}
+        selectedCategoryId={browseCategory}
         onCategorySelect={handleCategoryChange}
         categoryCounts={catalogMeta?.categoryCounts}
         onGoHome={resetAllFilters}
@@ -762,7 +810,14 @@ export default function HomePageClient({
 
             <p className="whitespace-nowrap rounded-xl border border-emerald-100 bg-emerald-50/80 px-2.5 py-1.5 text-[11px] font-bold text-emerald-900">
               {formatUi(homeUi.itemsFound, {
-                count: catalogMeta?.totalMatched ?? displayedProducts.length,
+                count:
+                  catalogMeta && catalogMeta.totalMatched > 0
+                    ? catalogMeta.totalMatched
+                    : displayedProducts.length > 0
+                      ? displayedProducts.length
+                      : !isSearching && !filtersActiveBeyondCategory
+                        ? marketProductCount
+                        : 0,
               })}
             </p>
 

@@ -383,6 +383,28 @@ export function selectionHasCatalogOffers(
   return (categoryCounts[categoryId] ?? 0) > 0;
 }
 
+/**
+ * Browse selection to actually fetch/render. Empty aisles fall back to All
+ * once the market has products, so first paint never shows a zero-offer card.
+ */
+export function resolveOccupiedBrowseCategory(
+  categoryId: string | null | undefined,
+  categoryCounts: Record<string, number> | undefined,
+  marketProductCount: number
+): string {
+  const selected = categoryId || ALL_CATEGORIES_ID;
+  if (!selected || selected === ALL_CATEGORIES_ID || selected === LANDING_CATEGORY_ID) {
+    return ALL_CATEGORIES_ID;
+  }
+  if (isCollectionFilter(selected)) return selected;
+  if (marketProductCount <= 0) return selected;
+  // Market already has SKUs. Unknown or empty aisles stay on All so first paint
+  // never replaces the catalogue with the "No offers in this category" card.
+  if (!categoryCounts) return ALL_CATEGORIES_ID;
+  if (selectionHasCatalogOffers(selected, categoryCounts)) return selected;
+  return ALL_CATEGORIES_ID;
+}
+
 export function getMarketHubById(categoryId: string): MarketHubTab | undefined {
   return MARKET_HUB_TABS.find((hub) => hub.id === categoryId);
 }
