@@ -1,5 +1,9 @@
 import type { SiteLocale } from "@/lib/i18n/locales";
 
+/** Privacy Controls and Cookie Solution — unified embed (iubenda dashboard). */
+export const IUBENDA_COOKIE_WIDGET_SRC =
+  "https://embeds.iubenda.com/widgets/342d4172-1c8c-4e31-9396-57b3989392ab.js";
+
 /** Public iubenda Privacy Policy IDs per UI locale (www.beforetobuy.com). */
 export const IUBENDA_PRIVACY_POLICY_IDS: Record<SiteLocale, string> = {
   en: "77602116",

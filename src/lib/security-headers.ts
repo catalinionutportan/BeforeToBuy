@@ -17,9 +17,15 @@ export function buildContentSecurityPolicy(options: {
   isDevelopment: boolean;
 }): string {
   const { nonce, isDevelopment } = options;
-  const imgSrc = ["'self'", "data:", "blob:", "https://www.iubenda.com", ...cspImgSrcHosts()].join(
-    " ",
-  );
+  const imgSrc = [
+    "'self'",
+    "data:",
+    "blob:",
+    "https://www.iubenda.com",
+    "https://cdn.iubenda.com",
+    "https://embeds.iubenda.com",
+    ...cspImgSrcHosts(),
+  ].join(" ");
 
   const scriptSrc = isDevelopment
     ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' 'unsafe-inline'`
@@ -38,7 +44,8 @@ export function buildContentSecurityPolicy(options: {
     styleSrc,
     `img-src ${imgSrc}`,
     "font-src 'self' data:",
-    `connect-src 'self' ${datadogIntakeOrigin} https://*.vercel-insights.com https://*.upstash.io`,
+    `connect-src 'self' ${datadogIntakeOrigin} https://*.vercel-insights.com https://*.upstash.io https://*.iubenda.com`,
+    "frame-src https://*.iubenda.com",
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",

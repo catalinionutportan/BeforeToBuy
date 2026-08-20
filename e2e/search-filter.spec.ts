@@ -1,14 +1,7 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { dismissCookieBannerIfPresent } from "./dismiss-consent";
 
 const OFFER_LINK_NAME = /View offer|Search store|Open store/i;
-
-async function dismissCookieBanner(page: Page) {
-  const essential = page.getByRole("button", { name: "Essential Only", exact: true });
-  if (await essential.isVisible({ timeout: 2_000 }).catch(() => false)) {
-    await essential.click();
-    await expect(page.getByRole("dialog", { name: /Cookie & Privacy Preferences/i })).toHaveCount(0);
-  }
-}
 
 test.describe("Search, filters and product handoff", () => {
   test.beforeEach(async ({ context, page }) => {
@@ -22,7 +15,7 @@ test.describe("Search, filters and product handoff", () => {
       localStorage.removeItem("b2b_consent_v4");
     });
     await page.goto("/?lang=en");
-    await dismissCookieBanner(page);
+    await dismissCookieBannerIfPresent(page);
     await expect(page.locator("article").first()).toBeVisible({ timeout: 60_000 });
   });
 

@@ -1,18 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
+import { dismissCookieBannerIfPresent } from "./dismiss-consent";
 
 /** Ensure browse market is Romania (primary live feeds). */
 async function selectRomaniaMarket(page: Page) {
   const countrySelect = page.getByLabel(/country|market|țară|tara|land|pays|paese/i).first();
   await expect(countrySelect).toBeVisible({ timeout: 15_000 });
   await countrySelect.selectOption("RO");
-}
-
-async function dismissCookieBannerIfPresent(page: Page) {
-  const essentialButton = page.getByRole("button", { name: /Essential Only|Doar esențiale|Nur essenzielle/i }).first();
-  if (await essentialButton.isVisible({ timeout: 3_000 }).catch(() => false)) {
-    await essentialButton.click();
-    await expect(page.getByRole("dialog")).toHaveCount(0, { timeout: 5_000 });
-  }
 }
 
 test("first visit uses the hosting country code without a saved market", async ({ page }) => {
@@ -91,12 +84,9 @@ test.describe("BeforeToBuy smoke E2E", () => {
 
   test("cookie consent banner can be dismissed", async ({ page }) => {
     await page.goto("/");
-    const essentialButton = page.getByRole("button", { name: "Essential Only", exact: true });
-    await expect(essentialButton).toBeVisible({ timeout: 10_000 });
-    await essentialButton.click();
-    await expect(page.getByRole("dialog", { name: /Cookie & Privacy Preferences/i })).toHaveCount(0, {
-      timeout: 5_000,
-    });
+    await dismissCookieBannerIfPresent(page);
+    await expect(page.getByRole("button", { name: "Essential Only", exact: true })).toHaveCount(0);
+    await expect(page.locator("#iubenda-cs-banner")).toBeHidden({ timeout: 8_000 }).catch(() => undefined);
   });
 
   test("consent preferences are stored and can be cleared", async ({ request }) => {

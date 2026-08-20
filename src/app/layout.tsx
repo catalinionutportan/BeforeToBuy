@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { IubendaConsentBridge } from "@/components/IubendaConsentBridge";
+import { IubendaEmbedScript } from "@/components/IubendaEmbedScript";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { DatadogRum } from "@/components/DatadogRum";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -31,8 +33,12 @@ export async function generateMetadata(): Promise<Metadata> {
     title: ui.metaTitle,
     description: ui.metaDescription,
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.beforetobuy.com"),
-    keywords: keywords,
+    applicationName: "BeforeToBuy",
     authors: [{ name: "PortanX - Catalin Portan", url: "https://portanx.com" }],
+    creator: "PortanX - Catalin Portan",
+    publisher: "BeforeToBuy.com",
+    category: "shopping",
+    keywords: keywords,
     verification: {
       google: "JWeHEz4HeyeNdCaIJdtL-jH-Sr-lBjyXOE7Dt7pOJ4g",
     },
@@ -44,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: ogLocale,
     },
     twitter: {
-      card: "summary_large_image",
+      ...localizedMetadata.twitter,
       title: ui.metaTitle,
       description: ui.metaDescription,
     },
@@ -70,6 +76,9 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
+      <head>
+        <IubendaEmbedScript />
+      </head>
       <body className="antialiased font-sans bg-slate-50 text-slate-900">
         <a
           href="#main-content"
@@ -81,6 +90,7 @@ export default async function RootLayout({
           <ClientLocalizationProvider currentCountry={marketCountry} currentLocale={locale}>
             <ScrollToTopOnNavigate />
             <SiteJsonLd />
+            <IubendaConsentBridge />
             <DatadogRum />
             {children}
             {modal}

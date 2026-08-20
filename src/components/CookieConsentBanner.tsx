@@ -31,12 +31,18 @@ export function CookieConsentBanner() {
       const preferences = getConsentPreferences();
       setAffiliateConsent(preferences?.affiliate ?? false);
       setAnalyticsConsent(preferences?.analytics ?? false);
-      setIsVisible(!preferences);
+      // iubenda Cookie Solution is the primary banner; ours is fallback only.
+      setIsVisible(false);
       setPromptMode(false);
     };
 
     syncVisibility();
     const timer = setTimeout(syncVisibility, 800);
+    const fallback = window.setTimeout(() => {
+      if (getConsentPreferences()) return;
+      if (window._iub?.cs || document.getElementById("iubenda-cs-banner")) return;
+      setIsVisible(true);
+    }, 3500);
 
     const openHandler = () => {
       const preferences = getConsentPreferences();
@@ -51,6 +57,7 @@ export function CookieConsentBanner() {
 
     return () => {
       clearTimeout(timer);
+      window.clearTimeout(fallback);
       window.removeEventListener("b2b-consent-open", openHandler);
     };
   }, []);
