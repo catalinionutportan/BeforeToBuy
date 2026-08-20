@@ -8,6 +8,7 @@ import {
   Shirt,
   Smartphone,
 } from "lucide-react";
+import { ALL_CATEGORIES_ID, isCollectionFilter } from "@/lib/categories";
 import type { CountryCode } from "@/types";
 
 /**
@@ -360,6 +361,26 @@ export const MARKET_HUB_LEAF_GROUPS: Record<string, readonly string[]> = Object.
 
 export function isMarketHubId(categoryId: string): boolean {
   return categoryId in MARKET_HUB_LEAF_GROUPS;
+}
+
+/**
+ * Whether this browse selection currently has in-stock offers.
+ * Unknown counts return true so we do not bounce before inventory is loaded.
+ */
+export function selectionHasCatalogOffers(
+  categoryId: string | null | undefined,
+  categoryCounts: Record<string, number> | undefined
+): boolean {
+  if (!categoryId || categoryId === ALL_CATEGORIES_ID || categoryId === LANDING_CATEGORY_ID) {
+    return true;
+  }
+  if (isCollectionFilter(categoryId)) return true;
+  if (!categoryCounts) return true;
+  if (isMarketHubId(categoryId)) {
+    const leaves = MARKET_HUB_LEAF_GROUPS[categoryId] ?? [];
+    return leaves.some((leafId) => (categoryCounts[leafId] ?? 0) > 0);
+  }
+  return (categoryCounts[categoryId] ?? 0) > 0;
 }
 
 export function getMarketHubById(categoryId: string): MarketHubTab | undefined {

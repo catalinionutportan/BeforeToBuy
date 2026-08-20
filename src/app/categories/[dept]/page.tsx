@@ -83,6 +83,9 @@ export default async function DepartmentCategoryPage({ params, searchParams }: D
   const country = COUNTRIES[countryCode];
   const homeUi = HOME_UI[locale];
   const catalog = await fetchCatalogForCountry(countryCode, route.deptId, PAGE_LIST);
+  if ((catalog.meta.totalMatched ?? catalog.products.length) === 0) {
+    redirect(withLangParam("/", locale));
+  }
   const visibleSubs = category.subcategories.filter(
     (sub) => (catalog.meta.categoryCounts[sub.id] ?? 0) > 0
   );

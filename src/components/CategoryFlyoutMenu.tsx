@@ -43,9 +43,22 @@ function useIsCoarsePointer(): boolean {
   return coarse;
 }
 
-function nodeContainsSelected(node: ShoppingSubcategory, selectedId: string): boolean {
-  if (node.id === selectedId) return true;
-  return Boolean(node.children?.some((child) => nodeContainsSelected(child, selectedId)));
+function nodeHasInventory(
+  node: ShoppingSubcategory,
+  counts: Record<string, number> | undefined
+): boolean {
+  if (!counts) return true;
+  if ((counts[node.id] ?? 0) > 0) return true;
+  return Boolean(node.children?.some((child) => nodeHasInventory(child, counts)));
+}
+
+function departmentHasInventory(
+  category: ShoppingCategory,
+  counts: Record<string, number> | undefined
+): boolean {
+  if (!counts) return true;
+  if ((counts[category.id] ?? 0) > 0) return true;
+  return category.subcategories.some((sub) => nodeHasInventory(sub, counts));
 }
 
 /** Desktop menu type scales with viewport; stays large on wide screens. */
@@ -250,6 +263,7 @@ export function CategoryFlyoutMenu({
   ) => {
     const items =
       col.kind === "department" ? col.category.subcategories : col.node.children ?? [];
+    const visibleItems = items.filter((item) => nodeHasInventory(item, categoryCounts));
     const parentId = col.kind === "department" ? col.category.id : col.node.id;
     const columnTitle =
       col.kind === "department"
@@ -271,7 +285,7 @@ export function CategoryFlyoutMenu({
           <span className="flex-1">{ui.menuSeeAllInDepartment}</span>
         </button>
         <ul className="mt-0.5">
-          {items.map((item) => {
+          {visibleItems.map((item) => {
             const count = categoryCounts?.[item.id] ?? 0;
             const hasChildren = Boolean(item.children?.length);
             const selected = nodeContainsSelected(item, selectedCategory);
@@ -363,7 +377,9 @@ export function CategoryFlyoutMenu({
 
                   <nav aria-label={ui.menuCategories}>
                     <ul className="space-y-0.5">
-                      {SHOPPING_CATEGORIES.map((category) => {
+                      {SHOPPING_CATEGORIES.filter((category) =>
+                        departmentHasInventory(category, categoryCounts)
+                      ).map((category) => {
                         const Icon = category.icon;
                         const count = categoryCounts?.[category.id] ?? 0;
                         const hasSubs = category.subcategories.length > 0;
@@ -416,7 +432,9 @@ export function CategoryFlyoutMenu({
                     <span className="flex-1">{ui.menuSeeAllInDepartment}</span>
                   </button>
                   <ul className="space-y-0.5">
-                    {activeDept.subcategories.map((sub) => {
+                    {activeDept.subcategories
+                      .filter((sub) => nodeHasInventory(sub, categoryCounts))
+                      .map((sub) => {
                       const count = categoryCounts?.[sub.id] ?? 0;
                       const hasChildren = Boolean(sub.children?.length);
                       const selected = nodeContainsSelected(sub, selectedCategory);
@@ -459,7 +477,9 @@ export function CategoryFlyoutMenu({
                     <span className="flex-1">{ui.menuSeeAllInDepartment}</span>
                   </button>
                   <ul className="space-y-0.5">
-                    {activeGroup.children.map((child) => {
+                    {activeGroup.children
+                      .filter((child) => nodeHasInventory(child, categoryCounts))
+                      .map((child) => {
                       const count = categoryCounts?.[child.id] ?? 0;
                       const hasChildren = Boolean(child.children?.length);
                       const selected = nodeContainsSelected(child, selectedCategory);
@@ -532,7 +552,9 @@ export function CategoryFlyoutMenu({
 
               <nav aria-label={ui.menuCategories} className="mt-0.5">
                 <ul>
-                  {SHOPPING_CATEGORIES.map((category) => {
+                  {SHOPPING_CATEGORIES.filter((category) =>
+                    departmentHasInventory(category, categoryCounts)
+                  ).map((category) => {
                     const Icon = category.icon;
                     const count = categoryCounts?.[category.id] ?? 0;
                     const hasSubs = category.subcategories.length > 0;

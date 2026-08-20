@@ -86,6 +86,14 @@ export default async function SubcategoryCategoryPage({ params, searchParams }: 
   const country = COUNTRIES[countryCode];
   const homeUi = HOME_UI[locale];
   const catalog = await fetchCatalogForCountry(countryCode, route.subId, PAGE_LIST);
+  if ((catalog.meta.totalMatched ?? catalog.products.length) === 0) {
+    const parentHasOffers = (catalog.meta.categoryCounts[route.deptId] ?? 0) > 0;
+    redirect(
+      parentHasOffers
+        ? departmentCategoryPath(route.deptId, locale)
+        : withLangParam("/", locale)
+    );
+  }
   const departmentLabel = getDepartmentLabel(route.deptId, locale);
   const subcategoryLabel = getSubcategoryLabel(route.subId, locale);
 

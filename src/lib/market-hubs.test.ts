@@ -7,6 +7,7 @@ import {
   defaultMarketHubForCountry,
   isMarketHubId,
   marketHubOrderForCountry,
+  selectionHasCatalogOffers,
   shouldIgnoreLandingCategory,
 } from "@/lib/market-hubs";
 
@@ -21,6 +22,16 @@ describe("market hubs", () => {
     expect(shouldIgnoreLandingCategory("hub-electronics")).toBe(true);
     expect(shouldIgnoreLandingCategory(null)).toBe(true);
     expect(shouldIgnoreLandingCategory("hub-fashion")).toBe(false);
+  });
+
+  it("treats empty CH leaves as having no offers once counts are known", () => {
+    const counts = { "notebooks-laptops": 73, "fashion-beauty-hair-care": 10 };
+    expect(selectionHasCatalogOffers("all", counts)).toBe(true);
+    expect(selectionHasCatalogOffers("notebooks-laptops", counts)).toBe(true);
+    expect(selectionHasCatalogOffers("hub-electronics", counts)).toBe(true);
+    expect(selectionHasCatalogOffers("mobile-feature-phones", counts)).toBe(false);
+    expect(selectionHasCatalogOffers("hub-diy", counts)).toBe(false);
+    expect(selectionHasCatalogOffers("mobile-feature-phones", undefined)).toBe(true);
   });
 
   it("orders CH hubs with fashion and Auto before electronics", () => {
