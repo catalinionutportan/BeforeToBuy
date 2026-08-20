@@ -3,7 +3,11 @@ export type IubendaMappedConsent = {
   analytics: boolean;
 };
 
-type IubendaPurposeMap = Record<string | number, boolean | undefined>;
+type IubendaPurposeMap = Record<string, boolean | undefined>;
+
+function isPurposeOn(purposes: IubendaPurposeMap, id: number): boolean {
+  return purposes[String(id)] === true;
+}
 
 type IubendaCsApi = {
   openPreferences?: () => void;
@@ -34,8 +38,8 @@ export function mapIubendaPurposes(
 ): IubendaMappedConsent | null {
   if (!purposes) return null;
   return {
-    analytics: purposes[4] === true || purposes["4"] === true,
-    affiliate: purposes[5] === true || purposes["5"] === true,
+    analytics: isPurposeOn(purposes, 4),
+    affiliate: isPurposeOn(purposes, 5),
   };
 }
 
