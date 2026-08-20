@@ -80,7 +80,7 @@ describe("browse shortcut boards", () => {
     );
     expect(boards.map((board) => board.id)).toEqual(["electronics", "baby"]);
     expect(boards[0]?.tiles).toEqual([{ categoryId: "notebooks-laptops", count: 73 }]);
-    expect(boards[0]?.featured).toBe(true);
+    expect(boards[0]?.featured).toBe(false);
   });
 
   it("keeps the first product image per occupied leaf", () => {

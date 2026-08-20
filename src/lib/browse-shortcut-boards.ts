@@ -44,7 +44,7 @@ export interface VisibleShortcutBoard {
   tiles: VisibleShortcutTile[];
 }
 
-const MAX_BOARDS = 4;
+const MAX_BOARDS = 6;
 const MAX_TILES = 6;
 
 const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
@@ -209,7 +209,7 @@ function resolveBoard(
     id: definition.id,
     hubId: definition.hubId,
     titleKey: definition.titleKey,
-    featured: Boolean(definition.featured) || tiles.length === 1,
+    featured: Boolean(definition.featured),
     tiles,
   };
 }

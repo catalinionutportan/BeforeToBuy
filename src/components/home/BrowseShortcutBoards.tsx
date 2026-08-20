@@ -57,38 +57,34 @@ export function BrowseShortcutBoards({
         Boolean(coverImageForCategory(products, tile.categoryId, categoryCovers))
       ),
     }))
-    .filter((board) => board.tiles.length > 0)
-    .map((board) => ({
-      ...board,
-      featured: board.featured || board.tiles.length === 1,
-    }));
+    .filter((board) => board.tiles.length > 0);
   if (boardsWithPhotos.length === 0) return null;
 
   return (
-    <section className="space-y-2" aria-label={ui.shortcutBoardsTitle}>
-      <p className="px-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+    <section className="space-y-1.5" aria-label={ui.shortcutBoardsTitle}>
+      <p className="px-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
         {ui.shortcutBoardsTitle}
       </p>
-      <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-2 sm:grid-cols-2 xl:grid-cols-3">
         {boardsWithPhotos.map((board) => (
           <article
             key={board.id}
-            className={`rounded-2xl border bg-gradient-to-b p-3 shadow-xs ${BOARD_TONE[board.id] ?? "from-slate-50 to-white border-slate-200"}`}
+            className={`rounded-xl border bg-gradient-to-b p-2 shadow-xs ${BOARD_TONE[board.id] ?? "from-slate-50 to-white border-slate-200"}`}
           >
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <h3 className="text-[13px] font-extrabold tracking-tight text-slate-900">
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <h3 className="text-[12px] font-extrabold tracking-tight text-slate-900">
                 {boardTitle(board, locale)}
               </h3>
               <button
                 type="button"
                 onClick={() => onSelect(board.hubId)}
-                className="text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-800"
+                className="text-[9px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-800"
               >
                 {ui.shortcutSeeAll}
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-1.5">
               {board.tiles.map((tile, index) => {
                 const featured = board.featured && index === 0;
                 const image = coverImageForCategory(products, tile.categoryId, categoryCovers);
@@ -99,13 +95,13 @@ export function BrowseShortcutBoards({
                     key={tile.categoryId}
                     type="button"
                     onClick={() => onSelect(tile.categoryId)}
-                    className={`group flex min-w-0 flex-col overflow-hidden rounded-xl border border-white/80 bg-white text-left shadow-xs ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-md ${
-                      featured ? "col-span-2 min-h-[7.5rem] sm:min-h-[8.5rem]" : "min-h-[5.5rem]"
+                    className={`group flex min-w-0 flex-col overflow-hidden rounded-lg border border-white/80 bg-white text-left shadow-xs ring-1 ring-slate-100 transition hover:-translate-y-px hover:shadow-sm ${
+                      featured ? "col-span-2" : ""
                     }`}
                   >
                     <div
                       className={`relative w-full overflow-hidden bg-slate-50 ${
-                        featured ? "h-24 sm:h-28" : "h-16"
+                        featured ? "h-14" : "h-11"
                       }`}
                     >
                       {/* Native img: product URLs are already sanitized at ingest. */}
@@ -116,17 +112,12 @@ export function BrowseShortcutBoards({
                         loading="lazy"
                         decoding="async"
                         referrerPolicy="no-referrer"
-                        className="h-full w-full object-contain object-center p-1.5"
+                        className="h-full w-full object-contain object-center p-1"
                       />
                     </div>
-                    <div className="flex min-w-0 items-start justify-between gap-1 px-2 py-1.5">
-                      <span className="line-clamp-2 text-[11px] font-bold leading-tight text-slate-800 group-hover:text-slate-950">
-                        {label}
-                      </span>
-                      <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500">
-                        {tile.count}
-                      </span>
-                    </div>
+                    <p className="truncate px-1.5 py-1 text-center text-[10px] font-bold leading-tight text-slate-800 group-hover:text-slate-950">
+                      {label}
+                    </p>
                   </button>
                 );
               })}
