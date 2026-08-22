@@ -41,7 +41,11 @@ import {
   visibleCountForBrowseScroll,
 } from "@/lib/browse-scroll";
 import { DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
-import { prefetchOtherBrowseMarkets } from "@/lib/prefetch-browse-catalog";
+import {
+  getSessionBrowsePage,
+  prefetchOtherBrowseMarkets,
+  setSessionBrowsePage,
+} from "@/lib/prefetch-browse-catalog";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import {
   Info,
@@ -340,13 +344,30 @@ export default function HomePageClient({
     skippedInitialCatalogRequest.current = true;
 
     async function loadProductsAndCoupons() {
-      const keepGridVisible =
-        requestCountry === initialCountry &&
-        products.length > 0 &&
+      const defaultBrowse =
         !debouncedSearchQuery.trim() &&
-        (browseCategory === ALL_CATEGORIES_ID ||
-          products.some((product) => productMatchesCategoryFilter(product, browseCategory)));
-      setIsLoadingProducts(!keepGridVisible);
+        browseCategory === ALL_CATEGORIES_ID &&
+        !hasActiveOfferFilters(activeOfferFilters) &&
+        sortOrder === "default";
+      const sessionPage = defaultBrowse
+        ? getSessionBrowsePage(requestCountry, browseLocale)
+        : null;
+      if (sessionPage) {
+        setProducts(sessionPage.products);
+        setCatalogMeta(sessionPage.meta);
+        setIsLoadingProducts(false);
+      }
+
+      const keepGridVisible =
+        Boolean(sessionPage) ||
+        (requestCountry === initialCountry &&
+          products.length > 0 &&
+          !debouncedSearchQuery.trim() &&
+          (browseCategory === ALL_CATEGORIES_ID ||
+            products.some((product) => productMatchesCategoryFilter(product, browseCategory))));
+      if (!sessionPage) {
+        setIsLoadingProducts(!keepGridVisible);
+      }
 
       try {
         const params = new URLSearchParams({
@@ -422,6 +443,12 @@ export default function HomePageClient({
                 : prev?.totalMatched ?? next.totalMatched,
           };
         });
+        if (defaultBrowse && nextProducts.length > 0 && data.meta) {
+          setSessionBrowsePage(requestCountry, browseLocale, {
+            products: nextProducts,
+            meta: data.meta,
+          });
+        }
         setProductFetchFailed(false);
       } catch (error) {
         if (controller.signal.aborted) return;
@@ -466,16 +493,22 @@ export default function HomePageClient({
 
   const changeCountry = useCallback(
     (countryCode: CountryCode) => {
-      // Never display offers from the previous market while the new market loads.
-      setIsLoadingProducts(true);
-      setProducts([]);
-      setCatalogMeta(null);
+      const cached = getSessionBrowsePage(countryCode, browseLocale);
       setVisibleCount(12);
       setProductFetchFailed(false);
       setSelectedCategory(ALL_CATEGORIES_ID);
+      if (cached) {
+        setProducts(cached.products);
+        setCatalogMeta(cached.meta);
+        setIsLoadingProducts(false);
+      } else {
+        setIsLoadingProducts(true);
+        setProducts([]);
+        setCatalogMeta(null);
+      }
       handleCountryChange(countryCode);
     },
-    [handleCountryChange]
+    [browseLocale, handleCountryChange]
   );
 
   // Append the next server page when the user scrolls near the end of the loaded set.

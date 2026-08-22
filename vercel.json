@@ -9,6 +9,9 @@
     },
     "src/app/api/cron/feeds-warm/route.ts": {
       "maxDuration": 300
+    },
+    "src/app/api/cron/browse-warm/route.ts": {
+      "maxDuration": 60
     }
   },
   "crons": [
@@ -19,6 +22,10 @@
     {
       "path": "/api/cron/feeds-warm",
       "schedule": "20 */6 * * *"
+    },
+    {
+      "path": "/api/cron/browse-warm",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

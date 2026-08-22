@@ -15,7 +15,7 @@ import { getPrimaryLiveBrowseCountry } from "@/lib/live-browse-market";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n/locales";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
-import { parseOfferFiltersFromSearchParams } from "@/lib/offers/offer-filters";
+import { hasActiveOfferFilters, parseOfferFiltersFromSearchParams } from "@/lib/offers/offer-filters";
 import type { ProductSortOption } from "@/lib/product-list-options";
 import {
   clampFilterString,
@@ -130,10 +130,20 @@ export async function GET(request: Request) {
         });
       }
     }
+    const defaultBrowse =
+      !query &&
+      !category &&
+      offset === 0 &&
+      !sort &&
+      !includePriceHistory &&
+      !hasActiveOfferFilters(filters);
     return NextResponse.json(result, {
       headers: {
-        // Public catalogue — no personal data; allow CDN edge caching.
-        "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=30",
+        // Default first page: stay on the CDN after the old 60s expiry (the
+        // "works for a minute then dies" country-switch). Search stays short.
+        "Cache-Control": defaultBrowse
+          ? "public, max-age=300, s-maxage=900, stale-while-revalidate=3600"
+          : "public, max-age=30, s-maxage=60, stale-while-revalidate=30",
       },
     });
   } catch (error) {

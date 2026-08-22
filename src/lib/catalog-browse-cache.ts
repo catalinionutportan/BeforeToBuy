@@ -1,9 +1,9 @@
 import { redisGetJson, redisSetJson } from "@/lib/redis-cache";
 
-/** Tile counts/covers/brands change only on import — 10 min is safe for browse. */
-const BROWSE_META_TTL_SECONDS = 600;
-/** Default CH/RO first-page ids — keep aligned with meta so market switch stays warm. */
-const LEAD_IDS_TTL_SECONDS = 180;
+/** Tile counts/covers/brands change only on import — 30 min keeps country switch warm. */
+const BROWSE_META_TTL_SECONDS = 1800;
+/** Default CH/RO first-page ids — stay warm between Vercel cron ticks. */
+const LEAD_IDS_TTL_SECONDS = 900;
 
 export type CachedBrowseMeta = {
   categoryCounts: Record<string, number>;
