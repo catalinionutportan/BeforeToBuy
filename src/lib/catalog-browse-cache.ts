@@ -55,7 +55,7 @@ async function cacheSet(key: string, value: unknown, ttlSeconds: number): Promis
 }
 
 export function browseMetaCacheKey(countryCode: string): string {
-  return `catalog:browse-meta:v1:${countryCode.toUpperCase()}`;
+  return `catalog:browse-meta:v2:${countryCode.toUpperCase()}`;
 }
 
 export function chLeadIdsCacheKey(countryCode: string, take: number, skip: number): string {

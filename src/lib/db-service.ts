@@ -16,6 +16,11 @@ import {
 } from "@/lib/catalog-browse-cache";
 import { buildCategoryCoverMap } from "@/lib/browse-shortcut-boards";
 import {
+  LAPTOP_COVER_TITLE_EXCLUDE,
+  LAPTOP_COVER_TITLE_TOKENS,
+  NOTEBOOKS_LAPTOPS_LEAF,
+} from "@/lib/laptop-aisle-cover";
+import {
   AUTO_COMPLETE_WHEELS_LEAF,
   AUTO_TIRES_LEAF,
   REIFEN_FEED_MERCHANT_ID,
@@ -308,7 +313,7 @@ export async function getCategoryCoverImagesFromDb(
     image: { contains: "reifen.com" },
     ...reifenRimOfferWhere(),
   };
-  const [rows, preferredWheel, fallbackWheel] = await Promise.all([
+  const [rows, preferredWheel, fallbackWheel, preferredLaptop] = await Promise.all([
     prisma.product.findMany({
       where: {
         targetCountries: { has: countryCode },
@@ -334,6 +339,29 @@ export async function getCategoryCoverImagesFromDb(
       },
       select: { image: true },
     }),
+    prisma.product.findFirst({
+      where: {
+        targetCountries: { has: countryCode },
+        category: NOTEBOOKS_LAPTOPS_LEAF,
+        image: { startsWith: "http" },
+        offers: { some: { inStock: true } },
+        AND: [
+          {
+            OR: LAPTOP_COVER_TITLE_TOKENS.map((token) => ({
+              title: { contains: token, mode: "insensitive" as const },
+            })),
+          },
+          {
+            NOT: {
+              OR: LAPTOP_COVER_TITLE_EXCLUDE.map((token) => ({
+                title: { contains: token, mode: "insensitive" as const },
+              })),
+            },
+          },
+        ],
+      },
+      select: { image: true },
+    }),
   ]);
   const covers = buildCategoryCoverMap(
     rows.map((row) => ({
@@ -343,6 +371,8 @@ export async function getCategoryCoverImagesFromDb(
   );
   const wheelImage = usableCoverImage(preferredWheel?.image ?? fallbackWheel?.image);
   if (wheelImage) covers[AUTO_COMPLETE_WHEELS_LEAF] = wheelImage;
+  const laptopImage = usableCoverImage(preferredLaptop?.image);
+  if (laptopImage) covers[NOTEBOOKS_LAPTOPS_LEAF] = laptopImage;
   return covers;
 }
 
