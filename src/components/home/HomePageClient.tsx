@@ -41,6 +41,7 @@ import {
   visibleCountForBrowseScroll,
 } from "@/lib/browse-scroll";
 import { DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
+import { prefetchOtherBrowseMarkets } from "@/lib/prefetch-browse-catalog";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import {
   Info,
@@ -454,6 +455,14 @@ export default function HomePageClient({
     setCatalogMeta,
     setCoupons,
   ]);
+
+  useEffect(() => {
+    if (isLoadingProducts) return;
+    const timer = window.setTimeout(() => {
+      prefetchOtherBrowseMarkets(userLocation.countryCode, browseLocale);
+    }, 1500);
+    return () => window.clearTimeout(timer);
+  }, [browseLocale, isLoadingProducts, userLocation.countryCode]);
 
   const changeCountry = useCallback(
     (countryCode: CountryCode) => {

@@ -4,6 +4,8 @@ import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
+import { getCachedBrowseMeta } from "@/lib/catalog-browse-cache";
+import { warmBrowseMetaForCountry } from "@/lib/db-service";
 import {
   clampProductListLimit,
   DEFAULT_PRODUCT_LIST_LIMIT,
@@ -120,6 +122,14 @@ export async function GET(request: Request) {
       filters,
       sort,
     });
+    if (countryCode === "CH") {
+      const cachedMeta = await getCachedBrowseMeta(countryCode);
+      if (!cachedMeta || Object.keys(cachedMeta.categoryCovers).length === 0) {
+        void warmBrowseMetaForCountry(countryCode).catch((error) => {
+          console.error("[products] CH browse-meta warm failed:", error);
+        });
+      }
+    }
     return NextResponse.json(result, {
       headers: {
         // Public catalogue — no personal data; allow CDN edge caching.

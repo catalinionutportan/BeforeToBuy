@@ -17,6 +17,7 @@ import type { BrowseCategoryOption } from "@/components/BrowseCategoryOption";
 import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import { clearBrowseScrollY, isBrowsePath } from "@/lib/browse-scroll";
 import { withLangParam } from "@/lib/seo/site-url";
+import { prefetchOtherBrowseMarkets } from "@/lib/prefetch-browse-catalog";
 
 interface HeaderProps {
   userLocation: UserLocation;
@@ -112,6 +113,10 @@ export function Header({
               <select
                 value={userLocation.countryCode}
                 onChange={(e) => onCountryChange(e.target.value as CountryCode)}
+                onPointerEnter={() =>
+                  prefetchOtherBrowseMarkets(userLocation.countryCode, locale)
+                }
+                onFocus={() => prefetchOtherBrowseMarkets(userLocation.countryCode, locale)}
                 aria-label={ui.countryMarket}
                 className="max-w-[4.75rem] rounded-md border-0 bg-slate-100 px-1.5 py-1 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500"
               >

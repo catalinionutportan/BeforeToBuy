@@ -1,9 +1,9 @@
 import { redisGetJson, redisSetJson } from "@/lib/redis-cache";
 
-/** Tile counts/covers/brands change only on import — 2 min is safe for browse. */
-const BROWSE_META_TTL_SECONDS = 120;
-/** Default CH/RO first-page ids — short so new imports show up quickly. */
-const LEAD_IDS_TTL_SECONDS = 60;
+/** Tile counts/covers/brands change only on import — 10 min is safe for browse. */
+const BROWSE_META_TTL_SECONDS = 600;
+/** Default CH/RO first-page ids — keep aligned with meta so market switch stays warm. */
+const LEAD_IDS_TTL_SECONDS = 180;
 
 export type CachedBrowseMeta = {
   categoryCounts: Record<string, number>;

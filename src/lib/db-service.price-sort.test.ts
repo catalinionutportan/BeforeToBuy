@@ -106,13 +106,10 @@ describe("getProductsFromDb price sort", () => {
 
   it("orders the CH default page with Acer ids from SQL, not updatedAt", async () => {
     queryRaw.mockResolvedValue([{ id: "prod-ch-acer-1" }, { id: "prod-ch-babywalz-1" }]);
-    findMany
-      .mockResolvedValueOnce([{ brand: "Acer" }])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([
-        mockProduct("prod-ch-babywalz-1", 20),
-        mockProduct("prod-ch-acer-1", 15),
-      ]);
+    findMany.mockResolvedValueOnce([
+      mockProduct("prod-ch-babywalz-1", 20),
+      mockProduct("prod-ch-acer-1", 15),
+    ]);
 
     const page = await getProductsFromDb("CH", undefined, undefined, 2, 0);
 
@@ -127,13 +124,10 @@ describe("getProductsFromDb price sort", () => {
     queryRaw
       .mockResolvedValueOnce([{ id: "prod-ch-acer-1" }])
       .mockResolvedValueOnce([{ id: "prod-ch-babywalz-1" }]);
-    findMany
-      .mockResolvedValueOnce([{ brand: "Acer" }])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([
-        mockProduct("prod-ch-babywalz-1", 20),
-        mockProduct("prod-ch-acer-1", 15),
-      ]);
+    findMany.mockResolvedValueOnce([
+      mockProduct("prod-ch-babywalz-1", 20),
+      mockProduct("prod-ch-acer-1", 15),
+    ]);
 
     const page = await getProductsFromDb("CH", undefined, undefined, 2, 0);
 
@@ -144,21 +138,15 @@ describe("getProductsFromDb price sort", () => {
     ]);
   });
 
-  it("reuses cached browse meta on the next unfiltered CH page", async () => {
+  it("does not scan CH covers or groupBy on a cold first page", async () => {
     queryRaw.mockResolvedValue([{ id: "prod-ch-acer-1" }]);
-    findMany
-      .mockResolvedValueOnce([{ brand: "Acer" }])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([mockProduct("prod-ch-acer-1", 15)])
-      .mockResolvedValueOnce([mockProduct("prod-ch-acer-1", 15)]);
+    findMany.mockResolvedValue([mockProduct("prod-ch-acer-1", 15)]);
 
     await getProductsFromDb("CH", undefined, undefined, 1, 0);
-    const groupByAfterFirst = groupBy.mock.calls.length;
-    expect(groupByAfterFirst).toBeGreaterThan(0);
-
     await getProductsFromDb("CH", undefined, undefined, 1, 0);
 
-    expect(groupBy.mock.calls.length).toBe(groupByAfterFirst);
+    expect(groupBy).not.toHaveBeenCalled();
+    expect(findFirst).not.toHaveBeenCalled();
     expect(queryRaw).toHaveBeenCalledTimes(1);
   });
 });

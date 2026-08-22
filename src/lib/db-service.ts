@@ -679,6 +679,9 @@ export async function getProductsFromDb(
 
   const cachedMeta = await getCachedBrowseMeta(countryCode);
   const unfilteredBrowse = isUnfilteredBrowse(query, category, filters);
+  // CH has ~86k rows. Cover distinct + groupBy + brand scan made GB→CH wait 7–8s.
+  // Serve the first page immediately; warm full meta off the request path.
+  const skipHeavyMeta = !cachedMeta && countryCode.toUpperCase() === "CH";
 
   const [pricedIds, productsDefault, total, countMaps, countryTotal, brandRows, categoryCovers] =
     await Promise.all([
@@ -700,7 +703,9 @@ export async function getProductsFromDb(
             categoryCounts: cachedMeta.categoryCounts,
             leafCounts: cachedMeta.leafCounts,
           })
-        : getCategoryCountsFromDb(countryCode),
+        : skipHeavyMeta
+          ? Promise.resolve({ categoryCounts: {}, leafCounts: {} })
+          : getCategoryCountsFromDb(countryCode),
       cachedMeta
         ? Promise.resolve(cachedMeta.countryProductCount)
         : prisma.product.count({
@@ -711,15 +716,19 @@ export async function getProductsFromDb(
           }),
       cachedMeta
         ? Promise.resolve(cachedMeta.brandOptions.map((brand) => ({ brand })))
-        : prisma.product.findMany({
-            where: { ...brandWhere, brand: { not: null } },
-            select: { brand: true },
-            distinct: ["brand"],
-            orderBy: { brand: "asc" },
-          }),
+        : skipHeavyMeta
+          ? Promise.resolve([] as Array<{ brand: string | null }>)
+          : prisma.product.findMany({
+              where: { ...brandWhere, brand: { not: null } },
+              select: { brand: true },
+              distinct: ["brand"],
+              orderBy: { brand: "asc" },
+            }),
       cachedMeta
         ? Promise.resolve(cachedMeta.categoryCovers)
-        : getCategoryCoverImagesFromDb(countryCode),
+        : skipHeavyMeta
+          ? Promise.resolve({} as Record<string, string>)
+          : getCategoryCoverImagesFromDb(countryCode),
     ]);
 
   let pageProducts: PrismaProductWithOffers[];
@@ -757,7 +766,7 @@ export async function getProductsFromDb(
         ).values()
       ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
 
-  if (!cachedMeta && unfilteredBrowse) {
+  if (!cachedMeta && unfilteredBrowse && !skipHeavyMeta) {
     await setCachedBrowseMeta(countryCode, {
       categoryCounts: countMaps.categoryCounts,
       leafCounts: countMaps.leafCounts,
@@ -776,6 +785,47 @@ export async function getProductsFromDb(
     countryProductCount: countryTotal,
     brandOptions,
   };
+}
+
+/** Fill CH aisle counts/covers after the first page is already on screen. */
+export async function warmBrowseMetaForCountry(countryCode: string): Promise<void> {
+  const existing = await getCachedBrowseMeta(countryCode);
+  if (existing && Object.keys(existing.categoryCovers).length > 0) return;
+
+  const brandWhere = buildWhere(countryCode, undefined, undefined, {});
+  const [countMaps, countryTotal, brandRows, categoryCovers] = await Promise.all([
+    getCategoryCountsFromDb(countryCode),
+    prisma.product.count({
+      where: {
+        targetCountries: { has: countryCode },
+        offers: { some: { inStock: true } },
+      },
+    }),
+    prisma.product.findMany({
+      where: { ...brandWhere, brand: { not: null } },
+      select: { brand: true },
+      distinct: ["brand"],
+      orderBy: { brand: "asc" },
+    }),
+    getCategoryCoverImagesFromDb(countryCode),
+  ]);
+
+  const brandOptions = Array.from(
+    new Map(
+      brandRows
+        .map((row) => row.brand?.trim())
+        .filter((brand): brand is string => Boolean(brand))
+        .map((brand) => [brand.toLocaleLowerCase(), brand] as const)
+    ).values()
+  ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+
+  await setCachedBrowseMeta(countryCode, {
+    categoryCounts: countMaps.categoryCounts,
+    leafCounts: countMaps.leafCounts,
+    categoryCovers,
+    countryProductCount: countryTotal,
+    brandOptions,
+  });
 }
 
 /** Production offers used by the scheduled price-history snapshot. */
