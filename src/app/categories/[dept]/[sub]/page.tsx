@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
-import { CategoryProductGrid } from "@/components/CategoryProductGrid";
+import {
+  CategoryOffersGrid,
+  CategoryProductGridSkeleton,
+} from "@/components/CategoryOffersGrid";
 import {
   canonicalSubcategoryPath,
   departmentCategoryPath,
   subcategoryCategoryPath,
   validateSubcategoryRoute,
 } from "@/lib/category-routes";
-import { fetchCatalogForCountry } from "@/lib/category-page-data";
+import { getBrowseCountsForCountry } from "@/lib/category-page-data";
 import { createCategoryMetadata } from "@/lib/metadata";
 import {
   getDepartmentLabel,
@@ -18,20 +22,11 @@ import {
 import { getCategoryById, getSubcategoryById } from "@/lib/categories";
 import { COUNTRIES } from "@/lib/countries";
 import { getRequestMarketCountry } from "@/lib/request-market";
-import {
-  BROWSE_LIST_OPTIONS,
-  CATEGORY_PAGE_PRODUCT_LIMIT,
-} from "@/lib/product-list-options";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
 import { withLangParam } from "@/lib/seo/site-url";
 
 export const dynamic = "force-dynamic";
-
-const PAGE_LIST = {
-  ...BROWSE_LIST_OPTIONS,
-  limit: CATEGORY_PAGE_PRODUCT_LIMIT,
-} as const;
 
 interface SubcategoryPageProps {
   params: Promise<{ dept: string; sub: string }>;
@@ -41,7 +36,6 @@ interface SubcategoryPageProps {
 export async function generateMetadata({ params, searchParams }: SubcategoryPageProps): Promise<Metadata> {
   const { dept, sub } = await params;
   const route = validateSubcategoryRoute(dept, sub);
-  const countryCode = await getRequestMarketCountry();
   const locale = await resolvePageLocale(searchParams);
   const homeUi = HOME_UI[locale];
 
@@ -56,7 +50,6 @@ export async function generateMetadata({ params, searchParams }: SubcategoryPage
   }
 
   const label = getSubcategoryLabel(route.subId, locale);
-  const catalog = await fetchCatalogForCountry(countryCode, route.subId, PAGE_LIST);
 
   return createCategoryMetadata({
     title: formatUi(homeUi.categoryPriceComparisonMetaTitle, { label }),
@@ -64,7 +57,7 @@ export async function generateMetadata({ params, searchParams }: SubcategoryPage
       label: label.toLowerCase(),
     }),
     path: subcategoryCategoryPath(route.deptId, route.subId),
-    index: (catalog.meta.totalMatched ?? catalog.products.length) > 0,
+    index: true,
     locale,
   });
 }
@@ -85,9 +78,10 @@ export default async function SubcategoryCategoryPage({ params, searchParams }: 
   const countryCode = await getRequestMarketCountry();
   const country = COUNTRIES[countryCode];
   const homeUi = HOME_UI[locale];
-  const catalog = await fetchCatalogForCountry(countryCode, route.subId, PAGE_LIST);
-  if ((catalog.meta.totalMatched ?? catalog.products.length) === 0) {
-    const parentHasOffers = (catalog.meta.categoryCounts[route.deptId] ?? 0) > 0;
+  const counts = await getBrowseCountsForCountry(countryCode);
+  const matched = counts.categoryCounts[route.subId] ?? 0;
+  if (matched === 0) {
+    const parentHasOffers = (counts.categoryCounts[route.deptId] ?? 0) > 0;
     redirect(
       parentHasOffers
         ? departmentCategoryPath(route.deptId, locale)
@@ -96,6 +90,9 @@ export default async function SubcategoryCategoryPage({ params, searchParams }: 
   }
   const departmentLabel = getDepartmentLabel(route.deptId, locale);
   const subcategoryLabel = getSubcategoryLabel(route.subId, locale);
+  const emptyLabel = formatUi(homeUi.noOffersAvailableInCategory, {
+    countryName: country.name,
+  });
 
   return (
     <PageShell maxWidthClass="max-w-7xl">
@@ -116,23 +113,23 @@ export default async function SubcategoryCategoryPage({ params, searchParams }: 
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
             {subcategoryLabel}
           </h1>
-          {(catalog.meta.totalMatched ?? catalog.products.length) > 0 ? (
+          {matched > 0 ? (
             <p className="text-xs text-slate-500">
               {formatUi(homeUi.productsComparedIn, {
-                count: catalog.meta.totalMatched ?? catalog.products.length,
+                count: matched,
                 countryName: country.name,
               })}
             </p>
           ) : null}
         </header>
 
-        {catalog.products.length > 0 ? (
-          <CategoryProductGrid products={catalog.products} countryCode={countryCode} />
-        ) : (
-          <p className="text-sm text-slate-500">
-            {formatUi(homeUi.noOffersAvailableInCategory, { countryName: country.name })}
-          </p>
-        )}
+        <Suspense fallback={<CategoryProductGridSkeleton />}>
+          <CategoryOffersGrid
+            countryCode={countryCode}
+            category={route.subId}
+            emptyLabel={emptyLabel}
+          />
+        </Suspense>
       </div>
     </PageShell>
   );

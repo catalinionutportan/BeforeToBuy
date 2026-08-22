@@ -14,6 +14,8 @@ export async function IubendaEmbedScript() {
       src={IUBENDA_COOKIE_WIDGET_SRC}
       nonce={nonce}
       async
+      // Do not compete with first paint / affiliate images for bandwidth.
+      fetchPriority="low"
     />
   );
 }

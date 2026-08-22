@@ -1,32 +1,27 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
-import { CategoryProductGrid } from "@/components/CategoryProductGrid";
+import {
+  CategoryOffersGrid,
+  CategoryProductGridSkeleton,
+} from "@/components/CategoryOffersGrid";
 import {
   collectionBrowsePath,
   validateCollectionRoute,
 } from "@/lib/category-routes";
-import { fetchCatalogForCountry } from "@/lib/category-page-data";
+import { getBrowseCountsForCountry } from "@/lib/category-page-data";
 import { createCategoryMetadata } from "@/lib/metadata";
 import { getCollectionLabel } from "@/lib/category-i18n";
 import { COMPARISON_COLLECTION_FILTERS } from "@/lib/categories";
 import { COUNTRIES } from "@/lib/countries";
 import { getRequestMarketCountry } from "@/lib/request-market";
-import {
-  BROWSE_LIST_OPTIONS,
-  CATEGORY_PAGE_PRODUCT_LIMIT,
-} from "@/lib/product-list-options";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
 import { withLangParam } from "@/lib/seo/site-url";
 
 export const dynamic = "force-dynamic";
-
-const PAGE_LIST = {
-  ...BROWSE_LIST_OPTIONS,
-  limit: CATEGORY_PAGE_PRODUCT_LIMIT,
-} as const;
 
 interface CollectionPageProps {
   params: Promise<{ collection: string }>;
@@ -36,7 +31,6 @@ interface CollectionPageProps {
 export async function generateMetadata({ params, searchParams }: CollectionPageProps): Promise<Metadata> {
   const { collection } = await params;
   const collectionId = validateCollectionRoute(collection);
-  const countryCode = await getRequestMarketCountry();
   const locale = await resolvePageLocale(searchParams);
   const homeUi = HOME_UI[locale];
 
@@ -51,7 +45,6 @@ export async function generateMetadata({ params, searchParams }: CollectionPageP
   }
 
   const label = getCollectionLabel(collectionId, locale);
-  const catalog = await fetchCatalogForCountry(countryCode, collectionId, PAGE_LIST);
 
   return createCategoryMetadata({
     title: `${label} | BeforeToBuy.com`,
@@ -59,7 +52,7 @@ export async function generateMetadata({ params, searchParams }: CollectionPageP
       label: label.toLowerCase(),
     }),
     path: collectionBrowsePath(collectionId),
-    index: (catalog.meta.totalMatched ?? catalog.products.length) > 0,
+    index: true,
     locale,
   });
 }
@@ -78,8 +71,12 @@ export default async function ComparisonCollectionPage({ params, searchParams }:
   const countryCode = await getRequestMarketCountry();
   const country = COUNTRIES[countryCode];
   const homeUi = HOME_UI[locale];
-  const catalog = await fetchCatalogForCountry(countryCode, collectionId, PAGE_LIST);
+  const counts = await getBrowseCountsForCountry(countryCode);
+  const matched = counts.collectionCounts[collectionId] ?? 0;
   const label = getCollectionLabel(collectionId, locale);
+  const emptyLabel = formatUi(homeUi.noOffersAvailableInCategory, {
+    countryName: country.name,
+  });
 
   return (
     <PageShell maxWidthClass="max-w-7xl">
@@ -98,21 +95,24 @@ export default async function ComparisonCollectionPage({ params, searchParams }:
           </p>
           <h1 className="text-3xl font-extrabold tracking-tight">{label}</h1>
           <p className="text-sm max-w-3xl leading-relaxed text-orange-900/90">{config.description}</p>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-orange-700">
-            {formatUi(homeUi.productsComparedIn, {
-              count: catalog.meta.totalMatched ?? catalog.products.length,
-              countryName: country.name,
-            })}
-          </p>
+          {matched > 0 ? (
+            <p className="text-[11px] font-bold uppercase tracking-wider text-orange-700">
+              {formatUi(homeUi.productsComparedIn, {
+                count: matched,
+                countryName: country.name,
+              })}
+            </p>
+          ) : null}
         </div>
 
-        {catalog.products.length > 0 ? (
-          <CategoryProductGrid products={catalog.products} countryCode={countryCode} />
-        ) : (
-          <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600">
-            {formatUi(homeUi.noOffersAvailableInCategory, { countryName: country.name })}
-          </div>
-        )}
+        <Suspense fallback={<CategoryProductGridSkeleton />}>
+          <CategoryOffersGrid
+            countryCode={countryCode}
+            category={collectionId}
+            emptyLabel={emptyLabel}
+            emptyClassName="rounded-3xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-600"
+          />
+        </Suspense>
       </div>
     </PageShell>
   );

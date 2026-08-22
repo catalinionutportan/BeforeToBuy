@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   COMPARISON_COLLECTION_FILTERS,
   SHOPPING_CATEGORIES,
@@ -14,16 +15,15 @@ import {
 } from "@/lib/category-i18n";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
-import { CategoryProductGrid } from "@/components/CategoryProductGrid";
+import {
+  CategoryOffersGrid,
+  CategoryProductGridSkeleton,
+} from "@/components/CategoryOffersGrid";
 import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
 import { createPageMetadata } from "@/lib/metadata";
 import { COUNTRIES } from "@/lib/countries";
-import { fetchCatalogForCountry } from "@/lib/category-page-data";
+import { getBrowseCountsForCountry } from "@/lib/category-page-data";
 import { getRequestMarketCountry } from "@/lib/request-market";
-import {
-  BROWSE_LIST_OPTIONS,
-  CATEGORY_PAGE_PRODUCT_LIMIT,
-} from "@/lib/product-list-options";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
 import { withLangParam } from "@/lib/seo/site-url";
@@ -50,17 +50,15 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
   const country = COUNTRIES[countryCode];
   const locale = await resolvePageLocale(searchParams);
   const homeUi = HOME_UI[locale];
-  const catalog = await fetchCatalogForCountry(countryCode, undefined, {
-    ...BROWSE_LIST_OPTIONS,
-    limit: CATEGORY_PAGE_PRODUCT_LIMIT,
-  });
+  const counts = await getBrowseCountsForCountry(countryCode);
   const visibleCategories = SHOPPING_CATEGORIES.filter(
-    (category) => (catalog.meta.categoryCounts[category.id] ?? 0) > 0
+    (category) => (counts.categoryCounts[category.id] ?? 0) > 0
   );
   const visibleCollections = COMPARISON_COLLECTION_FILTERS.filter(
-    (collection) => (catalog.meta.collectionCounts?.[collection.id] ?? 0) > 0
+    (collection) => (counts.collectionCounts[collection.id] ?? 0) > 0
   );
-  const comparedCount = catalog.meta.totalMatched ?? catalog.products.length;
+  const comparedCount = counts.totalMatched;
+  const emptyLabel = homeUi.noOffersAvailable;
 
   return (
     <PageShell maxWidthClass="max-w-7xl">
@@ -103,7 +101,7 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
               >
                 {getCollectionLabel(collection.id, locale)}
                 <span className="text-[10px] font-extrabold text-orange-700">
-                  {catalog.meta.collectionCounts?.[collection.id] ?? 0}
+                  {counts.collectionCounts[collection.id] ?? 0}
                 </span>
               </Link>
             ))}
@@ -124,7 +122,7 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
                 >
                   {getDepartmentLabel(cat.id, locale)}
                   <span className="text-[10px] text-slate-400 font-extrabold">
-                    {catalog.meta.categoryCounts[cat.id] ?? 0}
+                    {counts.categoryCounts[cat.id] ?? 0}
                   </span>
                   <ArrowRight className="h-3 w-3 opacity-50" />
                 </Link>
@@ -133,11 +131,9 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
           </section>
         )}
 
-        {catalog.products.length > 0 ? (
-          <CategoryProductGrid products={catalog.products} countryCode={countryCode} />
-        ) : (
-          <p className="text-sm text-slate-500">{homeUi.noOffersAvailable}</p>
-        )}
+        <Suspense fallback={<CategoryProductGridSkeleton />}>
+          <CategoryOffersGrid countryCode={countryCode} emptyLabel={emptyLabel} />
+        </Suspense>
       </div>
     </PageShell>
   );

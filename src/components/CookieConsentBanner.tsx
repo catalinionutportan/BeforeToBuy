@@ -41,6 +41,7 @@ export function CookieConsentBanner() {
     const fallback = window.setTimeout(() => {
       if (getConsentPreferences()) return;
       if (window._iub?.cs || document.getElementById("iubenda-cs-banner")) return;
+      if (document.querySelector('script[src*="iubenda.com"]')) return;
       setIsVisible(true);
     }, 3500);
 

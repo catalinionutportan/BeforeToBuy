@@ -1,35 +1,30 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
-import { CategoryProductGrid } from "@/components/CategoryProductGrid";
+import {
+  CategoryOffersGrid,
+  CategoryProductGridSkeleton,
+} from "@/components/CategoryOffersGrid";
 import {
   canonicalDepartmentPath,
   subcategoryCategoryPath,
   validateDepartmentRoute,
 } from "@/lib/category-routes";
-import { fetchCatalogForCountry } from "@/lib/category-page-data";
+import { getBrowseCountsForCountry } from "@/lib/category-page-data";
 import { createCategoryMetadata } from "@/lib/metadata";
 import { getDepartmentLabel, getSubcategoryLabel } from "@/lib/category-i18n";
 import { getCategoryById } from "@/lib/categories";
 import { COUNTRIES } from "@/lib/countries";
 import { getRequestMarketCountry } from "@/lib/request-market";
-import {
-  BROWSE_LIST_OPTIONS,
-  CATEGORY_PAGE_PRODUCT_LIMIT,
-} from "@/lib/product-list-options";
 import { ChevronRight } from "lucide-react";
 import { HOME_UI, formatUi } from "@/lib/i18n/ui";
 import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
 import { withLangParam } from "@/lib/seo/site-url";
 
 export const dynamic = "force-dynamic";
-
-const PAGE_LIST = {
-  ...BROWSE_LIST_OPTIONS,
-  limit: CATEGORY_PAGE_PRODUCT_LIMIT,
-} as const;
 
 interface DepartmentPageProps {
   params: Promise<{ dept: string }>;
@@ -39,7 +34,6 @@ interface DepartmentPageProps {
 export async function generateMetadata({ params, searchParams }: DepartmentPageProps): Promise<Metadata> {
   const { dept } = await params;
   const route = validateDepartmentRoute(dept);
-  const countryCode = await getRequestMarketCountry();
   const locale = await resolvePageLocale(searchParams);
   const homeUi = HOME_UI[locale];
 
@@ -54,7 +48,6 @@ export async function generateMetadata({ params, searchParams }: DepartmentPageP
   }
 
   const label = getDepartmentLabel(route.deptId, locale);
-  const catalog = await fetchCatalogForCountry(countryCode, route.deptId, PAGE_LIST);
 
   return createCategoryMetadata({
     title: formatUi(homeUi.categoryPriceComparisonMetaTitle, { label }),
@@ -62,7 +55,7 @@ export async function generateMetadata({ params, searchParams }: DepartmentPageP
       label: label.toLowerCase(),
     }),
     path: `/categories/${dept}`,
-    index: (catalog.meta.totalMatched ?? catalog.products.length) > 0,
+    index: true,
     locale,
   });
 }
@@ -82,14 +75,18 @@ export default async function DepartmentCategoryPage({ params, searchParams }: D
   const countryCode = await getRequestMarketCountry();
   const country = COUNTRIES[countryCode];
   const homeUi = HOME_UI[locale];
-  const catalog = await fetchCatalogForCountry(countryCode, route.deptId, PAGE_LIST);
-  if ((catalog.meta.totalMatched ?? catalog.products.length) === 0) {
+  const counts = await getBrowseCountsForCountry(countryCode);
+  const matched = counts.categoryCounts[route.deptId] ?? 0;
+  if (matched === 0) {
     redirect(withLangParam("/", locale));
   }
   const visibleSubs = category.subcategories.filter(
-    (sub) => (catalog.meta.categoryCounts[sub.id] ?? 0) > 0
+    (sub) => (counts.categoryCounts[sub.id] ?? 0) > 0
   );
   const departmentLabel = getDepartmentLabel(route.deptId, locale);
+  const emptyLabel = formatUi(homeUi.noOffersAvailableInCategory, {
+    countryName: country.name,
+  });
 
   return (
     <PageShell maxWidthClass="max-w-7xl">
@@ -107,10 +104,10 @@ export default async function DepartmentCategoryPage({ params, searchParams }: D
             {departmentLabel}
           </h1>
           <p className="max-w-3xl text-sm leading-relaxed text-slate-600">{category.description}</p>
-          {(catalog.meta.totalMatched ?? catalog.products.length) > 0 ? (
+          {matched > 0 ? (
             <p className="text-xs text-slate-500">
               {formatUi(homeUi.productsComparedIn, {
-                count: catalog.meta.totalMatched ?? catalog.products.length,
+                count: matched,
                 countryName: country.name,
               })}
             </p>
@@ -131,7 +128,7 @@ export default async function DepartmentCategoryPage({ params, searchParams }: D
                 >
                   {getSubcategoryLabel(sub.id, locale)}
                   <span className="text-[10px] text-slate-400">
-                    {catalog.meta.categoryCounts[sub.id] ?? 0}
+                    {counts.categoryCounts[sub.id] ?? 0}
                   </span>
                   <ChevronRight className="h-3 w-3" />
                 </Link>
@@ -142,16 +139,14 @@ export default async function DepartmentCategoryPage({ params, searchParams }: D
 
         {/* Department pages list subcategories only — avoid dumping every leaf
             (routers + hubs + phones) into one chaotic 2000+ product grid. */}
-        {visibleSubs.length === 0 && catalog.products.length > 0 ? (
-          <CategoryProductGrid
-            products={catalog.products.slice(0, 24)}
-            countryCode={countryCode}
-          />
-        ) : null}
-        {visibleSubs.length === 0 && catalog.products.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            {formatUi(homeUi.noOffersAvailableInCategory, { countryName: country.name })}
-          </p>
+        {visibleSubs.length === 0 ? (
+          <Suspense fallback={<CategoryProductGridSkeleton />}>
+            <CategoryOffersGrid
+              countryCode={countryCode}
+              category={route.deptId}
+              emptyLabel={emptyLabel}
+            />
+          </Suspense>
         ) : null}
       </div>
     </PageShell>
