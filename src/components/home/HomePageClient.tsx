@@ -42,6 +42,7 @@ import {
 } from "@/lib/browse-scroll";
 import { DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
 import {
+  ensureBrowseCatalog,
   getSessionBrowsePage,
   prefetchOtherBrowseMarkets,
   setSessionBrowsePage,
@@ -370,6 +371,18 @@ export default function HomePageClient({
       }
 
       try {
+        if (defaultBrowse) {
+          const shared = await ensureBrowseCatalog(requestCountry, browseLocale);
+          if (controller.signal.aborted) return;
+          if (shared) {
+            setProducts(shared.products);
+            setCatalogMeta(shared.meta);
+            setProductFetchFailed(false);
+            setCoupons(getActiveCouponsForCountry(requestCountry));
+            return;
+          }
+        }
+
         const params = new URLSearchParams({
           country: requestCountry,
           locale: browseLocale,
@@ -484,12 +497,8 @@ export default function HomePageClient({
   ]);
 
   useEffect(() => {
-    if (isLoadingProducts) return;
-    const timer = window.setTimeout(() => {
-      prefetchOtherBrowseMarkets(userLocation.countryCode, browseLocale);
-    }, 1500);
-    return () => window.clearTimeout(timer);
-  }, [browseLocale, isLoadingProducts, userLocation.countryCode]);
+    prefetchOtherBrowseMarkets(userLocation.countryCode, browseLocale);
+  }, [browseLocale, userLocation.countryCode]);
 
   const changeCountry = useCallback(
     (countryCode: CountryCode) => {

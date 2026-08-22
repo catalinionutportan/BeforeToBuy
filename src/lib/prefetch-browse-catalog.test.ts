@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProductFetchMeta } from "@/lib/product-service";
 import {
   PREFETCH_BROWSE_MARKETS,
+  ensureBrowseCatalog,
   getSessionBrowsePage,
   resetSessionBrowsePagesForTests,
   setSessionBrowsePage,
@@ -23,5 +24,17 @@ describe("prefetch browse markets", () => {
     setSessionBrowsePage("CH", "en", { products: [], meta: emptyMeta });
     expect(getSessionBrowsePage("CH", "en")).toEqual({ products: [], meta: emptyMeta });
     expect(getSessionBrowsePage("GB", "en")).toBeNull();
+  });
+
+  it("reuses a cached CH page instead of opening a second request", async () => {
+    setSessionBrowsePage("CH", "en", { products: [], meta: emptyMeta });
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    await expect(ensureBrowseCatalog("CH", "en")).resolves.toEqual({
+      products: [],
+      meta: emptyMeta,
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
   });
 });
