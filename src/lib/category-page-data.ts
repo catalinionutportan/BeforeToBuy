@@ -1,7 +1,11 @@
 import { cache } from "react";
 import { CountryCode, UserLocation } from "@/types";
 import { COMPARISON_COLLECTION_FILTERS, productMatchesCategoryFilter } from "@/lib/categories";
-import { getCachedBrowseMeta } from "@/lib/catalog-browse-cache";
+import {
+  getCachedBrowseMeta,
+  getCachedFirstBrowsePage,
+  setCachedFirstBrowsePage,
+} from "@/lib/catalog-browse-cache";
 import { COUNTRIES } from "@/lib/countries";
 import { getCategoryCountsFromDb } from "@/lib/db-service";
 import { getPrimaryLiveBrowseCountry } from "@/lib/live-browse-market";
@@ -89,16 +93,41 @@ export async function fetchCatalogForCountry(
   listOptions?: ProductListOptions
 ) {
   const compact = listOptions?.compact ?? listOptions?.limit != null;
-  return cachedCatalogFetch(
+  const offset = listOptions?.offset ?? 0;
+  const limit = listOptions?.limit;
+  const cacheableFirstPage =
+    offset === 0 &&
+    !listOptions?.sort &&
+    listOptions?.includePriceHistory !== true &&
+    !listOptions?.filters &&
+    limit != null;
+
+  if (cacheableFirstPage) {
+    const cachedPage = await getCachedFirstBrowsePage(countryCode, limit, category);
+    if (cachedPage?.products?.length) {
+      return cachedPage as Awaited<ReturnType<typeof cachedCatalogFetch>>;
+    }
+  }
+
+  const result = await cachedCatalogFetch(
     countryCode,
     category,
     listOptions?.limit,
-    listOptions?.offset ?? 0,
+    offset,
     listOptions?.sort,
     listOptions?.includePriceHistory === true,
     compact,
     listOptions?.filters ? JSON.stringify(listOptions.filters) : ""
   );
+  if (cacheableFirstPage && result.products.length > 0) {
+    void setCachedFirstBrowsePage(
+      countryCode,
+      limit,
+      { products: result.products, meta: result.meta },
+      category
+    );
+  }
+  return result;
 }
 
 /**

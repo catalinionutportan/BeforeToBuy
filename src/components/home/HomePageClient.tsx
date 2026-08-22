@@ -107,6 +107,14 @@ export default function HomePageClient({
   } = useBrowseLocale(userLocation.countryCode);
   const categoryUi = CATEGORY_UI[browseLocale];
   const homeUi = HOME_UI[browseLocale];
+
+  useEffect(() => {
+    if (initialProducts.length === 0 || !initialMeta) return;
+    setSessionBrowsePage(initialCountry, browseLocale, {
+      products: initialProducts,
+      meta: initialMeta,
+    });
+  }, [browseLocale, initialCountry, initialMeta, initialProducts]);
   const crossBorderCollectionActive = selectedCategory === "compare-cross-border";
   const activeOfferFilters = useMemo<OfferFilterCriteria>(
     () => ({
@@ -345,13 +353,12 @@ export default function HomePageClient({
     skippedInitialCatalogRequest.current = true;
 
     async function loadProductsAndCoupons() {
-      const defaultBrowse =
+      const cacheableAisle =
         !debouncedSearchQuery.trim() &&
-        browseCategory === ALL_CATEGORIES_ID &&
         !hasActiveOfferFilters(activeOfferFilters) &&
         sortOrder === "default";
-      const sessionPage = defaultBrowse
-        ? getSessionBrowsePage(requestCountry, browseLocale)
+      const sessionPage = cacheableAisle
+        ? getSessionBrowsePage(requestCountry, browseLocale, browseCategory)
         : null;
       if (sessionPage) {
         setProducts(sessionPage.products);
@@ -359,20 +366,20 @@ export default function HomePageClient({
         setIsLoadingProducts(false);
       }
 
-      const keepGridVisible =
-        Boolean(sessionPage) ||
-        (requestCountry === initialCountry &&
-          products.length > 0 &&
-          !debouncedSearchQuery.trim() &&
-          (browseCategory === ALL_CATEGORIES_ID ||
-            products.some((product) => productMatchesCategoryFilter(product, browseCategory))));
+      // Never blank the grid — a white skeleton between countries/aisles is worse
+      // than briefly keeping the previous products on screen.
+      const keepGridVisible = Boolean(sessionPage) || products.length > 0;
       if (!sessionPage) {
         setIsLoadingProducts(!keepGridVisible);
       }
 
       try {
-        if (defaultBrowse) {
-          const shared = await ensureBrowseCatalog(requestCountry, browseLocale);
+        if (cacheableAisle) {
+          const shared = await ensureBrowseCatalog(
+            requestCountry,
+            browseLocale,
+            browseCategory === ALL_CATEGORIES_ID ? undefined : browseCategory
+          );
           if (controller.signal.aborted) return;
           if (shared) {
             setProducts(shared.products);
@@ -456,11 +463,16 @@ export default function HomePageClient({
                 : prev?.totalMatched ?? next.totalMatched,
           };
         });
-        if (defaultBrowse && nextProducts.length > 0 && data.meta) {
-          setSessionBrowsePage(requestCountry, browseLocale, {
-            products: nextProducts,
-            meta: data.meta,
-          });
+        if (cacheableAisle && nextProducts.length > 0 && data.meta) {
+          setSessionBrowsePage(
+            requestCountry,
+            browseLocale,
+            {
+              products: nextProducts,
+              meta: data.meta,
+            },
+            browseCategory === ALL_CATEGORIES_ID ? undefined : browseCategory
+          );
         }
         setProductFetchFailed(false);
       } catch (error) {
@@ -509,12 +521,8 @@ export default function HomePageClient({
       if (cached) {
         setProducts(cached.products);
         setCatalogMeta(cached.meta);
-        setIsLoadingProducts(false);
-      } else {
-        setIsLoadingProducts(true);
-        setProducts([]);
-        setCatalogMeta(null);
       }
+      setIsLoadingProducts(false);
       handleCountryChange(countryCode);
     },
     [browseLocale, handleCountryChange]
@@ -815,7 +823,6 @@ export default function HomePageClient({
     debouncedSearchQuery.trim() === "" &&
     !filtersActiveBeyondCategory;
 
-  const showBrowseSkeleton = isLoadingProducts && displayedProducts.length === 0;
   const shortcutBoards = useMemo(
     () =>
       resolveShortcutBoards(
@@ -830,6 +837,8 @@ export default function HomePageClient({
     !isSearching &&
     !filtersActiveBeyondCategory &&
     shortcutBoards.length > 0;
+  const showBrowseSkeleton =
+    isLoadingProducts && displayedProducts.length === 0 && !showShortcutBoards;
 
   return (
     <div className="w-full bg-slate-50 font-sans">

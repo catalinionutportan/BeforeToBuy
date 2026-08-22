@@ -4,10 +4,7 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
-import {
-  CategoryOffersGrid,
-  CategoryProductGridSkeleton,
-} from "@/components/CategoryOffersGrid";
+import { CategoryOffersGrid } from "@/components/CategoryOffersGrid";
 import {
   canonicalDepartmentPath,
   subcategoryCategoryPath,
@@ -140,7 +137,7 @@ export default async function DepartmentCategoryPage({ params, searchParams }: D
         {/* Department pages list subcategories only — avoid dumping every leaf
             (routers + hubs + phones) into one chaotic 2000+ product grid. */}
         {visibleSubs.length === 0 ? (
-          <Suspense fallback={<CategoryProductGridSkeleton />}>
+          <Suspense fallback={null}>
             <CategoryOffersGrid
               countryCode={countryCode}
               category={route.deptId}

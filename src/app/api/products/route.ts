@@ -123,8 +123,14 @@ export async function GET(request: Request) {
     !sort &&
     !includePriceHistory &&
     !hasActiveOfferFilters(filters);
+  const cacheableFirstPage =
+    !query &&
+    offset === 0 &&
+    !sort &&
+    !includePriceHistory &&
+    !hasActiveOfferFilters(filters);
 
-  const browseCacheHeaders = defaultBrowse
+  const browseCacheHeaders = cacheableFirstPage
     ? {
         "Cache-Control": "public, max-age=300, s-maxage=900, stale-while-revalidate=3600",
         "CDN-Cache-Control": "public, s-maxage=900, stale-while-revalidate=3600",
@@ -135,8 +141,8 @@ export async function GET(request: Request) {
       };
 
   try {
-    if (defaultBrowse) {
-      const cachedPage = await getCachedFirstBrowsePage(countryCode, limit);
+    if (cacheableFirstPage) {
+      const cachedPage = await getCachedFirstBrowsePage(countryCode, limit, category);
       if (cachedPage?.products?.length) {
         return NextResponse.json(cachedPage, { headers: browseCacheHeaders });
       }
@@ -150,11 +156,16 @@ export async function GET(request: Request) {
       filters,
       sort,
     });
-    if (defaultBrowse && result.products.length > 0) {
-      void setCachedFirstBrowsePage(countryCode, limit, {
-        products: result.products,
-        meta: result.meta,
-      });
+    if (cacheableFirstPage && result.products.length > 0) {
+      void setCachedFirstBrowsePage(
+        countryCode,
+        limit,
+        {
+          products: result.products,
+          meta: result.meta,
+        },
+        category
+      );
     }
     if (countryCode === "CH") {
       const cachedMeta = await getCachedBrowseMeta(countryCode);

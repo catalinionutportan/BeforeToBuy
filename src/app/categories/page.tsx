@@ -15,10 +15,7 @@ import {
 } from "@/lib/category-i18n";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
-import {
-  CategoryOffersGrid,
-  CategoryProductGridSkeleton,
-} from "@/components/CategoryOffersGrid";
+import { CategoryOffersGrid } from "@/components/CategoryOffersGrid";
 import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
 import { createPageMetadata } from "@/lib/metadata";
 import { COUNTRIES } from "@/lib/countries";
@@ -131,7 +128,7 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
           </section>
         )}
 
-        <Suspense fallback={<CategoryProductGridSkeleton />}>
+        <Suspense fallback={null}>
           <CategoryOffersGrid countryCode={countryCode} emptyLabel={emptyLabel} />
         </Suspense>
       </div>

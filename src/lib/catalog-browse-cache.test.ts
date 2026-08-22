@@ -52,4 +52,25 @@ describe("catalog browse cache", () => {
     const cached = await getCachedFirstBrowsePage("ch", 96);
     expect(cached?.products).toEqual([{ id: "acer-1" }]);
   });
+
+  it("keeps an aisle page separate from the all-products first page", async () => {
+    await setCachedFirstBrowsePage("CH", 96, {
+      products: [{ id: "all-1" }],
+      meta: { totalMatched: 1 },
+    });
+    await setCachedFirstBrowsePage(
+      "CH",
+      96,
+      { products: [{ id: "tire-1" }], meta: { totalMatched: 40 } },
+      "auto-tires"
+    );
+    await expect(getCachedFirstBrowsePage("CH", 96)).resolves.toEqual({
+      products: [{ id: "all-1" }],
+      meta: { totalMatched: 1 },
+    });
+    await expect(getCachedFirstBrowsePage("CH", 96, "auto-tires")).resolves.toEqual({
+      products: [{ id: "tire-1" }],
+      meta: { totalMatched: 40 },
+    });
+  });
 });

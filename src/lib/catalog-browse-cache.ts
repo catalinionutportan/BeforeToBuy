@@ -69,9 +69,18 @@ export function chLeadIdsCacheKey(countryCode: string, take: number, skip: numbe
   return `catalog:ch-lead-ids:v1:${countryCode.toUpperCase()}:${take}:${skip}`;
 }
 
-export function firstPageCacheKey(countryCode: string, limit: number): string {
-  // Locale does not change the Supabase first-page payload — one key per market.
-  return `catalog:first-page:v2:${countryCode.toUpperCase()}:${limit}`;
+function normalizeFirstPageCategory(category?: string | null): string {
+  const trimmed = category?.trim();
+  return trimmed ? trimmed : "_all";
+}
+
+export function firstPageCacheKey(
+  countryCode: string,
+  limit: number,
+  category?: string | null
+): string {
+  // Locale does not change the Supabase first-page payload — one key per market + aisle.
+  return `catalog:first-page:v2:${countryCode.toUpperCase()}:${normalizeFirstPageCategory(category)}:${limit}`;
 }
 
 export async function getCachedBrowseMeta(
@@ -106,17 +115,19 @@ export async function setCachedChLeadIds(
 
 export async function getCachedFirstBrowsePage(
   countryCode: string,
-  limit: number
+  limit: number,
+  category?: string | null
 ): Promise<CachedFirstBrowsePage | null> {
-  return cacheGet<CachedFirstBrowsePage>(firstPageCacheKey(countryCode, limit));
+  return cacheGet<CachedFirstBrowsePage>(firstPageCacheKey(countryCode, limit, category));
 }
 
 export async function setCachedFirstBrowsePage(
   countryCode: string,
   limit: number,
-  value: CachedFirstBrowsePage
+  value: CachedFirstBrowsePage,
+  category?: string | null
 ): Promise<void> {
-  await cacheSet(firstPageCacheKey(countryCode, limit), value, FIRST_PAGE_TTL_SECONDS);
+  await cacheSet(firstPageCacheKey(countryCode, limit, category), value, FIRST_PAGE_TTL_SECONDS);
 }
 
 /** Test helper — clear process-local browse cache between cases. */

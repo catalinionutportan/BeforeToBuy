@@ -1,11 +1,27 @@
 import HomePageClient from "@/components/home/HomePageClient";
+import { getCachedFirstBrowsePage } from "@/lib/catalog-browse-cache";
+import { DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
+import type { ProductFetchMeta } from "@/lib/product-service";
 import { getRequestMarketCountry } from "@/lib/request-market";
+import type { Product } from "@/types";
 
 export default async function Home() {
-  // Do not await the catalog here. Blocking HTML on Supabase (CH lead sort +
-  // counts/covers/brands) was 2–4s TTFB. Header + skeleton go out immediately;
-  // HomePageClient loads `/api/products` after paint (now cached / Acer-first).
+  // Redis first page only — never wait on Supabase here (that was 2–4s TTFB).
   const marketCountry = await getRequestMarketCountry();
+  const cachedPage = await getCachedFirstBrowsePage(marketCountry, DEFAULT_PRODUCT_LIST_LIMIT);
+  const initialProducts = Array.isArray(cachedPage?.products)
+    ? (cachedPage.products as Product[])
+    : [];
+  const initialMeta =
+    cachedPage?.meta && typeof cachedPage.meta === "object"
+      ? (cachedPage.meta as ProductFetchMeta)
+      : null;
 
-  return <HomePageClient initialCountry={marketCountry} />;
+  return (
+    <HomePageClient
+      initialCountry={marketCountry}
+      initialProducts={initialProducts}
+      initialMeta={initialMeta}
+    />
+  );
 }

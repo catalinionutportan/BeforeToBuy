@@ -3,10 +3,7 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
-import {
-  CategoryOffersGrid,
-  CategoryProductGridSkeleton,
-} from "@/components/CategoryOffersGrid";
+import { CategoryOffersGrid } from "@/components/CategoryOffersGrid";
 import {
   canonicalSubcategoryPath,
   departmentCategoryPath,
@@ -123,7 +120,7 @@ export default async function SubcategoryCategoryPage({ params, searchParams }: 
           ) : null}
         </header>
 
-        <Suspense fallback={<CategoryProductGridSkeleton />}>
+        <Suspense fallback={null}>
           <CategoryOffersGrid
             countryCode={countryCode}
             category={route.subId}

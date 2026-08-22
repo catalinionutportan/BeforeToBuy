@@ -37,4 +37,16 @@ describe("prefetch browse markets", () => {
     expect(fetchSpy).not.toHaveBeenCalled();
     vi.unstubAllGlobals();
   });
+
+  it("keeps an aisle page in this tab separate from all products", () => {
+    setSessionBrowsePage("CH", "en", { products: [{ id: "all-1" } as never], meta: emptyMeta });
+    setSessionBrowsePage(
+      "CH",
+      "en",
+      { products: [{ id: "tire-1" } as never], meta: emptyMeta },
+      "auto-tires"
+    );
+    expect(getSessionBrowsePage("CH", "en")?.products).toEqual([{ id: "all-1" }]);
+    expect(getSessionBrowsePage("CH", "en", "auto-tires")?.products).toEqual([{ id: "tire-1" }]);
+  });
 });

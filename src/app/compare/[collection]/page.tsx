@@ -3,10 +3,7 @@ import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { PageShell } from "@/components/PageShell";
 import { CategoryBreadcrumbs } from "@/components/CategoryBreadcrumbs";
-import {
-  CategoryOffersGrid,
-  CategoryProductGridSkeleton,
-} from "@/components/CategoryOffersGrid";
+import { CategoryOffersGrid } from "@/components/CategoryOffersGrid";
 import {
   collectionBrowsePath,
   validateCollectionRoute,
@@ -105,7 +102,7 @@ export default async function ComparisonCollectionPage({ params, searchParams }:
           ) : null}
         </div>
 
-        <Suspense fallback={<CategoryProductGridSkeleton />}>
+        <Suspense fallback={null}>
           <CategoryOffersGrid
             countryCode={countryCode}
             category={collectionId}
