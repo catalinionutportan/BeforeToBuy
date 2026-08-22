@@ -4,7 +4,11 @@ import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
-import { getCachedBrowseMeta } from "@/lib/catalog-browse-cache";
+import {
+  getCachedBrowseMeta,
+  getCachedFirstBrowsePage,
+  setCachedFirstBrowsePage,
+} from "@/lib/catalog-browse-cache";
 import { warmBrowseMetaForCountry } from "@/lib/db-service";
 import {
   clampProductListLimit,
@@ -23,9 +27,9 @@ import {
   MAX_PRODUCT_QUERY_CHARS,
 } from "@/lib/request-body-limits";
 
-/** Cache-only catalogue path — heavy CSV is never fetched here. */
+/** First-page JSON is Redis + CDN cached — do not force-dynamic (Vercel then keeps only 30s). */
 export const maxDuration = 60;
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
@@ -112,8 +116,32 @@ export async function GET(request: Request) {
   }
   const sort = parseSort(searchParams.get("sort"));
   const userLocation = buildUserLocation(countryCode);
+  const defaultBrowse =
+    !query &&
+    !category &&
+    offset === 0 &&
+    !sort &&
+    !includePriceHistory &&
+    !hasActiveOfferFilters(filters);
+
+  const browseCacheHeaders = defaultBrowse
+    ? {
+        "Cache-Control": "public, max-age=300, s-maxage=900, stale-while-revalidate=3600",
+        "CDN-Cache-Control": "public, s-maxage=900, stale-while-revalidate=3600",
+        "Vercel-CDN-Cache-Control": "public, s-maxage=900, stale-while-revalidate=3600",
+      }
+    : {
+        "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=30",
+      };
 
   try {
+    if (defaultBrowse) {
+      const cachedPage = await getCachedFirstBrowsePage(countryCode, limit);
+      if (cachedPage?.products?.length) {
+        return NextResponse.json(cachedPage, { headers: browseCacheHeaders });
+      }
+    }
+
     const result = await fetchMergedProductsForLocation(userLocation, query, category, locale, {
       limit,
       offset,
@@ -122,6 +150,12 @@ export async function GET(request: Request) {
       filters,
       sort,
     });
+    if (defaultBrowse && result.products.length > 0) {
+      void setCachedFirstBrowsePage(countryCode, limit, {
+        products: result.products,
+        meta: result.meta,
+      });
+    }
     if (countryCode === "CH") {
       const cachedMeta = await getCachedBrowseMeta(countryCode);
       if (!cachedMeta || Object.keys(cachedMeta.categoryCovers).length === 0) {
@@ -130,21 +164,8 @@ export async function GET(request: Request) {
         });
       }
     }
-    const defaultBrowse =
-      !query &&
-      !category &&
-      offset === 0 &&
-      !sort &&
-      !includePriceHistory &&
-      !hasActiveOfferFilters(filters);
     return NextResponse.json(result, {
-      headers: {
-        // Default first page: stay on the CDN after the old 60s expiry (the
-        // "works for a minute then dies" country-switch). Search stays short.
-        "Cache-Control": defaultBrowse
-          ? "public, max-age=300, s-maxage=900, stale-while-revalidate=3600"
-          : "public, max-age=30, s-maxage=60, stale-while-revalidate=30",
-      },
+      headers: browseCacheHeaders,
     });
   } catch (error) {
     const trackingId = randomUUID();

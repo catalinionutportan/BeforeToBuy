@@ -7,8 +7,10 @@ vi.mock("@/lib/redis-cache", () => ({
 
 import {
   getCachedBrowseMeta,
+  getCachedFirstBrowsePage,
   resetCatalogBrowseCacheForTests,
   setCachedBrowseMeta,
+  setCachedFirstBrowsePage,
 } from "./catalog-browse-cache";
 
 describe("catalog browse cache", () => {
@@ -40,5 +42,14 @@ describe("catalog browse cache", () => {
     });
     resetCatalogBrowseCacheForTests();
     await expect(getCachedBrowseMeta("RO")).resolves.toBeNull();
+  });
+
+  it("returns a first browse page from process memory", async () => {
+    await setCachedFirstBrowsePage("CH", 96, {
+      products: [{ id: "acer-1" }],
+      meta: { totalMatched: 1 },
+    });
+    const cached = await getCachedFirstBrowsePage("ch", 96);
+    expect(cached?.products).toEqual([{ id: "acer-1" }]);
   });
 });

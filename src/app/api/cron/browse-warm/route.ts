@@ -4,6 +4,7 @@ import { COUNTRIES } from "@/lib/countries";
 import { warmBrowseMetaForCountry } from "@/lib/db-service";
 import { DEFAULT_LOCALE } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
+import { setCachedFirstBrowsePage } from "@/lib/catalog-browse-cache";
 import { PREFETCH_BROWSE_MARKETS } from "@/lib/prefetch-browse-catalog";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
 import { BROWSE_LIST_OPTIONS, DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
@@ -28,13 +29,19 @@ export async function GET(request: NextRequest) {
   for (const countryCode of PREFETCH_BROWSE_MARKETS) {
     const country = COUNTRIES[countryCode];
     try {
-      await fetchMergedProductsForLocation(
+      const page = await fetchMergedProductsForLocation(
         { countryCode, countryName: country.name },
         undefined,
         undefined,
         DEFAULT_LOCALE,
         { ...BROWSE_LIST_OPTIONS, limit: DEFAULT_PRODUCT_LIST_LIMIT }
       );
+      if (page.products.length > 0) {
+        await setCachedFirstBrowsePage(countryCode, DEFAULT_PRODUCT_LIST_LIMIT, {
+          products: page.products,
+          meta: page.meta,
+        });
+      }
       await warmBrowseMetaForCountry(countryCode);
       warmed.push(countryCode);
     } catch (error) {

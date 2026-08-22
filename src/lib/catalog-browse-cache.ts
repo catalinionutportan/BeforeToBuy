@@ -4,6 +4,13 @@ import { redisGetJson, redisSetJson } from "@/lib/redis-cache";
 const BROWSE_META_TTL_SECONDS = 1800;
 /** Default CH/RO first-page ids — stay warm between Vercel cron ticks. */
 const LEAD_IDS_TTL_SECONDS = 900;
+/** Full first-page JSON — new browsers must not wait on Supabase after a few minutes. */
+const FIRST_PAGE_TTL_SECONDS = 900;
+
+export type CachedFirstBrowsePage = {
+  products: unknown[];
+  meta: unknown;
+};
 
 export type CachedBrowseMeta = {
   categoryCounts: Record<string, number>;
@@ -62,6 +69,11 @@ export function chLeadIdsCacheKey(countryCode: string, take: number, skip: numbe
   return `catalog:ch-lead-ids:v1:${countryCode.toUpperCase()}:${take}:${skip}`;
 }
 
+export function firstPageCacheKey(countryCode: string, limit: number): string {
+  // Locale does not change the Supabase first-page payload — one key per market.
+  return `catalog:first-page:v2:${countryCode.toUpperCase()}:${limit}`;
+}
+
 export async function getCachedBrowseMeta(
   countryCode: string
 ): Promise<CachedBrowseMeta | null> {
@@ -90,6 +102,21 @@ export async function setCachedChLeadIds(
   ids: string[]
 ): Promise<void> {
   await cacheSet(chLeadIdsCacheKey(countryCode, take, skip), ids, LEAD_IDS_TTL_SECONDS);
+}
+
+export async function getCachedFirstBrowsePage(
+  countryCode: string,
+  limit: number
+): Promise<CachedFirstBrowsePage | null> {
+  return cacheGet<CachedFirstBrowsePage>(firstPageCacheKey(countryCode, limit));
+}
+
+export async function setCachedFirstBrowsePage(
+  countryCode: string,
+  limit: number,
+  value: CachedFirstBrowsePage
+): Promise<void> {
+  await cacheSet(firstPageCacheKey(countryCode, limit), value, FIRST_PAGE_TTL_SECONDS);
 }
 
 /** Test helper — clear process-local browse cache between cases. */
