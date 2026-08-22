@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense, useCallback, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useState, Suspense, useCallback, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { CountryCode, Product, PromoCoupon } from "@/types";
@@ -42,6 +42,7 @@ import {
 } from "@/lib/browse-scroll";
 import { DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
 import {
+  BROWSE_CATEGORY_EVENT,
   ensureBrowseCatalog,
   getSessionBrowsePage,
   prefetchOtherBrowseMarkets,
@@ -89,13 +90,19 @@ export default function HomePageClient({
   const [offerFilters, setOfferFilters] = useState<OfferFilterCriteria>({});
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [coupons, setCoupons] = useState<PromoCoupon[]>([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(
-    initialProducts.length === 0 && !initialFetchFailed
-  );
+  const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(false);
   const [isDisclosureOpen, setIsDisclosureOpen] = useState<boolean>(false);
   const [catalogMeta, setCatalogMeta] = useState<ProductFetchMeta | null>(initialMeta);
   const [productFetchFailed, setProductFetchFailed] = useState<boolean>(initialFetchFailed);
   const skippedInitialCatalogRequest = useRef(false);
+
+  useLayoutEffect(() => {
+    if (initialProducts.length > 0) return;
+    const stored = getSessionBrowsePage(initialCountry);
+    if (!stored?.products.length) return;
+    setProducts(stored.products);
+    if (stored.meta) setCatalogMeta(stored.meta);
+  }, [initialCountry, initialProducts.length]);
 
   const { userLocation, handleCountryChange } = useUserLocation(initialCountry);
 
@@ -369,8 +376,8 @@ export default function HomePageClient({
       // Never blank the grid — a white skeleton between countries/aisles is worse
       // than briefly keeping the previous products on screen.
       const keepGridVisible = Boolean(sessionPage) || products.length > 0;
-      if (!sessionPage) {
-        setIsLoadingProducts(!keepGridVisible);
+      if (!sessionPage && !keepGridVisible) {
+        setIsLoadingProducts(false);
       }
 
       try {
@@ -647,6 +654,15 @@ export default function HomePageClient({
         inventoryCounts,
         marketProductCount
       );
+      const cachedAisle = getSessionBrowsePage(
+        userLocation.countryCode,
+        browseLocale,
+        next === ALL_CATEGORIES_ID ? undefined : next
+      );
+      if (cachedAisle) {
+        setProducts(cachedAisle.products);
+        setCatalogMeta(cachedAisle.meta);
+      }
       setSelectedCategory(next);
       syncBrowseUrl(next, selectedDomain, offerFilters);
       // Stay at the top of browse results after filtering (do not keep footer scroll).
@@ -654,8 +670,25 @@ export default function HomePageClient({
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       }
     },
-    [syncBrowseUrl, selectedDomain, offerFilters, inventoryCounts, marketProductCount]
+    [
+      syncBrowseUrl,
+      selectedDomain,
+      offerFilters,
+      inventoryCounts,
+      marketProductCount,
+      userLocation.countryCode,
+      browseLocale,
+    ]
   );
+
+  useEffect(() => {
+    const onBrowseCategory = (event: Event) => {
+      const categoryId = (event as CustomEvent<{ categoryId?: string }>).detail?.categoryId;
+      if (typeof categoryId === "string") handleCategoryChange(categoryId);
+    };
+    window.addEventListener(BROWSE_CATEGORY_EVENT, onBrowseCategory);
+    return () => window.removeEventListener(BROWSE_CATEGORY_EVENT, onBrowseCategory);
+  }, [handleCategoryChange]);
 
   const handleOfferFiltersChange = useCallback(
     (next: OfferFilterCriteria) => {
@@ -840,8 +873,6 @@ export default function HomePageClient({
     !isSearching &&
     !filtersActiveBeyondCategory &&
     shortcutBoards.length > 0;
-  const showBrowseSkeleton = false;
-
   return (
     <div className="w-full bg-slate-50 font-sans">
       
@@ -942,22 +973,7 @@ export default function HomePageClient({
             </label>
           </div>
 
-          {showBrowseSkeleton ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
-              {[1, 2, 3, 4, 5, 6].map((n) => (
-                <div
-                  key={n}
-                  className="bg-white rounded-xl border border-slate-200 p-2.5 h-56 animate-pulse flex flex-col justify-between space-y-2 min-w-0"
-                >
-                  <div className="bg-slate-200 rounded-lg h-28 w-full" />
-                  <div className="space-y-2">
-                    <div className="bg-slate-200 h-3 rounded w-3/4" />
-                    <div className="bg-slate-200 h-3 rounded w-1/2" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : productFetchFailed ? (
+          {productFetchFailed ? (
             <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl text-center">
               <p className="font-bold">{sanitizeString(homeUi.productFetchError)}</p>
             </div>

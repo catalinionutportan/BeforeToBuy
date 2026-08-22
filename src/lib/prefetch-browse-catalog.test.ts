@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProductFetchMeta } from "@/lib/product-service";
 import {
   PREFETCH_BROWSE_MARKETS,
+  clearSessionBrowseMemoryForTests,
   ensureBrowseCatalog,
   getSessionBrowsePage,
   resetSessionBrowsePagesForTests,
@@ -48,5 +49,14 @@ describe("prefetch browse markets", () => {
     );
     expect(getSessionBrowsePage("CH", "en")?.products).toEqual([{ id: "all-1" }]);
     expect(getSessionBrowsePage("CH", "en", "auto-tires")?.products).toEqual([{ id: "tire-1" }]);
+  });
+
+  it("reuses a persisted first page in a new tab without locale", () => {
+    setSessionBrowsePage("CH", "de", {
+      products: [{ id: "acer-1" } as never],
+      meta: emptyMeta,
+    });
+    clearSessionBrowseMemoryForTests();
+    expect(getSessionBrowsePage("CH", "en")?.products).toEqual([{ id: "acer-1" }]);
   });
 });

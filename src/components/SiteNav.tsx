@@ -11,6 +11,7 @@ import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { withLangParam } from "@/lib/seo/site-url";
 import { ALL_CATEGORIES_ID } from "@/lib/categories";
+import { requestBrowseCategory } from "@/lib/prefetch-browse-catalog";
 
 export function SiteNav() {
   const { countryCode, locale: browseLocale } = useBrowseLocale();
@@ -21,7 +22,7 @@ export function SiteNav() {
 
   const navLinks = [
     { href: withLangParam("/about", browseLocale), label: homeUi.about, icon: HelpCircle },
-    { href: withLangParam("/categories", browseLocale), label: homeUi.categories, icon: Layers },
+    { href: homeHref, label: homeUi.categories, icon: Layers },
     { href: withLangParam("/stores", browseLocale), label: homeUi.stores, icon: Store },
     { href: withLangParam("/help", browseLocale), label: homeUi.helpFAQ, icon: LifeBuoy },
     { href: withLangParam("/contact", browseLocale), label: homeUi.contact, icon: Mail },
@@ -30,6 +31,11 @@ export function SiteNav() {
 
   function browseCategory(categoryId: string) {
     setIsCategoryMenuOpen(false);
+    const onHome = window.location.pathname === "/";
+    if (onHome) {
+      requestBrowseCategory(categoryId || ALL_CATEGORIES_ID);
+      return;
+    }
     const path =
       !categoryId || categoryId === ALL_CATEGORIES_ID
         ? "/"
