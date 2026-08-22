@@ -10,7 +10,7 @@ import {
   subcategoryCategoryPath,
   validateDepartmentRoute,
 } from "@/lib/category-routes";
-import { getBrowseCountsForCountry } from "@/lib/category-page-data";
+import { getBrowseCountsForCountry, hasBrowseInventory } from "@/lib/category-page-data";
 import { createCategoryMetadata } from "@/lib/metadata";
 import { getDepartmentLabel, getSubcategoryLabel } from "@/lib/category-i18n";
 import { getCategoryById } from "@/lib/categories";
@@ -74,12 +74,12 @@ export default async function DepartmentCategoryPage({ params, searchParams }: D
   const homeUi = HOME_UI[locale];
   const counts = await getBrowseCountsForCountry(countryCode);
   const matched = counts.categoryCounts[route.deptId] ?? 0;
-  if (matched === 0) {
+  if (hasBrowseInventory(counts) && matched === 0) {
     redirect(withLangParam("/", locale));
   }
-  const visibleSubs = category.subcategories.filter(
-    (sub) => (counts.categoryCounts[sub.id] ?? 0) > 0
-  );
+  const visibleSubs = hasBrowseInventory(counts)
+    ? category.subcategories.filter((sub) => (counts.categoryCounts[sub.id] ?? 0) > 0)
+    : category.subcategories;
   const departmentLabel = getDepartmentLabel(route.deptId, locale);
   const emptyLabel = formatUi(homeUi.noOffersAvailableInCategory, {
     countryName: country.name,

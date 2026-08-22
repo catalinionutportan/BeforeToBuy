@@ -7,7 +7,7 @@ import {
   setCachedFirstBrowsePage,
 } from "@/lib/catalog-browse-cache";
 import { COUNTRIES } from "@/lib/countries";
-import { getCategoryCountsFromDb } from "@/lib/db-service";
+import { warmBrowseMetaForCountry } from "@/lib/db-service";
 import { getPrimaryLiveBrowseCountry } from "@/lib/live-browse-market";
 import {
   BROWSE_LIST_OPTIONS,
@@ -120,7 +120,7 @@ export async function fetchCatalogForCountry(
     listOptions?.filters ? JSON.stringify(listOptions.filters) : ""
   );
   if (cacheableFirstPage && result.products.length > 0) {
-    void setCachedFirstBrowsePage(
+    await setCachedFirstBrowsePage(
       countryCode,
       limit,
       { products: result.products, meta: result.meta },
@@ -131,8 +131,8 @@ export async function fetchCatalogForCountry(
 }
 
 /**
- * Counts/chips for category pages — Redis/memory first, groupBy if cold.
- * Does not load the 96-product grid.
+ * Counts/chips for category pages — Redis/memory only.
+ * Never groupBy 86k rows on the request path (that was the 5–7s white wall).
  */
 export async function getBrowseCountsForCountry(
   countryCode: CountryCode
@@ -147,30 +147,20 @@ export async function getBrowseCountsForCountry(
     };
   }
 
-  if (process.env.FORCE_SAMPLE_FEEDS !== "1") {
-    try {
-      const maps = await getCategoryCountsFromDb(countryCode);
-      return {
-        categoryCounts: maps.categoryCounts,
-        leafCounts: maps.leafCounts,
-        collectionCounts: collectionCountsFromLeafCounts(maps.leafCounts),
-        totalMatched: Object.values(maps.leafCounts).reduce((sum, n) => sum + n, 0),
-      };
-    } catch {
-      // Sample-feed / missing-DB fallback below.
-    }
-  }
-
-  const catalog = await fetchCatalogForCountry(countryCode, undefined, {
-    ...BROWSE_LIST_OPTIONS,
-    limit: 1,
+  void warmBrowseMetaForCountry(countryCode).catch((error) => {
+    console.error("[category-page] browse-meta warm failed:", error);
   });
+
   return {
-    categoryCounts: catalog.meta.categoryCounts,
+    categoryCounts: {},
     leafCounts: {},
-    collectionCounts: catalog.meta.collectionCounts ?? {},
-    totalMatched: catalog.meta.totalMatched ?? catalog.products.length,
+    collectionCounts: {},
+    totalMatched: 0,
   };
+}
+
+export function hasBrowseInventory(counts: BrowseCounts): boolean {
+  return Object.keys(counts.categoryCounts).length > 0;
 }
 
 /** Sitemap / fallbacks — use primary live market (RO), not empty CH default. */

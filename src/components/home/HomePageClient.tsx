@@ -727,11 +727,14 @@ export default function HomePageClient({
     const qs = params.toString();
     return qs ? `/?${qs}` : "/";
   }, [browseCategory, debouncedSearchQuery, selectedDomain]);
-  const categoryFilteredProducts = useMemo(
-    () =>
-      products.filter((product) => productMatchesCategoryFilter(product, browseCategory)),
-    [products, browseCategory]
-  );
+  const categoryFilteredProducts = useMemo(() => {
+    if (browseCategory === ALL_CATEGORIES_ID) return products;
+    const filtered = products.filter((product) =>
+      productMatchesCategoryFilter(product, browseCategory)
+    );
+    // Keep the current grid on screen while the aisle page loads.
+    return filtered.length > 0 ? filtered : products;
+  }, [products, browseCategory]);
   const isSearching = debouncedSearchQuery.trim().length > 0;
   const displayedProducts = useMemo(
     () =>
@@ -837,8 +840,7 @@ export default function HomePageClient({
     !isSearching &&
     !filtersActiveBeyondCategory &&
     shortcutBoards.length > 0;
-  const showBrowseSkeleton =
-    isLoadingProducts && displayedProducts.length === 0 && !showShortcutBoards;
+  const showBrowseSkeleton = false;
 
   return (
     <div className="w-full bg-slate-50 font-sans">

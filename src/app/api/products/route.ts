@@ -144,7 +144,9 @@ export async function GET(request: Request) {
     if (cacheableFirstPage) {
       const cachedPage = await getCachedFirstBrowsePage(countryCode, limit, category);
       if (cachedPage?.products?.length) {
-        return NextResponse.json(cachedPage, { headers: browseCacheHeaders });
+        return NextResponse.json(cachedPage, {
+          headers: { ...browseCacheHeaders, "x-btb-catalog-cache": "hit" },
+        });
       }
     }
 
@@ -157,7 +159,8 @@ export async function GET(request: Request) {
       sort,
     });
     if (cacheableFirstPage && result.products.length > 0) {
-      void setCachedFirstBrowsePage(
+      // Await the write — a detached SET dies when the Vercel isolate freezes.
+      await setCachedFirstBrowsePage(
         countryCode,
         limit,
         {
@@ -176,7 +179,7 @@ export async function GET(request: Request) {
       }
     }
     return NextResponse.json(result, {
-      headers: browseCacheHeaders,
+      headers: { ...browseCacheHeaders, "x-btb-catalog-cache": "miss" },
     });
   } catch (error) {
     const trackingId = randomUUID();

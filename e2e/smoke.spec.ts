@@ -179,13 +179,10 @@ test.describe("BeforeToBuy smoke E2E", () => {
     }
   });
 
-  test("legacy category query redirects to SEO category route", async ({ page }) => {
+  test("legacy category query stays on the homepage", async ({ page }) => {
     await page.goto("/?category=audio");
-    await expect(page).toHaveURL(/\/categories\/electronics(\?|$)/);
-    // Market-aware SSR locale: EN / DE / RO depending on cookie + geo.
-    await expect(
-      page.getByRole("heading", { name: /^(Electronics|Elektronik|Electronice)$/ })
-    ).toBeVisible();
+    await expect(page).toHaveURL(/\/(?:\?|$)/);
+    await expect(page).not.toHaveURL(/\/categories\//);
   });
 
   test("department SEO route renders breadcrumbs for live primary market", async ({ page }) => {

@@ -10,7 +10,7 @@ import {
   subcategoryCategoryPath,
   validateSubcategoryRoute,
 } from "@/lib/category-routes";
-import { getBrowseCountsForCountry } from "@/lib/category-page-data";
+import { getBrowseCountsForCountry, hasBrowseInventory } from "@/lib/category-page-data";
 import { createCategoryMetadata } from "@/lib/metadata";
 import {
   getDepartmentLabel,
@@ -77,7 +77,7 @@ export default async function SubcategoryCategoryPage({ params, searchParams }: 
   const homeUi = HOME_UI[locale];
   const counts = await getBrowseCountsForCountry(countryCode);
   const matched = counts.categoryCounts[route.subId] ?? 0;
-  if (matched === 0) {
+  if (hasBrowseInventory(counts) && matched === 0) {
     const parentHasOffers = (counts.categoryCounts[route.deptId] ?? 0) > 0;
     redirect(
       parentHasOffers

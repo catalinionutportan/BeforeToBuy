@@ -653,8 +653,11 @@ export async function getProductsFromDb(
   const take = limit == null ? 100 : Math.max(0, Math.floor(limit));
   const skip = Math.max(0, Math.floor(offset || 0));
   const sortByOfferTotal = sort === "price-asc" || sort === "price-desc";
+  const unfilteredBrowse = isUnfilteredBrowse(query, category, filters);
+  // Acer-first sort is only for CH All. Aisle filters must not scan 86k rows
+  // with per-row EXISTS — that is the 5–7s white wall on every subcategory.
   const sortByChLead =
-    !sortByOfferTotal && countryCode.toUpperCase() === "CH" && !query?.trim();
+    !sortByOfferTotal && countryCode.toUpperCase() === "CH" && unfilteredBrowse;
 
   // Secondary id keeps OFFSET pages stable (updatedAt ties otherwise skip/dup rows).
   const orderBy: Prisma.ProductOrderByWithRelationInput[] = [
@@ -678,7 +681,6 @@ export async function getProductsFromDb(
       : Promise.resolve(null);
 
   const cachedMeta = await getCachedBrowseMeta(countryCode);
-  const unfilteredBrowse = isUnfilteredBrowse(query, category, filters);
   // CH has ~86k rows. Cover distinct + groupBy + brand scan made GB→CH wait 7–8s.
   // Serve the first page immediately; warm full meta off the request path.
   const skipHeavyMeta = !cachedMeta && countryCode.toUpperCase() === "CH";
@@ -697,7 +699,9 @@ export async function getProductsFromDb(
           }),
       cachedMeta && unfilteredBrowse
         ? Promise.resolve(cachedMeta.countryProductCount)
-        : prisma.product.count({ where: whereClause }),
+        : skipHeavyMeta
+          ? Promise.resolve(take + skip + 1)
+          : prisma.product.count({ where: whereClause }),
       cachedMeta
         ? Promise.resolve({
             categoryCounts: cachedMeta.categoryCounts,
@@ -708,12 +712,14 @@ export async function getProductsFromDb(
           : getCategoryCountsFromDb(countryCode),
       cachedMeta
         ? Promise.resolve(cachedMeta.countryProductCount)
-        : prisma.product.count({
-            where: {
-              targetCountries: { has: countryCode },
-              offers: { some: { inStock: true } },
-            },
-          }),
+        : skipHeavyMeta
+          ? Promise.resolve(0)
+          : prisma.product.count({
+              where: {
+                targetCountries: { has: countryCode },
+                offers: { some: { inStock: true } },
+              },
+            }),
       cachedMeta
         ? Promise.resolve(cachedMeta.brandOptions.map((brand) => ({ brand })))
         : skipHeavyMeta

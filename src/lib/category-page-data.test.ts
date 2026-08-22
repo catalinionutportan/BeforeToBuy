@@ -10,17 +10,23 @@ import {
   collectionCountsFromLeafCounts,
   fetchCatalogForCountry,
   getBrowseCountsForCountry,
+  hasBrowseInventory,
 } from "@/lib/category-page-data";
 
 const fetchMerged = vi.hoisted(() => vi.fn());
+const warmMeta = vi.hoisted(() => vi.fn(async () => undefined));
 vi.mock("@/lib/product-service", () => ({
   fetchMergedProductsForLocation: fetchMerged,
+}));
+vi.mock("@/lib/db-service", () => ({
+  warmBrowseMetaForCountry: (...args: unknown[]) => warmMeta(...args),
 }));
 
 describe("category page browse counts", () => {
   beforeEach(() => {
     resetCatalogBrowseCacheForTests();
     fetchMerged.mockReset();
+    warmMeta.mockClear();
   });
 
   it("exposes one collection count key per comparison filter", () => {
@@ -57,5 +63,18 @@ describe("category page browse counts", () => {
     const catalog = await fetchCatalogForCountry("CH", "auto-tires", CATEGORY_PAGE_LIST);
     expect(catalog.products).toEqual([{ id: "tire-1" }]);
     expect(fetchMerged).not.toHaveBeenCalled();
+  });
+
+  it("does not scan the catalogue when browse meta is cold", async () => {
+    const counts = await getBrowseCountsForCountry("CH");
+    expect(counts).toEqual({
+      categoryCounts: {},
+      leafCounts: {},
+      collectionCounts: {},
+      totalMatched: 0,
+    });
+    expect(hasBrowseInventory(counts)).toBe(false);
+    expect(fetchMerged).not.toHaveBeenCalled();
+    expect(warmMeta).toHaveBeenCalledWith("CH");
   });
 });

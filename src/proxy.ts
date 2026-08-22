@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { ALL_CATEGORIES_ID } from "@/lib/categories";
-import { categoryBrowsePath } from "@/lib/category-routes";
 import { normalizeLocale } from "@/lib/i18n/locales";
 import { LANG_COOKIE_KEY, LANG_QUERY_PARAM } from "@/lib/i18n/preference";
 import { buildContentSecurityPolicy } from "@/lib/security-headers";
@@ -55,40 +53,18 @@ function securedNext(request: NextRequest, response?: NextResponse) {
 
 /**
  * Locale cookie + CSP nonce (Next.js 16 proxy).
- * Redirect legacy `/?category=...` URLs to SEO category routes.
+ * Keep `/?category=...` on the homepage — a 308 to /categories caused a
+ * 5–7s white wall on every aisle click.
  */
 export function proxy(request: NextRequest) {
-  if (request.nextUrl.pathname !== "/") {
-    return securedNext(request);
-  }
-
-  const category = request.nextUrl.searchParams.get("category");
-  if (!category || category === ALL_CATEGORIES_ID) {
-    return securedNext(request);
-  }
-
-  const targetPath = categoryBrowsePath(category);
-  if (!targetPath) {
-    return securedNext(request);
-  }
-
-  const redirectUrl = request.nextUrl.clone();
-  redirectUrl.pathname = targetPath;
-  redirectUrl.searchParams.delete("category");
-
-  const query = request.nextUrl.searchParams.get("q");
-  if (query) {
-    redirectUrl.searchParams.set("q", query);
-  }
-
-  return securedNext(request, NextResponse.redirect(redirectUrl, 308));
+  return securedNext(request);
 }
 
 export const config = {
   matcher: [
     {
       source:
-        "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|css|js|map)$).*)",
+        "/((?!api|_next/static|_next/image|favicon.ico|google.*\\.html|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|css|js|map|html)$).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },
