@@ -53,7 +53,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     title: `${product.title} | ${ui.priceComparison}`,
     description:
       product.description ||
-      `Compare ${product.title} prices and offers on BeforeToBuy.com.`,
+      `Compare ${product.title} prices on BeforeToBuy.com. Offers from partner stores; checkout on the merchant site.`,
     path: productPagePath(product.id),
     locale,
   });
@@ -106,8 +106,12 @@ export default async function ProductPage({ params, searchParams }: PageProps) {
       <JsonLd data={jsonLd} />
       <div className="space-y-8">
         <nav className="text-xs text-slate-500 flex flex-wrap items-center gap-1.5">
+          <Link href="/" className="hover:text-emerald-700 font-semibold">
+            BeforeToBuy.com
+          </Link>
+          <span className="mx-0.5 text-slate-300">/</span>
           <Link href={backHref} className="hover:text-emerald-700 font-semibold">
-            ← {ui.compareBeforeYouBuy}
+            {ui.priceComparison}
           </Link>
           <span className="mx-0.5 text-slate-300">/</span>
           <span className="text-slate-700">{product.brand}</span>

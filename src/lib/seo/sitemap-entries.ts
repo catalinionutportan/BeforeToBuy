@@ -68,7 +68,7 @@ async function buildSitemapEntries(): Promise<MetadataRoute.Sitemap> {
       limit: 1,
     });
     const productIds = await listProductIdsForSitemap(45_000);
-    const counts = catalog.meta.categoryCounts;
+    const counts: Record<string, number> = catalog.meta.categoryCounts ?? {};
     const collectionCounts = catalog.meta.collectionCounts ?? {};
 
     const categoryRoutes: MetadataRoute.Sitemap = [];

@@ -111,7 +111,7 @@ export async function fetchMergedProductsForLocation(
                 { title: "", description: "", brand: "", category: id },
                 collection.id
               )
-                ? sum + n
+                ? sum + Number(n)
                 : sum,
             0
           );

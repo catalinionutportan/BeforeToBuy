@@ -142,7 +142,7 @@ export default function HomePageClient({
   }, [catalogMeta?.brandOptions, products]);
 
   const hubCounts = useMemo(() => {
-    const leafCounts = catalogMeta?.categoryCounts ?? {};
+    const leafCounts: Record<string, number> = catalogMeta?.categoryCounts ?? {};
     const counts: Record<string, number> = {};
     for (const hub of MARKET_HUB_TABS) {
       const leaves = MARKET_HUB_LEAF_GROUPS[hub.id] ?? [];
@@ -170,7 +170,7 @@ export default function HomePageClient({
    * Leaves make the list useful for live type-to-filter (not just 2 hubs on RO).
    */
   const categoryOptions = useMemo((): BrowseCategoryOption[] => {
-    const leafCounts = catalogMeta?.categoryCounts ?? {};
+    const leafCounts: Record<string, number> = catalogMeta?.categoryCounts ?? {};
     const allCount = catalogMeta?.feedProductCount ?? catalogMeta?.totalMatched ?? 0;
     const options: BrowseCategoryOption[] = [
       { id: ALL_CATEGORIES_ID, label: homeUi.hubAll, count: allCount },

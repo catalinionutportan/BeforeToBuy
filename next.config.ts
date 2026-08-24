@@ -27,6 +27,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   outputFileTracingRoot: path.join(__dirname),
   images: {
+    unoptimized: true,
     remotePatterns: imageRemotePatterns(),
   },
   async headers() {

@@ -14,12 +14,12 @@ import {
 } from "@/lib/category-page-data";
 
 const fetchMerged = vi.hoisted(() => vi.fn());
-const warmMeta = vi.hoisted(() => vi.fn(async () => undefined));
+const warmMeta = vi.hoisted(() => vi.fn(async (_country?: string) => undefined));
 vi.mock("@/lib/product-service", () => ({
   fetchMergedProductsForLocation: fetchMerged,
 }));
 vi.mock("@/lib/db-service", () => ({
-  warmBrowseMetaForCountry: (...args: unknown[]) => warmMeta(...args),
+  warmBrowseMetaForCountry: (country: string) => warmMeta(country),
 }));
 
 describe("category page browse counts", () => {

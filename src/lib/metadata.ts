@@ -1,7 +1,22 @@
 import type { Metadata } from "next";
 import { DEFAULT_LOCALE, SITE_LOCALES, type SiteLocale } from "./i18n/locales";
+import { COMPANY } from "@/lib/company-info";
+import { getSiteUrl } from "@/lib/seo/site-url";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.beforetobuy.com";
+const SITE_URL = getSiteUrl();
+const BRAND = COMPANY.platformName;
+const OG_IMAGE = {
+  url: `${SITE_URL}/beforetobuy-logo.png`,
+  alt: `${BRAND} — price comparison`,
+};
+
+/** Google indexes product URLs; keep the operator name on every title. */
+export function brandedTitle(title: string): string {
+  const trimmed = title.trim();
+  if (!trimmed) return BRAND;
+  if (/before\s*to\s*buy/i.test(trimmed)) return trimmed;
+  return `${trimmed} | ${BRAND}`;
+}
 
 function localizedUrl(path: string, locale: SiteLocale): string {
   const url = new URL(path, SITE_URL);
@@ -12,13 +27,13 @@ function localizedUrl(path: string, locale: SiteLocale): string {
 function buildAlternates(path: string, currentLocale: SiteLocale) {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   const defaultUrl = new URL(normalized, SITE_URL).toString();
-  const canonical = localizedUrl(normalized, currentLocale);
+  const canonical = currentLocale === DEFAULT_LOCALE ? defaultUrl : localizedUrl(normalized, currentLocale);
 
   const languages: Record<string, string> = {
     "x-default": defaultUrl,
   };
   for (const locale of SITE_LOCALES) {
-    languages[locale] = localizedUrl(normalized, locale);
+    languages[locale] = locale === DEFAULT_LOCALE ? defaultUrl : localizedUrl(normalized, locale);
   }
 
   return {
@@ -42,24 +57,32 @@ export function createPageMetadata({
 }): Metadata {
   const normalized = path.startsWith("/") || path === "" ? path : `/${path}`;
   const url = localizedUrl(normalized || "/", currentLocale);
+  const pageTitle = brandedTitle(title);
 
   return {
-    title,
+    title: pageTitle,
     description,
+    applicationName: BRAND,
+    authors: [{ name: COMPANY.legalName, url: COMPANY.website }],
+    creator: COMPANY.legalName,
+    publisher: BRAND,
+    category: "shopping",
     alternates: buildAlternates(normalized || "/", currentLocale),
     robots: index ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: {
-      title,
+      title: pageTitle,
       description,
       url,
-      siteName: "BeforeToBuy.com",
+      siteName: BRAND,
       type: "website",
       locale: currentLocale === "en" ? "en_US" : `${currentLocale}_${currentLocale.toUpperCase()}`,
+      images: [OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
-      title,
+      title: pageTitle,
       description,
+      images: [OG_IMAGE.url],
     },
   };
 }
@@ -81,8 +104,9 @@ export function createCategoryMetadata({
 }
 
 export const defaultOpenGraph: Metadata["openGraph"] = {
-  siteName: "BeforeToBuy.com",
+  siteName: BRAND,
   type: "website",
   locale: "en_US",
   url: SITE_URL,
+  images: [OG_IMAGE],
 };

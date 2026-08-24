@@ -116,13 +116,6 @@ export async function GET(request: Request) {
   }
   const sort = parseSort(searchParams.get("sort"));
   const userLocation = buildUserLocation(countryCode);
-  const defaultBrowse =
-    !query &&
-    !category &&
-    offset === 0 &&
-    !sort &&
-    !includePriceHistory &&
-    !hasActiveOfferFilters(filters);
   const cacheableFirstPage =
     !query &&
     offset === 0 &&
@@ -130,7 +123,7 @@ export async function GET(request: Request) {
     !includePriceHistory &&
     !hasActiveOfferFilters(filters);
 
-  const browseCacheHeaders = cacheableFirstPage
+  const browseCacheHeaders: Record<string, string> = cacheableFirstPage
     ? {
         "Cache-Control": "public, max-age=300, s-maxage=900, stale-while-revalidate=3600",
         "CDN-Cache-Control": "public, s-maxage=900, stale-while-revalidate=3600",
