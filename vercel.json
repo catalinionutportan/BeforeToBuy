@@ -14,18 +14,5 @@
       "maxDuration": 60
     }
   },
-  "crons": [
-    {
-      "path": "/api/cron/price-snapshot",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/feeds-warm",
-      "schedule": "20 */6 * * *"
-    },
-    {
-      "path": "/api/cron/browse-warm",
-      "schedule": "*/5 * * * *"
-    }
-  ]
+  "crons": []
 }

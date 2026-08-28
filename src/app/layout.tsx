@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { IubendaConsentBridge } from "@/components/IubendaConsentBridge";
-import { IubendaEmbedScript } from "@/components/IubendaEmbedScript";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
-import { DatadogRum } from "@/components/DatadogRum";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteJsonLd } from "@/components/SiteJsonLd";
 import { createPageMetadata, defaultOpenGraph } from "@/lib/metadata";
@@ -76,9 +73,6 @@ export default async function RootLayout({
 
   return (
     <html lang={locale}>
-      <head>
-        <IubendaEmbedScript />
-      </head>
       <body className="antialiased font-sans bg-slate-50 text-slate-900">
         <a
           href="#main-content"
@@ -90,8 +84,6 @@ export default async function RootLayout({
           <ClientLocalizationProvider currentCountry={marketCountry} currentLocale={locale}>
             <ScrollToTopOnNavigate />
             <SiteJsonLd />
-            <IubendaConsentBridge />
-            <DatadogRum />
             {children}
             {modal}
             <InstantProductModalHost />

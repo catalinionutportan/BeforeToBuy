@@ -1,9 +1,6 @@
 name: Import 2Performant Feeds
 
 on:
-  schedule:
-    # Run automatically every night at 03:00 UTC
-    - cron: '0 3 * * *'
   workflow_dispatch:
     # Allow manual trigger from the GitHub Actions UI
 

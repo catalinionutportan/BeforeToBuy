@@ -1,8 +1,5 @@
 name: Warm merchant feeds
 on:
-  schedule:
-    # Every 6 hours — keeps evoMAG Redis warm without user-request downloads
-    - cron: "15 */6 * * *"
   workflow_dispatch:
 
 permissions:
