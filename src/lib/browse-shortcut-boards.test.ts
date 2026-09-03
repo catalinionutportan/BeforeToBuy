@@ -56,10 +56,45 @@ describe("browse shortcut boards", () => {
       "diy-power-tools": 40,
       "diy-hand-tools": 15,
     });
-    expect(boards.map((board) => board.id)).toEqual(["home", "diy"]);
-    expect(boards[0]?.tiles[0]?.categoryId).toBe("cleaning-vacuums");
-    expect(boards[1]?.tiles[0]?.categoryId).toBe("diy-power-tools");
+    expect(boards.map((board) => board.id)).toEqual(["diy", "home"]);
+    expect(boards[0]?.tiles[0]?.categoryId).toBe("diy-power-tools");
+    expect(boards[1]?.tiles[0]?.categoryId).toBe("cleaning-vacuums");
     expect(boards.some((board) => board.id === "auto")).toBe(false);
+  });
+
+  it("builds DE Auto tiles only for occupied, useful Reifen.de aisles", () => {
+    const boards = resolveShortcutBoards("DE", {
+      "auto-tires-wheels": 79_000,
+      "auto-rims": 33_000,
+      "auto-motorcycle-tires": 5_000,
+      "auto-complete-wheels": 0,
+      "auto-oils-fluids": 143,
+    });
+    expect(boards).toHaveLength(1);
+    expect(boards[0]?.tiles.map((tile) => tile.categoryId)).toEqual([
+      "auto-tires-wheels",
+      "auto-rims",
+      "auto-motorcycle-tires",
+      "auto-oils-fluids",
+    ]);
+  });
+
+  it("adds three Gigasport sport tiles that open that store", () => {
+    const boards = resolveShortcutBoards("CH", {
+      "notebooks-laptops": 10,
+      "fashion-women-activewear": 400,
+      "fashion-shoes-sport": 200,
+      "mobility-accessories": 80,
+    });
+    const sport = boards.find((board) => board.id === "sport");
+    expect(sport?.featured).toBe(true);
+    expect(sport?.domain).toBe("gigasport.ch");
+    expect(sport?.seeAllCategoryId).toBe("all");
+    expect(sport?.tiles.map((tile) => tile.categoryId)).toEqual([
+      "fashion-women-activewear",
+      "fashion-shoes-sport",
+      "mobility-accessories",
+    ]);
   });
 
   it("omits the CH Auto board when Reifen leaves are empty", () => {
@@ -84,7 +119,7 @@ describe("browse shortcut boards", () => {
         "baby-strollers-travel": "https://images2.productserve.com/stroller.jpg",
       }
     );
-    expect(boards.map((board) => board.id)).toEqual(["electronics", "baby"]);
+    expect(boards.map((board) => board.id)).toEqual(["electronics", "auto", "baby", "beauty"]);
     expect(boards[0]?.tiles).toEqual([{ categoryId: "notebooks-laptops", count: 73 }]);
     expect(boards[0]?.featured).toBe(false);
   });

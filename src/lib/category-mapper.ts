@@ -13,6 +13,7 @@ import {
   isBabywalzAllowedCategory,
   isBelandoAllowedCategory,
   isAcerAllowedCategory,
+  isGigasportAllowedCategory,
   isReifencomAllowedCategory,
   isRowentaAllowedCategory,
   MAPPING_CONFIDENCE,
@@ -48,6 +49,8 @@ const ARLO_FALLBACK_LEAF = "smart-home-security";
 
 /** Acer fallback when title/category is ambiguous. */
 const ACER_FALLBACK_LEAF = "notebooks-laptops";
+/** Gigasport fallback when title/category is ambiguous. */
+const GIGASPORT_FALLBACK_LEAF = "fashion-men-activewear";
 
 /**
  * Maps merchant / affiliate feed categories + product text → BeforeToBuy subcategory id.
@@ -468,6 +471,23 @@ function clampAcerToElectronicsCatalogue(result: CategoryMappingResult): Categor
   return result;
 }
 
+/** Force Gigasport into sport apparel / shoes / bike leaves. */
+function clampGigasportToSportCatalogue(result: CategoryMappingResult): CategoryMappingResult {
+  if (result.categoryId === UNMAPPED_CATEGORY_ID || !isGigasportAllowedCategory(result.categoryId)) {
+    return {
+      ...result,
+      categoryId: GIGASPORT_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      proposedCategoryId:
+        result.categoryId !== UNMAPPED_CATEGORY_ID && result.categoryId !== GIGASPORT_FALLBACK_LEAF
+          ? result.categoryId
+          : result.proposedCategoryId,
+    };
+  }
+  return result;
+}
+
 export interface CategoryMappingInput {
   merchantId?: string;
   merchantCategory?: string;
@@ -508,9 +528,12 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     if (merchantId === "ro-scule365") return clampScule365ToDiy(scored);
     if (merchantId === "ro-rowenta") return clampRowentaToAppliances(scored);
     if (merchantId === "ch-babywalz") return refineBabywalzCatalogue(scored, title);
-    if (merchantId === "ch-reifencom") return clampReifencomToAutoCatalogue(scored);
+    if (merchantId === "ch-reifencom" || merchantId === "de-reifen") {
+      return clampReifencomToAutoCatalogue(scored);
+    }
     if (merchantId === "ch-belando") return clampBelandoToBeautyCatalogue(scored, title);
     if (merchantId === "ch-acer") return clampAcerToElectronicsCatalogue(scored);
+    if (merchantId === "ch-gigasport") return clampGigasportToSportCatalogue(scored);
     if (merchantId === "gb-arlo") return clampArloToSecurityCatalogue(scored);
     if (merchantId === "gb-seentat") return refineSeentatElectronics(scored, title);
     if (merchantId === "gb-geepas") return refineGeepasHome(scored, title);
@@ -590,7 +613,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
       rawCategory: merchantCategory,
     });
   }
-  if (merchantId === "ch-reifencom") {
+  if (merchantId === "ch-reifencom" || merchantId === "de-reifen") {
     return {
       categoryId: REIFENCOM_FALLBACK_LEAF,
       method: "merchant-default",
@@ -609,6 +632,14 @@ export function mapToBeforeToBuyCategoryWithMetadata(
   if (merchantId === "ch-acer") {
     return {
       categoryId: ACER_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: merchantCategory,
+    };
+  }
+  if (merchantId === "ch-gigasport") {
+    return {
+      categoryId: GIGASPORT_FALLBACK_LEAF,
       method: "merchant-default",
       confidence: MAPPING_CONFIDENCE.combinedPattern,
       rawCategory: merchantCategory,

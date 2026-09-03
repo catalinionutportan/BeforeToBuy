@@ -21,11 +21,18 @@ describe('Merchant Integrations', () => {
       "ch-digitec",
       "ch-fust",
       "ch-galaxus",
+      "ch-gigasport",
       "ch-interdiscount",
       "ch-mediamarkt",
       "ch-reifencom",
     ]);
-    const liveIds = new Set(["ch-acer", "ch-babywalz", "ch-belando", "ch-reifencom"]);
+    const liveIds = new Set([
+      "ch-acer",
+      "ch-babywalz",
+      "ch-belando",
+      "ch-gigasport",
+      "ch-reifencom",
+    ]);
     for (const id of liveIds) {
       const feed = chFeeds.find((item) => item.merchantId === id);
       expect(feed?.enabled).not.toBe(false);
@@ -35,6 +42,7 @@ describe('Merchant Integrations', () => {
     expect(chFeeds.find((f) => f.merchantId === "ch-reifencom")?.awinFeedId).toBe("24181");
     expect(chFeeds.find((f) => f.merchantId === "ch-belando")?.awinFeedId).toBe("93845");
     expect(chFeeds.find((f) => f.merchantId === "ch-acer")?.awinFeedId).toBe("57565");
+    expect(chFeeds.find((f) => f.merchantId === "ch-gigasport")?.awinFeedId).toBe("51705");
     expect(
       chFeeds.filter((feed) => !liveIds.has(feed.merchantId)).every((feed) => feed.enabled === false)
     ).toBe(true);
@@ -43,7 +51,7 @@ describe('Merchant Integrations', () => {
 
   it("enabled feed mode defaults to sample when env var is unset", () => {
     for (const feed of getEnabledMerchantFeeds()) {
-      expect(getFeedMode(feed)).toBe("sample");
+      if (feed.sampleFile) expect(getFeedMode(feed)).toBe("sample");
     }
   });
 
@@ -144,8 +152,12 @@ describe('Merchant Integrations', () => {
       const summary = getIntegrationSummary();
       expect(summary.merchants.length).toBe(enabled.length);
       expect(summary.hasFeedData).toBe(enabled.length > 0);
-      expect(summary.sampleFeeds.length).toBe(enabled.length);
-      expect(getMerchantFeedStatuses().every((merchant) => merchant.sampleAvailable)).toBe(true);
+      expect(summary.sampleFeeds.length).toBe(enabled.filter((feed) => feed.sampleFile).length);
+      expect(
+        getMerchantFeedStatuses()
+          .filter((merchant) => enabled.some((feed) => feed.merchantId === merchant.merchantId && feed.sampleFile))
+          .every((merchant) => merchant.sampleAvailable)
+      ).toBe(true);
       // RO 2Performant catalogues are offline-imported (Supabase), not request-path feeds.
       expect(summary.feedMerchantIds).not.toEqual(
         expect.arrayContaining(["ro-rowenta", "ro-scule365", "ro-evomag"])
@@ -160,12 +172,14 @@ describe('Merchant Integrations', () => {
           "ch-reifencom",
           "ch-belando",
           "ch-acer",
+          "ch-gigasport",
         ])
       );
       expect(summary.feedMerchantIds.filter((id) => id.startsWith("ch-")).sort()).toEqual([
         "ch-acer",
         "ch-babywalz",
         "ch-belando",
+        "ch-gigasport",
         "ch-reifencom",
       ]);
     } finally {

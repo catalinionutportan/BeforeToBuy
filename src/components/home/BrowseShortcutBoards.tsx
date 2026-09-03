@@ -9,6 +9,7 @@ import type { SiteLocale } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { productMatchesCategoryFilter } from "@/lib/categories";
 import { AUTO_COMPLETE_WHEELS_LEAF, isReifenHostedImage } from "@/lib/reifen-wheel-split";
+import { SAFE_IMAGE_FALLBACK } from "@/lib/feed-url-policy";
 import type { Product } from "@/types";
 
 interface BrowseShortcutBoardsProps {
@@ -16,14 +17,14 @@ interface BrowseShortcutBoardsProps {
   products: Product[];
   categoryCovers?: Record<string, string>;
   locale: SiteLocale;
-  onSelect: (categoryId: string) => void;
+  onSelect: (categoryId: string, domain?: string) => void;
 }
 
 function coverImageForCategory(
   products: Product[],
   categoryId: string,
   categoryCovers?: Record<string, string>
-): string | undefined {
+): string {
   const fromCatalog = categoryCovers?.[categoryId]?.trim();
   if (fromCatalog && (categoryId !== AUTO_COMPLETE_WHEELS_LEAF || isReifenHostedImage(fromCatalog))) {
     return fromCatalog;
@@ -34,11 +35,11 @@ function coverImageForCategory(
       productMatchesCategoryFilter(product, categoryId) &&
       (categoryId !== AUTO_COMPLETE_WHEELS_LEAF || isReifenHostedImage(product.image))
   )?.image;
-  return fromProducts;
+  return fromProducts || fromCatalog || SAFE_IMAGE_FALLBACK;
 }
 
 function boardTitle(board: VisibleShortcutBoard, locale: SiteLocale): string {
-  const ui = HOME_UI[locale];
+  const ui = HOME_UI[locale] ?? HOME_UI.en;
   return ui[board.titleKey] ?? board.titleKey;
 }
 
@@ -53,9 +54,9 @@ function ShortcutBoardCard({
   products: Product[];
   categoryCovers?: Record<string, string>;
   locale: SiteLocale;
-  onSelect: (categoryId: string) => void;
+  onSelect: (categoryId: string, domain?: string) => void;
 }) {
-  const ui = HOME_UI[locale];
+  const ui = HOME_UI[locale] ?? HOME_UI.en;
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-2 shadow-xs">
       <div className="mb-1.5 flex items-center justify-between gap-2">
@@ -64,7 +65,7 @@ function ShortcutBoardCard({
         </h3>
         <button
           type="button"
-          onClick={() => onSelect(board.hubId)}
+          onClick={() => onSelect(board.seeAllCategoryId ?? board.hubId, board.domain ?? "all")}
           className="text-[9px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-800"
         >
           {ui.shortcutSeeAll}
@@ -81,7 +82,7 @@ function ShortcutBoardCard({
             <button
               key={tile.categoryId}
               type="button"
-              onClick={() => onSelect(tile.categoryId)}
+              onClick={() => onSelect(tile.categoryId, board.domain ?? "all")}
               className={`group flex min-w-0 flex-col overflow-hidden rounded-lg bg-white text-left ring-1 ring-slate-200 transition hover:-translate-y-px hover:shadow-sm ${
                 featured ? "col-span-2" : ""
               }`}
@@ -97,7 +98,9 @@ function ShortcutBoardCard({
                   alt=""
                   loading="lazy"
                   decoding="async"
-                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = SAFE_IMAGE_FALLBACK;
+                  }}
                   className="h-full w-full object-contain object-center p-1.5 transition group-hover:scale-[1.04]"
                 />
               </div>
@@ -119,7 +122,7 @@ export function BrowseShortcutBoards({
   locale,
   onSelect,
 }: BrowseShortcutBoardsProps) {
-  const ui = HOME_UI[locale];
+  const ui = HOME_UI[locale] ?? HOME_UI.en;
   const boardsWithPhotos = boards
     .map((board) => ({
       ...board,

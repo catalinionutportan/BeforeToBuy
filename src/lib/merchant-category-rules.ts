@@ -15,8 +15,10 @@ export const MAPPING_MERCHANT_IDS = [
   "ch-fust",
   "ch-babywalz",
   "ch-reifencom",
+  "de-reifen",
   "ch-belando",
   "ch-acer",
+  "ch-gigasport",
   "ro-scule365",
   "ro-rowenta",
   "ro-evomag",
@@ -340,6 +342,15 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
         subcategoryId: "auto-tires-wheels",
       },
     ],
+  },
+  /** Reifen.de exposes three stable feed aisles; keep them out of generic title inference. */
+  "de-reifen": {
+    exact: exactRules({
+      tyres: "auto-tires-wheels",
+      wheels: "auto-rims",
+      "car accessories": "auto-oils-fluids",
+    }),
+    patterns: [],
   },
   /**
    * Belando CH — AWIN DE hair/beauty catalogue.
@@ -1010,6 +1021,79 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
   },
 
   /**
+   * Gigasport CH — AWIN DE sports catalogue. Feed rows have empty aisle
+   * labels; map from Damen/Herren/Kinder + product-type words in the title.
+   */
+  "ch-gigasport": {
+    exact: exactRules({
+      laufschuhe: "fashion-shoes-sport",
+      wanderschuhe: "fashion-shoes-sport",
+      sportschuhe: "fashion-shoes-sport",
+      sportswear: "fashion-men-activewear",
+      "sport & outdoor": "sport-fitness-equipment",
+    }),
+    patterns: [
+      {
+        patterns: /\b(fahrradhelm|velohelm|bike\s*helmet|fullface)\b/i,
+        subcategoryId: "mobility-accessories",
+      },
+      {
+        patterns:
+          /\b(fahrradschloss|fahrrad-?schloss|faltschloss|kettenschloss|rahmenschloss|spiralkabelschloss|fahrrad-?faltschloss)\b/i,
+        subcategoryId: "mobility-accessories",
+      },
+      {
+        patterns: /\b(e-?bike|pedelec|elektrofahrrad)\b/i,
+        subcategoryId: "mobility-ebikes",
+      },
+      {
+        patterns: /\b(fahrrad|mountainbike|citybike|trekkingrad|\bvelo\b)\b/i,
+        subcategoryId: "mobility-bicycles",
+      },
+      {
+        patterns:
+          /\b(kinder).{0,40}(laufschuhe|wanderschuhe|sportschuhe|trailschuhe)|(laufschuhe|wanderschuhe|sportschuhe|trailschuhe).{0,40}\bkinder\b/i,
+        subcategoryId: "fashion-shoes-kids-sport",
+      },
+      {
+        patterns:
+          /\b(damen).{0,40}(laufschuhe|wanderschuhe|sportschuhe|trailschuhe)|(laufschuhe|wanderschuhe|sportschuhe|trailschuhe).{0,40}\bdamen\b/i,
+        subcategoryId: "fashion-shoes-sport",
+      },
+      {
+        patterns:
+          /\b(herren).{0,40}(laufschuhe|wanderschuhe|sportschuhe|trailschuhe)|(laufschuhe|wanderschuhe|sportschuhe|trailschuhe).{0,40}\bherren\b/i,
+        subcategoryId: "fashion-shoes-men-sport",
+      },
+      {
+        patterns: /\b(laufschuhe|wanderschuhe|sportschuhe|trailschuhe)\b/i,
+        subcategoryId: "fashion-shoes-sport",
+      },
+      {
+        patterns: /\b(badeanzug|bikini)\b/i,
+        subcategoryId: "fashion-women-activewear",
+      },
+      {
+        patterns: /\bkinder\b/i,
+        subcategoryId: "fashion-kids",
+      },
+      {
+        patterns: /\bdamen\b/i,
+        subcategoryId: "fashion-women-activewear",
+      },
+      {
+        patterns: /\bherren\b/i,
+        subcategoryId: "fashion-men-activewear",
+      },
+      {
+        patterns:
+          /\b(hoodie|fleecejacke|funktionsshirt|jogginghose|wanderhose|sportswear)\b/i,
+        subcategoryId: "fashion-men-activewear",
+      },
+    ],
+  },
+
+  /**
    * Arlo Security UK — small AWIN smart-home security catalogue (GBP).
    * Feed aisles are "Security Equipment" / "Home Security".
    */
@@ -1142,6 +1226,8 @@ export function isBabywalzAllowedCategory(categoryId: string): boolean {
 /** Reifen.com must stay in tyre/auto leaves — tire codes like TV/TT/Shredder must not hit electronics. */
 export const REIFENCOM_ALLOWED_CATEGORY_IDS = new Set([
   "auto-tires-wheels",
+  "auto-rims",
+  "auto-motorcycle-tires",
   "auto-complete-wheels",
   "auto-interior-care",
   "auto-oils-fluids",
@@ -1194,6 +1280,35 @@ export function isAcerAllowedCategory(categoryId: string): boolean {
   return ACER_ALLOWED_CATEGORY_IDS.has(categoryId);
 }
 
+/** Gigasport CH stays in sport apparel, shoes, and bike leaves. */
+export const GIGASPORT_ALLOWED_CATEGORY_IDS = new Set([
+  "fashion-women-activewear",
+  "fashion-men-activewear",
+  "fashion-women-outerwear",
+  "fashion-men-outerwear",
+  "fashion-kids",
+  "fashion-kids-boys",
+  "fashion-kids-girls",
+  "fashion-shoes-sport",
+  "fashion-shoes-men-sport",
+  "fashion-shoes-kids-sport",
+  "fashion-shoes-sneakers",
+  "fashion-shoes-men-sneakers",
+  "fashion-socks",
+  "fashion-accessories",
+  "fashion-bags",
+  "fashion-underwear",
+  "mobility-bicycles",
+  "mobility-ebikes",
+  "mobility-accessories",
+  "sport-fitness-equipment",
+  "sport-electronics",
+]);
+
+export function isGigasportAllowedCategory(categoryId: string): boolean {
+  return GIGASPORT_ALLOWED_CATEGORY_IDS.has(categoryId);
+}
+
 /**
  * Last-resort leaf when a merchant catalogue is specialised but feed rows
  * lack category labels and keyword inference failed.
@@ -1205,8 +1320,10 @@ export function getMerchantDefaultCategory(merchantId: string | undefined): stri
   if (merchantId === "gb-arlo") return "smart-home-security";
   if (merchantId === "ch-babywalz") return "fashion-kids-baby";
   if (merchantId === "ch-reifencom") return "auto-tires-wheels";
+  if (merchantId === "de-reifen") return "auto-tires-wheels";
   if (merchantId === "ch-belando") return "fashion-beauty-hair-care";
   if (merchantId === "ch-acer") return "notebooks-laptops";
+  if (merchantId === "ch-gigasport") return "fashion-men-activewear";
   return null;
 }
 

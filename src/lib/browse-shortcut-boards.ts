@@ -1,5 +1,5 @@
 import { MARKET_HUB_LEAF_GROUPS, marketHubOrderForCountry } from "@/lib/market-hubs";
-import { resolveCategoryAlias } from "@/lib/categories";
+import { ALL_CATEGORIES_ID, resolveCategoryAlias } from "@/lib/categories";
 import type { CountryCode } from "@/types";
 
 export type ShortcutBoardId =
@@ -9,7 +9,8 @@ export type ShortcutBoardId =
   | "home"
   | "diy"
   | "auto"
-  | "fashion";
+  | "fashion"
+  | "sport";
 
 export type ShortcutBoardTitleKey =
   | "hubElectronics"
@@ -18,7 +19,8 @@ export type ShortcutBoardTitleKey =
   | "hubAuto"
   | "hubFashion"
   | "shortcutBoardBaby"
-  | "shortcutBoardBeauty";
+  | "shortcutBoardBeauty"
+  | "shortcutBoardSport";
 
 export interface ShortcutBoardDefinition {
   id: ShortcutBoardId;
@@ -29,6 +31,10 @@ export interface ShortcutBoardDefinition {
   featured?: boolean;
   /** Top up tiles from other occupied leaves in the same hub. */
   fillFromHub?: boolean;
+  /** Pin the store filter so the aisle opens this merchant's catalogue. */
+  domain?: string;
+  /** "See all" target. Defaults to hubId. */
+  seeAllCategoryId?: string;
 }
 
 export interface VisibleShortcutTile {
@@ -42,6 +48,8 @@ export interface VisibleShortcutBoard {
   titleKey: ShortcutBoardTitleKey;
   featured: boolean;
   tiles: VisibleShortcutTile[];
+  domain?: string;
+  seeAllCategoryId?: string;
 }
 
 const MAX_BOARDS = 6;
@@ -69,6 +77,8 @@ const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
     titleKey: "hubAuto",
     tileIds: [
       "auto-tires-wheels",
+      "auto-rims",
+      "auto-motorcycle-tires",
       "auto-complete-wheels",
       "auto-batteries",
       "auto-oils-fluids",
@@ -105,21 +115,38 @@ const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
     ],
     fillFromHub: false,
   },
+  {
+    // Gigasport CH — three sport tiles; See all opens the store filter.
+    id: "sport",
+    hubId: "hub-fashion",
+    titleKey: "shortcutBoardSport",
+    tileIds: [
+      "fashion-women-activewear",
+      "fashion-shoes-sport",
+      "mobility-accessories",
+    ],
+    featured: true,
+    fillFromHub: false,
+    domain: "gigasport.ch",
+    seeAllCategoryId: ALL_CATEGORIES_ID,
+  },
 ];
 
 const RO_BOARDS: readonly ShortcutBoardDefinition[] = [
   {
-    id: "home",
-    hubId: "hub-home",
-    titleKey: "hubHome",
+    id: "electronics",
+    hubId: "hub-electronics",
+    titleKey: "hubElectronics",
     tileIds: [
-      "cleaning-vacuums",
-      "cleaning-stick-vacuums",
-      "cleaning-robots",
-      "care-hair-styling",
-      "laundry-ironing-sewing",
-      "climate-heating",
+      "notebooks-laptops",
+      "notebooks-monitors",
+      "notebooks-desktops",
+      "tv-projectors",
+      "peripherals-accessories",
+      "pc-ram-ssd",
+      "photo-video-cameras",
     ],
+    featured: true,
     fillFromHub: true,
   },
   {
@@ -129,10 +156,24 @@ const RO_BOARDS: readonly ShortcutBoardDefinition[] = [
     tileIds: [
       "diy-power-tools",
       "diy-hand-tools",
-      "diy-electrical",
-      "diy-sanders",
+      "diy-welding-soldering",
+      "diy-fasteners-consumables",
       "diy-batteries-chargers",
       "diy-measuring",
+    ],
+    fillFromHub: true,
+  },
+  {
+    id: "home",
+    hubId: "hub-home",
+    titleKey: "hubHome",
+    tileIds: [
+      "cleaning-stick-vacuums",
+      "cleaning-vacuums",
+      "care-hair-styling",
+      "care-shaving-hair-removal",
+      "cleaning-robots",
+      "cleaning-accessories",
     ],
     fillFromHub: true,
   },
@@ -202,8 +243,11 @@ function resolveBoard(
   if (definition.fillFromHub !== false) {
     tiles = fillFromHubLeaves(definition.hubId, categoryCounts, tiles);
   }
-  if (categoryCovers) {
-    tiles = tiles.filter((tile) => Boolean(categoryCovers[tile.categoryId]));
+  if (categoryCovers && Object.keys(categoryCovers).length > 0) {
+    const withCover = tiles.filter((tile) => Boolean(categoryCovers[tile.categoryId]));
+    if (withCover.length > 0) {
+      tiles = withCover;
+    }
   }
   if (tiles.length === 0) return null;
   return {
@@ -212,6 +256,8 @@ function resolveBoard(
     titleKey: definition.titleKey,
     featured: Boolean(definition.featured),
     tiles,
+    domain: definition.domain,
+    seeAllCategoryId: definition.seeAllCategoryId,
   };
 }
 
@@ -227,11 +273,34 @@ function genericBoardsForCountry(countryCode: CountryCode): ShortcutBoardDefinit
     }));
 }
 
+const DE_BOARDS: readonly ShortcutBoardDefinition[] = [
+  {
+    id: "auto",
+    hubId: "hub-auto",
+    titleKey: "hubAuto",
+    tileIds: [
+      "auto-tires-wheels",
+      "auto-rims",
+      "auto-motorcycle-tires",
+      "auto-complete-wheels",
+      "auto-batteries",
+      "auto-oils-fluids",
+      "auto-lighting",
+      "auto-filters-brakes",
+      "auto-interior-care",
+      "auto-tools-chargers",
+    ],
+    featured: true,
+    fillFromHub: true,
+  },
+];
+
 export function shortcutBoardDefinitionsForCountry(
   countryCode: CountryCode
 ): readonly ShortcutBoardDefinition[] {
   if (countryCode === "CH") return CH_BOARDS;
   if (countryCode === "RO") return RO_BOARDS;
+  if (countryCode === "DE") return DE_BOARDS;
   return genericBoardsForCountry(countryCode);
 }
 

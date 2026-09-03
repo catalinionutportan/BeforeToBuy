@@ -364,6 +364,19 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Acer Switzerland store — notebooks, desktops, monitors, and projectors. Live AWIN CHF product feed with affiliate deep links.",
   },
+  {
+    id: "ch-gigasport",
+    name: "Gigasport CH",
+    domain: "gigasport.ch",
+    websiteUrl: AFFILIATE_LINKS.gigasportAwin,
+    countryCode: "CH",
+    affiliateNetwork: "AWIN Switzerland",
+    category: "Sport & Outdoor",
+    status: "Live Feed",
+    badge: "AWIN + product feed 🇨🇭",
+    description:
+      "Swiss sports retailer (Gigasport). Live AWIN CHF product feed with affiliate deep links for apparel, shoes, and bike accessories.",
+  },
   // --- Romania (RO) ---
   {
     id: "ro-rowenta",
@@ -390,6 +403,19 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     badge: "2Performant + product feed 🇷🇴",
     description:
       "Romanian tools and DIY retailer. Live 2Performant product feed with affiliate deep links; categories from title patterns.",
+  },
+  {
+    id: "ro-aqualine",
+    name: "Aqualine.ro",
+    domain: "aqualine.ro",
+    websiteUrl: "https://www.aqualine.ro",
+    countryCode: "RO",
+    affiliateNetwork: "2Performant Romania",
+    category: "Water Treatment & Filtration",
+    status: "Live Feed",
+    badge: "2Performant + product feed 🇷🇴",
+    description:
+      "Aqualine Romania — water softeners, filtration, purifiers and pumps. Live 2Performant product feed with affiliate deep links.",
   },
   // --- United Kingdom (GB) ---
   {
@@ -445,6 +471,20 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Ottocast wireless CarPlay / Android Auto adapters and AI boxes. Live AWIN USD product feed with affiliate deep links.",
   },
+  // --- Germany (DE) ---
+  {
+    id: "de-reifen",
+    name: "Reifen.de",
+    domain: "reifen.de",
+    websiteUrl: "https://www.reifen.de",
+    countryCode: "DE",
+    affiliateNetwork: "AWIN Germany",
+    category: "Tires & Wheels",
+    status: "Live Feed",
+    badge: "AWIN + product feed 🇩🇪",
+    description:
+      "German tyre and wheel marketplace (Reifen.de). Live AWIN EUR product feed with affiliate deep links for tyres, rims, and complete wheels.",
+  },
 ];
 
 export const COUNTRIES: Record<CountryCode, CountryInfo> = {
@@ -455,10 +495,10 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     flag: "🇨🇭",
     currency: "CHF",
     currencySymbol: "CHF ",
-    supportedStores: ["baby-walz.ch", "belando.ch", "reifen.com", "store.acer.com"],
+    supportedStores: ["baby-walz.ch", "belando.ch", "reifen.com", "store.acer.com", "gigasport.ch"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "CH"),
     affiliateNetworks: [
-      "AWIN Switzerland (baby-walz + Belando + Reifen.com + Acer) — live product feeds + homepage affiliates",
+      "AWIN Switzerland (baby-walz + Belando + Reifen.com + Acer + Gigasport) — live product feeds + homepage affiliates",
     ],
   },
   DE: {
@@ -468,9 +508,11 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     flag: "🇩🇪",
     currency: "EUR",
     currencySymbol: "€",
-    supportedStores: [],
+    supportedStores: ["reifen.de"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "DE"),
-    affiliateNetworks: [],
+    affiliateNetworks: [
+      "AWIN Germany (Reifen.de) — live product feed + affiliate deep links",
+    ],
   },
   FR: {
     code: "FR",
@@ -490,10 +532,10 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     flag: "🇷🇴",
     currency: "RON",
     currencySymbol: "lei ",
-    supportedStores: ["rowenta.ro", "scule365.ro"],
+    supportedStores: ["rowenta.ro", "scule365.ro", "aqualine.ro"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "RO"),
     affiliateNetworks: [
-      "2Performant Romania — live: Rowenta.ro + Scule365.ro",
+      "2Performant Romania — live: Rowenta.ro + Scule365.ro + Aqualine.ro",
       "Additional RO merchants — specialty feeds one-by-one when ready",
     ],
   },
@@ -528,3 +570,20 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
  * Company/legal address stays Switzerland in company-info — this is catalogue default only.
  */
 export const DEFAULT_COUNTRY: CountryCode = "RO";
+
+/** Markets in the country picker. France is retired (no feed, no FR legal pack). */
+export const PUBLIC_BROWSE_COUNTRY_CODES: readonly CountryCode[] = [
+  "CH",
+  "DE",
+  "RO",
+  "GB",
+  "US",
+];
+
+export function isPublicBrowseCountry(
+  code: string | null | undefined
+): code is CountryCode {
+  return Boolean(
+    code && (PUBLIC_BROWSE_COUNTRY_CODES as readonly string[]).includes(code)
+  );
+}

@@ -246,6 +246,13 @@ const PROCESSOR_PURPOSES: Record<ProcessorRecord["id"], Record<SiteLocale, strin
     it: "Import catalogo lato server per Acer CH",
     ro: "Import catalog server-side pentru Acer CH",
   },
+  "feed-gigasport-awin": {
+    en: "Server-side catalogue import for Gigasport CH",
+    de: "Serverseitiger Katalogimport für Gigasport CH",
+    fr: "Import catalogue côté serveur pour Gigasport CH",
+    it: "Import catalogo lato server per Gigasport CH",
+    ro: "Import catalog server-side pentru Gigasport CH",
+  },
   "feed-evomag-2p": {
     en: "Soft-paused server-side catalogue import for evoMAG",
     de: "Soft-pausierter serverseitiger Katalogimport für evoMAG",

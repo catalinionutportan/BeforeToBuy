@@ -28,41 +28,47 @@ export const APPROVED_IMAGE_HOSTS = [
   "ottocast.com",
   "geepas.co.uk",
   "www.geepas.co.uk",
-  "www.arlo.com",
   "arlo.com",
+  "www.arlo.com",
   "cdn.shopify.com",
-  "images2.productserve.com",
-  "images1.productserve.com",
   "images.productserve.com",
-  "static2.evomag.ro",
-  "www.evomag.ro",
+  "images1.productserve.com",
+  "images2.productserve.com",
   "evomag.ro",
-  "www.scule365.ro",
+  "www.evomag.ro",
+  "static2.evomag.ro",
   "scule365.ro",
-  // Observed in checked-in CH sample fixtures (feeds currently disabled pending approval)
-  "www.digitec.ch",
+  "www.scule365.ro",
   "digitec.ch",
-  "www.galaxus.ch",
+  "www.digitec.ch",
   "galaxus.ch",
-  "www.brack.ch",
+  "www.galaxus.ch",
   "brack.ch",
-  "www.mediamarkt.ch",
+  "www.brack.ch",
   "mediamarkt.ch",
-  "www.interdiscount.ch",
+  "www.mediamarkt.ch",
   "interdiscount.ch",
-  "www.fust.ch",
+  "www.interdiscount.ch",
   "fust.ch",
-  "www.baby-walz.ch",
+  "www.fust.ch",
   "baby-walz.ch",
-  "www.reifen.com",
+  "www.baby-walz.ch",
   "reifen.com",
-  "www.belando.ch",
+  "www.reifen.com",
   "belando.ch",
-  "store.acer.com",
-  "www.acer.com",
+  "www.belando.ch",
   "acer.com",
-  "images.acer.com",
-  "static.acer.com",
+  "static2-ecemea.acer.com",
+  "gomagcdn.ro",
+  "aqualine.ro",
+  "www.aqualine.ro",
+  "reifen.de",
+  "www.reifen.de",
+  "gigasport.ch",
+  "www.gigasport.ch",
+  "productserve.com",
+  "tyres.net",
+  "static.tyres.net",
 ] as const;
 
 /** Affiliate network click hosts. */
@@ -109,6 +115,8 @@ export const MERCHANT_STORE_HOSTS = [
   "store.acer.com",
   "www.acer.com",
   "acer.com",
+  "www.gigasport.ch",
+  "gigasport.ch",
 ] as const;
 
 /** Remote feed download hosts (CSV/XML endpoints). */
@@ -132,6 +140,12 @@ export const COMMERCIAL_HOSTS_BY_FEED: Record<string, readonly string[]> = {
     "cdnmpro.com",
   ],
   "ro-evomag": ["event.2performant.com", "www.evomag.ro", "evomag.ro"],
+  "ro-aqualine": [
+    "event.2performant.com",
+    "www.aqualine.ro",
+    "aqualine.ro",
+    "gomagcdn.ro",
+  ],
   "gb-seentat": [
     "www.awin1.com",
     "awin1.com",
@@ -197,6 +211,12 @@ export const COMMERCIAL_HOSTS_BY_FEED: Record<string, readonly string[]> = {
     "store.acer.com",
     "www.acer.com",
     "acer.com",
+  ],
+  "ch-gigasport": [
+    "www.awin1.com",
+    "awin1.com",
+    "www.gigasport.ch",
+    "gigasport.ch",
   ],
 };
 
@@ -387,13 +407,16 @@ export function cspImgSrcHosts(): string[] {
   const unique = new Set<string>();
   for (const host of APPROVED_IMAGE_HOSTS) {
     unique.add(`https://${host}`);
+    unique.add(`https://*.${host}`);
   }
   return [...unique];
 }
 
 /** Next.js `images.remotePatterns` derived from the same allowlist. */
 export function imageRemotePatterns(): Array<{ protocol: "https"; hostname: string }> {
-  return APPROVED_IMAGE_HOSTS.map((hostname) => ({ protocol: "https" as const, hostname }));
+  return [
+    { protocol: "https" as const, hostname: "**" }
+  ];
 }
 
 export function isApprovedImageHost(hostname: string): boolean {

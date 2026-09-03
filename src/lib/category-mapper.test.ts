@@ -41,7 +41,7 @@ const BRACK_SAMPLE_ROWS = [
 describe('Category Mapper Functions', () => {
   it("merchant category rules validate without conflicts", () => {
     expect(validateMerchantCategoryRules()).toEqual([]);
-    expect(MAPPING_MERCHANT_IDS.length).toBe(17);
+    expect(MAPPING_MERCHANT_IDS.length).toBe(19);
   });
 
   it("Brack sample feed rows map with merchant-exact rules", () => {
@@ -312,6 +312,30 @@ describe('Category Mapper Functions', () => {
     ).toBe("auto-tires-wheels");
   });
 
+  it("Reifen.de maps its feed aisles to tyres, rims and oils", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "de-reifen",
+        merchantCategory: "tyres",
+        title: "AllSeasonContact",
+      })
+    ).toBe("auto-tires-wheels");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "de-reifen",
+        merchantCategory: "Wheels",
+        title: "SUPERTURISMO GT",
+      })
+    ).toBe("auto-rims");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "de-reifen",
+        merchantCategory: "Car Accessories",
+        title: "SUPER 3000 XE 5W-30",
+      })
+    ).toBe("auto-oils-fluids");
+  });
+
   it("Belando maps haircare aisles and keeps brand folders in beauty", () => {
     expect(
       mapToBeforeToBuyCategory({
@@ -417,6 +441,39 @@ describe('Category Mapper Functions', () => {
         title: "Acer höhenverstellbarer Schreibtisch",
       })
     ).toBe("office-home");
+  });
+
+  it("Gigasport CH maps apparel, running shoes and bike locks from titles", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-gigasport",
+        title: "adidas Sportswear Hoodie Damen schwarz",
+      })
+    ).toBe("fashion-women-activewear");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-gigasport",
+        title: "ASICS Gel-Pulse 15 Laufschuhe Herren",
+      })
+    ).toBe("fashion-shoes-men-sport");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-gigasport",
+        title: "ABUS Fahrrad-Faltschloss BORDO 6000K/90 schwarz",
+      })
+    ).toBe("mobility-accessories");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-gigasport",
+        title: "Brooks Ghost 16 Laufschuhe Kinder",
+      })
+    ).toBe("fashion-shoes-kids-sport");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-gigasport",
+        title: "Samsung Galaxy S24 Ultra 256GB",
+      })
+    ).toBe("fashion-men-activewear");
   });
 
   it("baby-walz keeps strollers/clothes out of electronics", () => {

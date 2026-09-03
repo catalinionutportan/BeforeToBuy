@@ -219,7 +219,7 @@ describe('Category and Collection Logic', () => {
       ALL_MERCHANT_DOMAINS.filter((m) => m.countryCode === "CH")
         .map((m) => m.id)
         .sort()
-    ).toEqual(["ch-acer", "ch-babywalz", "ch-belando", "ch-reifencom"]);
+    ).toEqual(["ch-acer", "ch-babywalz", "ch-belando", "ch-gigasport", "ch-reifencom"]);
 
     const pendingIds = new Set(CH_MERCHANTS_PENDING_APPROVAL.map((m) => m.id));
     expect(pendingIds.has("ch-babywalz")).toBeFalsy();
@@ -237,10 +237,13 @@ describe('Category and Collection Logic', () => {
       "ch-acer",
       "ch-babywalz",
       "ch-belando",
+      "ch-gigasport",
       "ch-reifencom",
+      "de-reifen",
       "gb-arlo",
       "gb-geepas",
       "gb-seentat",
+      "ro-aqualine",
       "ro-rowenta",
       "ro-scule365",
       "us-ottocast",

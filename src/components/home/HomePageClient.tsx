@@ -662,12 +662,13 @@ export default function HomePageClient({
   );
 
   const handleCategoryChange = useCallback(
-    (categoryId: string) => {
+    (categoryId: string, domain?: string) => {
       const next = resolveOccupiedBrowseCategory(
         categoryId,
         inventoryCounts,
         marketProductCount
       );
+      const nextDomain = domain === undefined ? selectedDomain : domain || "all";
       const cachedAisle = getSessionBrowsePage(
         userLocation.countryCode,
         browseLocale,
@@ -677,8 +678,9 @@ export default function HomePageClient({
         setProducts(cachedAisle.products);
         setCatalogMeta(cachedAisle.meta);
       }
+      if (nextDomain !== selectedDomain) setSelectedDomain(nextDomain);
       setSelectedCategory(next);
-      syncBrowseUrl(next, selectedDomain, offerFilters);
+      syncBrowseUrl(next, nextDomain, offerFilters);
       // Stay at the top of browse results after filtering (do not keep footer scroll).
       if (typeof window !== "undefined") {
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });

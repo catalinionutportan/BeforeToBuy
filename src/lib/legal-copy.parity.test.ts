@@ -34,6 +34,7 @@ const MERCHANT_FEED_IDS = [
   "feed-reifencom-awin",
   "feed-belando-awin",
   "feed-acer-awin",
+  "feed-gigasport-awin",
   "feed-evomag-2p",
 ];
 
