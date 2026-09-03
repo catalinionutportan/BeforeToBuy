@@ -13,13 +13,22 @@ export const PREFETCH_BROWSE_MARKETS: CountryCode[] = ["CH", "RO", "GB", "US", "
 /** Homepage listens so the category flyout does not remount the page. */
 export const BROWSE_CATEGORY_EVENT = "btb-browse-category";
 
-const STORAGE_PREFIX = "btb-browse-page:v5:";
+const STORAGE_PREFIX = "btb-browse-page:v6:";
 const STORAGE_TTL_MS = 15 * 60 * 1000;
 
 export type SessionBrowsePage = {
   products: Product[];
   meta: ProductFetchMeta;
 };
+
+/** Reject the Acer-sized page that was saved after Redis died (no aisle counts). */
+export function isUsableAllBrowsePage(page: SessionBrowsePage | null | undefined): boolean {
+  if (!page?.products?.length || !page.meta) return false;
+  const counts = page.meta.categoryCounts;
+  if (!counts || Object.keys(counts).length === 0) return false;
+  const matched = Number(page.meta.totalMatched ?? 0);
+  return matched > page.products.length;
+}
 
 type PersistedBrowsePage = {
   savedAt: number;
@@ -73,10 +82,25 @@ export function getSessionBrowsePage(
   category?: string | null
 ): SessionBrowsePage | null {
   const key = sessionKey(countryCode, category);
+  const allAisle = sessionCategoryKey(category) === "_all";
   const local = sessionPages.get(key);
-  if (local?.products?.length) return local;
+  if (local?.products?.length) {
+    if (allAisle && !isUsableAllBrowsePage(local)) {
+      sessionPages.delete(key);
+    } else {
+      return local;
+    }
+  }
   const persisted = readPersistedPage(key);
   if (persisted?.products?.length) {
+    if (sessionCategoryKey(category) === "_all" && !isUsableAllBrowsePage(persisted)) {
+      try {
+        window.localStorage.removeItem(STORAGE_PREFIX + key);
+      } catch {
+        /* ignore */
+      }
+      return null;
+    }
     sessionPages.set(key, persisted);
     return persisted;
   }
@@ -137,7 +161,10 @@ export function ensureBrowseCatalog(
   category?: string | null
 ): Promise<SessionBrowsePage | null> {
   const cached = getSessionBrowsePage(countryCode, locale, category);
-  if (cached?.products?.length) return Promise.resolve(cached);
+  const allAisle = sessionCategoryKey(category) === "_all";
+  if (cached?.products?.length && (!allAisle || isUsableAllBrowsePage(cached))) {
+    return Promise.resolve(cached);
+  }
   if (typeof window === "undefined") return Promise.resolve(null);
 
   const key = sessionKey(countryCode, category);

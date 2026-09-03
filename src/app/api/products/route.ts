@@ -14,7 +14,13 @@ import {
   type CachedBrowseMeta,
   type CachedFirstBrowsePage,
 } from "@/lib/catalog-browse-cache";
-import { countInStockProductsForCountry, warmBrowseMetaForCountry } from "@/lib/db-service";
+import {
+  countInStockProductsForCountry,
+  getCategoryCountsFromDb,
+  getCategoryCoverImagesFromDb,
+  warmBrowseMetaForCountry,
+} from "@/lib/db-service";
+import { isRedisConfigured } from "@/lib/redis";
 import {
   clampProductListLimit,
   DEFAULT_PRODUCT_LIST_LIMIT,
@@ -47,12 +53,17 @@ const VALID_COUNTRIES = new Set<CountryCode>(Object.keys(COUNTRIES) as CountryCo
 const DEFERRED_META_COUNTRIES = new Set<CountryCode>(["CH", "DE"]);
 
 function scheduleBrowseMetaWarm(countryCode: CountryCode): void {
-  if (!DEFERRED_META_COUNTRIES.has(countryCode)) return;
+  if (!DEFERRED_META_COUNTRIES.has(countryCode) || !isRedisConfigured()) return;
   after(async () => {
     await warmBrowseMetaForCountry(countryCode).catch((error) => {
       console.error(`[products] ${countryCode} browse-meta warm failed:`, error);
     });
   });
+}
+
+function pageHasAisleCounts(page: CachedFirstBrowsePage): boolean {
+  const meta = page.meta as ProductFetchMeta | undefined;
+  return Boolean(meta?.categoryCounts && Object.keys(meta.categoryCounts).length > 0);
 }
 
 function withFreshBrowseMeta(
@@ -181,15 +192,46 @@ export async function GET(request: Request) {
           ? await getCachedBrowseMeta(countryCode)
           : null;
         if (DEFERRED_META_COUNTRIES.has(countryCode) && !cachedMeta) {
-          scheduleBrowseMetaWarm(countryCode);
-          const countryProductCount = await countInStockProductsForCountry(countryCode);
-          cachedMeta = {
-            categoryCounts: {},
-            leafCounts: {},
-            categoryCovers: {},
-            countryProductCount,
-            brandOptions: [],
-          };
+          const pageMeta = cachedPage.meta as ProductFetchMeta | undefined;
+          if (isRedisConfigured()) {
+            scheduleBrowseMetaWarm(countryCode);
+            const countryProductCount = await countInStockProductsForCountry(countryCode);
+            cachedMeta = {
+              categoryCounts: {},
+              leafCounts: {},
+              categoryCovers: {},
+              countryProductCount,
+              brandOptions: [],
+            };
+          } else if (pageHasAisleCounts(cachedPage) && pageMeta) {
+            const savedTotal = Number(
+              pageMeta.countryProductCount ?? pageMeta.totalMatched ?? 0
+            );
+            const countryProductCount =
+              savedTotal > cachedPage.products.length
+                ? savedTotal
+                : await countInStockProductsForCountry(countryCode);
+            cachedMeta = {
+              categoryCounts: pageMeta.categoryCounts ?? {},
+              leafCounts: pageMeta.leafCounts ?? {},
+              categoryCovers: pageMeta.categoryCovers ?? {},
+              countryProductCount,
+              brandOptions: pageMeta.brandOptions ?? [],
+            };
+          } else {
+            const [countryProductCount, countMaps, categoryCovers] = await Promise.all([
+              countInStockProductsForCountry(countryCode),
+              getCategoryCountsFromDb(countryCode),
+              getCategoryCoverImagesFromDb(countryCode),
+            ]);
+            cachedMeta = {
+              categoryCounts: countMaps.categoryCounts,
+              leafCounts: countMaps.leafCounts,
+              categoryCovers,
+              countryProductCount,
+              brandOptions: [],
+            };
+          }
         }
         const responsePage = cachedMeta
           ? withFreshBrowseMeta(cachedPage, cachedMeta, limit, category)
@@ -220,7 +262,7 @@ export async function GET(request: Request) {
         category
       );
     }
-    if (DEFERRED_META_COUNTRIES.has(countryCode)) {
+    if (DEFERRED_META_COUNTRIES.has(countryCode) && isRedisConfigured()) {
       const cachedMeta = await getCachedBrowseMeta(countryCode);
       if (!cachedMeta) scheduleBrowseMetaWarm(countryCode);
     }

@@ -35,17 +35,22 @@ import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import { applyOfferFilters, hasActiveOfferFilters, parseOfferFiltersFromSearchParams, writeOfferFiltersToParams, writeOfferFiltersToSearchParams, type OfferFilterCriteria } from "@/lib/offers/offer-filters";
 import { sortProductsForBrowse, type SortOption } from "@/lib/browse-product-order";
 import {
+  clearBrowseScrollY,
   pinBrowseScrollY,
   readBrowseScrollY,
   subscribeBrowseScrollRestored,
   visibleCountForBrowseScroll,
 } from "@/lib/browse-scroll";
-import { DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
+import {
+  BROWSE_API_VERSION,
+  DEFAULT_PRODUCT_LIST_LIMIT,
+} from "@/lib/product-list-options";
 import {
   BROWSE_CATEGORY_EVENT,
   ensureBrowseCatalog,
   getSessionBrowsePage,
-  prefetchOtherBrowseMarkets,
+  isUsableAllBrowsePage,
+  prefetchBrowseCatalog,
   setSessionBrowsePage,
 } from "@/lib/prefetch-browse-catalog";
 import { useUserLocation } from "@/hooks/useUserLocation";
@@ -112,11 +117,12 @@ export default function HomePageClient({
     setLocale: setBrowseLocale,
     availableLocales,
   } = useBrowseLocale(userLocation.countryCode);
-  const categoryUi = CATEGORY_UI[browseLocale];
-  const homeUi = HOME_UI[browseLocale];
+  const categoryUi = CATEGORY_UI[browseLocale] ?? CATEGORY_UI.ro ?? CATEGORY_UI.en;
+  const homeUi = HOME_UI[browseLocale] ?? HOME_UI.ro ?? HOME_UI.en;
 
   useEffect(() => {
     if (initialProducts.length === 0 || !initialMeta) return;
+    if (!isUsableAllBrowsePage({ products: initialProducts, meta: initialMeta })) return;
     setSessionBrowsePage(initialCountry, browseLocale, {
       products: initialProducts,
       meta: initialMeta,
@@ -334,7 +340,7 @@ export default function HomePageClient({
       browseCategory === ALL_CATEGORIES_ID &&
       !hasActiveOfferFilters(activeOfferFilters) &&
       sortOrder === "default" &&
-      initialMeta !== null;
+      isUsableAllBrowsePage({ products: initialProducts, meta: initialMeta });
 
     if (matchesServerCatalog) {
       skippedInitialCatalogRequest.current = true;
@@ -367,7 +373,9 @@ export default function HomePageClient({
       const sessionPage = cacheableAisle
         ? getSessionBrowsePage(requestCountry, browseLocale, browseCategory)
         : null;
-      if (sessionPage) {
+      const sessionIsComplete =
+        browseCategory !== ALL_CATEGORIES_ID || isUsableAllBrowsePage(sessionPage);
+      if (sessionPage?.products?.length && sessionIsComplete) {
         setProducts(sessionPage.products);
         setCatalogMeta(sessionPage.meta);
         setIsLoadingProducts(false);
@@ -375,8 +383,8 @@ export default function HomePageClient({
 
       // Never blank the grid — a white skeleton between countries/aisles is worse
       // than briefly keeping the previous products on screen.
-      const keepGridVisible = Boolean(sessionPage) || products.length > 0;
-      if (!sessionPage && !keepGridVisible) {
+      const keepGridVisible = Boolean(sessionPage?.products?.length) || products.length > 0;
+      if (!sessionPage?.products?.length && !keepGridVisible) {
         setIsLoadingProducts(false);
       }
 
@@ -388,7 +396,7 @@ export default function HomePageClient({
             browseCategory === ALL_CATEGORIES_ID ? undefined : browseCategory
           );
           if (controller.signal.aborted) return;
-          if (shared) {
+          if (shared?.products?.length) {
             setProducts(shared.products);
             setCatalogMeta(shared.meta);
             setProductFetchFailed(false);
@@ -402,6 +410,7 @@ export default function HomePageClient({
           locale: browseLocale,
           limit: String(DEFAULT_PRODUCT_LIST_LIMIT),
           offset: "0",
+          v: BROWSE_API_VERSION,
         });
 
         if (debouncedSearchQuery.trim()) {
@@ -515,19 +524,23 @@ export default function HomePageClient({
     setCoupons,
   ]);
 
-  useEffect(() => {
-    prefetchOtherBrowseMarkets(userLocation.countryCode, browseLocale);
-  }, [browseLocale, userLocation.countryCode]);
-
   const changeCountry = useCallback(
     (countryCode: CountryCode) => {
       const cached = getSessionBrowsePage(countryCode, browseLocale);
+      // A market switch starts at its shortcut boards. Keeping the previous
+      // catalogue scroll makes CH appear to open directly inside Acer products.
+      clearBrowseScrollY();
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       setVisibleCount(12);
       setProductFetchFailed(false);
       setSelectedCategory(ALL_CATEGORIES_ID);
       if (cached) {
         setProducts(cached.products);
         setCatalogMeta(cached.meta);
+      } else {
+        // Start only the market the visitor selected. Prefetching every country
+        // at once overloads the catalogue database and delays the real switch.
+        prefetchBrowseCatalog(countryCode, browseLocale);
       }
       setIsLoadingProducts(false);
       handleCountryChange(countryCode);
@@ -554,6 +567,7 @@ export default function HomePageClient({
           locale: browseLocale,
           limit: String(DEFAULT_PRODUCT_LIST_LIMIT),
           offset: String(nextOffset),
+          v: BROWSE_API_VERSION,
         });
         if (debouncedSearchQuery.trim()) {
           params.set("q", debouncedSearchQuery.trim());
