@@ -1,16 +1,19 @@
 import { ALL_CATEGORIES_ID } from "@/lib/categories";
-import { DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
+import {
+  BROWSE_API_VERSION,
+  DEFAULT_PRODUCT_LIST_LIMIT,
+} from "@/lib/product-list-options";
 import type { ProductFetchMeta } from "@/lib/product-service";
 import type { SiteLocale } from "@/lib/i18n/locales";
 import type { CountryCode, Product } from "@/types";
 
 /** Markets with a real catalogue — keep first pages warm in this tab. */
-export const PREFETCH_BROWSE_MARKETS: CountryCode[] = ["CH", "RO", "GB", "US"];
+export const PREFETCH_BROWSE_MARKETS: CountryCode[] = ["CH", "RO", "GB", "US", "DE"];
 
 /** Homepage listens so the category flyout does not remount the page. */
 export const BROWSE_CATEGORY_EVENT = "btb-browse-category";
 
-const STORAGE_PREFIX = "btb-browse-page:v2:";
+const STORAGE_PREFIX = "btb-browse-page:v5:";
 const STORAGE_TTL_MS = 15 * 60 * 1000;
 
 export type SessionBrowsePage = {
@@ -28,8 +31,7 @@ const inflightPages = new Map<string, Promise<SessionBrowsePage | null>>();
 
 function sessionCategoryKey(category?: string | null): string {
   const trimmed = category?.trim();
-  if (!trimmed || trimmed === ALL_CATEGORIES_ID) return "_all";
-  return trimmed;
+  return trimmed ? trimmed : "_all";
 }
 
 function sessionKey(countryCode: CountryCode, category?: string | null): string {
@@ -42,7 +44,9 @@ function readPersistedPage(key: string): SessionBrowsePage | null {
     const raw = window.localStorage.getItem(STORAGE_PREFIX + key);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedBrowsePage;
-    if (!parsed?.page?.products?.length || !parsed.page.meta) return null;
+    if (!parsed?.page?.products?.length || !parsed.page.meta || typeof parsed.savedAt !== "number") {
+      return null;
+    }
     if (Date.now() - parsed.savedAt > STORAGE_TTL_MS) {
       window.localStorage.removeItem(STORAGE_PREFIX + key);
       return null;
@@ -54,7 +58,7 @@ function readPersistedPage(key: string): SessionBrowsePage | null {
 }
 
 function persistPage(key: string, page: SessionBrowsePage): void {
-  if (typeof window === "undefined" || page.products.length === 0) return;
+  if (typeof window === "undefined" || !page?.products?.length) return;
   try {
     const payload: PersistedBrowsePage = { savedAt: Date.now(), page };
     window.localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(payload));
@@ -70,9 +74,9 @@ export function getSessionBrowsePage(
 ): SessionBrowsePage | null {
   const key = sessionKey(countryCode, category);
   const local = sessionPages.get(key);
-  if (local) return local;
+  if (local?.products?.length) return local;
   const persisted = readPersistedPage(key);
-  if (persisted) {
+  if (persisted?.products?.length) {
     sessionPages.set(key, persisted);
     return persisted;
   }
@@ -85,6 +89,7 @@ export function setSessionBrowsePage(
   page: SessionBrowsePage,
   category?: string | null
 ): void {
+  if (!page?.products?.length) return;
   const key = sessionKey(countryCode, category);
   sessionPages.set(key, page);
   persistPage(key, page);
@@ -118,6 +123,7 @@ function browseUrl(
     locale,
     limit: String(DEFAULT_PRODUCT_LIST_LIMIT),
     offset: "0",
+    v: BROWSE_API_VERSION,
   });
   const aisle = sessionCategoryKey(category);
   if (aisle !== "_all") params.set("category", aisle);
@@ -131,7 +137,7 @@ export function ensureBrowseCatalog(
   category?: string | null
 ): Promise<SessionBrowsePage | null> {
   const cached = getSessionBrowsePage(countryCode, locale, category);
-  if (cached) return Promise.resolve(cached);
+  if (cached?.products?.length) return Promise.resolve(cached);
   if (typeof window === "undefined") return Promise.resolve(null);
 
   const key = sessionKey(countryCode, category);
