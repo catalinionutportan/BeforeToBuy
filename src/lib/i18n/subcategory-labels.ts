@@ -136,6 +136,20 @@ export const SUBCATEGORY_LABELS: Record<string, Partial<Record<SiteLocale, strin
     it: "Ruote complete",
     ro: "Roți complete",
   },
+  "auto-rims": {
+    en: "Rims",
+    de: "Felgen",
+    fr: "Jantes",
+    it: "Cerchi",
+    ro: "Jante",
+  },
+  "auto-motorcycle-tires": {
+    en: "Motorcycle & ATV tires",
+    de: "Motorrad- & Quadreifen",
+    fr: "Pneus moto & quad",
+    it: "Pneumatici moto e quad",
+    ro: "Anvelope moto & ATV",
+  },
   "auto-tires-wheels": {
     en: "Tires",
     de: "Reifen",
@@ -1705,4 +1719,3 @@ export const SUBCATEGORY_LABELS: Record<string, Partial<Record<SiteLocale, strin
     ro: "Smartwatch",
   },
 };
-
