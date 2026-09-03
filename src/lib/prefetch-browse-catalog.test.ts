@@ -10,7 +10,7 @@ import {
   setSessionBrowsePage,
 } from "./prefetch-browse-catalog";
 
-const emptyMeta = { categoryCounts: {}, categoryCovers: {} } as ProductFetchMeta;
+const emptyMeta = { categoryCounts: {}, categoryCovers: {} } as unknown as ProductFetchMeta;
 
 describe("prefetch browse markets", () => {
   beforeEach(() => {
@@ -26,7 +26,7 @@ describe("prefetch browse markets", () => {
     categoryCounts: { "notebooks-laptops": 200, "auto-tires-wheels": 80 },
     categoryCovers: { "notebooks-laptops": "https://example.com/a.jpg" },
     totalMatched: 400,
-  } as ProductFetchMeta;
+  } as unknown as ProductFetchMeta;
 
   it("rejects an All page that only has the Acer-sized first page", () => {
     expect(

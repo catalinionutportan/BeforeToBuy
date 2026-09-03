@@ -340,7 +340,9 @@ export default function HomePageClient({
       browseCategory === ALL_CATEGORIES_ID &&
       !hasActiveOfferFilters(activeOfferFilters) &&
       sortOrder === "default" &&
-      isUsableAllBrowsePage({ products: initialProducts, meta: initialMeta });
+      isUsableAllBrowsePage(
+        initialMeta ? { products: initialProducts, meta: initialMeta } : null
+      );
 
     if (matchesServerCatalog) {
       skippedInitialCatalogRequest.current = true;
