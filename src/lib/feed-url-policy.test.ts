@@ -11,6 +11,13 @@ import {
 } from "@/lib/feed-url-policy";
 
 describe("feed-url-policy", () => {
+  it("accepts DJI US catalogue images from se-cdn.djiits.com", () => {
+    const url =
+      "https://se-cdn.djiits.com/tpc/uploads/sku/cover/bf211fa2-cb67-4c13-b890-dc014b54b539@small.png";
+    expect(sanitizeProductImageForRender(url)).toBe(url);
+    expect(sanitizeFeedImageUrl(url, "us-dji")).toBe(url);
+  });
+
   it("accepts valid HTTPS image URLs on allowlisted hosts", () => {
     const result = validateFeedUrl(
       "https://www.rowenta.ro/media/product.jpg",
