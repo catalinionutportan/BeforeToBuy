@@ -78,7 +78,7 @@ const POLICY_PAGES_BY_LOCALE: Record<SiteLocale, Record<PolicySlug, PolicyDoc>> 
         },
         {
           heading: "Live feeds today",
-          body: "Currently configured merchants include baby-walz, Belando, Reifen.com, Acer, and Gigasport (AWIN Switzerland), Rowenta and Scule365 (2Performant Romania), Seentat (AWIN UK), Geepas (AWIN UK), Arlo (AWIN UK), and Ottocast (AWIN US). evoMAG remains soft-paused in the catalogue (offers hidden without deletion) until image/CDN readiness is confirmed. Affiliate outbound links stay blocked until Affiliate consent is granted. Other merchants are added only after acceptance and feed wiring.",
+          body: "Currently configured merchants include baby-walz, Belando, Reifen.com, Acer, and Gigasport (AWIN Switzerland), Rowenta and Scule365 (2Performant Romania), Seentat (AWIN UK), Geepas (AWIN UK), Arlo (AWIN UK), Ottocast and DJI (AWIN US). evoMAG remains soft-paused in the catalogue (offers hidden without deletion) until image/CDN readiness is confirmed. Affiliate outbound links stay blocked until Affiliate consent is granted. Other merchants are added only after acceptance and feed wiring.",
         },
       ],
     },
@@ -184,7 +184,7 @@ const POLICY_PAGES_BY_LOCALE: Record<SiteLocale, Record<PolicySlug, PolicyDoc>> 
         },
         {
           heading: "Live-Feeds heute",
-          body: "Derzeit konfigurierte Händler umfassen baby-walz, Belando, Reifen.com, Acer und Gigasport (AWIN Schweiz), Rowenta und Scule365 (2Performant Rumänien), Seentat (AWIN UK), Geepas (AWIN UK), Arlo (AWIN UK) und Ottocast (AWIN US). evoMAG bleibt im Katalog soft-pausiert (Angebote ausgeblendet ohne Löschung), bis Bild-/CDN-Bereitschaft bestätigt ist. Affiliate-Links bleiben gesperrt, bis Affiliate-Einwilligung erteilt wird. Weitere Händler erst nach Freigabe und Feed-Anbindung.",
+          body: "Derzeit konfigurierte Händler umfassen baby-walz, Belando, Reifen.com, Acer und Gigasport (AWIN Schweiz), Rowenta und Scule365 (2Performant Rumänien), Seentat (AWIN UK), Geepas (AWIN UK), Arlo (AWIN UK) sowie Ottocast und DJI (AWIN US). evoMAG bleibt im Katalog soft-pausiert (Angebote ausgeblendet ohne Löschung), bis Bild-/CDN-Bereitschaft bestätigt ist. Affiliate-Links bleiben gesperrt, bis Affiliate-Einwilligung erteilt wird. Weitere Händler erst nach Freigabe und Feed-Anbindung.",
         },
       ],
     },
@@ -290,7 +290,7 @@ const POLICY_PAGES_BY_LOCALE: Record<SiteLocale, Record<PolicySlug, PolicyDoc>> 
         },
         {
           heading: "Feeds live aujourd'hui",
-          body: "Les marchands actuellement configurés incluent baby-walz, Belando, Reifen.com, Acer et Gigasport (AWIN Suisse), Rowenta et Scule365 (2Performant Roumanie), Seentat (AWIN UK), Geepas (AWIN UK), Arlo (AWIN UK) et Ottocast (AWIN US). evoMAG reste en soft-pause dans le catalogue (offres masquées sans suppression) jusqu'à confirmation de la disponibilité image/CDN. Les liens affiliés restent bloqués jusqu'au consentement Affiliation. Les autres marchands sont ajoutés uniquement après acceptation et branchement du feed.",
+          body: "Les marchands actuellement configurés incluent baby-walz, Belando, Reifen.com, Acer et Gigasport (AWIN Suisse), Rowenta et Scule365 (2Performant Roumanie), Seentat (AWIN UK), Geepas (AWIN UK), Arlo (AWIN UK), Ottocast et DJI (AWIN US). evoMAG reste en soft-pause dans le catalogue (offres masquées sans suppression) jusqu'à confirmation de la disponibilité image/CDN. Les liens affiliés restent bloqués jusqu'au consentement Affiliation. Les autres marchands sont ajoutés uniquement après acceptation et branchement du feed.",
         },
       ],
     },
@@ -396,7 +396,7 @@ const POLICY_PAGES_BY_LOCALE: Record<SiteLocale, Record<PolicySlug, PolicyDoc>> 
         },
         {
           heading: "Feed live oggi",
-          body: "I merchant attualmente configurati includono baby-walz, Belando, Reifen.com, Acer e Gigasport (AWIN Svizzera), Rowenta e Scule365 (2Performant Romania), Seentat (AWIN UK), Geepas (AWIN UK), Arlo (AWIN UK) e Ottocast (AWIN US). evoMAG resta in soft-pause nel catalogo (offerte nascoste senza cancellazione) finché non è confermata la disponibilità immagini/CDN. I link affiliati restano bloccati fino al consenso Affiliazione. Altri merchant solo dopo accettazione e collegamento del feed.",
+          body: "I merchant attualmente configurati includono baby-walz, Belando, Reifen.com, Acer e Gigasport (AWIN Svizzera), Rowenta e Scule365 (2Performant Romania), Seentat (AWIN UK), Geepas (AWIN UK), Arlo (AWIN UK), Ottocast e DJI (AWIN US). evoMAG resta in soft-pause nel catalogo (offerte nascoste senza cancellazione) finché non è confermata la disponibilità immagini/CDN. I link affiliati restano bloccati fino al consenso Affiliazione. Altri merchant solo dopo accettazione e collegamento del feed.",
         },
       ],
     },
@@ -502,7 +502,7 @@ const POLICY_PAGES_BY_LOCALE: Record<SiteLocale, Record<PolicySlug, PolicyDoc>> 
         },
         {
           heading: "Feed-uri live astăzi",
-          body: "Comercianții configurați momentan includ baby-walz, Belando, Reifen.com, Acer și Gigasport (AWIN Elveția), Rowenta și Scule365 (2Performant România), Seentat (AWIN UK), Geepas (AWIN UK), Arlo (AWIN UK) și Ottocast (AWIN US). evoMAG rămâne soft-paused în catalog (ofertele sunt ascunse fără ștergere) până la confirmarea disponibilității imaginilor/CDN. Linkurile afiliate rămân blocate până la consimțământul Afiliat. Alți comercianți doar după acceptare și conectarea feed-ului.",
+          body: "Comercianții configurați momentan includ baby-walz, Belando, Reifen.com, Acer și Gigasport (AWIN Elveția), Rowenta și Scule365 (2Performant România), Seentat (AWIN UK), Geepas (AWIN UK), Arlo (AWIN UK), Ottocast și DJI (AWIN US). evoMAG rămâne soft-paused în catalog (ofertele sunt ascunse fără ștergere) până la confirmarea disponibilității imaginilor/CDN. Linkurile afiliate rămân blocate până la consimțământul Afiliat. Alți comercianți doar după acceptare și conectarea feed-ului.",
         },
       ],
     },

@@ -246,6 +246,7 @@ describe('Category and Collection Logic', () => {
       "ro-aqualine",
       "ro-rowenta",
       "ro-scule365",
+      "us-dji",
       "us-ottocast",
     ]);
     expect(

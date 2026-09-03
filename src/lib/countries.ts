@@ -471,6 +471,19 @@ export const ALL_MERCHANT_DOMAINS: MerchantDomainInfo[] = [
     description:
       "Ottocast wireless CarPlay / Android Auto adapters and AI boxes. Live AWIN USD product feed with affiliate deep links.",
   },
+  {
+    id: "us-dji",
+    name: "DJI US",
+    domain: "store.dji.com",
+    websiteUrl: AFFILIATE_LINKS.djiAwin,
+    countryCode: "US",
+    affiliateNetwork: "AWIN",
+    category: "Drones & Cameras",
+    status: "Live Feed",
+    badge: "AWIN + product feed 🇺🇸",
+    description:
+      "DJI United States store — drones, action cameras, and gimbals. Live AWIN USD product feed with affiliate deep links.",
+  },
   // --- Germany (DE) ---
   {
     id: "de-reifen",
@@ -559,9 +572,9 @@ export const COUNTRIES: Record<CountryCode, CountryInfo> = {
     flag: "🇺🇸",
     currency: "USD",
     currencySymbol: "$",
-    supportedStores: ["ottocast.com"],
+    supportedStores: ["ottocast.com", "store.dji.com"],
     merchantDomains: ALL_MERCHANT_DOMAINS.filter((d) => d.countryCode === "US"),
-    affiliateNetworks: ["AWIN (Ottocast) — live USD product feed + homepage affiliate"],
+    affiliateNetworks: ["AWIN (Ottocast + DJI) — live USD product feeds + homepage affiliates"],
   },
 };
 

@@ -30,6 +30,7 @@ const MERCHANT_FEED_IDS = [
   "feed-geepas-awin",
   "feed-arlo-awin",
   "feed-ottocast-awin",
+  "feed-dji-awin",
   "feed-babywalz-awin",
   "feed-reifencom-awin",
   "feed-belando-awin",

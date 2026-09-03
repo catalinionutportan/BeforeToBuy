@@ -14,6 +14,7 @@ import {
   isBelandoAllowedCategory,
   isAcerAllowedCategory,
   isGigasportAllowedCategory,
+  isDjiAllowedCategory,
   isReifencomAllowedCategory,
   isRowentaAllowedCategory,
   MAPPING_CONFIDENCE,
@@ -51,6 +52,7 @@ const ARLO_FALLBACK_LEAF = "smart-home-security";
 const ACER_FALLBACK_LEAF = "notebooks-laptops";
 /** Gigasport fallback when title/category is ambiguous. */
 const GIGASPORT_FALLBACK_LEAF = "fashion-men-activewear";
+const DJI_FALLBACK_LEAF = "drones-quadcopters";
 
 /**
  * Maps merchant / affiliate feed categories + product text → BeforeToBuy subcategory id.
@@ -488,6 +490,22 @@ function clampGigasportToSportCatalogue(result: CategoryMappingResult): Category
   return result;
 }
 
+function clampDjiToCameraCatalogue(result: CategoryMappingResult): CategoryMappingResult {
+  if (result.categoryId === UNMAPPED_CATEGORY_ID || !isDjiAllowedCategory(result.categoryId)) {
+    return {
+      ...result,
+      categoryId: DJI_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      proposedCategoryId:
+        result.categoryId !== UNMAPPED_CATEGORY_ID && result.categoryId !== DJI_FALLBACK_LEAF
+          ? result.categoryId
+          : result.proposedCategoryId,
+    };
+  }
+  return result;
+}
+
 export interface CategoryMappingInput {
   merchantId?: string;
   merchantCategory?: string;
@@ -534,6 +552,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
     if (merchantId === "ch-belando") return clampBelandoToBeautyCatalogue(scored, title);
     if (merchantId === "ch-acer") return clampAcerToElectronicsCatalogue(scored);
     if (merchantId === "ch-gigasport") return clampGigasportToSportCatalogue(scored);
+    if (merchantId === "us-dji") return clampDjiToCameraCatalogue(scored);
     if (merchantId === "gb-arlo") return clampArloToSecurityCatalogue(scored);
     if (merchantId === "gb-seentat") return refineSeentatElectronics(scored, title);
     if (merchantId === "gb-geepas") return refineGeepasHome(scored, title);
@@ -640,6 +659,14 @@ export function mapToBeforeToBuyCategoryWithMetadata(
   if (merchantId === "ch-gigasport") {
     return {
       categoryId: GIGASPORT_FALLBACK_LEAF,
+      method: "merchant-default",
+      confidence: MAPPING_CONFIDENCE.combinedPattern,
+      rawCategory: merchantCategory,
+    };
+  }
+  if (merchantId === "us-dji") {
+    return {
+      categoryId: DJI_FALLBACK_LEAF,
       method: "merchant-default",
       confidence: MAPPING_CONFIDENCE.combinedPattern,
       rawCategory: merchantCategory,

@@ -327,6 +327,19 @@ export const MERCHANT_FEEDS: FeedConfig[] = [
     sampleFile: "sample-awin-ottocast-us.csv",
     sampleFormat: "csv",
   },
+  {
+    provider: "AWIN",
+    country: "US",
+    merchantId: "us-dji",
+    merchantName: "DJI US",
+    envVar: "AWIN_FEED_URL_US_DJI",
+    awinFeedId: "116475",
+    awinLanguage: "en",
+    sampleFile: "sample-awin-dji-us.csv",
+    sampleFormat: "csv",
+    categoryHint: "drones-quadcopters",
+    cacheOnly: true,
+  },
 ];
 
 /** Columns requested for AWIN productdata downloads (no secrets). */

@@ -240,6 +240,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(body.feedMerchantIds).toContain("ch-acer");
     expect(body.feedMerchantIds).toContain("gb-seentat");
     expect(body.feedMerchantIds).toContain("us-ottocast");
+    expect(body.feedMerchantIds).toContain("us-dji");
     expect(body.feedMerchantIds).toContain("gb-geepas");
     expect(body.feedMerchantIds).toContain("gb-arlo");
     // FORCE_SAMPLE_FEEDS may enable RO samples — assert config presence, not a fragile count.

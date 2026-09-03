@@ -10,7 +10,8 @@ export type ShortcutBoardId =
   | "diy"
   | "auto"
   | "fashion"
-  | "sport";
+  | "sport"
+  | "dji";
 
 export type ShortcutBoardTitleKey =
   | "hubElectronics"
@@ -20,7 +21,8 @@ export type ShortcutBoardTitleKey =
   | "hubFashion"
   | "shortcutBoardBaby"
   | "shortcutBoardBeauty"
-  | "shortcutBoardSport";
+  | "shortcutBoardSport"
+  | "shortcutBoardDji";
 
 export interface ShortcutBoardDefinition {
   id: ShortcutBoardId;
@@ -273,6 +275,21 @@ function genericBoardsForCountry(countryCode: CountryCode): ShortcutBoardDefinit
     }));
 }
 
+const US_BOARDS: readonly ShortcutBoardDefinition[] = [
+  {
+    // DJI US & CA — three camera tiles; See all opens the store filter.
+    id: "dji",
+    hubId: "hub-electronics",
+    titleKey: "shortcutBoardDji",
+    tileIds: ["drones-quadcopters", "photo-action", "photo-gimbals"],
+    featured: true,
+    fillFromHub: false,
+    domain: "store.dji.com",
+    seeAllCategoryId: ALL_CATEGORIES_ID,
+  },
+  ...genericBoardsForCountry("US"),
+];
+
 const DE_BOARDS: readonly ShortcutBoardDefinition[] = [
   {
     id: "auto",
@@ -301,6 +318,7 @@ export function shortcutBoardDefinitionsForCountry(
   if (countryCode === "CH") return CH_BOARDS;
   if (countryCode === "RO") return RO_BOARDS;
   if (countryCode === "DE") return DE_BOARDS;
+  if (countryCode === "US") return US_BOARDS;
   return genericBoardsForCountry(countryCode);
 }
 

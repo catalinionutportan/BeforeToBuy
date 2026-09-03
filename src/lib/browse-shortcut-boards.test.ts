@@ -79,6 +79,24 @@ describe("browse shortcut boards", () => {
     ]);
   });
 
+  it("adds three DJI tiles that open the US store", () => {
+    const boards = resolveShortcutBoards("US", {
+      "drones-quadcopters": 40,
+      "photo-action": 18,
+      "photo-gimbals": 12,
+      "audio-car": 6,
+    });
+    const dji = boards.find((board) => board.id === "dji");
+    expect(dji?.featured).toBe(true);
+    expect(dji?.domain).toBe("store.dji.com");
+    expect(dji?.seeAllCategoryId).toBe("all");
+    expect(dji?.tiles.map((tile) => tile.categoryId)).toEqual([
+      "drones-quadcopters",
+      "photo-action",
+      "photo-gimbals",
+    ]);
+  });
+
   it("adds three Gigasport sport tiles that open that store", () => {
     const boards = resolveShortcutBoards("CH", {
       "notebooks-laptops": 10,

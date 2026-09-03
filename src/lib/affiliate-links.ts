@@ -16,6 +16,9 @@ export const AFFILIATE_LINKS = {
   /** Ottocast homepage — AWIN advertiser 96499 / publisher 3024371 (USD catalogue). */
   ottocastAwin:
     "https://www.awin1.com/cread.php?awinmid=96499&awinaffid=3024371&ued=https%3A%2F%2Fwww.ottocast.com",
+  /** DJI US & CA store — AWIN advertiser 7327 / publisher 3024371 (USD catalogue). */
+  djiAwin:
+    "https://www.awin1.com/cread.php?awinmid=7327&awinaffid=3024371&ued=https%3A%2F%2Fstore.dji.com",
   /** Geepas UK homepage — AWIN advertiser 46851 / publisher 3024371 (GBP catalogue). */
   geepasAwin:
     "https://www.awin1.com/cread.php?awinmid=46851&awinaffid=3024371&ued=https%3A%2F%2Fgeepas.co.uk",

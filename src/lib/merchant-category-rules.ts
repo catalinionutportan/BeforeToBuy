@@ -26,6 +26,7 @@ export const MAPPING_MERCHANT_IDS = [
   "gb-geepas",
   "gb-arlo",
   "us-ottocast",
+  "us-dji",
 ] as const;
 
 export type MappingMerchantId = (typeof MAPPING_MERCHANT_IDS)[number];
@@ -1131,6 +1132,53 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       },
     ],
   },
+
+  /**
+   * DJI US — AWIN English catalogue. merchant_category is a product path,
+   * so map from series names in the title / aisle string.
+   */
+  "us-dji": {
+    exact: exactRules({
+      drones: "drones-quadcopters",
+      "action cameras": "photo-action",
+      gimbals: "photo-gimbals",
+    }),
+    patterns: [
+      {
+        patterns: /\b(osmo\s+action|osmo\s+360|action\s+\d|action\s+cam)\b/i,
+        subcategoryId: "photo-action",
+      },
+      {
+        patterns: /\b(osmo\s+pocket|pocket\s+\d)\b/i,
+        subcategoryId: "photo-action",
+      },
+      {
+        patterns: /\b(osmo\s+mobile|ronin|\brs\s*[2345]\b|gimbal|om\s*[4567])\b/i,
+        subcategoryId: "photo-gimbals",
+      },
+      {
+        patterns: /\b(mic\s*(mini|2|3)?|wireless\s+mic)\b/i,
+        subcategoryId: "photo-microphones",
+      },
+      {
+        patterns: /\b(power\s*(500|1000|2000)|power\s+station)\b/i,
+        subcategoryId: "outdoor-electronics",
+      },
+      {
+        patterns: /\b(sd\s*card|microsd|cinssd|memory\s+card)\b/i,
+        subcategoryId: "photo-memory",
+      },
+      {
+        patterns:
+          /\b(inspire|mavic|mini\s*\d|air\s*\d|neo|flip|avata|phantom|fpv|quadcopter|\bdrone\b)\b/i,
+        subcategoryId: "drones-quadcopters",
+      },
+      {
+        patterns: /\b(battery|charging|propeller|prop\b|cable|hub|adaptor|adapter)\b/i,
+        subcategoryId: "drones-accessories",
+      },
+    ],
+  },
 };
 
 export function normalizeMerchantCategory(raw?: string): string {
@@ -1309,6 +1357,26 @@ export function isGigasportAllowedCategory(categoryId: string): boolean {
   return GIGASPORT_ALLOWED_CATEGORY_IDS.has(categoryId);
 }
 
+/** DJI US stays in drones + camera leaves. */
+export const DJI_ALLOWED_CATEGORY_IDS = new Set([
+  "drones-quadcopters",
+  "drones-accessories",
+  "photo-action",
+  "photo-gimbals",
+  "photo-microphones",
+  "photo-memory",
+  "photo-batteries",
+  "photo-bags",
+  "photo-cables",
+  "photo-lenses",
+  "photo-mounts",
+  "outdoor-electronics",
+]);
+
+export function isDjiAllowedCategory(categoryId: string): boolean {
+  return DJI_ALLOWED_CATEGORY_IDS.has(categoryId);
+}
+
 /**
  * Last-resort leaf when a merchant catalogue is specialised but feed rows
  * lack category labels and keyword inference failed.
@@ -1324,6 +1392,7 @@ export function getMerchantDefaultCategory(merchantId: string | undefined): stri
   if (merchantId === "ch-belando") return "fashion-beauty-hair-care";
   if (merchantId === "ch-acer") return "notebooks-laptops";
   if (merchantId === "ch-gigasport") return "fashion-men-activewear";
+  if (merchantId === "us-dji") return "drones-quadcopters";
   return null;
 }
 

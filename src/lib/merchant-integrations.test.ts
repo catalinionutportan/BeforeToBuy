@@ -168,6 +168,7 @@ describe('Merchant Integrations', () => {
           "gb-geepas",
           "gb-arlo",
           "us-ottocast",
+          "us-dji",
           "ch-babywalz",
           "ch-reifencom",
           "ch-belando",

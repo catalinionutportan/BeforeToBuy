@@ -41,7 +41,7 @@ const BRACK_SAMPLE_ROWS = [
 describe('Category Mapper Functions', () => {
   it("merchant category rules validate without conflicts", () => {
     expect(validateMerchantCategoryRules()).toEqual([]);
-    expect(MAPPING_MERCHANT_IDS.length).toBe(19);
+    expect(MAPPING_MERCHANT_IDS.length).toBe(20);
   });
 
   it("Brack sample feed rows map with merchant-exact rules", () => {
@@ -769,6 +769,39 @@ describe('Category Mapper Functions', () => {
         title: "Samsung Galaxy S24 Ultra 256GB",
       })
     ).toBe("smart-home-security");
+  });
+
+  it("DJI US maps drones, action cameras and gimbals from titles", () => {
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "us-dji",
+        title: "DJI Mini 4 Pro Fly More Combo",
+      })
+    ).toBe("drones-quadcopters");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "us-dji",
+        title: "DJI Osmo Action 5 Pro Adventure Combo",
+      })
+    ).toBe("photo-action");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "us-dji",
+        title: "DJI Osmo Mobile 7P Gimbal",
+      })
+    ).toBe("photo-gimbals");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "us-dji",
+        title: "DJI Mic Mini",
+      })
+    ).toBe("photo-microphones");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "us-dji",
+        title: "Samsung Galaxy S24 Ultra 256GB",
+      })
+    ).toBe("drones-quadcopters");
   });
 
   it("Ottocast Automotive aisle maps to in-car audio", () => {

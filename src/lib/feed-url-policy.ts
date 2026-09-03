@@ -66,6 +66,10 @@ export const APPROVED_IMAGE_HOSTS = [
   "www.reifen.de",
   "gigasport.ch",
   "www.gigasport.ch",
+  "store.dji.com",
+  "www.dji.com",
+  "dji.com",
+  "se-cdn.djiits.com",
   "productserve.com",
   "tyres.net",
   "static.tyres.net",
@@ -117,6 +121,9 @@ export const MERCHANT_STORE_HOSTS = [
   "acer.com",
   "www.gigasport.ch",
   "gigasport.ch",
+  "store.dji.com",
+  "www.dji.com",
+  "dji.com",
 ] as const;
 
 /** Remote feed download hosts (CSV/XML endpoints). */
@@ -157,6 +164,13 @@ export const COMMERCIAL_HOSTS_BY_FEED: Record<string, readonly string[]> = {
     "awin1.com",
     "www.ottocast.com",
     "ottocast.com",
+  ],
+  "us-dji": [
+    "www.awin1.com",
+    "awin1.com",
+    "store.dji.com",
+    "www.dji.com",
+    "dji.com",
   ],
   "gb-geepas": [
     "www.awin1.com",

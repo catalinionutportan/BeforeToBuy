@@ -170,11 +170,11 @@ const PROCESSOR_PURPOSES: Record<ProcessorRecord["id"], Record<SiteLocale, strin
     ro: "Tracking afiliat pentru linkurile Rowenta.ro și Scule365.ro cu consimțământ Afiliat",
   },
   awin: {
-    en: "Affiliate tracking for Seentat UK, Geepas UK, Arlo UK, Ottocast US, Acer CH, and other joined AWIN programmes with Affiliate consent",
-    de: "Affiliate-Tracking für Seentat UK, Geepas UK, Arlo UK, Ottocast US, Acer CH und weitere AWIN-Programme mit Affiliate-Einwilligung",
-    fr: "Suivi d'affiliation pour Seentat UK, Geepas UK, Arlo UK, Ottocast US, Acer CH et autres programmes AWIN rejoints avec consentement Affiliation",
-    it: "Tracking affiliato per Seentat UK, Geepas UK, Arlo UK, Ottocast US, Acer CH e altri programmi AWIN aderenti con consenso Affiliazione",
-    ro: "Tracking afiliat pentru Seentat UK, Geepas UK, Arlo UK, Ottocast US, Acer CH și alte programe AWIN acceptate cu consimțământ Afiliat",
+    en: "Affiliate tracking for Seentat UK, Geepas UK, Arlo UK, Ottocast US, DJI US, Acer CH, and other joined AWIN programmes with Affiliate consent",
+    de: "Affiliate-Tracking für Seentat UK, Geepas UK, Arlo UK, Ottocast US, DJI US, Acer CH und weitere AWIN-Programme mit Affiliate-Einwilligung",
+    fr: "Suivi d'affiliation pour Seentat UK, Geepas UK, Arlo UK, Ottocast US, DJI US, Acer CH et autres programmes AWIN rejoints avec consentement Affiliation",
+    it: "Tracking affiliato per Seentat UK, Geepas UK, Arlo UK, Ottocast US, DJI US, Acer CH e altri programmi AWIN aderenti con consenso Affiliazione",
+    ro: "Tracking afiliat pentru Seentat UK, Geepas UK, Arlo UK, Ottocast US, DJI US, Acer CH și alte programe AWIN acceptate cu consimțământ Afiliat",
   },
   "feed-rowenta-2p": {
     en: "Server-side catalogue import for Rowenta.ro",
@@ -217,6 +217,13 @@ const PROCESSOR_PURPOSES: Record<ProcessorRecord["id"], Record<SiteLocale, strin
     fr: "Import catalogue côté serveur pour Ottocast US",
     it: "Import catalogo lato server per Ottocast US",
     ro: "Import catalog server-side pentru Ottocast US",
+  },
+  "feed-dji-awin": {
+    en: "Server-side catalogue import for DJI US",
+    de: "Serverseitiger Katalogimport für DJI US",
+    fr: "Import catalogue côté serveur pour DJI US",
+    it: "Import catalogo lato server per DJI US",
+    ro: "Import catalog server-side pentru DJI US",
   },
   "feed-babywalz-awin": {
     en: "Server-side catalogue import for baby-walz CH",

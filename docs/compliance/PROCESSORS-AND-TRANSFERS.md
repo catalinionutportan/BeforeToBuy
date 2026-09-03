@@ -132,6 +132,7 @@ These integrations import product catalogues **server-to-server**. They are **no
 | feed-geepas-awin | Geepas UK | AWIN | Active import path | Confirm AWIN datafeed region |
 | feed-arlo-awin | Arlo Security UK | AWIN | Active import path | Confirm AWIN datafeed region |
 | feed-ottocast-awin | Ottocast US | AWIN | Active import path | Confirm AWIN datafeed region |
+| feed-dji-awin | DJI US & CA | AWIN | Active import path | Confirm AWIN datafeed region |
 | feed-belando-awin | Belando CH | AWIN | Active import path | Confirm AWIN datafeed region |
 | feed-evomag-2p | evoMAG | 2Performant | Soft-paused | Confirm re-enable criteria |
 
