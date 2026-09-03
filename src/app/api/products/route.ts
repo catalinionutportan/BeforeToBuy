@@ -1,15 +1,20 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
-import { fetchMergedProductsForLocation } from "@/lib/product-service";
+import {
+  fetchMergedProductsForLocation,
+  type ProductFetchMeta,
+} from "@/lib/product-service";
 import {
   getCachedBrowseMeta,
   getCachedFirstBrowsePage,
   setCachedFirstBrowsePage,
+  type CachedBrowseMeta,
+  type CachedFirstBrowsePage,
 } from "@/lib/catalog-browse-cache";
-import { warmBrowseMetaForCountry } from "@/lib/db-service";
+import { countInStockProductsForCountry, warmBrowseMetaForCountry } from "@/lib/db-service";
 import {
   clampProductListLimit,
   DEFAULT_PRODUCT_LIST_LIMIT,
@@ -39,6 +44,41 @@ function sanitizeQueryParam(input: string | null | undefined): string | undefine
 }
 
 const VALID_COUNTRIES = new Set<CountryCode>(Object.keys(COUNTRIES) as CountryCode[]);
+const DEFERRED_META_COUNTRIES = new Set<CountryCode>(["CH", "DE"]);
+
+function scheduleBrowseMetaWarm(countryCode: CountryCode): void {
+  if (!DEFERRED_META_COUNTRIES.has(countryCode)) return;
+  after(async () => {
+    await warmBrowseMetaForCountry(countryCode).catch((error) => {
+      console.error(`[products] ${countryCode} browse-meta warm failed:`, error);
+    });
+  });
+}
+
+function withFreshBrowseMeta(
+  page: CachedFirstBrowsePage,
+  browseMeta: CachedBrowseMeta,
+  limit: number,
+  category?: string
+): CachedFirstBrowsePage {
+  const pageMeta = page.meta as ProductFetchMeta;
+  const offset = pageMeta.offset ?? 0;
+  const matchedTotal = category
+    ? (pageMeta.totalMatched ?? page.products.length)
+    : browseMeta.countryProductCount;
+  return {
+    products: page.products,
+    meta: {
+      ...pageMeta,
+      categoryCounts: browseMeta.categoryCounts,
+      categoryCovers: browseMeta.categoryCovers,
+      brandOptions: browseMeta.brandOptions,
+      feedProductCount: browseMeta.countryProductCount,
+      totalMatched: matchedTotal,
+      hasMore: offset + limit < matchedTotal,
+    },
+  };
+}
 
 function parseCountry(value: string | null): CountryCode {
   if (!value) return getPrimaryLiveBrowseCountry();
@@ -137,7 +177,24 @@ export async function GET(request: Request) {
     if (cacheableFirstPage) {
       const cachedPage = await getCachedFirstBrowsePage(countryCode, limit, category);
       if (cachedPage?.products?.length) {
-        return NextResponse.json(cachedPage, {
+        let cachedMeta = DEFERRED_META_COUNTRIES.has(countryCode)
+          ? await getCachedBrowseMeta(countryCode)
+          : null;
+        if (DEFERRED_META_COUNTRIES.has(countryCode) && !cachedMeta) {
+          scheduleBrowseMetaWarm(countryCode);
+          const countryProductCount = await countInStockProductsForCountry(countryCode);
+          cachedMeta = {
+            categoryCounts: {},
+            leafCounts: {},
+            categoryCovers: {},
+            countryProductCount,
+            brandOptions: [],
+          };
+        }
+        const responsePage = cachedMeta
+          ? withFreshBrowseMeta(cachedPage, cachedMeta, limit, category)
+          : cachedPage;
+        return NextResponse.json(responsePage, {
           headers: { ...browseCacheHeaders, "x-btb-catalog-cache": "hit" },
         });
       }
@@ -163,13 +220,9 @@ export async function GET(request: Request) {
         category
       );
     }
-    if (countryCode === "CH") {
+    if (DEFERRED_META_COUNTRIES.has(countryCode)) {
       const cachedMeta = await getCachedBrowseMeta(countryCode);
-      if (!cachedMeta || Object.keys(cachedMeta.categoryCovers).length === 0) {
-        void warmBrowseMetaForCountry(countryCode).catch((error) => {
-          console.error("[products] CH browse-meta warm failed:", error);
-        });
-      }
+      if (!cachedMeta) scheduleBrowseMetaWarm(countryCode);
     }
     return NextResponse.json(result, {
       headers: { ...browseCacheHeaders, "x-btb-catalog-cache": "miss" },

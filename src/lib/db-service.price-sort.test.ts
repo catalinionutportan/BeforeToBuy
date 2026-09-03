@@ -5,6 +5,7 @@ const findMany = vi.fn();
 const findFirst = vi.fn();
 const count = vi.fn();
 const groupBy = vi.fn();
+const redisConfigured = vi.fn(() => true);
 
 vi.mock("@/lib/db", () => ({
   prisma: {
@@ -20,6 +21,10 @@ vi.mock("@/lib/db", () => ({
 
 vi.mock("@/lib/db-category-filter", () => ({
   expandCategoryFilterToDbIds: () => undefined,
+}));
+
+vi.mock("@/lib/redis", () => ({
+  isRedisConfigured: () => redisConfigured(),
 }));
 
 import { resetCatalogBrowseCacheForTests } from "@/lib/catalog-browse-cache";
@@ -63,6 +68,7 @@ function mockProduct(id: string, minTotal: number) {
 describe("getProductsFromDb price sort", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    redisConfigured.mockReturnValue(true);
     resetCatalogBrowseCacheForTests();
     groupBy.mockResolvedValue([]);
     count.mockResolvedValue(6);
@@ -148,5 +154,19 @@ describe("getProductsFromDb price sort", () => {
     expect(groupBy).not.toHaveBeenCalled();
     expect(findFirst).not.toHaveBeenCalled();
     expect(queryRaw).toHaveBeenCalledTimes(1);
+  });
+
+  it("without Redis, CH All still leads with Acer but reports the full catalogue count", async () => {
+    redisConfigured.mockReturnValue(false);
+    queryRaw.mockResolvedValue([{ id: "prod-ch-acer-1" }]);
+    findMany.mockResolvedValue([mockProduct("prod-ch-acer-1", 15)]);
+    count.mockResolvedValue(42000);
+
+    const page = await getProductsFromDb("CH", undefined, undefined, 1, 0);
+
+    expect(page.products.map((product) => product.id)).toEqual(["prod-ch-acer-1"]);
+    expect(page.totalMatched).toBe(42000);
+    expect(page.countryProductCount).toBe(42000);
+    expect(groupBy).toHaveBeenCalled();
   });
 });

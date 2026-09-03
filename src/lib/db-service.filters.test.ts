@@ -100,10 +100,12 @@ describe("getProductsFromDb offer visibility", () => {
     expect(page.products).toHaveLength(1);
     expect(0 + page.products.length < page.totalMatched).toBe(true);
 
-    const countPayload = JSON.stringify(count.mock.calls[0]?.[0] ?? {});
-    expect(countPayload).toContain("deliveryCost");
-    expect(countPayload).toContain('"lte":0');
-    expect(countPayload).toContain('"not":null');
+    const filteredCountPayload = count.mock.calls
+      .map((call) => JSON.stringify(call[0] ?? {}))
+      .find((payload) => payload.includes("deliveryCost"));
+    expect(filteredCountPayload).toBeTruthy();
+    expect(filteredCountPayload).toContain('"lte":0');
+    expect(filteredCountPayload).toContain('"not":null');
   });
 
   it("price sort applies explicit free-delivery SQL (null delivery is not free)", async () => {

@@ -28,6 +28,7 @@ import {
   preferredReifenRimTitleContains,
   resolveAutoLeafFromTitle,
 } from "@/lib/reifen-wheel-split";
+import { isRedisConfigured } from "@/lib/redis";
 
 type PrismaProductWithOffers = Prisma.ProductGetPayload<{ include: { offers: true } }>;
 
@@ -141,9 +142,21 @@ function reifenRimOfferWhere(): Prisma.ProductWhereInput {
   };
 }
 
+/** In-stock catalogue size for a market. Cheap COUNT — never infer this from the Acer first page. */
+export async function countInStockProductsForCountry(countryCode: string): Promise<number> {
+  return prisma.product.count({
+    where: {
+      targetCountries: { has: countryCode },
+      offers: { some: { inStock: true } },
+    },
+  });
+}
+
 function reifenTitleSplitWhere(
+  countryCode: string,
   category?: string
 ): Prisma.ProductWhereInput | undefined {
+  if (countryCode.toUpperCase() !== "CH") return undefined;
   const resolved = category ? resolveCategoryAlias(category) : "";
   if (resolved === AUTO_COMPLETE_WHEELS_LEAF) {
     return {
@@ -162,9 +175,9 @@ function reifenTitleSplitWhere(
   return undefined;
 }
 
-function categoryConstraintSql(category?: string): Prisma.Sql {
+function categoryConstraintSql(countryCode: string, category?: string): Prisma.Sql {
   const resolved = category ? resolveCategoryAlias(category) : "";
-  if (resolved === AUTO_COMPLETE_WHEELS_LEAF) {
+  if (countryCode.toUpperCase() === "CH" && resolved === AUTO_COMPLETE_WHEELS_LEAF) {
     const rimTitleSql = Prisma.join(
       REIFEN_RIM_TITLE_CONTAINS.map((token) => Prisma.sql`p.title ILIKE ${`%${token}%`}`),
       " OR "
@@ -181,7 +194,7 @@ function categoryConstraintSql(category?: string): Prisma.Sql {
       )
     )`;
   }
-  if (resolved === AUTO_TIRES_LEAF) {
+  if (countryCode.toUpperCase() === "CH" && resolved === AUTO_TIRES_LEAF) {
     const notRimTitleSql = Prisma.join(
       REIFEN_RIM_TITLE_CONTAINS.map((token) => Prisma.sql`p.title NOT ILIKE ${`%${token}%`}`),
       " AND "
@@ -207,7 +220,7 @@ function buildWhere(
   };
 
   const categoryIds = expandCategoryFilterToDbIds(category);
-  const titleSplit = reifenTitleSplitWhere(category);
+  const titleSplit = reifenTitleSplitWhere(countryCode, category);
   if (titleSplit) {
     Object.assign(where, titleSplit);
   } else if (categoryIds) {
@@ -387,7 +400,7 @@ async function queryProductIdsByMinOfferTotal(
   skip: number
 ): Promise<string[]> {
   const orderDir = sort === "price-desc" ? Prisma.raw("DESC") : Prisma.raw("ASC");
-  const categorySql = categoryConstraintSql(category);
+  const categorySql = categoryConstraintSql(countryCode, category);
 
   const trimmedQuery = query?.trim();
   const queryPattern = trimmedQuery ? `%${trimmedQuery}%` : null;
@@ -566,7 +579,7 @@ async function queryProductIdsByChLead(
     return ids;
   }
 
-  const categorySql = categoryConstraintSql(category);
+  const categorySql = categoryConstraintSql(countryCode, category);
 
   const trimmedQuery = query?.trim();
   const queryPattern = trimmedQuery ? `%${trimmedQuery}%` : null;
@@ -681,9 +694,19 @@ export async function getProductsFromDb(
       : Promise.resolve(null);
 
   const cachedMeta = await getCachedBrowseMeta(countryCode);
-  // CH has ~86k rows. Cover distinct + groupBy + brand scan made GB→CH wait 7–8s.
-  // Serve the first page immediately; warm full meta off the request path.
-  const skipHeavyMeta = !cachedMeta && countryCode.toUpperCase() === "CH";
+  // CH/DE have very large catalogues. Cover distinct + groupBy + brand scans
+  // can take tens of seconds and must not block the first product page.
+  // Serve products immediately; the route warms full metadata after responding.
+  // Without Redis the warm never persists across Vercel isolates — do not defer
+  // counts, or aisle boards and "items found" collapse to the Acer first page.
+  const deferHeavyMeta =
+    !cachedMeta &&
+    ["CH", "DE"].includes(countryCode.toUpperCase()) &&
+    isRedisConfigured();
+
+  const countryCountPromise = cachedMeta
+    ? Promise.resolve(cachedMeta.countryProductCount)
+    : countInStockProductsForCountry(countryCode);
 
   const [pricedIds, productsDefault, total, countMaps, countryTotal, brandRows, categoryCovers] =
     await Promise.all([
@@ -699,30 +722,21 @@ export async function getProductsFromDb(
           }),
       cachedMeta && unfilteredBrowse
         ? Promise.resolve(cachedMeta.countryProductCount)
-        : skipHeavyMeta
-          ? Promise.resolve(take + skip + 1)
+        : unfilteredBrowse
+          ? countryCountPromise
           : prisma.product.count({ where: whereClause }),
       cachedMeta
         ? Promise.resolve({
             categoryCounts: cachedMeta.categoryCounts,
             leafCounts: cachedMeta.leafCounts,
           })
-        : skipHeavyMeta
+        : deferHeavyMeta
           ? Promise.resolve({ categoryCounts: {}, leafCounts: {} })
           : getCategoryCountsFromDb(countryCode),
-      cachedMeta
-        ? Promise.resolve(cachedMeta.countryProductCount)
-        : skipHeavyMeta
-          ? Promise.resolve(0)
-          : prisma.product.count({
-              where: {
-                targetCountries: { has: countryCode },
-                offers: { some: { inStock: true } },
-              },
-            }),
+      countryCountPromise,
       cachedMeta
         ? Promise.resolve(cachedMeta.brandOptions.map((brand) => ({ brand })))
-        : skipHeavyMeta
+        : deferHeavyMeta
           ? Promise.resolve([] as Array<{ brand: string | null }>)
           : prisma.product.findMany({
               where: { ...brandWhere, brand: { not: null } },
@@ -732,7 +746,7 @@ export async function getProductsFromDb(
             }),
       cachedMeta
         ? Promise.resolve(cachedMeta.categoryCovers)
-        : skipHeavyMeta
+        : deferHeavyMeta
           ? Promise.resolve({} as Record<string, string>)
           : getCategoryCoverImagesFromDb(countryCode),
     ]);
@@ -761,6 +775,9 @@ export async function getProductsFromDb(
     .map(mapPrismaProduct)
     .filter((product) => product.offers.length > 0);
 
+  const effectiveCountryTotal = countryTotal;
+  const effectiveMatchedTotal = unfilteredBrowse ? countryTotal : total;
+
   const brandOptions = cachedMeta
     ? cachedMeta.brandOptions
     : Array.from(
@@ -772,29 +789,47 @@ export async function getProductsFromDb(
         ).values()
       ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
 
-  if (!cachedMeta && unfilteredBrowse && !skipHeavyMeta) {
+  if (!cachedMeta && unfilteredBrowse && !deferHeavyMeta) {
     await setCachedBrowseMeta(countryCode, {
       categoryCounts: countMaps.categoryCounts,
       leafCounts: countMaps.leafCounts,
       categoryCovers,
-      countryProductCount: countryTotal,
+      countryProductCount: effectiveCountryTotal,
       brandOptions,
     });
   }
 
   return {
     products,
-    totalMatched: total,
+    totalMatched: effectiveMatchedTotal,
     categoryCounts: countMaps.categoryCounts,
     leafCounts: countMaps.leafCounts,
     categoryCovers,
-    countryProductCount: countryTotal,
+    countryProductCount: effectiveCountryTotal,
     brandOptions,
   };
 }
 
-/** Fill CH aisle counts/covers after the first page is already on screen. */
+const browseMetaWarmInFlight = new Map<string, Promise<void>>();
+
+/** Fill large-market aisle counts/covers after the first page is already on screen. */
 export async function warmBrowseMetaForCountry(countryCode: string): Promise<void> {
+  const cacheKey = countryCode.toUpperCase();
+  const existingWarm = browseMetaWarmInFlight.get(cacheKey);
+  if (existingWarm) return existingWarm;
+
+  const warmPromise = warmBrowseMetaForCountryOnce(countryCode);
+  browseMetaWarmInFlight.set(cacheKey, warmPromise);
+  try {
+    await warmPromise;
+  } finally {
+    if (browseMetaWarmInFlight.get(cacheKey) === warmPromise) {
+      browseMetaWarmInFlight.delete(cacheKey);
+    }
+  }
+}
+
+async function warmBrowseMetaForCountryOnce(countryCode: string): Promise<void> {
   const existing = await getCachedBrowseMeta(countryCode);
   if (existing && Object.keys(existing.categoryCovers).length > 0) return;
 

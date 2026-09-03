@@ -62,7 +62,7 @@ async function cacheSet(key: string, value: unknown, ttlSeconds: number): Promis
 }
 
 export function browseMetaCacheKey(countryCode: string): string {
-  return `catalog:browse-meta:v2:${countryCode.toUpperCase()}`;
+  return `catalog:browse-meta:v4:${countryCode.toUpperCase()}`;
 }
 
 export function chLeadIdsCacheKey(countryCode: string, take: number, skip: number): string {
@@ -80,7 +80,7 @@ export function firstPageCacheKey(
   category?: string | null
 ): string {
   // Locale does not change the Supabase first-page payload — one key per market + aisle.
-  return `catalog:first-page:v2:${countryCode.toUpperCase()}:${normalizeFirstPageCategory(category)}:${limit}`;
+  return `catalog:first-page:v7:${countryCode.toUpperCase()}:${normalizeFirstPageCategory(category)}:${limit}`;
 }
 
 export async function getCachedBrowseMeta(
