@@ -8,6 +8,7 @@
  */
 import { prisma } from "../lib/db";
 import { loadMerchantFeedForImport } from "../lib/merchant-feeds";
+import { replaceMerchantCatalogueAtomically } from "../lib/atomic-catalog-import";
 
 const MERCHANT_ID = "ch-acer";
 const COUNTRY = "CH";
@@ -68,26 +69,14 @@ async function main() {
     }))
   );
 
-  await prisma.offer.deleteMany({ where: { feedMerchantId: MERCHANT_ID } });
-  await prisma.product.deleteMany({
-    where: {
-      id: { in: productRows.map((r) => r.id) },
-      targetCountries: { has: COUNTRY },
-    },
+  await replaceMerchantCatalogueAtomically({
+    prisma,
+    merchantId: MERCHANT_ID,
+    country: COUNTRY,
+    productRows,
+    offerRows,
+    chunkSize: CHUNK,
   });
-
-  for (let i = 0; i < productRows.length; i += CHUNK) {
-    await prisma.product.createMany({
-      data: productRows.slice(i, i + CHUNK),
-      skipDuplicates: true,
-    });
-  }
-  for (let i = 0; i < offerRows.length; i += CHUNK) {
-    await prisma.offer.createMany({
-      data: offerRows.slice(i, i + CHUNK),
-      skipDuplicates: true,
-    });
-  }
 
   const [pc, oc] = await Promise.all([
     prisma.product.count({

@@ -91,6 +91,23 @@ describe('Category and Collection Logic', () => {
     expect(getParentCategoryId("audio-headphones")).toBe("electronics");
   });
 
+  it("keeps the canonical VR leaf distinct from the retired Gaming parent id", () => {
+    expect(resolveCategoryAlias("gaming-vr")).toBe("gaming-vr");
+    expect(getParentCategoryId("gaming-vr")).toBe("electronics");
+    expect(
+      productMatchesCategoryFilter(
+        { ...baseProduct, title: "Oculus Meta Quest 3S", category: "gaming-vr" },
+        "gaming-vr"
+      )
+    ).toBe(true);
+    expect(
+      productMatchesCategoryFilter(
+        { ...baseProduct, title: "Acer Swift laptop", category: "notebooks-laptops" },
+        "gaming-vr"
+      )
+    ).toBe(false);
+  });
+
   it("parent filters use tree membership instead of id prefixes", () => {
     expect(
       productMatchesCategoryFilter(

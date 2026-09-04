@@ -125,4 +125,17 @@ describe("prefetch browse markets", () => {
       extendedProducts.map((product) => product.id)
     );
   });
+
+  it("expires the memory layer too, without extending lifetime after a remount", () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(1000000);
+      setSessionBrowsePage("US", "en", { products: [{ id: "old" } as Product], meta: completeMeta });
+      vi.setSystemTime(1000000 + 899000);
+      clearSessionBrowseMemoryForTests();
+      expect(getSessionBrowsePage("US", "en")).not.toBeNull();
+      vi.setSystemTime(1000000 + 900000);
+      expect(getSessionBrowsePage("US", "en")).toBeNull();
+    } finally { vi.useRealTimers(); }
+  });
 });

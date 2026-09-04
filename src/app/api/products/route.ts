@@ -33,6 +33,7 @@ import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 import { hasActiveOfferFilters, parseOfferFiltersFromSearchParams } from "@/lib/offers/offer-filters";
 import type { ProductSortOption } from "@/lib/product-list-options";
 import { withTimeout } from "@/lib/promise-timeout";
+import { coalesceCatalogRead } from "@/lib/catalog-read-coalescer";
 import {
   clampFilterString,
   MAX_PRODUCT_FILTER_CHARS,
@@ -244,28 +245,17 @@ export async function GET(request: Request) {
     }
 
     const result = await withTimeout(
-      fetchMergedProductsForLocation(userLocation, query, category, locale, {
+      coalesceCatalogRead(JSON.stringify([countryCode, query, category, locale, limit, offset, includePriceHistory, filters, sort]), () => fetchMergedProductsForLocation(userLocation, query, category, locale, {
         limit,
         offset,
         includePriceHistory,
         compact: true,
         filters,
         sort,
-      }),
+      })),
       7_000,
       `Catalog API ${countryCode}`
     );
-    if (result.products.length === 0 && !query && !hasActiveOfferFilters(filters)) {
-      const fallbackCached =
-        (category ? await getCachedFirstBrowsePage(countryCode, limit, category) : null) ||
-        (await getCachedFirstBrowsePage(countryCode, limit, "_all"));
-      if (fallbackCached?.products?.length) {
-        return NextResponse.json(fallbackCached, {
-          headers: { ...browseCacheHeaders, "x-btb-catalog-cache": "stale-fallback" },
-        });
-      }
-    }
-
     if (cacheableFirstPage && result.products.length > 0) {
       // Await the write — a detached SET dies when the Vercel isolate freezes.
       await setCachedFirstBrowsePage(
@@ -289,9 +279,11 @@ export async function GET(request: Request) {
     const trackingId = randomUUID();
     console.error(`Product fetch failed (Tracking ID: ${trackingId}):`, error);
     try {
-      const fallbackCached =
-        (category ? await getCachedFirstBrowsePage(countryCode, limit, category) : null) ||
-        (await getCachedFirstBrowsePage(countryCode, limit, "_all"));
+      // Only the exact unfiltered first-page request can use this cache.
+      // Never substitute page one/all products for a search, filter or later page.
+      const fallbackCached = cacheableFirstPage
+        ? await getCachedFirstBrowsePage(countryCode, limit, category)
+        : null;
       if (fallbackCached?.products?.length) {
         return NextResponse.json(fallbackCached, {
           headers: { ...browseCacheHeaders, "x-btb-catalog-cache": "stale-fallback-error" },

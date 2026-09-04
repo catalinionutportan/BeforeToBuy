@@ -32,11 +32,13 @@ export function isUsableAllBrowsePage(page: SessionBrowsePage | null | undefined
 }
 
 type PersistedBrowsePage = {
+  apiVersion: string;
   savedAt: number;
   page: SessionBrowsePage;
 };
 
 const sessionPages = new Map<string, SessionBrowsePage>();
+const sessionSavedAt = new Map<string, number>();
 const inflightPages = new Map<string, Promise<SessionBrowsePage | null>>();
 
 function sessionCategoryKey(category?: string | null): string {
@@ -59,10 +61,11 @@ function readPersistedPage(key: string): SessionBrowsePage | null {
     if (!parsed?.page?.products?.length || !parsed.page.meta || typeof parsed.savedAt !== "number") {
       return null;
     }
-    if (Date.now() - parsed.savedAt > STORAGE_TTL_MS) {
+    if (parsed.apiVersion !== BROWSE_API_VERSION || Date.now() - parsed.savedAt >= STORAGE_TTL_MS) {
       window.sessionStorage.removeItem(STORAGE_PREFIX + key);
       return null;
     }
+    sessionSavedAt.set(key, parsed.savedAt);
     return parsed.page;
   } catch {
     return null;
@@ -72,7 +75,7 @@ function readPersistedPage(key: string): SessionBrowsePage | null {
 function persistPage(key: string, page: SessionBrowsePage): void {
   if (typeof window === "undefined" || !page?.products?.length) return;
   try {
-    const payload: PersistedBrowsePage = { savedAt: Date.now(), page };
+    const payload: PersistedBrowsePage = { apiVersion: BROWSE_API_VERSION, savedAt: sessionSavedAt.get(key) ?? Date.now(), page };
     window.sessionStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(payload));
   } catch {
     // quota / private mode
@@ -86,6 +89,10 @@ export function getSessionBrowsePage(
 ): SessionBrowsePage | null {
   const key = sessionKey(countryCode, category);
   const allAisle = sessionCategoryKey(category) === "_all";
+  if (Date.now() - (sessionSavedAt.get(key) ?? 0) >= STORAGE_TTL_MS) {
+    sessionPages.delete(key);
+    sessionSavedAt.delete(key);
+  }
   const local = sessionPages.get(key);
   if (local?.products?.length) {
     if (allAisle && !isUsableAllBrowsePage(local)) {
@@ -118,6 +125,7 @@ export function setSessionBrowsePage(
 ): void {
   if (!page?.products?.length) return;
   const key = sessionKey(countryCode, category);
+  sessionSavedAt.set(key, Date.now());
   sessionPages.set(key, page);
   persistPage(key, page);
 }
@@ -125,6 +133,7 @@ export function setSessionBrowsePage(
 /** Test helper — clear process-local browse cache between cases. */
 export function resetSessionBrowsePagesForTests(): void {
   sessionPages.clear();
+  sessionSavedAt.clear();
   inflightPages.clear();
   if (typeof window === "undefined") return;
   const stale: string[] = [];
@@ -138,6 +147,7 @@ export function resetSessionBrowsePagesForTests(): void {
 /** Test helper — drop memory so the next read must use this tab's sessionStorage. */
 export function clearSessionBrowseMemoryForTests(): void {
   sessionPages.clear();
+  sessionSavedAt.clear();
 }
 
 function browseUrl(

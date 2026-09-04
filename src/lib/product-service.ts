@@ -92,9 +92,8 @@ export async function fetchMergedProductsForLocation(
       listOptions.sort,
       listOptions.filters
     );
-      // If Supabase has catalogue rows for this market, stay on DB even when the
-      // active hub/filter matches zero products (do not fall back to empty feeds).
-      if (dbResult.countryProductCount > 0) {
+      // The imported database is authoritative in production, including empty
+      // results. Remote feed parsing belongs to offline import jobs only.
       const fetchedAt = new Date().toISOString();
       const timestampedProducts = attachOfferTimestamps(dbResult.products, fetchedAt);
 
@@ -163,7 +162,7 @@ export async function fetchMergedProductsForLocation(
           categoryCovers: dbResult.categoryCovers,
           collectionCounts,
           feedSources: ["remote"] as Array<"remote" | "sample">,
-          hasProductionFeed: true,
+          hasProductionFeed: dbResult.countryProductCount > 0,
           hasSampleFeed: false,
           mappingSummary: "Data from Supabase",
           feedMerchants: {},
@@ -186,16 +185,15 @@ export async function fetchMergedProductsForLocation(
           },
         },
       };
-      }
     } catch (error) {
       console.error(
-        "[product-service] Supabase read failed; falling back to merchant-feeds:",
-        error instanceof Error ? error.message : error
+        "[product-service] Database catalogue read failed"
       );
+      throw error;
     }
   }
 
-  // Fallback: enabled feeds only (RO 2Performant remotes are disabled → no CSV cost).
+  // Explicit sample mode only; never an automatic production fallback.
   const [demoProducts, feedResult] = await Promise.all([
     fetchProductsForLocation(userLocation, query, undefined, locale),
     getFeedProducts(userLocation.countryCode, query),

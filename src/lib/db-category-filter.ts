@@ -38,7 +38,7 @@ export function expandCategoryFilterToDbIds(
   }
 
   const RELATED_LEAF_EXPANSIONS: Record<string, string[]> = {
-    "fashion-beauty-hair-care": ["fashion-beauty-hair-care", "care-hair-styling", "fashion-beauty-cosmetics"],
+    "fashion-beauty-hair-care": ["fashion-beauty-hair-care", "care-hair-styling"],
     "care-hair-styling": ["care-hair-styling", "fashion-beauty-hair-care"],
     "auto-rims": ["auto-rims", "auto-complete-wheels"],
     "auto-complete-wheels": ["auto-complete-wheels", "auto-rims"],

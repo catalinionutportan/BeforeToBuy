@@ -20,6 +20,7 @@ import {
   MARKET_HUB_LEAF_GROUPS,
   MARKET_HUB_TABS,
   marketHubOrderForCountry,
+  occupiedLeavesOutsideMarketHubs,
   resolveOccupiedBrowseCategory,
   shouldIgnoreLandingCategory,
 } from "@/lib/market-hubs";
@@ -234,6 +235,24 @@ export default function HomePageClient({
           count: leaf.count,
         });
       }
+    }
+
+    const ungroupedOccupiedLeaves = occupiedLeavesOutsideMarketHubs(leafCounts).sort(
+      (a, b) =>
+        b.count - a.count ||
+        getLocalizedCategoryLabel(a.id, browseLocale).localeCompare(
+          getLocalizedCategoryLabel(b.id, browseLocale),
+          browseLocale
+        )
+    );
+    for (const leaf of ungroupedOccupiedLeaves) {
+      if (seen.has(leaf.id)) continue;
+      seen.add(leaf.id);
+      options.push({
+        id: leaf.id,
+        label: getLocalizedCategoryLabel(leaf.id, browseLocale),
+        count: leaf.count,
+      });
     }
 
     return options;

@@ -8,7 +8,12 @@ import {
   Shirt,
   Smartphone,
 } from "lucide-react";
-import { ALL_CATEGORIES_ID, isCollectionFilter, resolveCategoryAlias } from "@/lib/categories";
+import {
+  ALL_CATEGORIES_ID,
+  getSubcategoryById,
+  isCollectionFilter,
+  resolveCategoryAlias,
+} from "@/lib/categories";
 import type { CountryCode } from "@/types";
 
 /**
@@ -371,6 +376,23 @@ export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
 export const MARKET_HUB_LEAF_GROUPS: Record<string, readonly string[]> = Object.fromEntries(
   MARKET_HUB_TABS.map((hub) => [hub.id, hub.leafIds])
 );
+
+/** Occupied canonical leaves that are not represented by any compact market hub. */
+export function occupiedLeavesOutsideMarketHubs(
+  categoryCounts: Record<string, number>
+): Array<{ id: string; count: number }> {
+  const groupedLeaves = new Set(MARKET_HUB_TABS.flatMap((hub) => hub.leafIds));
+  const ungrouped = new Map<string, number>();
+
+  for (const [categoryId, count] of Object.entries(categoryCounts)) {
+    if (count <= 0) continue;
+    const canonicalId = resolveCategoryAlias(categoryId);
+    if (!getSubcategoryById(canonicalId) || groupedLeaves.has(canonicalId)) continue;
+    ungrouped.set(canonicalId, Math.max(count, ungrouped.get(canonicalId) ?? 0));
+  }
+
+  return [...ungrouped].map(([id, count]) => ({ id, count }));
+}
 
 export function isMarketHubId(categoryId: string): boolean {
   return categoryId in MARKET_HUB_LEAF_GROUPS;

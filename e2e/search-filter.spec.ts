@@ -107,7 +107,8 @@ test.describe("Search, filters and product handoff", () => {
     expect(Math.abs(topAfter - topBefore)).toBeLessThanOrEqual(2);
   });
 
-  test("closing an instant preview before navigation does not pop the previous page", async ({ page }) => {
+  test("mobile slow navigation: closing an instant preview preserves the page and cards", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/help?lang=en");
     await page.goto("/?country=RO&lang=en");
     const cards = page.locator("[data-product-id]");
@@ -126,6 +127,7 @@ test.describe("Search, filters and product handoff", () => {
     await expect(page).toHaveURL(originalUrl);
     await expect(cards.first()).toBeVisible();
     expect(await cards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-product-id")))).toEqual(ids);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 
   test("requires affiliate consent and then opens the real merchant URL", async ({ page, context }) => {

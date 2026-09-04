@@ -8,7 +8,7 @@ const groupBy = vi.fn();
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    $queryRaw: (...args: unknown[]) => queryRaw(...args),
+    $queryRaw: (...args: unknown[]) => JSON.stringify(args[0]).includes("DISTINCT ON") ? Promise.resolve([]) : queryRaw(...args),
     product: {
       findMany: (...args: unknown[]) => findMany(...args),
       findFirst: (...args: unknown[]) => findFirst(...args),
@@ -18,11 +18,7 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 
-vi.mock("@/lib/db-category-filter", () => ({
-  expandCategoryFilterToDbIds: () => undefined,
-}));
-
-import { resetCatalogBrowseCacheForTests } from "@/lib/catalog-browse-cache";
+import { resetCatalogBrowseCacheForTests, setCachedBrowseMeta } from "@/lib/catalog-browse-cache";
 import { getProductsFromDb } from "@/lib/db-service";
 
 function mockProduct(id: string, deliveryCost: number | null) {
@@ -62,10 +58,24 @@ function mockProduct(id: string, deliveryCost: number | null) {
 
 describe("getProductsFromDb offer visibility", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     resetCatalogBrowseCacheForTests();
     groupBy.mockResolvedValue([]);
     findFirst.mockResolvedValue(null);
+  });
+
+  it("counts the full related-leaf selection instead of truncating pages to one cached leaf", async () => {
+    await setCachedBrowseMeta("CH", {
+      countryProductCount: 2, categoryCovers: {}, brandOptions: [],
+      categoryCounts: { "fashion-beauty-hair-care": 1 },
+      leafCounts: { "fashion-beauty-hair-care": 1, "care-hair-styling": 1 },
+    });
+    count.mockResolvedValue(2);
+    findMany.mockResolvedValue([mockProduct("hair-care", 0)]);
+    const page = await getProductsFromDb("CH", undefined, "fashion-beauty-hair-care", 1, 0);
+    expect(page.totalMatched).toBe(2);
+    expect(count).toHaveBeenCalledOnce();
+    expect(page.products.length < page.totalMatched).toBe(true);
   });
 
   it("drops products whose visible offers were filtered out after fetch", async () => {
@@ -74,9 +84,7 @@ describe("getProductsFromDb offer visibility", () => {
       .mockResolvedValueOnce([
         mockProduct("with-offers", 0),
         { ...mockProduct("empty", 0), offers: [] },
-      ])
-      .mockResolvedValueOnce([{ brand: "Brand" }])
-      .mockResolvedValueOnce([]);
+      ]);
 
     const page = await getProductsFromDb("RO", undefined, undefined, 10, 0);
 
@@ -87,10 +95,7 @@ describe("getProductsFromDb offer visibility", () => {
 
   it("uses the same totalMatched semantics for hasMore with freeDeliveryOnly", async () => {
     count.mockResolvedValue(3);
-    findMany
-      .mockResolvedValueOnce([mockProduct("free", 0)])
-      .mockResolvedValueOnce([{ brand: "Brand" }])
-      .mockResolvedValueOnce([]);
+    findMany.mockResolvedValueOnce([mockProduct("free", 0)]);
 
     const page = await getProductsFromDb("RO", undefined, undefined, 1, 0, undefined, {
       freeDeliveryOnly: true,
@@ -111,10 +116,7 @@ describe("getProductsFromDb offer visibility", () => {
   it("price sort applies explicit free-delivery SQL (null delivery is not free)", async () => {
     count.mockResolvedValue(1);
     queryRaw.mockResolvedValue([{ id: "free" }]);
-    findMany
-      .mockResolvedValueOnce([{ brand: "Brand" }])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([mockProduct("free", 0)]);
+    findMany.mockResolvedValueOnce([mockProduct("free", 0)]);
 
     await getProductsFromDb("RO", undefined, undefined, 5, 0, "price-asc", {
       freeDeliveryOnly: true,

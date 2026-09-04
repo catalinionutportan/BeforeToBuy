@@ -71,6 +71,8 @@ const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
     ],
     featured: true,
     fillFromHub: false,
+    domain: "belando.ch",
+    seeAllCategoryId: ALL_CATEGORIES_ID,
   },
   {
     // Reifen.com CH — Tires & Complete Wheels
@@ -99,6 +101,8 @@ const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
     ],
     featured: false,
     fillFromHub: false,
+    domain: "baby-walz.ch",
+    seeAllCategoryId: ALL_CATEGORIES_ID,
   },
   {
     // Gigasport CH — Activewear, Sports Shoes, Outdoor

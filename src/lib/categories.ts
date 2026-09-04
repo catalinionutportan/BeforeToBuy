@@ -1230,7 +1230,8 @@ const LEGACY_PARENT_ALIASES: Record<string, string> = {
   wearables: "electronics",
   "tv-home-cinema": "electronics",
   audio: "electronics",
-  "gaming-vr": "electronics",
+  // `gaming-vr` is also the canonical VR-headset leaf. Canonical leaf identity
+  // wins over the retired parent route so menu/API filters stay leaf-exact.
   "photo-video": "electronics",
   "photo-video-drones-optics": "electronics",
   "drones-electronics": "electronics",

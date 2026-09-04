@@ -9,6 +9,7 @@
  */
 import { prisma } from "../lib/db";
 import { loadMerchantFeedForImport } from "../lib/merchant-feeds";
+import { replaceMerchantCatalogueAtomically } from "../lib/atomic-catalog-import";
 
 const API_BASE = process.env.IMPORT_SOURCE_BASE || "https://www.beforetobuy.com";
 const PAGE_SIZE = 200;
@@ -145,21 +146,15 @@ async function writeCatalogue(products: ApiProduct[]) {
 
   console.log(`Writing ${productRows.length} products, ${offerRows.length} offers...`);
 
-  await prisma.offer.deleteMany({ where: { feedMerchantId: MERCHANT_ID } });
-  await prisma.product.deleteMany({
-    where: {
-      id: { in: productRows.map((r) => r.id) },
-      targetCountries: { has: COUNTRY },
-    },
-  });
-
   const CHUNK = 500;
-  for (let i = 0; i < productRows.length; i += CHUNK) {
-    await prisma.product.createMany({ data: productRows.slice(i, i + CHUNK), skipDuplicates: true });
-  }
-  for (let i = 0; i < offerRows.length; i += CHUNK) {
-    await prisma.offer.createMany({ data: offerRows.slice(i, i + CHUNK), skipDuplicates: true });
-  }
+  await replaceMerchantCatalogueAtomically({
+    prisma,
+    merchantId: MERCHANT_ID,
+    country: COUNTRY,
+    productRows,
+    offerRows,
+    chunkSize: CHUNK,
+  });
 
   const withDesc = await prisma.product.count({
     where: {

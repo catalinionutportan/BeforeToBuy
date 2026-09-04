@@ -3,9 +3,26 @@ import {
   resolveShortcutBoards,
   buildCategoryCoverMap,
   groupShortcutBoardColumns,
+  shortcutBoardDefinitionsForCountry,
 } from "@/lib/browse-shortcut-boards";
+import { getSubcategoryById } from "@/lib/categories";
+import { getMarketHubById } from "@/lib/market-hubs";
 
 describe("browse shortcut boards", () => {
+  it("wires every non-RO shortcut tile to a canonical category and a valid hub", () => {
+    for (const countryCode of ["CH", "DE", "GB", "US"] as const) {
+      for (const board of shortcutBoardDefinitionsForCountry(countryCode)) {
+        expect(getMarketHubById(board.hubId), `${countryCode}:${board.id}:${board.hubId}`).toBeDefined();
+        for (const categoryId of board.tileIds) {
+          expect(
+            getSubcategoryById(categoryId),
+            `${countryCode}:${board.id}:${categoryId}`
+          ).toBeDefined();
+        }
+      }
+    }
+  });
+
   it("builds CH electronics + baby boards only from occupied leaves", () => {
     const boards = resolveShortcutBoards("CH", {
       "notebooks-laptops": 73,
@@ -33,6 +50,8 @@ describe("browse shortcut boards", () => {
       "tv-projectors",
     ]);
     expect(boards[2]?.featured).toBe(false);
+    expect(boards[0]).toMatchObject({ domain: "belando.ch", seeAllCategoryId: "all" });
+    expect(boards[2]).toMatchObject({ domain: "baby-walz.ch", seeAllCategoryId: "all" });
     expect(boards[2]?.tiles.map((tile) => tile.categoryId)).toEqual([
       "baby-strollers-travel",
       "baby-nursery",

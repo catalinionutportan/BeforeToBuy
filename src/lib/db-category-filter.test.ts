@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { expandCategoryFilterToDbIds } from "@/lib/db-category-filter";
 
 describe("expandCategoryFilterToDbIds", () => {
+  it("does not broaden Hair Care into unrelated cosmetics", () => {
+    const ids = expandCategoryFilterToDbIds("fashion-beauty-hair-care");
+    expect(ids).toContain("fashion-beauty-hair-care");
+    expect(ids).toContain("care-hair-styling");
+    expect(ids).not.toContain("fashion-beauty-cosmetics");
+  });
+
   it("returns null for all / empty", () => {
     expect(expandCategoryFilterToDbIds(undefined)).toBeNull();
     expect(expandCategoryFilterToDbIds("all")).toBeNull();

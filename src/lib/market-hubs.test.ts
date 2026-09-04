@@ -7,6 +7,7 @@ import {
   defaultMarketHubForCountry,
   isMarketHubId,
   marketHubOrderForCountry,
+  occupiedLeavesOutsideMarketHubs,
   selectionHasCatalogOffers,
   resolveOccupiedBrowseCategory,
   shouldIgnoreLandingCategory,
@@ -129,6 +130,23 @@ describe("market hubs", () => {
       "hub-garden",
       "hub-diy",
       "hub-auto",
+    ]);
+  });
+
+  it("keeps occupied mobility and outdoor leaves reachable from the compact menu", () => {
+    expect(
+      occupiedLeavesOutsideMarketHubs({
+        "notebooks-laptops": 12,
+        "mobility-ebikes": 7,
+        "mobility-bicycles": 5,
+        "outdoor-electronics": 3,
+        electronics: 27,
+        unmapped: 9,
+      })
+    ).toEqual([
+      { id: "mobility-ebikes", count: 7 },
+      { id: "mobility-bicycles", count: 5 },
+      { id: "outdoor-electronics", count: 3 },
     ]);
   });
 });

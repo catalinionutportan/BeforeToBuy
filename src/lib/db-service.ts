@@ -412,14 +412,15 @@ export async function getCategoryCoverImagesFromDb(
         }
       : null;
 
-    const rows = await prisma.product.findMany({
-      where: {
-        targetCountries: { has: countryCode },
-        image: { startsWith: "http" },
-      },
-      distinct: ["category"],
-      select: { category: true, image: true },
-    });
+    // Prisma 5 findMany(distinct) deduplicates after reading the matching rows.
+    // Keep the catalogue scan inside Postgres and transfer one row per category.
+    // Stable ID ordering also prevents covers changing between identical warms.
+    const rows = await prisma.$queryRaw<Array<{ category: string; image: string }>>(Prisma.sql`
+      SELECT DISTINCT ON ("category") "category", "image"
+      FROM "Product"
+      WHERE ${countryCode} = ANY("targetCountries") AND "image" LIKE 'http%'
+      ORDER BY "category" ASC, "id" ASC
+    `);
 
     const covers = buildCategoryCoverMap(
       (rows || []).map((row) => ({
@@ -808,6 +809,13 @@ export async function getProductsFromDb(
       : Promise.resolve(null);
 
   const cachedMeta = await getCachedBrowseMeta(countryCode);
+  const expandedCategoryIds = expandCategoryFilterToDbIds(category);
+  // A related-leaf expansion (e.g. Hair Care + Hair Styling) is not represented
+  // by the individual leaf's cached count. A wrong count truncates pagination.
+  const categoryCountMatchesFilter = Boolean(category && (
+    MARKET_HUB_LEAF_GROUPS[category] ||
+    (expandedCategoryIds?.length === 1 && expandedCategoryIds[0] === resolveCategoryAlias(category))
+  ));
   // CH/DE have very large catalogues. Cover distinct + groupBy + brand scans
   // can take tens of seconds and must not block the first product page.
   // Serve products immediately; the route warms full metadata after responding.
@@ -818,11 +826,16 @@ export async function getProductsFromDb(
     ["CH", "DE"].includes(countryCode.toUpperCase()) &&
     isRedisConfigured();
 
+  // The category aggregation already visits every visible product. Reuse its
+  // sum instead of running a second full-country COUNT during a cold browse.
+  const coldCountMapsPromise = !cachedMeta && unfilteredBrowse && !deferHeavyMeta
+    ? getCategoryCountsFromDb(countryCode)
+    : null;
   const countryCountPromise = cachedMeta
     ? Promise.resolve(cachedMeta.countryProductCount)
-    : unfilteredBrowse
-      ? countInStockProductsForCountry(countryCode)
-      : Promise.resolve(0);
+    : coldCountMapsPromise
+      ? coldCountMapsPromise.then((maps) => Object.values(maps.leafCounts).reduce((sum, count) => sum + count, 0))
+      : countInStockProductsForCountry(countryCode);
 
   // If browse metadata is not cached yet and user is filtering by category,
   // schedule a background warm instead of stalling the category page with full table scans.
@@ -846,7 +859,7 @@ export async function getProductsFromDb(
         ? Promise.resolve(cachedMeta.countryProductCount)
         : unfilteredBrowse
           ? countryCountPromise
-          : cachedMeta && category && !query && !hasActiveOfferFilters(filters) && (
+          : cachedMeta && category && categoryCountMatchesFilter && !query && !hasActiveOfferFilters(filters) && (
               cachedMeta.categoryCounts[category] !== undefined ||
               cachedMeta.leafCounts[category] !== undefined ||
               cachedMeta.categoryCounts[resolveCategoryAlias(category)] !== undefined ||
@@ -868,7 +881,7 @@ export async function getProductsFromDb(
           ? Promise.resolve({ categoryCounts: {}, leafCounts: {} })
           : deferHeavyMeta
             ? Promise.resolve({ categoryCounts: {}, leafCounts: {} })
-            : getCategoryCountsFromDb(countryCode),
+            : coldCountMapsPromise!,
       countryCountPromise,
       cachedMeta
         ? Promise.resolve(cachedMeta.brandOptions.map((brand) => ({ brand })))
@@ -876,10 +889,9 @@ export async function getProductsFromDb(
           ? Promise.resolve([] as Array<{ brand: string | null }>)
           : deferHeavyMeta
             ? Promise.resolve([] as Array<{ brand: string | null }>)
-            : prisma.product.findMany({
+            : prisma.product.groupBy({
+                by: ["brand"],
                 where: { ...brandWhere, brand: { not: null } },
-                select: { brand: true },
-                distinct: ["brand"],
                 orderBy: { brand: "asc" },
               }),
       cachedMeta
@@ -974,18 +986,11 @@ async function warmBrowseMetaForCountryOnce(countryCode: string): Promise<void> 
   if (existing && Object.keys(existing.categoryCovers).length > 0) return;
 
   const brandWhere = buildWhere(countryCode, undefined, undefined, {});
-  const [countMaps, countryTotal, brandRows, categoryCovers] = await Promise.all([
+  const [countMaps, brandRows, categoryCovers] = await Promise.all([
     getCategoryCountsFromDb(countryCode),
-    prisma.product.count({
-      where: {
-        targetCountries: { has: countryCode },
-        offers: { some: { inStock: true } },
-      },
-    }),
-    prisma.product.findMany({
+    prisma.product.groupBy({
+      by: ["brand"],
       where: { ...brandWhere, brand: { not: null } },
-      select: { brand: true },
-      distinct: ["brand"],
       orderBy: { brand: "asc" },
     }),
     getCategoryCoverImagesFromDb(countryCode),
@@ -1004,7 +1009,7 @@ async function warmBrowseMetaForCountryOnce(countryCode: string): Promise<void> 
     categoryCounts: countMaps.categoryCounts,
     leafCounts: countMaps.leafCounts,
     categoryCovers,
-    countryProductCount: countryTotal,
+    countryProductCount: Object.values(countMaps.leafCounts).reduce((sum, count) => sum + count, 0),
     brandOptions,
   });
 }

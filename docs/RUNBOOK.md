@@ -18,7 +18,11 @@
 | Cache | Self-hosted Redis/disk cache; Upstash only when explicitly configured |
 | APIs | `/api/products`, `/api/health`, `/api/contact`, `/api/consent`, cron warm/snapshot |
 
-Configured merchants include Rowenta, Scule365 (2Performant RO), Seentat (AWIN UK), Ottocast (AWIN US). evoMAG is soft-paused until image/CDN readiness. CH feeds remain disabled pending approval.
+Imported merchants include Acer, baby-walz, Belando, Gigasport and Reifen.com CH;
+Reifen DE; Arlo, Geepas and Seentat GB; DJI and Ottocast US. RO includes Rowenta
+and Scule365; evoMAG remains soft-paused pending image/CDN readiness. Import
+configuration is distinct from public request-time reads: production browsing
+uses the imported PostgreSQL catalogue only, never the merchant feed pipeline.
 
 ---
 
@@ -112,3 +116,19 @@ not-found page with `noindex` (Next.js streamed responses can retain HTTP 200);
 database errors surface as errors, never a full cross-market feed scan. Feed-only
 products must be imported into the database before they can have a public detail
 page. Sample-mode tests retain the checked-in feed lookup.
+
+## 8. Atomic catalogue imports and cache freshness (2026-09-05)
+
+All 11 CH/DE/GB/US merchant import scripts use the shared atomic import helper.
+An empty, inconsistent or failed import must preserve the previous committed
+catalogue. Do not replace this with delete-then-create calls outside a transaction.
+Products are upserted, not deleted, so other merchants' offers are not cascaded
+away. ROMANIA imports are outside this migration.
+
+Atomic database publication does not invalidate every browse cache immediately.
+Metadata expires after 24h, lead IDs after 12h, first-page JSON after 2h and browser
+session pages after 15min; HTTP/CDN caches have additional short freshness windows.
+Restarting alone does not clear disk/Redis cache and must not extend its expiry.
+`BROWSE_CACHE_DIRECTORY` optionally isolates persistent browse cache from `.cache`.
+Do not delete `.cache` wholesale: it also holds the generated sitemap files.
+See `docs/CATALOG-STABILITY-2026-09-05.md` for evidence and remaining limitations.

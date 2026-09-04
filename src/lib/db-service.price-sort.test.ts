@@ -9,7 +9,7 @@ const redisConfigured = vi.fn(() => true);
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    $queryRaw: (...args: unknown[]) => queryRaw(...args),
+    $queryRaw: (...args: unknown[]) => JSON.stringify(args[0]).includes("DISTINCT ON") ? Promise.resolve([]) : queryRaw(...args),
     product: {
       findMany: (...args: unknown[]) => findMany(...args),
       findFirst: (...args: unknown[]) => findFirst(...args),
@@ -67,20 +67,19 @@ function mockProduct(id: string, minTotal: number) {
 
 describe("getProductsFromDb price sort", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     redisConfigured.mockReturnValue(true);
     resetCatalogBrowseCacheForTests();
-    groupBy.mockResolvedValue([]);
+    groupBy.mockImplementation((args: { by: string[] }) => Promise.resolve(
+      args.by.includes("category") ? [{ category: "electronics", _count: { _all: 6 } }] : []
+    ));
     count.mockResolvedValue(6);
     findFirst.mockResolvedValue(null);
   });
 
   it("orders globally by min offer total even when cheapest id is after the first id page", async () => {
     queryRaw.mockResolvedValue([{ id: "prod-cheapest" }, { id: "prod-a" }]);
-    findMany
-      .mockResolvedValueOnce([{ brand: "Brand" }])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([mockProduct("prod-cheapest", 1), mockProduct("prod-a", 50)]);
+    findMany.mockResolvedValueOnce([mockProduct("prod-cheapest", 1), mockProduct("prod-a", 50)]);
 
     const page = await getProductsFromDb("RO", undefined, undefined, 2, 0, "price-asc");
 
@@ -92,11 +91,11 @@ describe("getProductsFromDb price sort", () => {
 
   it("supports deep offsets and hasMore at the catalogue tail", async () => {
     count.mockResolvedValue(10);
+    groupBy.mockImplementation((args: { by: string[] }) => Promise.resolve(
+      args.by.includes("category") ? [{ category: "electronics", _count: { _all: 10 } }] : []
+    ));
     queryRaw.mockResolvedValue([{ id: "prod-i" }, { id: "prod-j" }]);
-    findMany
-      .mockResolvedValueOnce([{ brand: "Brand" }])
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([mockProduct("prod-i", 90), mockProduct("prod-j", 95)]);
+    findMany.mockResolvedValueOnce([mockProduct("prod-i", 90), mockProduct("prod-j", 95)]);
 
     const page = await getProductsFromDb("RO", undefined, undefined, 2, 7, "price-asc");
 
@@ -161,6 +160,9 @@ describe("getProductsFromDb price sort", () => {
     queryRaw.mockResolvedValue([{ id: "prod-ch-acer-1" }]);
     findMany.mockResolvedValue([mockProduct("prod-ch-acer-1", 15)]);
     count.mockResolvedValue(42000);
+    groupBy.mockImplementation((args: { by: string[] }) => Promise.resolve(
+      args.by.includes("category") ? [{ category: "electronics", _count: { _all: 42000 } }] : []
+    ));
 
     const page = await getProductsFromDb("CH", undefined, undefined, 1, 0);
 
@@ -168,5 +170,6 @@ describe("getProductsFromDb price sort", () => {
     expect(page.totalMatched).toBe(42000);
     expect(page.countryProductCount).toBe(42000);
     expect(groupBy).toHaveBeenCalled();
+    expect(count).not.toHaveBeenCalled();
   });
 });

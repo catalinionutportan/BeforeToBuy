@@ -15,6 +15,19 @@ import { withTimeout } from "@/lib/promise-timeout";
 import { getRequestMarketCountry } from "@/lib/request-market";
 import type { CountryCode, Product } from "@/types";
 import { normalizeBrowsePage } from "@/lib/browse-pagination";
+import {
+  hasActiveOfferFilters,
+  parseOfferFiltersFromSearchParams,
+} from "@/lib/offers/offer-filters";
+import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n/locales";
+import type { ProductSortOption } from "@/lib/product-list-options";
+import {
+  clampFilterString,
+  MAX_PRODUCT_FILTER_CHARS,
+  MAX_PRODUCT_QUERY_CHARS,
+} from "@/lib/request-body-limits";
+import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
+import { productMatchesCategoryFilter } from "@/lib/categories";
 
 export const dynamic = "force-dynamic";
 
@@ -37,13 +50,54 @@ function compactCachedPage(page: CachedFirstBrowsePage): CachedFirstBrowsePage {
 }
 
 interface HomePageProps {
-  searchParams?: Promise<{
-    country?: string;
-    category?: string;
-    q?: string;
-    domain?: string;
-    page?: string;
-  }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}
+
+function firstSearchParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function toUrlSearchParams(
+  params: Record<string, string | string[] | undefined> | undefined
+): URLSearchParams {
+  const result = new URLSearchParams();
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (Array.isArray(value)) {
+      for (const item of value) result.append(key, item);
+    } else if (value !== undefined) {
+      result.set(key, value);
+    }
+  }
+  return result;
+}
+
+function parseSort(value: string | undefined): ProductSortOption | undefined {
+  return value === "price-asc" || value === "price-desc" || value === "newest"
+    ? value
+    : undefined;
+}
+
+function cacheMatchesCategory(
+  page: CachedFirstBrowsePage | null,
+  category: string | undefined
+): page is CachedFirstBrowsePage {
+  if (!page?.products?.length) return false;
+  if (!category) return true;
+  return page.products.every((item) => {
+    if (!item || typeof item !== "object") return false;
+    const product = item as Partial<Product>;
+    if (typeof product.category !== "string") return false;
+    return productMatchesCategoryFilter(
+      {
+        title: product.title ?? "",
+        description: product.description ?? "",
+        brand: product.brand ?? "",
+        category: product.category,
+        offers: product.offers,
+      },
+      category
+    );
+  });
 }
 
 export default async function Home({ searchParams }: HomePageProps) {
@@ -52,28 +106,71 @@ export default async function Home({ searchParams }: HomePageProps) {
   let initialMeta: ProductFetchMeta | null = null;
   let initialFetchFailed = false;
   let initialPage = 1;
+  let canSeedClientAllCache = false;
 
   try {
     const params = searchParams ? await searchParams : undefined;
-    initialPage = normalizeBrowsePage(params?.page);
-    marketCountry = await getRequestMarketCountry(params?.country?.toUpperCase());
-    const categoryParam = params?.category?.trim() || undefined;
-    let cachedPage = initialPage === 1
-      ? (categoryParam
-          ? await getCachedFirstBrowsePage(marketCountry, DEFAULT_PRODUCT_LIST_LIMIT, categoryParam)
-          : null) ||
-        (await getCachedFirstBrowsePage(marketCountry, DEFAULT_PRODUCT_LIST_LIMIT))
-      : null;
+    const urlParams = toUrlSearchParams(params);
+    initialPage = normalizeBrowsePage(firstSearchParam(params?.page));
+    marketCountry = await getRequestMarketCountry(
+      firstSearchParam(params?.country)?.toUpperCase()
+    );
+
+    const queryCheck = clampFilterString(urlParams.get("q"), MAX_PRODUCT_QUERY_CHARS);
+    const categoryCheck = clampFilterString(
+      urlParams.get("category"),
+      MAX_PRODUCT_FILTER_CHARS
+    );
+    const domainCheck = clampFilterString(
+      urlParams.get("domain"),
+      MAX_PRODUCT_FILTER_CHARS
+    );
+    const brandCheck = clampFilterString(
+      urlParams.get("brand"),
+      MAX_PRODUCT_FILTER_CHARS
+    );
+    if (!queryCheck.ok || !categoryCheck.ok || !domainCheck.ok || !brandCheck.ok) {
+      throw new Error("Homepage query parameter too long");
+    }
+
+    const query = queryCheck.value
+      ? stripUnsafeQueryChars(queryCheck.value) || undefined
+      : undefined;
+    const categoryParam = categoryCheck.value
+      ? stripUnsafeQueryChars(categoryCheck.value) || undefined
+      : undefined;
+    const filters = parseOfferFiltersFromSearchParams(urlParams);
+    const sort = parseSort(firstSearchParam(params?.sort));
+    const locale =
+      normalizeLocale(
+        firstSearchParam(params?.lang) ?? firstSearchParam(params?.locale)
+      ) ?? DEFAULT_LOCALE;
+    const cacheableFirstPage =
+      initialPage === 1 &&
+      !query &&
+      !sort &&
+      !hasActiveOfferFilters(filters);
+    canSeedClientAllCache = cacheableFirstPage && !categoryParam;
+
+    let cachedPage: CachedFirstBrowsePage | null = null;
+    if (cacheableFirstPage) {
+      const candidate = await getCachedFirstBrowsePage(
+        marketCountry,
+        DEFAULT_PRODUCT_LIST_LIMIT,
+        categoryParam
+      );
+      if (cacheMatchesCategory(candidate, categoryParam)) cachedPage = candidate;
+    }
 
     // Reuse the previous 96-item cache during the rollout, then write the
     // compact 48-item first-page key used by numbered pagination.
-    if (initialPage === 1 && !cachedPage?.products?.length) {
-      const legacyPage =
-        (categoryParam
-          ? await getCachedFirstBrowsePage(marketCountry, LEGACY_FIRST_PAGE_LIMIT, categoryParam)
-          : null) ||
-        (await getCachedFirstBrowsePage(marketCountry, LEGACY_FIRST_PAGE_LIMIT));
-      if (legacyPage?.products?.length) {
+    if (cacheableFirstPage && !cachedPage?.products?.length) {
+      const legacyPage = await getCachedFirstBrowsePage(
+        marketCountry,
+        LEGACY_FIRST_PAGE_LIMIT,
+        categoryParam
+      );
+      if (cacheMatchesCategory(legacyPage, categoryParam)) {
         cachedPage = compactCachedPage(legacyPage);
         await setCachedFirstBrowsePage(
           marketCountry,
@@ -89,21 +186,23 @@ export default async function Home({ searchParams }: HomePageProps) {
       const freshPage = await withTimeout(
         fetchMergedProductsForLocation(
           { countryCode: marketCountry, countryName: country.name },
-          undefined,
+          query,
           categoryParam,
-          undefined,
+          locale,
           {
             ...BROWSE_LIST_OPTIONS,
             limit: DEFAULT_PRODUCT_LIST_LIMIT,
             offset: (initialPage - 1) * DEFAULT_PRODUCT_LIST_LIMIT,
+            filters,
+            sort,
           }
         ),
         INITIAL_CATALOG_TIMEOUT_MS,
         `Homepage ${marketCountry} catalog`
       );
+      cachedPage = freshPage;
       if (freshPage.products.length > 0) {
-        cachedPage = freshPage;
-        if (initialPage === 1) {
+        if (cacheableFirstPage && cacheMatchesCategory(freshPage, categoryParam)) {
           await setCachedFirstBrowsePage(
             marketCountry,
             DEFAULT_PRODUCT_LIST_LIMIT,
@@ -118,7 +217,11 @@ export default async function Home({ searchParams }: HomePageProps) {
       initialProducts = cachedPage.products as Product[];
     }
     if (cachedPage?.meta && typeof cachedPage.meta === "object") {
-      initialMeta = cachedPage.meta as ProductFetchMeta;
+      // HomePageClient's first-load cache is the unfiltered All aisle. Never
+      // let a category/search/filter/sort/page response seed that global key.
+      initialMeta = canSeedClientAllCache
+        ? (cachedPage.meta as ProductFetchMeta)
+        : null;
     }
   } catch (err) {
     console.error("[HomePage] SSR initial fetch error:", err);
