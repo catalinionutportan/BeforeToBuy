@@ -14,7 +14,9 @@ import {
  * Preference: explicit market cookie, then Vercel's request country, then fallback.
  * Only the two-letter country code is read.
  */
-export async function getRequestMarketCountry(): Promise<CountryCode> {
+export async function getRequestMarketCountry(searchCountry?: string): Promise<CountryCode> {
+  if (isCountryCode(searchCountry)) return resolveBrowseCountry(searchCountry);
+
   const cookieStore = await cookies();
   const fromCookie = cookieStore.get(MARKET_COUNTRY_COOKIE)?.value;
   if (isCountryCode(fromCookie)) return resolveBrowseCountry(fromCookie);

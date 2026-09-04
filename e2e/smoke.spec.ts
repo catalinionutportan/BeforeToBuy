@@ -38,6 +38,16 @@ test("security headers block sensitive browser capabilities", async ({ request }
   expect(headers["permissions-policy"]).toContain("geolocation=()");
 });
 
+test("homepage HTML contains real product cards without a false empty state", async ({ request }) => {
+  const response = await request.get("/?country=RO&lang=en");
+  expect(response.ok()).toBeTruthy();
+  const html = await response.text();
+  // The checked-in sample currently contains 11 RO products; production is
+  // verified separately with 12. The invariant here is real SSR cards, not 0.
+  expect((html.match(/data-product-id=/g) || []).length).toBeGreaterThan(0);
+  expect(html).not.toMatch(/0 results|No products found/i);
+});
+
 test.describe("BeforeToBuy smoke E2E", () => {
   test.beforeEach(async ({ page, context }) => {
     // Force English UI + RO market so assertions stay stable and catalog is non-empty.
@@ -63,7 +73,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     });
     await expect(page.getByRole("button", { name: /^Menu$/i })).toBeVisible();
     await selectRomaniaMarket(page);
-    await expect(page.locator("article").first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator("[data-product-id]").first()).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole("link", { name: "admin@portanx.com" })).toHaveAttribute(
       "href",
       "mailto:admin@portanx.com"
@@ -156,7 +166,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await page.goto("/");
     await dismissCookieBannerIfPresent(page);
     await selectRomaniaMarket(page);
-    await expect(page.locator("article").first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator("[data-product-id]").first()).toBeVisible({ timeout: 10_000 });
 
     await page.goto("/legal");
     await expect(page.getByRole("heading", { name: /Legal & Company Information/i })).toBeVisible();
@@ -200,7 +210,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await page.goto("/");
     await dismissCookieBannerIfPresent(page);
     await selectRomaniaMarket(page);
-    await expect(page.locator("article").first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator("[data-product-id]").first()).toBeVisible({ timeout: 10_000 });
 
     await page.getByRole("button", { name: /^Menu$/i }).click();
     const rootMenu = page.getByRole("dialog", { name: /^Menu$/i });
@@ -310,5 +320,3 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.getByRole("heading", { name: "Rowenta.ro" })).toBeVisible();
   });
 });
-
-

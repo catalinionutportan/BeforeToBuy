@@ -48,3 +48,4 @@ debug-*.ts
 # Backups and archives
 *.zip
 /backups/
+/.cache/

@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { redisGetJson, redisSetJson } from "@/lib/redis-cache";
 
 /** Tile counts/covers/brands change only on import — 24h keeps NAS / Node cache warm. */
@@ -40,23 +42,74 @@ function memorySet(key: string, value: unknown, ttlSeconds: number): void {
 
 function redisEnabled(): boolean {
   // Vitest must not share Upstash keys with a local/dev Redis (TTL 1–2 min).
-  return process.env.VITEST !== "true";
+  return process.env.VITEST !== "true" && process.env.FORCE_SAMPLE_FEEDS !== "1";
 }
 
-async function cacheGet<T>(key: string): Promise<T | null> {
+function diskEnabled(): boolean {
+  return process.env.VITEST !== "true" && process.env.FORCE_SAMPLE_FEEDS !== "1";
+}
+
+const CACHE_DIR = path.join(process.cwd(), ".cache");
+
+function diskGet<T>(key: string): T | null {
+  if (!diskEnabled()) return null;
+  try {
+    const filename = path.join(CACHE_DIR, `${key.replace(/[^a-zA-Z0-9_-]/g, "_")}.json`);
+    if (!fs.existsSync(filename)) return null;
+    const content = fs.readFileSync(filename, "utf-8");
+    const parsed = JSON.parse(content);
+    if (parsed.expiresAt && parsed.expiresAt <= Date.now()) {
+      try {
+        fs.unlinkSync(filename);
+      } catch {}
+      return null;
+    }
+    return parsed.value as T;
+  } catch {
+    return null;
+  }
+}
+
+function diskSet(key: string, value: unknown, ttlSeconds: number): void {
+  if (!diskEnabled()) return;
+  try {
+    if (!fs.existsSync(CACHE_DIR)) {
+      fs.mkdirSync(CACHE_DIR, { recursive: true });
+    }
+    const filename = path.join(CACHE_DIR, `${key.replace(/[^a-zA-Z0-9_-]/g, "_")}.json`);
+    const payload = JSON.stringify({
+      value,
+      expiresAt: Date.now() + ttlSeconds * 1000,
+    });
+    fs.writeFileSync(filename, payload, "utf-8");
+  } catch {}
+}
+
+async function cacheGet<T>(key: string, ttlSeconds: number): Promise<T | null> {
   const local = memoryGet<T>(key);
   if (local) return local;
-  if (!redisEnabled()) return null;
-  const remote = await redisGetJson<T>(key);
-  if (remote) {
-    memorySet(key, remote, BROWSE_META_TTL_SECONDS);
-    return remote;
+
+  if (redisEnabled()) {
+    const remote = await redisGetJson<T>(key);
+    if (remote) {
+      memorySet(key, remote, ttlSeconds);
+      diskSet(key, remote, ttlSeconds);
+      return remote;
+    }
+  }
+
+  // Disk is a last-known-good fallback for the self-hosted single container.
+  const disk = diskGet<T>(key);
+  if (disk) {
+    memorySet(key, disk, ttlSeconds);
+    return disk;
   }
   return null;
 }
 
 async function cacheSet(key: string, value: unknown, ttlSeconds: number): Promise<void> {
   memorySet(key, value, ttlSeconds);
+  diskSet(key, value, ttlSeconds);
   if (!redisEnabled()) return;
   await redisSetJson(key, value, ttlSeconds);
 }
@@ -71,7 +124,7 @@ export function chLeadIdsCacheKey(countryCode: string, take: number, skip: numbe
 
 function normalizeFirstPageCategory(category?: string | null): string {
   const trimmed = category?.trim();
-  return trimmed ? trimmed : "_all";
+  return trimmed && trimmed !== "all" ? trimmed : "_all";
 }
 
 export function firstPageCacheKey(
@@ -86,7 +139,7 @@ export function firstPageCacheKey(
 export async function getCachedBrowseMeta(
   countryCode: string
 ): Promise<CachedBrowseMeta | null> {
-  return cacheGet<CachedBrowseMeta>(browseMetaCacheKey(countryCode));
+  return cacheGet<CachedBrowseMeta>(browseMetaCacheKey(countryCode), BROWSE_META_TTL_SECONDS);
 }
 
 export async function setCachedBrowseMeta(
@@ -101,7 +154,7 @@ export async function getCachedChLeadIds(
   take: number,
   skip: number
 ): Promise<string[] | null> {
-  return cacheGet<string[]>(chLeadIdsCacheKey(countryCode, take, skip));
+  return cacheGet<string[]>(chLeadIdsCacheKey(countryCode, take, skip), LEAD_IDS_TTL_SECONDS);
 }
 
 export async function setCachedChLeadIds(
@@ -118,7 +171,10 @@ export async function getCachedFirstBrowsePage(
   limit: number,
   category?: string | null
 ): Promise<CachedFirstBrowsePage | null> {
-  return cacheGet<CachedFirstBrowsePage>(firstPageCacheKey(countryCode, limit, category));
+  return cacheGet<CachedFirstBrowsePage>(
+    firstPageCacheKey(countryCode, limit, category),
+    FIRST_PAGE_TTL_SECONDS
+  );
 }
 
 export async function setCachedFirstBrowsePage(

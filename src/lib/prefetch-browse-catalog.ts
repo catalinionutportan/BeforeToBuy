@@ -13,7 +13,7 @@ export const PREFETCH_BROWSE_MARKETS: CountryCode[] = ["CH", "RO", "GB", "US", "
 /** Homepage listens so the category flyout does not remount the page. */
 export const BROWSE_CATEGORY_EVENT = "btb-browse-category";
 
-const STORAGE_PREFIX = "btb-browse-page:v6:";
+const STORAGE_PREFIX = "btb-browse-page:v8:";
 const STORAGE_TTL_MS = 15 * 60 * 1000;
 
 export type SessionBrowsePage = {
@@ -40,7 +40,7 @@ const inflightPages = new Map<string, Promise<SessionBrowsePage | null>>();
 
 function sessionCategoryKey(category?: string | null): string {
   const trimmed = category?.trim();
-  return trimmed ? trimmed : "_all";
+  return trimmed && trimmed !== ALL_CATEGORIES_ID && trimmed !== "all" ? trimmed : "_all";
 }
 
 function sessionKey(countryCode: CountryCode, category?: string | null): string {
@@ -171,7 +171,11 @@ export function ensureBrowseCatalog(
   const pending = inflightPages.get(key);
   if (pending) return pending;
 
-  const request = fetch(browseUrl(countryCode, locale, category))
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 8_000);
+  const request = fetch(browseUrl(countryCode, locale, category), {
+    signal: controller.signal,
+  })
     .then((response) => (response.ok ? response.json() : null))
     .then((data: SessionBrowsePage | null) => {
       if (!data?.products || !data.meta) return null;
@@ -181,31 +185,12 @@ export function ensureBrowseCatalog(
     })
     .catch(() => null)
     .finally(() => {
+      window.clearTimeout(timeoutId);
       inflightPages.delete(key);
     });
 
   inflightPages.set(key, request);
   return request;
-}
-
-export function prefetchBrowseCatalog(
-  countryCode: CountryCode,
-  locale: SiteLocale,
-  category?: string | null
-): void {
-  void ensureBrowseCatalog(countryCode, locale, category);
-}
-
-export function prefetchOtherBrowseMarkets(
-  currentCountry: CountryCode,
-  locale: SiteLocale
-): void {
-  const queued = PREFETCH_BROWSE_MARKETS.filter((code) => code !== currentCountry).sort(
-    (left, right) => Number(right === "CH") - Number(left === "CH")
-  );
-  for (const countryCode of queued) {
-    prefetchBrowseCatalog(countryCode, locale);
-  }
 }
 
 export function requestBrowseCategory(categoryId: string): void {

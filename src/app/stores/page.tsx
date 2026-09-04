@@ -268,7 +268,7 @@ export default function StoresDirectoryPage() {
                   </ConsentAwareAffiliateLink>
 
                   <Link
-                    href={`/?q=${encodeURIComponent(merchant.domain.split(".")[0])}`}
+                    href={`/?domain=${encodeURIComponent(merchant.domain)}`}
                     className="bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition-colors inline-flex items-center gap-1 shadow-xs"
                   >
                     <span>{homeUi.compareDeals}</span>

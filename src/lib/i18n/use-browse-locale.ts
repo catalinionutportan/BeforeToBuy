@@ -25,7 +25,7 @@ export function useBrowseLocale(countryCode?: CountryCode) {
   const serverLocalization = useServerLocalization();
   const activeCountry = countryCode ?? serverLocalization.currentCountry;
   const [locale, setLocaleState] = useState<SiteLocale>(() =>
-    countryCode ? defaultLocaleFromCountry(countryCode) : serverLocalization.currentLocale
+    clampLocaleToCountry(serverLocalization.currentLocale, activeCountry)
   );
   const [explicit, setExplicit] = useState(false);
   const [ready, setReady] = useState(false);

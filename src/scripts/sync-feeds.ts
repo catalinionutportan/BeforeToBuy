@@ -93,11 +93,11 @@ function deepSanitize<T>(obj: T): T {
     return obj.map(deepSanitize) as T;
   }
   if (obj && typeof obj === "object" && !(obj instanceof Date)) {
-    const res: any = {};
+    const res: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(obj)) {
       res[k] = deepSanitize(v);
     }
-    return res;
+    return res as T;
   }
   return obj;
 }

@@ -5,6 +5,7 @@ import { COUNTRIES } from "@/lib/countries";
 import { defaultLocaleFromCountry, type SiteLocale } from "@/lib/i18n/locales";
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 import { ProductCardImage } from "./ProductCardImage";
 import { ProductCardDetails } from "./ProductCardDetails";
@@ -165,7 +166,7 @@ export function ProductCard({
             className="mt-auto rounded-lg bg-emerald-50 border border-emerald-200/80 px-2 py-1.5 min-w-0 space-y-1"
           >
             <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-800/80">
-              {ui.comparePrices}
+              {visibleOffers.length > 1 ? ui.comparePrices : ui.productOfferHeading}
             </p>
 
             <ul className="space-y-0.5">
@@ -202,6 +203,11 @@ export function ProductCard({
                 +{hiddenOfferCount}
               </p>
             ) : null}
+
+            <span className="flex min-h-9 items-center justify-center gap-1.5 rounded-md bg-emerald-700 px-3 py-2 text-xs font-extrabold text-white transition-colors group-hover:bg-emerald-800">
+              {ui.viewOfferButton}
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
           </Link>
         )}
       </div>

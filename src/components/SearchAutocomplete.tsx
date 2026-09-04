@@ -100,6 +100,7 @@ export function SearchAutocomplete({
     }
 
     const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 6_000);
     setIsLoading(true);
 
     const fetchSuggestions = async () => {
@@ -120,12 +121,16 @@ export function SearchAutocomplete({
         setResults([]);
         setActiveIndex(-1);
         setIsLoading(false);
+      } finally {
+        window.clearTimeout(timeoutId);
+        setIsLoading(false);
       }
     };
 
     void fetchSuggestions();
 
     return () => {
+      window.clearTimeout(timeoutId);
       controller.abort();
     };
   }, [debouncedQuery, countryCode, locale]);

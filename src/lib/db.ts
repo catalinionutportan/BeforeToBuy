@@ -24,6 +24,8 @@ export function resolveDatabaseUrl(raw = process.env.DATABASE_URL): string | und
       pooled.password = url.password;
       pooled.searchParams.set("pgbouncer", "true");
       pooled.searchParams.set("connection_limit", limit);
+      pooled.searchParams.set("connect_timeout", "5");
+      pooled.searchParams.set("pool_timeout", "5");
       pooled.searchParams.set("sslmode", "require");
       return pooled.toString();
     }
@@ -51,6 +53,8 @@ export function resolveDatabaseUrl(raw = process.env.DATABASE_URL): string | und
     if (url.hostname.includes(".pooler.supabase.com")) {
       const explicitLimit = process.env.DATABASE_CONNECTION_LIMIT?.trim() || url.searchParams.get("connection_limit");
       url.searchParams.set("connection_limit", explicitLimit || "1");
+      if (!url.searchParams.has("connect_timeout")) url.searchParams.set("connect_timeout", "5");
+      if (!url.searchParams.has("pool_timeout")) url.searchParams.set("pool_timeout", "5");
     }
 
     return url.toString();

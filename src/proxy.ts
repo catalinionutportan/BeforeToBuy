@@ -37,7 +37,12 @@ function applyLocaleCookie(
 function securedNext(request: NextRequest, response?: NextResponse) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const isDevelopment = process.env.NODE_ENV === "development";
-  const csp = buildContentSecurityPolicy({ nonce, isDevelopment });
+  const host = request.headers.get("host") || "";
+  const isLocalhost =
+    host.includes("localhost") ||
+    host.includes("127.0.0.1") ||
+    host.startsWith("192.168.");
+  const csp = buildContentSecurityPolicy({ nonce, isDevelopment, isLocalhost });
   const { requestHeaders, requestedLocale } = buildRequestHeaders(request, nonce, csp);
 
   const nextResponse =

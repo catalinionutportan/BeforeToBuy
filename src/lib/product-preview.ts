@@ -41,7 +41,6 @@ let memoryPreview: ProductPreview | null = null;
 let openPending = false;
 /** True only after image decode (+ rAF) so the eye sees one complete frame. */
 let paintReady = false;
-let prepareToken = 0;
 
 function emit() {
   listeners.forEach((listener) => listener());
@@ -79,35 +78,6 @@ export function warmProductPreviewImage(src: string | undefined): void {
   img.decoding = "async";
   img.src = safeSrc;
   void img.decode?.().catch(() => {});
-}
-
-function decodeImage(src: string): Promise<void> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.decoding = "async";
-    img.src = src;
-    const done = () => resolve();
-    if (typeof img.decode === "function") {
-      img.decode().then(done, done);
-    } else {
-      img.onload = done;
-      img.onerror = done;
-    }
-    // Never block the click more than a blink.
-    window.setTimeout(done, 100);
-  });
-}
-
-function markPaintReady(token: number): void {
-  if (token !== prepareToken) return;
-  // Two frames: commit DOM with decoded bitmap, then reveal together.
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      if (token !== prepareToken) return;
-      paintReady = true;
-      emit();
-    });
-  });
 }
 
 export function saveProductPreview(preview: ProductPreview): void {
@@ -201,7 +171,6 @@ export function enrichProductPreview(patch: Partial<ProductPreview> & { id: stri
 }
 
 export function clearProductPreview(): void {
-  prepareToken += 1;
   memoryPreview = null;
   openPending = false;
   paintReady = false;

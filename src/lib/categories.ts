@@ -1448,6 +1448,8 @@ export function productMatchesCategoryFilter(
       type?: string;
       originalPrice?: number;
       discountPercentage?: number;
+      storeName?: string;
+      feedMerchantId?: string;
     }>;
   },
   categoryFilter: string
@@ -1475,6 +1477,34 @@ export function productMatchesCategoryFilter(
 
   // Exact assignable product type.
   if (productCategory === resolvedFilter) return true;
+
+  // Cross-category matching for related leaf pairs across merchants:
+  // 1. Hair Care (Belando) & Hair Styling (Rowenta/Belando)
+  if (
+    (resolvedFilter === "fashion-beauty-hair-care" || resolvedFilter === "care-hair-styling") &&
+    (productCategory === "fashion-beauty-hair-care" ||
+      productCategory === "care-hair-styling" ||
+      /shampoo|conditioner|haarpflege|hair|haar|haarspray|kerastase|wella|schwarzkopf|lisap|l'oreal|par|ondulator|curler|developer|spray|oil|wax|gel/i.test(product.title) ||
+      product.offers?.some((o) => (o.storeName || "").toLowerCase().includes("belando") || o.feedMerchantId === "ch-belando"))
+  ) {
+    return true;
+  }
+
+  // 2. Complete wheels & Rims
+  if (
+    (resolvedFilter === "auto-rims" || resolvedFilter === "auto-complete-wheels") &&
+    (productCategory === "auto-rims" || productCategory === "auto-complete-wheels")
+  ) {
+    return true;
+  }
+
+  // 3. Vacuums across sub-types
+  if (
+    (resolvedFilter === "cleaning-vacuums" || resolvedFilter === "cleaning-stick-vacuums") &&
+    (productCategory.startsWith("cleaning-") && (productCategory.includes("vacuum") || /aspirator|vacuum/i.test(product.title)))
+  ) {
+    return true;
+  }
 
   // Parent department selected → match direct subs and nested children.
   const parentCat = getCategoryById(resolvedFilter);

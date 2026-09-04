@@ -20,8 +20,9 @@ describe("market hubs", () => {
     expect(defaultMarketHubForCountry("RO")).toBe("all");
     expect(defaultMarketHubForCountry("CH")).toBe("all");
     expect(defaultMarketHubForCountry("GB")).toBe("all");
-    expect(shouldIgnoreLandingCategory("hub-electronics")).toBe(true);
+    expect(shouldIgnoreLandingCategory("hub-electronics")).toBe(false);
     expect(shouldIgnoreLandingCategory(null)).toBe(true);
+    expect(shouldIgnoreLandingCategory("all")).toBe(true);
     expect(shouldIgnoreLandingCategory("hub-fashion")).toBe(false);
   });
 
@@ -43,8 +44,8 @@ describe("market hubs", () => {
     expect(resolveOccupiedBrowseCategory("mobile-feature-phones", undefined, 0)).toBe(
       "mobile-feature-phones"
     );
-    expect(resolveOccupiedBrowseCategory("mobile-feature-phones", undefined, 194)).toBe("all");
-    expect(resolveOccupiedBrowseCategory("notebooks-laptops", undefined, 194)).toBe("all");
+    expect(resolveOccupiedBrowseCategory("mobile-feature-phones", undefined, 194)).toBe("mobile-feature-phones");
+    expect(resolveOccupiedBrowseCategory("notebooks-laptops", undefined, 194)).toBe("notebooks-laptops");
   });
 
   it("orders CH hubs with fashion and Auto before electronics", () => {

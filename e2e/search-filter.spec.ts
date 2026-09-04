@@ -16,7 +16,7 @@ test.describe("Search, filters and product handoff", () => {
     });
     await page.goto("/?lang=en");
     await dismissCookieBannerIfPresent(page);
-    await expect(page.locator("article").first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator("[data-product-id]").first()).toBeVisible({ timeout: 10_000 });
   });
 
   test("searches with the current q parameter", async ({ page }) => {
@@ -25,8 +25,8 @@ test.describe("Search, filters and product handoff", () => {
     await search.press("Enter");
 
     await expect(page).toHaveURL(/(?:\?|&)q=rowenta(?:&|$)/);
-    await expect(page.locator("article").first()).toBeVisible();
-    await expect(page.locator("article").first()).toContainText(/rowenta/i);
+    await expect(page.locator("[data-product-id]").first()).toBeVisible();
+    await expect(page.locator("[data-product-id]").first()).toContainText(/rowenta/i);
   });
 
   test("shows an honest empty state for an unknown query", async ({ page }) => {
@@ -35,7 +35,7 @@ test.describe("Search, filters and product handoff", () => {
     await search.press("Enter");
 
     await expect(page).toHaveURL(/q=nonexistentproduct123/);
-    await expect(page.locator("article")).toHaveCount(0);
+    await expect(page.locator("[data-product-id]")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "No products found" })).toBeVisible();
   });
 
@@ -43,7 +43,7 @@ test.describe("Search, filters and product handoff", () => {
     await page.getByLabel(/store domain/i).selectOption("rowenta.ro");
 
     await expect(page).toHaveURL(/domain=rowenta.ro/);
-    await expect(page.locator("article").first()).toContainText(/rowenta/i);
+    await expect(page.locator("[data-product-id]").first()).toContainText(/rowenta/i);
 
     // Hub tabs were removed — categories live under the bag menu (iOS affordance).
     // Scope by name: cookie banner is also role=dialog.
@@ -55,7 +55,7 @@ test.describe("Search, filters and product handoff", () => {
   });
 
   test("opens accessible product details", async ({ page }) => {
-    await page.locator("article").first().locator("a").first().click();
+    await page.locator("[data-product-id]").first().locator("a").first().click();
 
     await expect(page).toHaveURL(/\/p\/[^/?]+/);
     const productDialog = page.getByRole("dialog", { name: /Store offer/i });
@@ -65,7 +65,7 @@ test.describe("Search, filters and product handoff", () => {
   });
 
   test("requires affiliate consent and then opens the real merchant URL", async ({ page, context }) => {
-    await page.locator("article").first().locator("a").first().click();
+    await page.locator("[data-product-id]").first().locator("a").first().click();
     await expect(page).toHaveURL(/\/p\/[^/?]+/);
     const productDialog = page.getByRole("dialog", { name: /Store offer/i });
     await expect(productDialog).toBeVisible();
@@ -90,7 +90,7 @@ test.describe("Search, filters and product handoff", () => {
   test("loads CH catalogue when switching market from RO", async ({ page }) => {
     await page.getByLabel("Country / market").selectOption("CH");
 
-    await expect(page.locator("article").first()).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator("[data-product-id]").first()).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText(/\d[\d,.]*\s+(items found|results)/i).first()).toBeVisible();
     // Permanent bag + menu stay available on every market.
     await expect(page.getByRole("button", { name: /^Menu$/i })).toBeVisible();

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { CountryCode, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import {
+  isCountryCode,
   readStoredMarketCountry,
   writeStoredMarketCountry,
 } from "@/lib/market-preference";
@@ -28,22 +29,28 @@ function locationFromCountry(
 
 export function useUserLocation(initialCountry: CountryCode): UseUserLocationResult {
   const [userLocation, setUserLocation] = useState<UserLocation>(() => {
-    // Prefer a saved manual market; otherwise use the request country from the server.
-    const initial =
-      (typeof window !== "undefined" && readStoredMarketCountry()) ||
-      initialCountry;
-    return locationFromCountry(initial);
+    // The first client render must match the server-rendered market. Browser
+    // preferences are applied after hydration by the effect below.
+    return locationFromCountry(initialCountry);
   });
 
-  // A saved manual choice overrides the request-country market from the server.
+  // A saved manual choice or URL override updates the market
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = params.get("country")?.toUpperCase();
+    if (fromUrl && isCountryCode(fromUrl)) {
+      const resolved = resolveBrowseCountry(fromUrl);
+      writeStoredMarketCountry(resolved);
+      setUserLocation(locationFromCountry(resolved));
+      return;
+    }
     const stored = readStoredMarketCountry();
     if (stored) {
       const resolved = resolveBrowseCountry(stored);
       writeStoredMarketCountry(resolved);
       setUserLocation(locationFromCountry(resolved));
     }
-  }, []);
+  }, [initialCountry]);
 
   const handleCountryChange = useCallback((countryCode: CountryCode) => {
     const resolved = resolveBrowseCountry(countryCode);

@@ -6,7 +6,7 @@
 
 /** Placeholder used when an image URL is missing or rejected. */
 export const SAFE_IMAGE_FALLBACK =
-  "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600";
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23f8fafc' rx='16'/%3E%3Cpath d='M60 70 L140 70 L130 155 L70 155 Z' stroke='%23cbd5e1' stroke-width='6' stroke-linejoin='round' fill='none'/%3E%3Cpath d='M80 70 C80 50 120 50 120 70' stroke='%23cbd5e1' stroke-width='6' stroke-linecap='round' fill='none'/%3E%3C/svg%3E";
 
 /** Standard HTTPS ports only — anything else is treated as unusual. */
 const ALLOWED_PORTS = new Set(["", "443"]);
@@ -67,11 +67,16 @@ export const APPROVED_IMAGE_HOSTS = [
   "www.reifen.de",
   "gigasport.ch",
   "www.gigasport.ch",
+  "gigasport.at",
+  "www.gigasport.at",
   "store.dji.com",
   "www.dji.com",
   "dji.com",
+  "djiits.com",
   "se-cdn.djiits.com",
   "productserve.com",
+  "aboutyou.cloud",
+  "walz-live.cdn.aboutyou.cloud",
   "tyres.net",
   "static.tyres.net",
 ] as const;
@@ -444,6 +449,7 @@ export function sanitizeProductImageForRender(
 ): string {
   if (!raw?.trim()) return SAFE_IMAGE_FALLBACK;
   const trimmed = raw.trim();
+  if (trimmed === SAFE_IMAGE_FALLBACK) return SAFE_IMAGE_FALLBACK;
   if (trimmed.startsWith("/") && !trimmed.startsWith("//")) return trimmed;
   const result = validateFeedUrl(trimmed, "image");
   if (result.ok) return result.normalized;

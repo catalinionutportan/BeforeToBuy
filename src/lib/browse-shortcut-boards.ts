@@ -59,39 +59,34 @@ const MAX_TILES = 6;
 
 const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
   {
-    id: "electronics",
-    hubId: "hub-electronics",
-    titleKey: "hubElectronics",
+    // Belando CH — Hair Care, Cosmetics, Fragrance, Styling
+    id: "beauty",
+    hubId: "hub-fashion",
+    titleKey: "shortcutBoardBeauty",
     tileIds: [
-      "notebooks-laptops",
-      "notebooks-desktops",
-      "notebooks-monitors",
-      "tv-projectors",
-      "notebooks-tablets-pc",
-      "office-home",
+      "fashion-beauty-hair-care",
+      "fashion-beauty-cosmetics",
+      "fashion-beauty-fragrance",
+      "care-hair-styling",
     ],
-    fillFromHub: true,
+    featured: true,
+    fillFromHub: false,
   },
   {
-    // Reifen.com is CH-only for now — do not add this board to RO/GB/US.
+    // Reifen.com CH — Tires & Complete Wheels
     id: "auto",
     hubId: "hub-auto",
     titleKey: "hubAuto",
     tileIds: [
       "auto-tires-wheels",
-      "auto-rims",
-      "auto-motorcycle-tires",
       "auto-complete-wheels",
-      "auto-batteries",
-      "auto-oils-fluids",
-      "auto-lighting",
-      "auto-filters-brakes",
-      "auto-interior-care",
-      "auto-tools-chargers",
+      "auto-rims",
     ],
-    fillFromHub: true,
+    featured: true,
+    fillFromHub: false,
   },
   {
+    // Baby-Walz CH — Strollers, Car Seats, Nursery, Baby Clothes
     id: "baby",
     hubId: "hub-fashion",
     titleKey: "shortcutBoardBaby",
@@ -102,23 +97,11 @@ const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
       "baby-monitoring-feeding",
       "fashion-kids-baby",
     ],
-    featured: true,
+    featured: false,
     fillFromHub: false,
   },
   {
-    id: "beauty",
-    hubId: "hub-fashion",
-    titleKey: "shortcutBoardBeauty",
-    tileIds: [
-      "fashion-beauty-hair-care",
-      "fashion-beauty-cosmetics",
-      "fashion-beauty-fragrance",
-      "care-hair-styling",
-    ],
-    fillFromHub: false,
-  },
-  {
-    // Gigasport CH — three sport tiles; See all opens the store filter.
+    // Gigasport CH — Activewear, Sports Shoes, Outdoor
     id: "sport",
     hubId: "hub-fashion",
     titleKey: "shortcutBoardSport",
@@ -126,16 +109,15 @@ const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
       "fashion-women-activewear",
       "fashion-shoes-sport",
       "mobility-accessories",
+      "fashion-men-activewear",
     ],
-    featured: true,
+    featured: false,
     fillFromHub: false,
     domain: "gigasport.ch",
     seeAllCategoryId: ALL_CATEGORIES_ID,
   },
-];
-
-const RO_BOARDS: readonly ShortcutBoardDefinition[] = [
   {
+    // Acer CH — Laptops, Monitors, Desktops
     id: "electronics",
     hubId: "hub-electronics",
     titleKey: "hubElectronics",
@@ -145,13 +127,14 @@ const RO_BOARDS: readonly ShortcutBoardDefinition[] = [
       "notebooks-desktops",
       "tv-projectors",
       "peripherals-accessories",
-      "pc-ram-ssd",
-      "photo-video-cameras",
     ],
-    featured: true,
-    fillFromHub: true,
+    fillFromHub: false,
   },
+];
+
+const RO_BOARDS: readonly ShortcutBoardDefinition[] = [
   {
+    // Scule365 RO — Scule electrice & unelte
     id: "diy",
     hubId: "hub-diy",
     titleKey: "hubDiy",
@@ -163,21 +146,39 @@ const RO_BOARDS: readonly ShortcutBoardDefinition[] = [
       "diy-batteries-chargers",
       "diy-measuring",
     ],
-    fillFromHub: true,
+    featured: true,
+    fillFromHub: false,
   },
   {
+    // Rowenta RO — Electrocasnice, Îngrijire & Curățenie
     id: "home",
     hubId: "hub-home",
     titleKey: "hubHome",
     tileIds: [
+      "care-hair-styling",
       "cleaning-stick-vacuums",
       "cleaning-vacuums",
-      "care-hair-styling",
       "care-shaving-hair-removal",
-      "cleaning-robots",
       "cleaning-accessories",
     ],
-    fillFromHub: true,
+    featured: true,
+    fillFromHub: false,
+  },
+  {
+    // evoMAG RO — Calculatoare & Componente
+    id: "electronics",
+    hubId: "hub-electronics",
+    titleKey: "hubElectronics",
+    tileIds: [
+      "pc-ram-ssd",
+      "notebooks-monitors",
+      "notebooks-laptops",
+      "notebooks-desktops",
+      "peripherals-accessories",
+      "photo-video-cameras",
+    ],
+    featured: false,
+    fillFromHub: false,
   },
 ];
 

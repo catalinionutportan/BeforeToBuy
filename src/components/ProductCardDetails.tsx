@@ -17,6 +17,11 @@ export function ProductCardDetails({
 
   return (
     <div>
+      {product.brand && product.brand !== "Various" && product.brand !== "Generic" && (
+        <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 block mb-0.5">
+          {product.brand}
+        </span>
+      )}
       <h3 className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-2 hover:text-emerald-700 transition-colors leading-snug">
         {product.title}
       </h3>

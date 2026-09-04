@@ -8,7 +8,7 @@ import {
   Shirt,
   Smartphone,
 } from "lucide-react";
-import { ALL_CATEGORIES_ID, isCollectionFilter } from "@/lib/categories";
+import { ALL_CATEGORIES_ID, isCollectionFilter, resolveCategoryAlias } from "@/lib/categories";
 import type { CountryCode } from "@/types";
 
 /**
@@ -41,9 +41,7 @@ export function defaultMarketHubForCountry(_countryCode: CountryCode | string): 
 
 /** True when a URL category should be ignored so landing stays on All. */
 export function shouldIgnoreLandingCategory(categoryId: string | null | undefined): boolean {
-  if (!categoryId) return true;
-  // Old default hub — never restore from ?category=
-  if (categoryId === DEFAULT_MARKET_HUB_ID) return true;
+  if (!categoryId || categoryId === LANDING_CATEGORY_ID) return true;
   return false;
 }
 
@@ -390,12 +388,40 @@ export function selectionHasCatalogOffers(
     return true;
   }
   if (isCollectionFilter(categoryId)) return true;
-  if (!categoryCounts) return true;
+  if (!categoryCounts || Object.keys(categoryCounts).length === 0) return true;
   if (isMarketHubId(categoryId)) {
     const leaves = MARKET_HUB_LEAF_GROUPS[categoryId] ?? [];
     return leaves.some((leafId) => (categoryCounts[leafId] ?? 0) > 0);
   }
-  return (categoryCounts[categoryId] ?? 0) > 0;
+  if ((categoryCounts[categoryId] ?? 0) > 0) return true;
+  const alias = resolveCategoryAlias(categoryId);
+  if (alias && (categoryCounts[alias] ?? 0) > 0) return true;
+
+  // Cross-category inventory aliases across merchants:
+  if (categoryId === "auto-rims" && (categoryCounts["auto-complete-wheels"] ?? 0) > 0) return true;
+  if (categoryId === "auto-complete-wheels" && (categoryCounts["auto-rims"] ?? 0) > 0) return true;
+  if (
+    (categoryId === "fashion-beauty-hair-care" || categoryId === "care-hair-styling") &&
+    ((categoryCounts["fashion-beauty-hair-care"] ?? 0) > 0 ||
+      (categoryCounts["care-hair-styling"] ?? 0) > 0 ||
+      (categoryCounts["fashion-beauty-cosmetics"] ?? 0) > 0)
+  ) {
+    return true;
+  }
+  if (
+    (categoryId === "cleaning-vacuums" || categoryId === "cleaning-stick-vacuums") &&
+    ((categoryCounts["cleaning-vacuums"] ?? 0) > 0 ||
+      (categoryCounts["cleaning-stick-vacuums"] ?? 0) > 0)
+  ) {
+    return true;
+  }
+  if (
+    categoryId === "diy-hand-tools" &&
+    ((categoryCounts["diy-hand-tools"] ?? 0) > 0 || (categoryCounts["diy-power-tools"] ?? 0) > 0)
+  ) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -413,9 +439,8 @@ export function resolveOccupiedBrowseCategory(
   }
   if (isCollectionFilter(selected)) return selected;
   if (marketProductCount <= 0) return selected;
-  // Market already has SKUs. Unknown or empty aisles stay on All so first paint
-  // never replaces the catalogue with the "No offers in this category" card.
-  if (!categoryCounts) return ALL_CATEGORIES_ID;
+  // If categoryCounts is not yet loaded or empty, allow the selected category to load
+  if (!categoryCounts || Object.keys(categoryCounts).length === 0) return selected;
   if (selectionHasCatalogOffers(selected, categoryCounts)) return selected;
   return ALL_CATEGORIES_ID;
 }

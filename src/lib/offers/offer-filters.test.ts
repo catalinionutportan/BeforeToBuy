@@ -71,6 +71,17 @@ describe('Offer Filtering Logic', () => {
     expect(offerMatchesDomain(products[0]!.offers[0]!, "digitec.ch")).toBe(true);
     expect(offerMatchesDomain(products[0]!.offers[1]!, "amazon.de")).toBe(true);
     expect(offerMatchesDomain(products[0]!.offers[0]!, "galaxus.ch")).toBe(false);
+
+    // Subdomains like store.dji.com or store.acer.com
+    const djiOffer = offer({ id: "dji", storeName: "DJI (US & CA)", purchaseUrl: "https://www.awin1.com/pclick.php?p=123" });
+    expect(offerMatchesDomain(djiOffer, "store.dji.com")).toBe(true);
+    expect(offerMatchesDomain(djiOffer, "dji.com")).toBe(true);
+
+    const acerOffer = offer({ id: "acer", storeName: "Acer CH", purchaseUrl: "https://www.awin1.com/pclick.php?p=456" });
+    expect(offerMatchesDomain(acerOffer, "store.acer.com")).toBe(true);
+
+    const gigaOffer = offer({ id: "giga", storeName: "Gigasport CH", purchaseUrl: "https://www.awin1.com/pclick.php?p=789" });
+    expect(offerMatchesDomain(gigaOffer, "gigasport.ch")).toBe(true);
   });
 
   it("applyOfferFilters trims offers and supports brand/stock/price/gtin", () => {

@@ -14,13 +14,51 @@ export interface OfferFilterCriteria {
 
 export const MAX_TOTAL_PRICE_OPTIONS = [100, 200, 500, 1000, 2000] as const;
 
+export function getStoreSearchTokens(domainOrStore: string): string[] {
+  const clean = domainOrStore.trim().toLowerCase();
+  if (!clean || clean === "all") return [];
+  const tokens = new Set<string>();
+
+  if (clean.includes("dji")) tokens.add("dji");
+  if (clean.includes("acer")) tokens.add("acer");
+  if (clean.includes("baby-walz") || clean.includes("babywalz") || clean.includes("walz")) {
+    tokens.add("baby-walz");
+    tokens.add("walz");
+  }
+  if (clean.includes("belando")) tokens.add("belando");
+  if (clean.includes("reifen")) tokens.add("reifen");
+  if (clean.includes("gigasport")) tokens.add("gigasport");
+  if (clean.includes("rowenta")) tokens.add("rowenta");
+  if (clean.includes("scule365")) tokens.add("scule365");
+  if (clean.includes("aqualine")) tokens.add("aqualine");
+  if (clean.includes("ottocast")) tokens.add("ottocast");
+  if (clean.includes("arlo")) tokens.add("arlo");
+  if (clean.includes("geepas")) tokens.add("geepas");
+  if (clean.includes("seentat")) tokens.add("seentat");
+
+  // General subdomain / domain extraction
+  const stripped = clean
+    .replace(/^https?:\/\//, "")
+    .replace(/^(www\.|store\.|shop\.|m\.)+/, "")
+    .split("/")[0]
+    .split("?")[0];
+  const primaryPart = stripped.split(".")[0];
+  if (primaryPart && primaryPart.length > 1) {
+    tokens.add(primaryPart);
+  }
+
+  return tokens.size > 0 ? [...tokens] : [clean];
+}
+
 export function offerMatchesDomain(offer: Offer, domain: string): boolean {
   if (!domain || domain === "all") return true;
-  const token = domain.split(".")[0]?.toLowerCase() ?? "";
-  return (
-    offer.storeName.toLowerCase().includes(token) ||
-    offer.purchaseUrl.toLowerCase().includes(domain.toLowerCase())
-  );
+  const target = domain.trim().toLowerCase();
+  const url = (offer.purchaseUrl || "").toLowerCase();
+  if (url.includes(target)) return true;
+
+  const store = (offer.storeName || "").toLowerCase();
+  const tokens = getStoreSearchTokens(target);
+  return tokens.some((t) => store.includes(t) || url.includes(t));
 }
 
 function offerMatchesCriteria(offer: Offer, criteria: OfferFilterCriteria): boolean {
@@ -76,7 +114,7 @@ export function collectBrandOptions(products: Product[]): string[] {
   const brands = new Set<string>();
   for (const product of products) {
     const brand = product.brand?.trim();
-    if (brand) brands.add(brand);
+    if (brand && brand.toLowerCase() !== "generic") brands.add(brand);
   }
   return [...brands].sort((a, b) => a.localeCompare(b));
 }

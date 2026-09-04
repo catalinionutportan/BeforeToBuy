@@ -15,8 +15,9 @@ const datadogIntakeOrigin = `https://browser-intake-${datadogSiteParts.join("-")
 export function buildContentSecurityPolicy(options: {
   nonce: string;
   isDevelopment: boolean;
+  isLocalhost?: boolean;
 }): string {
-  const { nonce, isDevelopment } = options;
+  const { nonce, isDevelopment, isLocalhost } = options;
   const imgSrc = [
     "'self'",
     "data:",
@@ -39,7 +40,7 @@ export function buildContentSecurityPolicy(options: {
     ? `style-src 'self' 'nonce-${nonce}' 'unsafe-inline'`
     : `style-src 'self' 'unsafe-inline'`;
 
-  return [
+  const directives = [
     "default-src 'self'",
     scriptSrc,
     styleSrc,
@@ -52,8 +53,13 @@ export function buildContentSecurityPolicy(options: {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
-  ]
+  ];
+
+  if (!isDevelopment && !isLocalhost) {
+    directives.push("upgrade-insecure-requests");
+  }
+
+  return directives
     .join("; ")
     .replace(/\s{2,}/g, " ")
     .trim();

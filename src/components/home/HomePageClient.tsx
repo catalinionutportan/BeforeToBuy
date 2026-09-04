@@ -14,7 +14,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { PromoCouponsSection } from "@/components/PromoCouponsSection";
 import { isActiveCollectionSelection } from "@/components/CollectionNavigation";
 import type { BrowseCategoryOption } from "@/components/BrowseCategoryOption";
-import { ALL_CATEGORIES_ID, productMatchesCategoryFilter } from "@/lib/categories";
+import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import {
   defaultMarketHubForCountry,
   MARKET_HUB_LEAF_GROUPS,
@@ -32,7 +32,7 @@ import {
 } from "@/lib/category-i18n";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
-import { applyOfferFilters, hasActiveOfferFilters, parseOfferFiltersFromSearchParams, writeOfferFiltersToParams, writeOfferFiltersToSearchParams, type OfferFilterCriteria } from "@/lib/offers/offer-filters";
+import { hasActiveOfferFilters, parseOfferFiltersFromSearchParams, writeOfferFiltersToParams, writeOfferFiltersToSearchParams, type OfferFilterCriteria } from "@/lib/offers/offer-filters";
 import { sortProductsForBrowse, type SortOption } from "@/lib/browse-product-order";
 import {
   clearBrowseScrollY,
@@ -50,11 +50,11 @@ import {
   ensureBrowseCatalog,
   getSessionBrowsePage,
   isUsableAllBrowsePage,
-  prefetchBrowseCatalog,
   setSessionBrowsePage,
 } from "@/lib/prefetch-browse-catalog";
 import { useUserLocation } from "@/hooks/useUserLocation";
 import {
+  ChevronLeft,
   Info,
   SearchX,
 } from "lucide-react";
@@ -91,27 +91,33 @@ export default function HomePageClient({
   const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORIES_ID);
   const [visibleCount, setVisibleCount] = useState(12);
   const [sortOrder, setSortOrder] = useState<SortOption>("default");
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [offerFilters, setOfferFilters] = useState<OfferFilterCriteria>({});
+  const debouncedOfferFilters = useDebouncedValue(offerFilters, 500);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [coupons, setCoupons] = useState<PromoCoupon[]>([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(false);
+  const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(
+    initialProducts.length === 0 && !initialFetchFailed
+  );
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isDisclosureOpen, setIsDisclosureOpen] = useState<boolean>(false);
   const [catalogMeta, setCatalogMeta] = useState<ProductFetchMeta | null>(initialMeta);
   const [productFetchFailed, setProductFetchFailed] = useState<boolean>(initialFetchFailed);
+  const [reloadToken, setReloadToken] = useState(0);
   const skippedInitialCatalogRequest = useRef(false);
-
-  useLayoutEffect(() => {
-    if (initialProducts.length > 0) return;
-    const stored = getSessionBrowsePage(initialCountry);
-    if (!stored?.products.length) return;
-    setProducts(stored.products);
-    if (stored.meta) setCatalogMeta(stored.meta);
-  }, [initialCountry, initialProducts.length]);
+  const countryChangeSequence = useRef(0);
 
   const { userLocation, handleCountryChange } = useUserLocation(initialCountry);
-
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.RO;
+
+  useLayoutEffect(() => {
+    const currentCountry = userLocation.countryCode;
+    if (currentCountry === initialCountry && initialProducts.length > 0) return;
+    const stored = getSessionBrowsePage(currentCountry);
+    if (stored?.products?.length) {
+      setProducts(stored.products);
+      if (stored.meta) setCatalogMeta(stored.meta);
+    }
+  }, [initialCountry, initialProducts.length, userLocation.countryCode]);
   const {
     locale: browseLocale,
     setLocale: setBrowseLocale,
@@ -131,9 +137,13 @@ export default function HomePageClient({
   const crossBorderCollectionActive = selectedCategory === "compare-cross-border";
   const activeOfferFilters = useMemo<OfferFilterCriteria>(
     () => ({
-      ...offerFilters,
+      ...debouncedOfferFilters,
       domain: selectedDomain,
     }),
+    [debouncedOfferFilters, selectedDomain]
+  );
+  const filterControlCriteria = useMemo<OfferFilterCriteria>(
+    () => ({ ...offerFilters, domain: selectedDomain }),
     [offerFilters, selectedDomain]
   );
 
@@ -254,13 +264,7 @@ export default function HomePageClient({
       const landingCategory = defaultMarketHubForCountry(userLocation.countryCode);
       const nextCategory = shouldIgnoreLandingCategory(rawCategory)
         ? landingCategory
-        : resolveOccupiedBrowseCategory(
-            rawCategory,
-            catalogMeta?.categoryCounts ?? initialMeta?.categoryCounts,
-            catalogMeta?.feedProductCount ||
-              initialMeta?.feedProductCount ||
-              initialProducts.length
-          );
+        : rawCategory || landingCategory;
       setSelectedCategory(nextCategory);
       if (rawCategory && nextCategory === landingCategory) {
         const url = new URL(window.location.href);
@@ -287,18 +291,22 @@ export default function HomePageClient({
 
   const previousCountryRef = useRef(userLocation.countryCode);
 
-  // Country switch only: land on All and drop the previous market's hub from the URL.
+  // Country switch only: land on All and drop the previous market's hub and store domain from the URL.
   useEffect(() => {
     if (previousCountryRef.current === userLocation.countryCode) return;
     previousCountryRef.current = userLocation.countryCode;
     const next = defaultMarketHubForCountry(userLocation.countryCode);
     setSelectedCategory(next);
+    setSelectedDomain("all");
+    setSearchInput("");
+    setOfferFilters({});
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
-    if (url.searchParams.has("category")) {
-      url.searchParams.delete("category");
-      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
-    }
+    url.searchParams.delete("category");
+    url.searchParams.delete("domain");
+    url.searchParams.delete("q");
+    url.searchParams.set("country", userLocation.countryCode);
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
   }, [userLocation.countryCode]);
 
   // Empty aisle in the URL / menu → All as soon as the market has products.
@@ -351,23 +359,16 @@ export default function HomePageClient({
       return () => controller.abort();
     }
 
-    // Sticky empty aisle mapped to All: keep the SSR/current catalogue. Never
-    // fetch the empty leaf (that used to replace the grid with 0 rows).
-    if (
-      skippedInitialCatalogRequest.current &&
-      browseCategory === ALL_CATEGORIES_ID &&
-      selectedCategory !== ALL_CATEGORIES_ID &&
-      products.length > 0 &&
-      !debouncedSearchQuery.trim() &&
-      requestCountry === initialCountry
-    ) {
-      setIsLoadingProducts(false);
-      return () => controller.abort();
-    }
-
     skippedInitialCatalogRequest.current = true;
 
+    let didTimeout = false;
+    const timeoutId = window.setTimeout(() => {
+      didTimeout = true;
+      controller.abort();
+    }, 8_000);
+
     async function loadProductsAndCoupons() {
+      setIsLoadingProducts(true);
       const cacheableAisle =
         !debouncedSearchQuery.trim() &&
         !hasActiveOfferFilters(activeOfferFilters) &&
@@ -381,13 +382,8 @@ export default function HomePageClient({
         setProducts(sessionPage.products);
         setCatalogMeta(sessionPage.meta);
         setIsLoadingProducts(false);
-      }
-
-      // Never blank the grid — a white skeleton between countries/aisles is worse
-      // than briefly keeping the previous products on screen.
-      const keepGridVisible = Boolean(sessionPage?.products?.length) || products.length > 0;
-      if (!sessionPage?.products?.length && !keepGridVisible) {
-        setIsLoadingProducts(false);
+        window.clearTimeout(timeoutId);
+        return;
       }
 
       try {
@@ -405,6 +401,7 @@ export default function HomePageClient({
             setCoupons(getActiveCouponsForCountry(requestCountry));
             return;
           }
+          throw new Error("Catalog request did not return a usable page");
         }
 
         const params = new URLSearchParams({
@@ -445,17 +442,7 @@ export default function HomePageClient({
         if (controller.signal.aborted) return;
 
         const nextProducts = data.products || [];
-        setProducts((prev) => {
-          if (
-            nextProducts.length === 0 &&
-            prev.length > 0 &&
-            !debouncedSearchQuery.trim() &&
-            !hasActiveOfferFilters(activeOfferFilters)
-          ) {
-            return prev;
-          }
-          return nextProducts;
-        });
+        setProducts(nextProducts);
         setCatalogMeta((prev) => {
           const next = data.meta;
           if (!next) return prev;
@@ -475,10 +462,7 @@ export default function HomePageClient({
               next.brandOptions.length > 0
                 ? next.brandOptions
                 : (prev?.brandOptions ?? []),
-            totalMatched:
-              next.totalMatched > 0 || nextProducts.length > 0
-                ? next.totalMatched
-                : prev?.totalMatched ?? next.totalMatched,
+            totalMatched: next.totalMatched,
           };
         });
         if (cacheableAisle && nextProducts.length > 0 && data.meta) {
@@ -494,11 +478,21 @@ export default function HomePageClient({
         }
         setProductFetchFailed(false);
       } catch (error) {
-        if (controller.signal.aborted) return;
+        if (controller.signal.aborted && !didTimeout) return;
         console.error("Failed to load products:", error);
+        const fallback = getSessionBrowsePage(
+          requestCountry,
+          browseLocale,
+          browseCategory === ALL_CATEGORIES_ID ? undefined : browseCategory
+        );
+        if (fallback?.products?.length) {
+          setProducts(fallback.products);
+          setCatalogMeta(fallback.meta);
+        }
         setProductFetchFailed(true);
       } finally {
-        if (!controller.signal.aborted) {
+        window.clearTimeout(timeoutId);
+        if (!controller.signal.aborted || didTimeout) {
           setIsLoadingProducts(false);
         }
       }
@@ -509,7 +503,10 @@ export default function HomePageClient({
     }
 
     void loadProductsAndCoupons();
-    return () => controller.abort();
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
   }, [
     userLocation,
     debouncedSearchQuery,
@@ -518,9 +515,11 @@ export default function HomePageClient({
     selectedCategory,
     activeOfferFilters,
     sortOrder,
+    initialProducts,
     initialProducts.length,
     initialCountry,
     initialMeta,
+    reloadToken,
     setProducts,
     setCatalogMeta,
     setCoupons,
@@ -528,116 +527,42 @@ export default function HomePageClient({
 
   const changeCountry = useCallback(
     (countryCode: CountryCode) => {
+      if (countryCode === userLocation.countryCode) return;
+      const requestSequence = countryChangeSequence.current + 1;
+      countryChangeSequence.current = requestSequence;
       const cached = getSessionBrowsePage(countryCode, browseLocale);
-      // A market switch starts at its shortcut boards. Keeping the previous
-      // catalogue scroll makes CH appear to open directly inside Acer products.
       clearBrowseScrollY();
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       setVisibleCount(12);
       setProductFetchFailed(false);
       setSelectedCategory(ALL_CATEGORIES_ID);
-      if (cached) {
+      setSelectedDomain("all");
+      setSearchInput("");
+      setOfferFilters({});
+
+      if (cached?.products?.length) {
         setProducts(cached.products);
         setCatalogMeta(cached.meta);
+        setIsLoadingProducts(false);
+        handleCountryChange(countryCode);
       } else {
-        // Start only the market the visitor selected. Prefetching every country
-        // at once overloads the catalogue database and delays the real switch.
-        prefetchBrowseCatalog(countryCode, browseLocale);
+        setIsLoadingProducts(true);
+        void ensureBrowseCatalog(countryCode, browseLocale).then((page) => {
+          if (countryChangeSequence.current !== requestSequence) return;
+          if (page?.products?.length) {
+            setProducts(page.products);
+            setCatalogMeta(page.meta);
+            setProductFetchFailed(false);
+            handleCountryChange(countryCode);
+          } else {
+            setProductFetchFailed(true);
+          }
+          setIsLoadingProducts(false);
+        });
       }
-      setIsLoadingProducts(false);
-      handleCountryChange(countryCode);
     },
-    [browseLocale, handleCountryChange]
+    [browseLocale, handleCountryChange, userLocation.countryCode]
   );
-
-  // Append the next server page when the user scrolls near the end of the loaded set.
-  useEffect(() => {
-    if (!catalogMeta?.hasMore || isLoadingProducts || productFetchFailed) return;
-    if (visibleCount < products.length) return;
-
-    const controller = new AbortController();
-    const requestCountry = userLocation.countryCode;
-    const pageLimit = catalogMeta.limit ?? DEFAULT_PRODUCT_LIST_LIMIT;
-    // Advance by the server page window, not client array length (filters/dedupe
-    // would otherwise re-request the same OFFSET and stall after 1–2 screens).
-    const nextOffset = (catalogMeta.offset ?? 0) + pageLimit;
-
-    async function loadMoreProducts() {
-      try {
-        const params = new URLSearchParams({
-          country: requestCountry,
-          locale: browseLocale,
-          limit: String(DEFAULT_PRODUCT_LIST_LIMIT),
-          offset: String(nextOffset),
-          v: BROWSE_API_VERSION,
-        });
-        if (debouncedSearchQuery.trim()) {
-          params.set("q", debouncedSearchQuery.trim());
-        }
-        if (browseCategory && browseCategory !== ALL_CATEGORIES_ID) {
-          params.set("category", browseCategory);
-        }
-        writeOfferFiltersToParams(params, activeOfferFilters);
-        if (sortOrder !== "default") params.set("sort", sortOrder);
-
-        const response = await fetch(`/api/products?${params.toString()}`, {
-          signal: controller.signal,
-        });
-        if (controller.signal.aborted || !response.ok) return;
-
-        const data = (await response.json()) as {
-          products: Product[];
-          meta: ProductFetchMeta;
-        };
-        if (controller.signal.aborted) return;
-
-        setProducts((prev) => {
-          const seen = new Set(prev.map((product) => product.id));
-          const appended = (data.products || []).filter((product) => !seen.has(product.id));
-          return appended.length ? [...prev, ...appended] : prev;
-        });
-        setCatalogMeta((prev) => {
-          const next = data.meta;
-          if (!next) return prev;
-          const merged: ProductFetchMeta = {
-            ...next,
-            // Keep catalogue-wide counts from the first page when a later page is thin.
-            feedProductCount: next.feedProductCount || prev?.feedProductCount || 0,
-            categoryCounts: next.categoryCounts ?? prev?.categoryCounts ?? {},
-            categoryCovers: {
-              ...(prev?.categoryCovers ?? {}),
-              ...(next.categoryCovers ?? {}),
-            },
-            brandOptions:
-              next.brandOptions.length > 0
-                ? next.brandOptions
-                : (prev?.brandOptions ?? []),
-          };
-          return merged;
-        });
-      } catch (error) {
-        if (controller.signal.aborted) return;
-        console.error("Failed to load more products:", error);
-      }
-    }
-
-    void loadMoreProducts();
-    return () => controller.abort();
-  }, [
-    catalogMeta?.hasMore,
-    catalogMeta?.offset,
-    catalogMeta?.limit,
-    visibleCount,
-    products.length,
-    isLoadingProducts,
-    productFetchFailed,
-    userLocation,
-    browseLocale,
-    debouncedSearchQuery,
-    browseCategory,
-    activeOfferFilters,
-    sortOrder,
-  ]);
 
   const syncBrowseUrl = useCallback(
     (
@@ -679,6 +604,9 @@ export default function HomePageClient({
       if (cachedAisle) {
         setProducts(cachedAisle.products);
         setCatalogMeta(cachedAisle.meta);
+        setIsLoadingProducts(false);
+      } else {
+        setIsLoadingProducts(true);
       }
       if (nextDomain !== selectedDomain) setSelectedDomain(nextDomain);
       setSelectedCategory(next);
@@ -724,7 +652,12 @@ export default function HomePageClient({
   const handleDomainChange = useCallback(
     (domain: string) => {
       setSelectedDomain(domain);
-      syncBrowseUrl(selectedCategory, domain, offerFilters);
+      if (domain !== "all" && selectedCategory !== ALL_CATEGORIES_ID) {
+        setSelectedCategory(ALL_CATEGORIES_ID);
+        syncBrowseUrl(ALL_CATEGORIES_ID, domain, offerFilters);
+      } else {
+        syncBrowseUrl(selectedCategory, domain, offerFilters);
+      }
     },
     [selectedCategory, offerFilters, syncBrowseUrl]
   );
@@ -778,19 +711,11 @@ export default function HomePageClient({
     const qs = params.toString();
     return qs ? `/?${qs}` : "/";
   }, [browseCategory, debouncedSearchQuery, selectedDomain]);
-  const categoryFilteredProducts = useMemo(() => {
-    if (browseCategory === ALL_CATEGORIES_ID) return products;
-    const filtered = products.filter((product) =>
-      productMatchesCategoryFilter(product, browseCategory)
-    );
-    // Keep the current grid on screen while the aisle page loads.
-    return filtered.length > 0 ? filtered : products;
-  }, [products, browseCategory]);
   const isSearching = debouncedSearchQuery.trim().length > 0;
   const displayedProducts = useMemo(
     () =>
       sortProductsForBrowse(
-        applyOfferFilters(categoryFilteredProducts, activeOfferFilters),
+        products,
         sortOrder,
         {
           countryCode: userLocation.countryCode,
@@ -799,8 +724,7 @@ export default function HomePageClient({
         }
       ),
     [
-      categoryFilteredProducts,
-      activeOfferFilters,
+      products,
       sortOrder,
       userLocation.countryCode,
       isSearching,
@@ -811,6 +735,86 @@ export default function HomePageClient({
     () => displayedProducts.slice(0, visibleCount),
     [displayedProducts, visibleCount]
   );
+
+  const loadMoreProducts = useCallback(async () => {
+    if (visibleCount < displayedProducts.length) {
+      setVisibleCount((count) => Math.min(count + 12, displayedProducts.length));
+      return;
+    }
+    if (!catalogMeta?.hasMore || isLoadingMore) return;
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 8_000);
+    const pageLimit = catalogMeta.limit ?? DEFAULT_PRODUCT_LIST_LIMIT;
+    const nextOffset = (catalogMeta.offset ?? 0) + pageLimit;
+    setIsLoadingMore(true);
+    setProductFetchFailed(false);
+
+    try {
+      const params = new URLSearchParams({
+        country: userLocation.countryCode,
+        locale: browseLocale,
+        limit: String(DEFAULT_PRODUCT_LIST_LIMIT),
+        offset: String(nextOffset),
+        v: BROWSE_API_VERSION,
+      });
+      if (debouncedSearchQuery.trim()) params.set("q", debouncedSearchQuery.trim());
+      if (browseCategory && browseCategory !== ALL_CATEGORIES_ID) {
+        params.set("category", browseCategory);
+      }
+      writeOfferFiltersToParams(params, activeOfferFilters);
+      if (sortOrder !== "default") params.set("sort", sortOrder);
+
+      const response = await fetch(`/api/products?${params.toString()}`, {
+        signal: controller.signal,
+      });
+      if (!response.ok) throw new Error("Product API request failed");
+      const data = (await response.json()) as {
+        products: Product[];
+        meta: ProductFetchMeta;
+      };
+
+      setProducts((previous) => {
+        const seen = new Set(previous.map((product) => product.id));
+        const appended = (data.products || []).filter((product) => !seen.has(product.id));
+        return appended.length ? [...previous, ...appended] : previous;
+      });
+      setCatalogMeta((previous) => ({
+        ...previous,
+        ...data.meta,
+        categoryCounts: data.meta.categoryCounts ?? previous?.categoryCounts ?? {},
+        categoryCovers: {
+          ...(previous?.categoryCovers ?? {}),
+          ...(data.meta.categoryCovers ?? {}),
+        },
+        brandOptions:
+          data.meta.brandOptions.length > 0
+            ? data.meta.brandOptions
+            : (previous?.brandOptions ?? []),
+      }));
+      setVisibleCount((count) => count + 12);
+    } catch (error) {
+      console.error(
+        controller.signal.aborted ? "Loading more products timed out" : "Failed to load more products",
+        error
+      );
+      setProductFetchFailed(true);
+    } finally {
+      window.clearTimeout(timeoutId);
+      setIsLoadingMore(false);
+    }
+  }, [
+    activeOfferFilters,
+    browseCategory,
+    browseLocale,
+    catalogMeta,
+    debouncedSearchQuery,
+    displayedProducts.length,
+    isLoadingMore,
+    sortOrder,
+    userLocation.countryCode,
+    visibleCount,
+  ]);
 
   useEffect(() => {
     setVisibleCount(12);
@@ -831,44 +835,6 @@ export default function HomePageClient({
     return subscribeBrowseScrollRestored(onRestore);
   }, [displayedProducts.length]);
 
-  useEffect(() => {
-    const node = loadMoreRef.current;
-    if (!node) return;
-
-    const grow = () => {
-      setVisibleCount((count) =>
-        count >= displayedProducts.length
-          ? count
-          : Math.min(count + 12, displayedProducts.length)
-      );
-    };
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) grow();
-      },
-      { rootMargin: "400px" }
-    );
-    observer.observe(node);
-
-    // IO often skips if the sentinel is already on-screen after scroll restore.
-    const syncIfVisible = () => {
-      const rect = node.getBoundingClientRect();
-      if (rect.top < window.innerHeight + 400) grow();
-    };
-    syncIfVisible();
-    const raf = requestAnimationFrame(syncIfVisible);
-    const t1 = window.setTimeout(syncIfVisible, 80);
-    const t2 = window.setTimeout(syncIfVisible, 250);
-
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(raf);
-      window.clearTimeout(t1);
-      window.clearTimeout(t2);
-    };
-  }, [displayedProducts.length, visibleCount]);
-
   const showCategoryEmptyState =
     marketProductCount <= 0 &&
     !isLoadingProducts &&
@@ -881,10 +847,16 @@ export default function HomePageClient({
     () =>
       resolveShortcutBoards(
         userLocation.countryCode,
-        catalogMeta?.categoryCounts,
-        catalogMeta?.categoryCovers
+        catalogMeta?.categoryCounts ?? initialMeta?.categoryCounts ?? {},
+        catalogMeta?.categoryCovers ?? initialMeta?.categoryCovers
       ),
-    [userLocation.countryCode, catalogMeta?.categoryCounts, catalogMeta?.categoryCovers]
+    [
+      userLocation.countryCode,
+      catalogMeta?.categoryCounts,
+      initialMeta?.categoryCounts,
+      catalogMeta?.categoryCovers,
+      initialMeta?.categoryCovers,
+    ]
   );
   const showShortcutBoards =
     browseCategory === ALL_CATEGORIES_ID &&
@@ -892,7 +864,12 @@ export default function HomePageClient({
     !filtersActiveBeyondCategory &&
     shortcutBoards.length > 0;
   return (
-    <div className="w-full bg-slate-50 font-sans">
+    <div className="relative w-full bg-slate-50 font-sans">
+      {isLoadingProducts ? (
+        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-amber-100 overflow-hidden">
+          <div className="h-full bg-amber-500 animate-pulse w-full" />
+        </div>
+      ) : null}
       
       {/* Header */}
       <Header
@@ -917,22 +894,69 @@ export default function HomePageClient({
         <div className="space-y-3">
           <div
             id="browse-offers"
-            className="scroll-mt-24 space-y-0.5 px-0.5"
+            className="scroll-mt-24 rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-4 py-3"
           >
-            <p className="text-[12px] font-semibold text-slate-800">{homeUi.shortPitch1}</p>
-            <p className="text-[11px] text-slate-500">
+            <h2 className="text-base font-extrabold tracking-tight text-slate-950 sm:text-lg">
+              {homeUi.marketHeroHeadline}
+            </h2>
+            <p className="mt-1 text-xs font-medium text-slate-600">
               {homeUi.shortPitch2} {homeUi.shortPitch3}
             </p>
+            <nav
+              className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-bold text-emerald-800"
+              aria-label={homeUi.legalSupportMenu}
+            >
+              <Link href="/stores" className="hover:underline">{homeUi.stores}</Link>
+              <Link href="/about" className="hover:underline">{homeUi.about}</Link>
+              <Link href="/help" className="hover:underline">{homeUi.helpFAQ}</Link>
+              <Link href="/contact" className="hover:underline">{homeUi.contact}</Link>
+            </nav>
           </div>
 
-          {showShortcutBoards ? (
-            <BrowseShortcutBoards
-              boards={shortcutBoards}
-              products={products}
-              categoryCovers={catalogMeta?.categoryCovers}
-              locale={browseLocale}
-              onSelect={handleCategoryChange}
-            />
+          {isLoadingProducts && products.length > 0 ? (
+            <p
+              className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900"
+              role="status"
+              aria-live="polite"
+            >
+              {homeUi.updatingProducts}
+            </p>
+          ) : null}
+
+          {browseCategory !== ALL_CATEGORIES_ID ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => handleCategoryChange(ALL_CATEGORIES_ID)}
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                  title={categoryUi.allCategories}
+                  aria-label={categoryUi.allCategories}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <div className="min-w-0">
+                  <h2 className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 truncate">
+                    {getLocalizedCategoryLabel(browseCategory, browseLocale)}
+                  </h2>
+                  <p className="text-[10px] font-semibold text-slate-500">
+                    {formatUi(homeUi.itemsFound, {
+                      count:
+                        (catalogMeta?.categoryCounts as Record<string, number> | undefined)?.[browseCategory] ??
+                        catalogMeta?.totalMatched ??
+                        displayedProducts.length,
+                    })}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleCategoryChange(ALL_CATEGORIES_ID)}
+                className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 transition-colors shrink-0"
+              >
+                ✕ {categoryUi.allCategories}
+              </button>
+            </div>
           ) : null}
 
           <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -953,22 +977,17 @@ export default function HomePageClient({
               </select>
             </label>
 
-            <p className="whitespace-nowrap rounded-xl border border-emerald-100 bg-emerald-50/80 px-2.5 py-1.5 text-[11px] font-bold text-emerald-900">
-              {formatUi(homeUi.itemsFound, {
-                count:
-                  catalogMeta && catalogMeta.totalMatched > 0
-                    ? catalogMeta.totalMatched
-                    : displayedProducts.length > 0
-                      ? displayedProducts.length
-                      : !isSearching && !filtersActiveBeyondCategory
-                        ? marketProductCount
-                        : 0,
-              })}
+            <p className="whitespace-nowrap rounded-xl border border-emerald-100 bg-emerald-50/80 px-2.5 py-1.5 text-[11px] font-bold text-emerald-900" aria-live="polite">
+              {isLoadingProducts
+                ? homeUi.updatingProducts
+                : formatUi(homeUi.itemsFound, {
+                    count: catalogMeta?.totalMatched ?? displayedProducts.length,
+                  })}
             </p>
 
             <OfferFilters
               compact
-              criteria={activeOfferFilters}
+              criteria={filterControlCriteria}
               brandOptions={brandOptions}
               currencySymbol={currentCountryInfo.currencySymbol}
               locale={browseLocale}
@@ -992,10 +1011,22 @@ export default function HomePageClient({
           </div>
 
           {productFetchFailed ? (
-            <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-xl text-center">
-              <p className="font-bold">{sanitizeString(homeUi.productFetchError)}</p>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-950" role="alert">
+              <p className="text-xs font-semibold">{sanitizeString(homeUi.productFetchError)}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setProductFetchFailed(false);
+                  setReloadToken((token) => token + 1);
+                }}
+                className="min-h-11 rounded-lg bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800"
+              >
+                {homeUi.retryProducts}
+              </button>
             </div>
-          ) : showCategoryEmptyState ? (
+          ) : null}
+
+          {showCategoryEmptyState ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-4">
               <div className="w-16 h-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
                 <SearchX className="w-8 h-8" />
@@ -1020,26 +1051,52 @@ export default function HomePageClient({
               </button>
             </div>
           ) : displayedProducts.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-                <SearchX className="w-8 h-8" />
+            isLoadingProducts ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 animate-pulse">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-xs space-y-3"
+                    >
+                      <div className="aspect-square w-full rounded-xl bg-slate-100 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-slate-200" />
+                      </div>
+                      <div className="h-4 w-3/4 rounded bg-slate-100" />
+                      <div className="h-3 w-1/2 rounded bg-slate-100" />
+                      <div className="pt-2 flex justify-between items-center">
+                        <div className="h-5 w-1/3 rounded bg-slate-200" />
+                        <div className="h-7 w-1/3 rounded-lg bg-slate-100" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h4 className="text-lg font-bold text-slate-900">{homeUi.noProductsTitle}</h4>
-              <p className="text-xs text-slate-500">
-                {formatUi(homeUi.noProductsBody, { country: userLocation.countryName })}
-                {debouncedSearchQuery.trim() ? ` “${debouncedSearchQuery}”` : ""}
-                {selectedDomain !== "all" ? ` · ${selectedDomain}` : ""}
-              </p>
-              <button
-                onClick={resetAllFilters}
-                className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
-              >
-                {categoryUi.resetFilters}
-              </button>
-            </div>
+            ) : (
+              <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                  <SearchX className="w-8 h-8" />
+                </div>
+                <h4 className="text-lg font-bold text-slate-900">{homeUi.noProductsTitle}</h4>
+                <p className="text-xs text-slate-500">
+                  {formatUi(homeUi.noProductsBody, { country: userLocation.countryName })}
+                  {debouncedSearchQuery.trim() ? ` “${debouncedSearchQuery}”` : ""}
+                  {selectedDomain !== "all" ? ` · ${selectedDomain}` : ""}
+                </p>
+                <button
+                  onClick={resetAllFilters}
+                  className="bg-slate-900 text-white font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors"
+                >
+                  {categoryUi.resetFilters}
+                </button>
+              </div>
+            )
           ) : (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
+              <div
+                className={`grid grid-cols-2 gap-2.5 transition-opacity sm:gap-3 md:grid-cols-3 xl:grid-cols-4 ${isLoadingProducts ? "opacity-60" : "opacity-100"}`}
+                aria-busy={isLoadingProducts}
+              >
                 {visibleProducts.map((product) => (
                   <ProductCard
                     key={product.id}
@@ -1053,13 +1110,32 @@ export default function HomePageClient({
                   />
                 ))}
               </div>
-              <div ref={loadMoreRef} className="py-3 text-center text-xs text-slate-500">
-                {visibleCount < displayedProducts.length || catalogMeta?.hasMore
-                  ? homeUi.scrollForMoreProducts
-                  : homeUi.endOfCatalog}
-              </div>
+              {visibleCount < displayedProducts.length || catalogMeta?.hasMore ? (
+                <div className="py-3 text-center">
+                  <button
+                    type="button"
+                    onClick={() => void loadMoreProducts()}
+                    disabled={isLoadingMore}
+                    className="min-h-11 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-xs font-extrabold text-slate-800 shadow-xs hover:border-emerald-400 hover:text-emerald-800 disabled:cursor-wait disabled:opacity-60"
+                  >
+                    {isLoadingMore ? homeUi.updatingProducts : homeUi.loadMoreProducts}
+                  </button>
+                </div>
+              ) : (
+                <p className="py-3 text-center text-xs text-slate-500">{homeUi.endOfCatalog}</p>
+              )}
             </div>
           )}
+
+          {showShortcutBoards ? (
+            <BrowseShortcutBoards
+              boards={shortcutBoards}
+              products={products}
+              categoryCovers={catalogMeta?.categoryCovers}
+              locale={browseLocale}
+              onSelect={handleCategoryChange}
+            />
+          ) : null}
         </div>
 
         <div className="space-y-3">

@@ -2,8 +2,10 @@ import { prisma } from "@/lib/db";
 import { Prisma, type Offer as PrismaOffer } from "@prisma/client";
 import type { CountryCode, Product, Offer } from "@/types";
 import { getParentCategoryId, resolveCategoryAlias } from "@/lib/categories";
+import { MARKET_HUB_LEAF_GROUPS } from "@/lib/market-hubs";
 import { expandCategoryFilterToDbIds } from "@/lib/db-category-filter";
 import {
+  getStoreSearchTokens,
   hasActiveOfferFilters,
   type OfferFilterCriteria,
 } from "@/lib/offers/offer-filters";
@@ -54,26 +56,103 @@ function mapPrismaOffer(o: PrismaOffer): Offer {
   };
 }
 
+/** Known brands to match at start of product titles */
+const KNOWN_TITLE_BRANDS = [
+  "DJI", "Acer", "Apple", "Samsung", "Sony", "Bosch", "Miele", "LG", "Philips",
+  "Asus", "Lenovo", "HP", "Dell", "Logitech", "Puma", "Under Armour", "Löffler",
+  "Merrell", "Mammut", "Salomon", "The North Face", "Columbia", "On Running", "Hoka",
+  "Garmin", "Shimano", "Abus", "Klickfix", "Fripac", "Wella", "Schwarzkopf",
+  "Kumho", "Carmani", "Pirelli", "Michelin", "Continental", "Goodyear",
+  "Bridgestone", "Hankook", "Dunlop", "Falken", "Nokian", "Toyo", "Rowenta",
+  "Ottocast", "Seentat", "Geepas", "Arlo", "PlayStation", "Nintendo", "Xbox",
+  "Kärcher", "DeLonghi", "Tefal", "Braun", "Oral-B", "Dyson", "Makita", "Einhell"
+] as const;
+
+/** Infer real brand name from title or dedicated merchant when DB has Generic or empty */
+export function inferBrandFromTitleAndStore(
+  rawBrand: string | null | undefined,
+  title: string,
+  storeName?: string | null
+): string {
+  const b = rawBrand?.trim();
+  if (b && b.toLowerCase() !== "generic") {
+    return b;
+  }
+  const s = storeName?.toLowerCase() || "";
+  if (s.includes("dji")) return "DJI";
+  if (s.includes("acer")) return "Acer";
+  if (s.includes("ottocast")) return "Ottocast";
+  if (s.includes("seentat")) return "Seentat";
+  if (s.includes("rowenta")) return "Rowenta";
+  if (s.includes("geepas")) return "Geepas";
+  if (s.includes("arlo")) return "Arlo";
+
+  const t = title.trim();
+  if (/^altra\s+running/i.test(t)) return "Altra Running";
+  if (/^la\s+sportiva/i.test(t)) return "La Sportiva";
+  if (/^pro-x\s+elements/i.test(t)) return "Pro-X Elements";
+  if (/^jean\s+paul\s+gaultier/i.test(t)) return "Jean Paul Gaultier";
+  if (/^klick\s*fix/i.test(t)) return "Klickfix";
+
+  for (const kb of KNOWN_TITLE_BRANDS) {
+    if (new RegExp(`^${kb}\\b`, "i").test(t)) {
+      return kb;
+    }
+  }
+
+  const leading = t.split(/\s+/)[0];
+  if (leading && /^[A-Za-zÄÖÜäöüß]{3,15}$/.test(leading)) {
+    return leading.charAt(0).toUpperCase() + leading.slice(1).toLowerCase();
+  }
+
+  return b || "Generic";
+}
+
 /** Normalize product image URL (upgrade http to https and preserve query parameters). */
 export function normalizeProductImageUrl(
   image: string | null | undefined
 ): string | undefined {
   if (!image?.trim()) return undefined;
-  const raw = image.trim();
+  let raw = image.trim();
   if (raw.startsWith("http://")) {
-    return `https://${raw.slice(7)}`;
+    raw = `https://${raw.slice(7)}`;
+  }
+  // Unwrap AWIN productserve URLs to permanent merchant CDN images
+  if (raw.includes("productserve.com")) {
+    try {
+      const u = new URL(raw);
+      let target = u.searchParams.get("url");
+      if (target) {
+        target = decodeURIComponent(target).trim();
+        if (target.startsWith("ssl:")) {
+          target = `https://${target.slice(4)}`;
+        } else if (target.startsWith("http://")) {
+          target = `https://${target.slice(7)}`;
+        } else if (!target.startsWith("https://")) {
+          target = `https://${target}`;
+        }
+        return target;
+      }
+    } catch {
+      // ignore
+    }
   }
   return raw;
 }
 
 /** Convert Prisma Product to Application Product */
 export function mapPrismaProduct(p: PrismaProductWithOffers): Product {
+  const brand = inferBrandFromTitleAndStore(
+    p.brand,
+    p.title,
+    p.offers?.[0]?.storeName
+  );
   return {
     id: p.id,
     title: p.title,
     description: p.description || "",
     gtin: p.gtin || undefined,
-    brand: p.brand || "",
+    brand,
     category: resolveAutoLeafFromTitle(resolveCategoryAlias(p.category), p.title),
     image: sanitizeProductImageForRender(normalizeProductImageUrl(p.image) || p.image || ""),
     catalogSource: p.catalogSource as Product["catalogSource"],
@@ -88,13 +167,12 @@ function buildOfferWhere(filters: OfferFilterCriteria = {}): Prisma.OfferWhereIn
 
   if (filters.domain && filters.domain !== "all") {
     const domain = filters.domain.trim();
-    const token = domain.split(".")[0] || domain;
-    and.push({
-      OR: [
-        { storeName: { contains: token, mode: "insensitive" } },
-        { purchaseUrl: { contains: domain, mode: "insensitive" } },
-      ],
-    });
+    const tokens = getStoreSearchTokens(domain);
+    const orClauses: Prisma.OfferWhereInput[] = tokens.map((token) => ({
+      storeName: { contains: token, mode: "insensitive" },
+    }));
+    orClauses.push({ purchaseUrl: { contains: domain, mode: "insensitive" } });
+    and.push({ OR: orClauses });
   }
   if (filters.inStockOnly) and.push({ inStock: true });
   if (filters.freeDeliveryOnly) {
@@ -300,6 +378,15 @@ export async function getCategoryCountsFromDb(countryCode: string): Promise<{
     }
   }
 
+  // Aggregate total counts for each market hub (hub-fashion, hub-electronics, hub-auto, etc.)
+  for (const [hubId, leaves] of Object.entries(MARKET_HUB_LEAF_GROUPS)) {
+    let sum = 0;
+    for (const leaf of leaves) {
+      sum += leafCounts[leaf] ?? 0;
+    }
+    categoryCounts[hubId] = sum;
+  }
+
   return { categoryCounts, leafCounts };
 }
 
@@ -335,7 +422,7 @@ export async function getCategoryCoverImagesFromDb(
     });
 
     const covers = buildCategoryCoverMap(
-      rows.map((row) => ({
+      (rows || []).map((row) => ({
         category: row.category,
         image: usableCoverImage(row.image),
       }))
@@ -443,10 +530,10 @@ async function queryProductIdsByMinOfferTotal(
 
   if (filters.domain && filters.domain !== "all") {
     const domain = filters.domain.trim();
-    const token = domain.split(".")[0] || domain;
-    offerClauses.push(
-      Prisma.sql`(o."storeName" ILIKE ${`%${token}%`} OR o."purchaseUrl" ILIKE ${`%${domain}%`})`
-    );
+    const tokens = getStoreSearchTokens(domain);
+    const domainConds = tokens.map((t) => Prisma.sql`o."storeName" ILIKE ${`%${t}%`}`);
+    domainConds.push(Prisma.sql`o."purchaseUrl" ILIKE ${`%${domain}%`}`);
+    offerClauses.push(Prisma.sql`(${Prisma.join(domainConds, " OR ")})`);
   }
   if (filters.inStockOnly) {
     offerClauses.push(Prisma.sql`o."inStock" = true`);
@@ -468,21 +555,26 @@ async function queryProductIdsByMinOfferTotal(
   const offerWhereSql = Prisma.join(offerClauses, " AND ");
 
   const rows = await prisma.$queryRaw<{ id: string }[]>`
-    SELECT p.id
-    FROM "Product" p
+    WITH matched_products AS (
+      SELECT p.id
+      FROM "Product" p
+      WHERE ${countryCode} = ANY(p."targetCountries")
+      ${categorySql}
+      ${querySql}
+      ${brandSql}
+      ${gtinSql}
+    )
+    SELECT mp.id
+    FROM matched_products mp
     INNER JOIN (
       SELECT o."productId",
         MIN(COALESCE(o."totalPrice", o.price + COALESCE(o."deliveryCost", 0))) AS min_total
       FROM "Offer" o
       WHERE ${offerWhereSql}
+        AND o."productId" IN (SELECT id FROM matched_products)
       GROUP BY o."productId"
-    ) priced ON priced."productId" = p.id
-    WHERE ${countryCode} = ANY(p."targetCountries")
-    ${categorySql}
-    ${querySql}
-    ${brandSql}
-    ${gtinSql}
-    ORDER BY priced.min_total ${orderDir}, p.id ASC
+    ) priced ON priced."productId" = mp.id
+    ORDER BY priced.min_total ${orderDir}, mp.id ASC
     LIMIT ${take}
     OFFSET ${skip}
   `;
@@ -621,10 +713,10 @@ async function queryProductIdsByChLead(
   const offerClauses: Prisma.Sql[] = [Prisma.sql`o."inStock" = true`];
   if (filters.domain && filters.domain !== "all") {
     const domain = filters.domain.trim();
-    const token = domain.split(".")[0] || domain;
-    offerClauses.push(
-      Prisma.sql`(o."storeName" ILIKE ${`%${token}%`} OR o."purchaseUrl" ILIKE ${`%${domain}%`})`
-    );
+    const tokens = getStoreSearchTokens(domain);
+    const domainConds = tokens.map((t) => Prisma.sql`o."storeName" ILIKE ${`%${t}%`}`);
+    domainConds.push(Prisma.sql`o."purchaseUrl" ILIKE ${`%${domain}%`}`);
+    offerClauses.push(Prisma.sql`(${Prisma.join(domainConds, " OR ")})`);
   }
   if (filters.freeDeliveryOnly) {
     offerClauses.push(Prisma.sql`o."deliveryCost" IS NOT NULL AND o."deliveryCost" <= 0`);
@@ -692,11 +784,13 @@ export async function getProductsFromDb(
   const sortByChLead =
     !sortByOfferTotal && countryCode.toUpperCase() === "CH" && unfilteredBrowse;
 
-  // Secondary id keeps OFFSET pages stable (updatedAt ties otherwise skip/dup rows).
-  const orderBy: Prisma.ProductOrderByWithRelationInput[] = [
-    { updatedAt: "desc" },
-    { id: "asc" },
-  ];
+  // When browsing categories or aisles, sorting by updatedAt DESC causes full-table scans
+  // of tens of thousands of rows with per-row EXISTS. Only use updatedAt sort if explicitly requested ("newest").
+  // Otherwise order by id ASC which is indexed and allows LIMIT take to return in <50ms.
+  const orderBy: Prisma.ProductOrderByWithRelationInput[] =
+    sort === "newest"
+      ? [{ updatedAt: "desc" }, { id: "asc" }]
+      : [{ id: "asc" }];
   const brandWhere = buildWhere(countryCode, query, category, { ...filters, brand: undefined });
 
   const pricedIdsPromise = sortByOfferTotal
@@ -726,7 +820,15 @@ export async function getProductsFromDb(
 
   const countryCountPromise = cachedMeta
     ? Promise.resolve(cachedMeta.countryProductCount)
-    : countInStockProductsForCountry(countryCode);
+    : unfilteredBrowse
+      ? countInStockProductsForCountry(countryCode)
+      : Promise.resolve(0);
+
+  // If browse metadata is not cached yet and user is filtering by category,
+  // schedule a background warm instead of stalling the category page with full table scans.
+  if (!cachedMeta && !unfilteredBrowse) {
+    warmBrowseMetaForCountry(countryCode).catch(() => {});
+  }
 
   const [pricedIds, productsDefault, total, countMaps, countryTotal, brandRows, categoryCovers] =
     await Promise.all([
@@ -744,31 +846,49 @@ export async function getProductsFromDb(
         ? Promise.resolve(cachedMeta.countryProductCount)
         : unfilteredBrowse
           ? countryCountPromise
-          : prisma.product.count({ where: whereClause }),
+          : cachedMeta && category && !query && !hasActiveOfferFilters(filters) && (
+              cachedMeta.categoryCounts[category] !== undefined ||
+              cachedMeta.leafCounts[category] !== undefined ||
+              cachedMeta.categoryCounts[resolveCategoryAlias(category)] !== undefined ||
+              cachedMeta.leafCounts[resolveCategoryAlias(category)] !== undefined
+            )
+            ? Promise.resolve(
+                cachedMeta.categoryCounts[category] ??
+                cachedMeta.leafCounts[category] ??
+                cachedMeta.categoryCounts[resolveCategoryAlias(category)] ??
+                cachedMeta.leafCounts[resolveCategoryAlias(category)]!
+              )
+            : prisma.product.count({ where: whereClause }),
       cachedMeta
         ? Promise.resolve({
             categoryCounts: cachedMeta.categoryCounts,
             leafCounts: cachedMeta.leafCounts,
           })
-        : deferHeavyMeta
+        : !unfilteredBrowse
           ? Promise.resolve({ categoryCounts: {}, leafCounts: {} })
-          : getCategoryCountsFromDb(countryCode),
+          : deferHeavyMeta
+            ? Promise.resolve({ categoryCounts: {}, leafCounts: {} })
+            : getCategoryCountsFromDb(countryCode),
       countryCountPromise,
       cachedMeta
         ? Promise.resolve(cachedMeta.brandOptions.map((brand) => ({ brand })))
-        : deferHeavyMeta
+        : !unfilteredBrowse
           ? Promise.resolve([] as Array<{ brand: string | null }>)
-          : prisma.product.findMany({
-              where: { ...brandWhere, brand: { not: null } },
-              select: { brand: true },
-              distinct: ["brand"],
-              orderBy: { brand: "asc" },
-            }),
+          : deferHeavyMeta
+            ? Promise.resolve([] as Array<{ brand: string | null }>)
+            : prisma.product.findMany({
+                where: { ...brandWhere, brand: { not: null } },
+                select: { brand: true },
+                distinct: ["brand"],
+                orderBy: { brand: "asc" },
+              }),
       cachedMeta
         ? Promise.resolve(cachedMeta.categoryCovers)
-        : deferHeavyMeta
+        : !unfilteredBrowse
           ? Promise.resolve({} as Record<string, string>)
-          : getCategoryCoverImagesFromDb(countryCode),
+          : deferHeavyMeta
+            ? Promise.resolve({} as Record<string, string>)
+            : getCategoryCoverImagesFromDb(countryCode),
     ]);
 
   let pageProducts: PrismaProductWithOffers[];
@@ -780,7 +900,7 @@ export async function getProductsFromDb(
         where: { id: { in: pricedIds } },
         include: { offers: { where: visibleOfferWhere } },
       });
-      const byId = new Map(fetched.map((product) => [product.id, product]));
+      const byId = new Map((fetched || []).map((product) => [product.id, product]));
       pageProducts = pricedIds
         .map((id) => byId.get(id))
         .filter((product): product is PrismaProductWithOffers => Boolean(product));

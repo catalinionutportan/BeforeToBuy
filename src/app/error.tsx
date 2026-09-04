@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
@@ -15,6 +16,24 @@ export default function Error({
 }) {
   const { locale } = useBrowseLocale();
   const ui = HOME_UI[locale];
+
+  useEffect(() => {
+    const msg = (error?.message || "").toLowerCase();
+    const isBuildMismatch =
+      msg.includes("server reference id") ||
+      msg.includes("failed-to-find-server-action") ||
+      msg.includes("chunkloaderror") ||
+      msg.includes("loading chunk");
+
+    if (isBuildMismatch && typeof window !== "undefined") {
+      const key = "btb:build-mismatch-reload";
+      const lastReload = sessionStorage.getItem(key);
+      if (!lastReload || Date.now() - Number(lastReload) > 10000) {
+        sessionStorage.setItem(key, String(Date.now()));
+        window.location.reload();
+      }
+    }
+  }, [error]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">

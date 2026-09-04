@@ -10,7 +10,7 @@ import {
   subcategoryCategoryPath,
   validateSubcategoryRoute,
 } from "@/lib/category-routes";
-import { getBrowseCountsForCountry, hasBrowseInventory } from "@/lib/category-page-data";
+import { getBrowseCountsForCountry } from "@/lib/category-page-data";
 import { createCategoryMetadata } from "@/lib/metadata";
 import {
   getDepartmentLabel,

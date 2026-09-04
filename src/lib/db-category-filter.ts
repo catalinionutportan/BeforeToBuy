@@ -37,5 +37,27 @@ export function expandCategoryFilterToDbIds(
     return Array.from(new Set([mid.id, ...leaves]));
   }
 
+  const RELATED_LEAF_EXPANSIONS: Record<string, string[]> = {
+    "fashion-beauty-hair-care": ["fashion-beauty-hair-care", "care-hair-styling", "fashion-beauty-cosmetics"],
+    "care-hair-styling": ["care-hair-styling", "fashion-beauty-hair-care"],
+    "auto-rims": ["auto-rims", "auto-complete-wheels"],
+    "auto-complete-wheels": ["auto-complete-wheels", "auto-rims"],
+    "cleaning-vacuums": [
+      "cleaning-vacuums",
+      "cleaning-stick-vacuums",
+      "cleaning-bagless-vacuums",
+      "cleaning-bagged-vacuums",
+      "cleaning-wet-vacuums",
+      "cleaning-robots",
+      "cleaning-handheld",
+    ],
+    "cleaning-stick-vacuums": ["cleaning-stick-vacuums", "cleaning-vacuums"],
+    "diy-hand-tools": ["diy-hand-tools", "diy-fasteners-consumables", "diy-measuring"],
+  };
+
+  if (RELATED_LEAF_EXPANSIONS[resolved]) {
+    return RELATED_LEAF_EXPANSIONS[resolved];
+  }
+
   return [resolved];
 }

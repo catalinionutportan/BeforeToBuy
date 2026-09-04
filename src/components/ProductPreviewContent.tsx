@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ShoppingBag } from "lucide-react";
 import type { ProductPreview } from "@/lib/product-preview";
 import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLink";
 
@@ -11,6 +11,10 @@ import { ConsentAwareAffiliateLink } from "@/components/ConsentAwareAffiliateLin
  */
 function ProductPreviewContentInner({ preview }: { preview: ProductPreview }) {
   const offers = preview.offers ?? [];
+  const displayBrand =
+    preview.brand && preview.brand.toLowerCase() !== "generic"
+      ? preview.brand
+      : preview.storeName || "";
 
   return (
     <div className="space-y-6 sm:space-y-8 p-4 sm:p-8">
@@ -31,14 +35,23 @@ function ProductPreviewContentInner({ preview }: { preview: ProductPreview }) {
               />
             </div>
           ) : (
-            <div className="absolute inset-0 bg-slate-100" />
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-slate-50 p-6 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-white shadow-xs">
+                <ShoppingBag className="h-8 w-8 text-slate-400" aria-hidden="true" />
+              </div>
+              {displayBrand ? (
+                <span className="text-xs font-bold text-slate-500">
+                  {displayBrand}
+                </span>
+              ) : null}
+            </div>
           )}
         </div>
 
         <div className="space-y-4 min-h-[10rem]">
-          {preview.brand ? (
+          {displayBrand ? (
             <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
-              {preview.brand}
+              {displayBrand}
             </p>
           ) : null}
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">

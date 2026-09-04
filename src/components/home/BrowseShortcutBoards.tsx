@@ -21,11 +21,57 @@ interface BrowseShortcutBoardsProps {
 }
 
 const CURATED_SHORTCUT_COVERS: Record<string, string> = {
+  // Hair & Care (Rowenta RO / Belando CH)
+  "care-hair-styling": "https://www.rowenta.ro/media/catalog/product/o/n/ondulator-de-par-rowenta-curling-tong-cf2133f0-invelis-ceramic-180c-16mm-varf-rece-cablu-1-8m-negru-roz_7_.jpg",
+  "care-shaving-hair-removal": "https://images.unsplash.com/photo-1621607512214-68297480165e?w=600",
+  "cleaning-vacuums": "https://www.rowenta.ro/media/catalog/product/a/s/aspirator-vertical-fara-fir-rowenta-x-nano-rh1128wo-tehnologie-2-in-1-1_7_.jpg",
+  "cleaning-stick-vacuums": "https://www.rowenta.ro/media/catalog/product/a/s/aspirator-vertical-rowenta-x-pert-6-60-animal-care-rh6878wo-100w-1_13_.jpg",
+  "cleaning-robots": "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=600",
+  "cleaning-accessories": "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600",
+
+  // Beauty & Fragrance (Belando CH)
+  "fashion-beauty-hair-care": "https://belando.ch/media/image/product/2712/lg/schwarzkopf-silhouette-super-hold-pump-spray-200ml.jpg",
+  "fashion-beauty-cosmetics": "https://belando.ch/media/image/product/11225/lg/fripac-medis-spitzenpapier-naturbraun-500-stueck.jpg",
+  "fashion-beauty-fragrance": "https://belando.ch/media/image/product/29601/lg/jean-paul-gaultier-classique-eau-de-parfum-100ml.png",
+
+  // Baby & Nursery (Baby-Walz CH)
+  "baby-strollers-travel": "https://walz-live.cdn.aboutyou.cloud/images/7e3dffbf81737c3773ea71bde9a89b0c.jpg",
+  "baby-car-seats": "https://walz-live.cdn.aboutyou.cloud/images/60f126ab6274f40db564ee49e7d7f004.jpg",
+  "baby-nursery": "https://walz-live.cdn.aboutyou.cloud/images/f8bc419d9ea1d4f1d044293c68247896.jpg",
+  "baby-monitoring-feeding": "https://walz-live.cdn.aboutyou.cloud/images/ebb5f77e4c589e9353b97e14631cb682.jpg",
+  "fashion-kids-baby": "https://walz-live.cdn.aboutyou.cloud/images/65516ad0fcf0fff451a68aab6b124844.jpg",
+
   // Gigasport CH
   "fashion-women-activewear": "https://www.gigasport.ch/nike-1-768_1024_100-7301617_1.jpg",
   "fashion-shoes-sport": "https://www.gigasport.ch/merrell-1-768_1024_100-7439753_1.jpg",
   "mobility-accessories": "https://www.gigasport.ch/abus-1-768_1024_100-6759385_1.jpg",
   "fashion-men-activewear": "https://www.gigasport.ch/l%C3%B6ffler-1-768_1024_100-5526503_1.jpg",
+
+  // Electronics & Computers (Acer CH / RO)
+  "notebooks-laptops": "https://static2-ecemea.acer.com/media/catalog/product/a/c/acer-chromebook-plus-spin-714-cp714-1hn-with-fingerprint-with-baklit-with-stylus-wp-ui-steel-gray-silver-07-2_6.jpg",
+  "notebooks-monitors": "https://static2-ecemea.acer.com/media/catalog/product/_/a/_acer-vero-monitor-cb343cur-main1000_um.cb3ee.001.png",
+  "notebooks-desktops": "https://static2-ecemea.acer.com/media/catalog/product/_/a/_acer-veriton-4000-mini-1l-vn4710gt-1l-no_kb_main1000_dt.vxveh.00c.png",
+  "tv-projectors": "https://static2-ecemea.acer.com/media/catalog/product/_/_/___a__acer-projector-h6815bd-modelmain_mr.jta11.002.png",
+  "notebooks-tablets-pc": "https://static2-ecemea.acer.com/media/catalog/product/a/c/acer-iconia-v13-v13-11m-wp-mist-green-01.jpg",
+  "peripherals-accessories": "https://static2-ecemea.acer.com/media/catalog/product/_/_/___s__s_l_sleeve_15.6_np.bag1a.293_main_np.bag1a.293.png",
+
+  // Auto & Wheels (Reifen.com CH)
+  "auto-tires-wheels": "https://www.reifen.com/images/thumbs/047/0475441_Kumho-165-70-R14C-89R-87R-Portran-KC53-6PR-15212637-full.jpg.webp",
+  "auto-complete-wheels": "https://www.reifen.com/images/thumbs/036/0363285_Carmani-17-Fritz-85-X-20-ET23-15291423-full.png.webp",
+  "auto-rims": "https://www.reifen.com/images/thumbs/036/0363285_Carmani-17-Fritz-85-X-20-ET23-15291423-full.png.webp",
+
+  // DIY & Tools (Scule365 RO)
+  "diy-power-tools": "https://c.cdnmp.net/372758804/p/l/4/masina-de-gaurit-si-insurubat-cu-acumulator-makita-ddf453rfe3~1564.jpg",
+  "diy-hand-tools": "https://c.cdnmp.net/372758804/p/l/8/trusa-scule-108-piese-kraftech~1568.jpg",
+  "diy-welding-soldering": "https://c.cdnmp.net/372758804/p/l/2/aparat-sudura-invertor-mma-250a~1562.jpg",
+
+  // evoMAG Hardware RO
+  "pc-ram-ssd": "https://static2.evomag.ro/img?extend=white&file=products%2F4095%2F4095034%2F6474b93db5f86.png&type=auto&width=500&sign=kF54X3RkWf1yU6_wFpZ7V6vI984",
+  "photo-video-cameras": "https://static2.evomag.ro/img?extend=white&file=products%2F4102%2F4102011%2F64919a9c00647.png&type=auto&width=500&sign=xbtNAW3XnD1MvyuGGPK3oOJ0ImguqRB6pcV4JHsJu6s",
+  "diy-fasteners-consumables": "https://c.cdnmp.net/372758804/p/l/8/trusa-scule-108-piese-kraftech~1568.jpg",
+  "diy-batteries-chargers": "https://c.cdnmp.net/372758804/p/l/4/masina-de-gaurit-si-insurubat-cu-acumulator-makita-ddf453rfe3~1564.jpg",
+  "diy-measuring": "https://c.cdnmp.net/372758804/p/l/8/trusa-scule-108-piese-kraftech~1568.jpg",
+
   // DJI US
   "drones-quadcopters": "https://se-cdn.djiits.com/tpc/uploads/sku/cover/bf211fa2-cb67-4c13-b890-dc014b54b539@small.png",
   "photo-action": "https://se-cdn.djiits.com/tpc/uploads/sku/cover/0801a82f4beeaabd2098d25ccf45784b@small.png",
@@ -37,6 +83,9 @@ function coverImageForCategory(
   categoryId: string,
   categoryCovers?: Record<string, string>
 ): string {
+  if (CURATED_SHORTCUT_COVERS[categoryId]) {
+    return CURATED_SHORTCUT_COVERS[categoryId];
+  }
   const fromCatalog = categoryCovers?.[categoryId]?.trim();
   if (fromCatalog && (categoryId !== AUTO_COMPLETE_WHEELS_LEAF || isReifenHostedImage(fromCatalog))) {
     return fromCatalog;
@@ -47,7 +96,7 @@ function coverImageForCategory(
       productMatchesCategoryFilter(product, categoryId) &&
       (categoryId !== AUTO_COMPLETE_WHEELS_LEAF || isReifenHostedImage(product.image))
   )?.image;
-  return fromCatalog || fromProducts || CURATED_SHORTCUT_COVERS[categoryId] || SAFE_IMAGE_FALLBACK;
+  return fromProducts || SAFE_IMAGE_FALLBACK;
 }
 
 function boardTitle(board: VisibleShortcutBoard, locale: SiteLocale): string {
@@ -112,7 +161,8 @@ function ShortcutBoardCard({
                   decoding="async"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = SAFE_IMAGE_FALLBACK;
+                    const fallback = CURATED_SHORTCUT_COVERS[tile.categoryId] || SAFE_IMAGE_FALLBACK;
+                    (e.target as HTMLImageElement).src = fallback;
                   }}
                   className="h-full w-full object-contain object-center p-1.5 transition group-hover:scale-[1.04]"
                 />

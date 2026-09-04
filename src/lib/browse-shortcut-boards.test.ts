@@ -21,20 +21,18 @@ describe("browse shortcut boards", () => {
       "auto-oils-fluids": 6,
     });
 
-    expect(boards.map((board) => board.id)).toEqual(["electronics", "auto", "baby", "beauty"]);
+    expect(boards.map((board) => board.id)).toEqual(["beauty", "auto", "baby", "electronics"]);
     expect(boards[1]?.tiles.map((tile) => tile.categoryId)).toEqual([
       "auto-tires-wheels",
       "auto-complete-wheels",
-      "auto-oils-fluids",
     ]);
-    expect(boards[0]?.tiles.map((tile) => tile.categoryId)).toEqual([
+    expect(boards[3]?.tiles.map((tile) => tile.categoryId)).toEqual([
       "notebooks-laptops",
-      "notebooks-desktops",
       "notebooks-monitors",
+      "notebooks-desktops",
       "tv-projectors",
-      "office-home",
     ]);
-    expect(boards[2]?.featured).toBe(true);
+    expect(boards[2]?.featured).toBe(false);
     expect(boards[2]?.tiles.map((tile) => tile.categoryId)).toEqual([
       "baby-strollers-travel",
       "baby-nursery",
@@ -58,7 +56,7 @@ describe("browse shortcut boards", () => {
     });
     expect(boards.map((board) => board.id)).toEqual(["diy", "home"]);
     expect(boards[0]?.tiles[0]?.categoryId).toBe("diy-power-tools");
-    expect(boards[1]?.tiles[0]?.categoryId).toBe("cleaning-vacuums");
+    expect(boards[1]?.tiles[0]?.categoryId).toBe("care-hair-styling");
     expect(boards.some((board) => board.id === "auto")).toBe(false);
   });
 
@@ -105,7 +103,7 @@ describe("browse shortcut boards", () => {
       "mobility-accessories": 80,
     });
     const sport = boards.find((board) => board.id === "sport");
-    expect(sport?.featured).toBe(true);
+    expect(sport?.featured).toBe(false);
     expect(sport?.domain).toBe("gigasport.ch");
     expect(sport?.seeAllCategoryId).toBe("all");
     expect(sport?.tiles.map((tile) => tile.categoryId)).toEqual([
@@ -120,7 +118,7 @@ describe("browse shortcut boards", () => {
       "notebooks-laptops": 10,
       "baby-strollers-travel": 4,
     });
-    expect(boards.map((board) => board.id)).toEqual(["electronics", "baby"]);
+    expect(boards.map((board) => board.id)).toEqual(["baby", "electronics"]);
   });
 
   it("drops tiles and boards that have no product photo", () => {
@@ -137,9 +135,9 @@ describe("browse shortcut boards", () => {
         "baby-strollers-travel": "https://images2.productserve.com/stroller.jpg",
       }
     );
-    expect(boards.map((board) => board.id)).toEqual(["electronics", "auto", "baby", "beauty"]);
-    expect(boards[0]?.tiles).toEqual([{ categoryId: "notebooks-laptops", count: 73 }]);
-    expect(boards[0]?.featured).toBe(false);
+    expect(boards.map((board) => board.id)).toEqual(["beauty", "auto", "baby", "electronics"]);
+    expect(boards[3]?.tiles).toEqual([{ categoryId: "notebooks-laptops", count: 73 }]);
+    expect(boards[3]?.featured).toBe(false);
   });
 
   it("stacks Beauty above Auto so the CH grid stays three even columns", () => {
@@ -151,7 +149,7 @@ describe("browse shortcut boards", () => {
       "fashion-beauty-hair-care": 5,
     });
     expect(groupShortcutBoardColumns(boards).map((column) => column.map((board) => board.id))).toEqual(
-      [["electronics"], ["beauty", "auto"], ["baby"]]
+      [["beauty", "auto"], ["baby"], ["electronics"]]
     );
   });
 

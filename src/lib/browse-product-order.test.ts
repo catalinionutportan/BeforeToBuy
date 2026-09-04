@@ -49,7 +49,7 @@ describe("sortProductsForBrowse", () => {
     expect(sorted.map((p) => p.id)).toEqual(["phone", "watch", "vacuum", "dress"]);
   });
 
-  it("leads the CH All catalogue with Acer before Belando and baby-walz", () => {
+  it("orders the CH catalogue by the current market hub priority", () => {
     const baby = product("body", "fashion-kids-baby");
     baby.offers = [{ feedMerchantId: "ch-babywalz" } as Product["offers"][number]];
     const belando = product("shampoo", "fashion-beauty-hair-care");
@@ -62,7 +62,7 @@ describe("sortProductsForBrowse", () => {
     const sorted = sortProductsForBrowse([baby, tyre, belando, acer], "default", {
       countryCode: "CH",
     });
-    expect(sorted.map((p) => p.id)).toEqual(["laptop", "shampoo", "body", "tyre"]);
+    expect(sorted.map((p) => p.id)).toEqual(["shampoo", "body", "tyre", "laptop"]);
   });
 
   it("keeps API order when searching across departments", () => {

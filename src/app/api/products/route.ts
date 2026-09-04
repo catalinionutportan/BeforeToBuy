@@ -32,6 +32,7 @@ import { DEFAULT_LOCALE, normalizeLocale } from "@/lib/i18n/locales";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 import { hasActiveOfferFilters, parseOfferFiltersFromSearchParams } from "@/lib/offers/offer-filters";
 import type { ProductSortOption } from "@/lib/product-list-options";
+import { withTimeout } from "@/lib/promise-timeout";
 import {
   clampFilterString,
   MAX_PRODUCT_FILTER_CHARS,
@@ -242,14 +243,29 @@ export async function GET(request: Request) {
       }
     }
 
-    const result = await fetchMergedProductsForLocation(userLocation, query, category, locale, {
-      limit,
-      offset,
-      includePriceHistory,
-      compact: true,
-      filters,
-      sort,
-    });
+    const result = await withTimeout(
+      fetchMergedProductsForLocation(userLocation, query, category, locale, {
+        limit,
+        offset,
+        includePriceHistory,
+        compact: true,
+        filters,
+        sort,
+      }),
+      7_000,
+      `Catalog API ${countryCode}`
+    );
+    if (result.products.length === 0 && !query && !hasActiveOfferFilters(filters)) {
+      const fallbackCached =
+        (category ? await getCachedFirstBrowsePage(countryCode, limit, category) : null) ||
+        (await getCachedFirstBrowsePage(countryCode, limit, "_all"));
+      if (fallbackCached?.products?.length) {
+        return NextResponse.json(fallbackCached, {
+          headers: { ...browseCacheHeaders, "x-btb-catalog-cache": "stale-fallback" },
+        });
+      }
+    }
+
     if (cacheableFirstPage && result.products.length > 0) {
       // Await the write — a detached SET dies when the Vercel isolate freezes.
       await setCachedFirstBrowsePage(
@@ -272,9 +288,21 @@ export async function GET(request: Request) {
   } catch (error) {
     const trackingId = randomUUID();
     console.error(`Product fetch failed (Tracking ID: ${trackingId}):`, error);
+    try {
+      const fallbackCached =
+        (category ? await getCachedFirstBrowsePage(countryCode, limit, category) : null) ||
+        (await getCachedFirstBrowsePage(countryCode, limit, "_all"));
+      if (fallbackCached?.products?.length) {
+        return NextResponse.json(fallbackCached, {
+          headers: { ...browseCacheHeaders, "x-btb-catalog-cache": "stale-fallback-error" },
+        });
+      }
+    } catch {
+      // ignore
+    }
     return NextResponse.json(
-      { error: formatUi(homeUi.productFetchError, {}) , trackingId },
-      { status: 500 }
+      { error: formatUi(homeUi.productFetchError, {}), trackingId },
+      { status: 503, headers: { "Retry-After": "5", "Cache-Control": "no-store" } }
     );
   }
 }

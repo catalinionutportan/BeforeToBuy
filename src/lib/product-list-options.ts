@@ -1,8 +1,8 @@
 import type { OfferFilterCriteria } from "@/lib/offers/offer-filters";
 
 /** Browse/list API defaults — full catalog responses are too large for mobile clients. */
-export const BROWSE_API_VERSION = "20260903-2";
-export const DEFAULT_PRODUCT_LIST_LIMIT = 96;
+export const BROWSE_API_VERSION = "20260904-recovery-1";
+export const DEFAULT_PRODUCT_LIST_LIMIT = 24;
 export const MAX_PRODUCT_LIST_LIMIT = 480;
 /** SEO category / compare pages — keep HTML payloads small; meta.totalMatched stays full. */
 export const CATEGORY_PAGE_PRODUCT_LIMIT = 96;
