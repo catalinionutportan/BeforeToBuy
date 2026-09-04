@@ -38,11 +38,8 @@ import {
   clearBrowseScrollY,
   pinBrowseScrollAnchor,
   pinBrowseScrollY,
-  readBrowseScrollAnchorState,
   readBrowseScrollY,
   subscribeBrowseScrollRestored,
-  visibleCountForBrowseAnchor,
-  visibleCountForBrowseScroll,
 } from "@/lib/browse-scroll";
 import {
   BROWSE_API_VERSION,
@@ -58,10 +55,16 @@ import {
 import { useUserLocation } from "@/hooks/useUserLocation";
 import {
   ChevronLeft,
+  ChevronRight,
   Info,
   SearchX,
 } from "lucide-react";
 import { sanitizeString } from "@/lib/utils/sanitization";
+import {
+  BROWSE_PAGE_SIZE,
+  buildBrowsePaginationItems,
+  normalizeBrowsePage,
+} from "@/lib/browse-pagination";
 
 const AffiliateDisclosureModal = dynamic(
   () =>
@@ -80,21 +83,21 @@ interface HomePageClientProps {
   initialMeta?: ProductFetchMeta | null;
   /** Set when the server-side initial catalog fetch failed, so we can surface an error instead of an empty grid. */
   initialFetchFailed?: boolean;
+  initialPage?: number;
 }
-
-const COMPACT_PRESENTATION_COUNTRIES = new Set<CountryCode>(["CH", "DE", "GB", "US"]);
 
 export default function HomePageClient({
   initialCountry,
   initialProducts = [],
   initialMeta = null,
   initialFetchFailed = false,
+  initialPage = 1,
 }: HomePageClientProps) {
   const [searchInput, setSearchInput] = useState<string>("");
   const debouncedSearchQuery = useDebouncedValue(searchInput, 350);
   const [selectedDomain, setSelectedDomain] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORIES_ID);
-  const [visibleCount, setVisibleCount] = useState(12);
+  const [currentPage, setCurrentPage] = useState(() => normalizeBrowsePage(initialPage));
   const [sortOrder, setSortOrder] = useState<SortOption>("default");
   const [offerFilters, setOfferFilters] = useState<OfferFilterCriteria>({});
   const debouncedOfferFilters = useDebouncedValue(offerFilters, 500);
@@ -103,7 +106,6 @@ export default function HomePageClient({
   const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(
     initialProducts.length === 0 && !initialFetchFailed
   );
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isDisclosureOpen, setIsDisclosureOpen] = useState<boolean>(false);
   const [catalogMeta, setCatalogMeta] = useState<ProductFetchMeta | null>(initialMeta);
   const [productFetchFailed, setProductFetchFailed] = useState<boolean>(initialFetchFailed);
@@ -277,6 +279,11 @@ export default function HomePageClient({
         window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
       }
       setSearchInput(params.get("q") || "");
+      setCurrentPage(normalizeBrowsePage(params.get("page")));
+      const nextSort = params.get("sort");
+      setSortOrder(
+        nextSort === "price-asc" || nextSort === "price-desc" ? nextSort : "default"
+      );
       const parsed = parseOfferFiltersFromSearchParams(params);
       setSelectedDomain(parsed.domain || "all");
       const nextOfferFilters: OfferFilterCriteria = {
@@ -313,6 +320,8 @@ export default function HomePageClient({
     url.searchParams.delete("category");
     url.searchParams.delete("domain");
     url.searchParams.delete("q");
+    url.searchParams.delete("page");
+    url.searchParams.delete("sort");
     url.searchParams.set("country", userLocation.countryCode);
     window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
   }, [userLocation.countryCode]);
@@ -340,6 +349,8 @@ export default function HomePageClient({
     if (nextQ === currentQ) return;
     if (nextQ) url.searchParams.set("q", nextQ);
     else url.searchParams.delete("q");
+    url.searchParams.delete("page");
+    setCurrentPage(1);
     window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
   }, [debouncedSearchQuery]);
 
@@ -352,6 +363,7 @@ export default function HomePageClient({
     const matchesServerCatalog =
       !skippedInitialCatalogRequest.current &&
       requestCountry === initialCountry &&
+      currentPage === initialPage &&
       !debouncedSearchQuery.trim() &&
       browseCategory === ALL_CATEGORIES_ID &&
       !hasActiveOfferFilters(activeOfferFilters) &&
@@ -378,6 +390,7 @@ export default function HomePageClient({
     async function loadProductsAndCoupons() {
       setIsLoadingProducts(true);
       const cacheableAisle =
+        currentPage === 1 &&
         !debouncedSearchQuery.trim() &&
         !hasActiveOfferFilters(activeOfferFilters) &&
         sortOrder === "default";
@@ -416,7 +429,7 @@ export default function HomePageClient({
           country: requestCountry,
           locale: browseLocale,
           limit: String(DEFAULT_PRODUCT_LIST_LIMIT),
-          offset: "0",
+          offset: String((currentPage - 1) * BROWSE_PAGE_SIZE),
           v: BROWSE_API_VERSION,
         });
 
@@ -488,11 +501,13 @@ export default function HomePageClient({
       } catch (error) {
         if (controller.signal.aborted && !didTimeout) return;
         console.error("Failed to load products:", error);
-        const fallback = getSessionBrowsePage(
-          requestCountry,
-          browseLocale,
-          browseCategory === ALL_CATEGORIES_ID ? undefined : browseCategory
-        );
+        const fallback = currentPage === 1
+          ? getSessionBrowsePage(
+              requestCountry,
+              browseLocale,
+              browseCategory === ALL_CATEGORIES_ID ? undefined : browseCategory
+            )
+          : null;
         if (fallback?.products?.length) {
           setProducts(fallback.products);
           setCatalogMeta(fallback.meta);
@@ -517,6 +532,7 @@ export default function HomePageClient({
     };
   }, [
     userLocation,
+    currentPage,
     debouncedSearchQuery,
     browseLocale,
     browseCategory,
@@ -527,6 +543,7 @@ export default function HomePageClient({
     initialProducts.length,
     initialCountry,
     initialMeta,
+    initialPage,
     reloadToken,
     setProducts,
     setCatalogMeta,
@@ -541,7 +558,7 @@ export default function HomePageClient({
       const cached = getSessionBrowsePage(countryCode, browseLocale);
       clearBrowseScrollY();
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-      setVisibleCount(12);
+      setCurrentPage(1);
       setProductFetchFailed(false);
       setSelectedCategory(ALL_CATEGORIES_ID);
       setSelectedDomain("all");
@@ -591,6 +608,8 @@ export default function HomePageClient({
       else url.searchParams.delete("q");
 
       writeOfferFiltersToSearchParams(url, { ...filters, domain });
+      url.searchParams.delete("page");
+      setCurrentPage(1);
       window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
     },
     [debouncedSearchQuery]
@@ -670,17 +689,31 @@ export default function HomePageClient({
     [selectedCategory, offerFilters, syncBrowseUrl]
   );
 
+  const handleSortChange = useCallback((nextSort: SortOption) => {
+    setSortOrder(nextSort);
+    setCurrentPage(1);
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (nextSort === "default") url.searchParams.delete("sort");
+    else url.searchParams.set("sort", nextSort);
+    url.searchParams.delete("page");
+    window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }, []);
+
   const resetAllFilters = useCallback(() => {
     const defaultHub = defaultMarketHubForCountry(userLocation.countryCode);
     setSearchInput("");
     setSelectedDomain("all");
     setOfferFilters({});
     setSelectedCategory(defaultHub);
+    setSortOrder("default");
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
       if (defaultHub === ALL_CATEGORIES_ID) url.searchParams.delete("category");
       else url.searchParams.set("category", defaultHub);
       url.searchParams.delete("q");
+      url.searchParams.delete("page");
+      url.searchParams.delete("sort");
       writeOfferFiltersToSearchParams(url, {});
       window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
     }
@@ -716,9 +749,19 @@ export default function HomePageClient({
     if (selectedDomain !== "all") {
       params.set("domain", selectedDomain);
     }
+    writeOfferFiltersToParams(params, activeOfferFilters);
+    if (sortOrder !== "default") params.set("sort", sortOrder);
+    if (currentPage > 1) params.set("page", String(currentPage));
     const qs = params.toString();
     return qs ? `/?${qs}` : "/";
-  }, [browseCategory, debouncedSearchQuery, selectedDomain]);
+  }, [
+    activeOfferFilters,
+    browseCategory,
+    currentPage,
+    debouncedSearchQuery,
+    selectedDomain,
+    sortOrder,
+  ]);
   const isSearching = debouncedSearchQuery.trim().length > 0;
   const displayedProducts = useMemo(
     () =>
@@ -739,132 +782,51 @@ export default function HomePageClient({
     ]
   );
   const filtersActiveBeyondCategory = useMemo(() => hasActiveOfferFilters(activeOfferFilters), [activeOfferFilters]);
-  const visibleProducts = useMemo(
-    () => displayedProducts.slice(0, visibleCount),
-    [displayedProducts, visibleCount]
+  const totalPages = Math.max(
+    1,
+    Math.ceil((catalogMeta?.totalMatched ?? displayedProducts.length) / BROWSE_PAGE_SIZE)
+  );
+  const paginationItems = useMemo(
+    () => buildBrowsePaginationItems(currentPage, totalPages),
+    [currentPage, totalPages]
   );
 
-  const loadMoreProducts = useCallback(async () => {
-    if (visibleCount < displayedProducts.length) {
-      setVisibleCount((count) => Math.min(count + 12, displayedProducts.length));
-      return;
-    }
-    if (!catalogMeta?.hasMore || isLoadingMore) return;
-
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 8_000);
-    const pageLimit = catalogMeta.limit ?? DEFAULT_PRODUCT_LIST_LIMIT;
-    const nextOffset = (catalogMeta.offset ?? 0) + pageLimit;
-    setIsLoadingMore(true);
-    setProductFetchFailed(false);
-
-    try {
-      const params = new URLSearchParams({
-        country: userLocation.countryCode,
-        locale: browseLocale,
-        limit: String(DEFAULT_PRODUCT_LIST_LIMIT),
-        offset: String(nextOffset),
-        v: BROWSE_API_VERSION,
+  const handlePageChange = useCallback(
+    (page: number) => {
+      const nextPage = Math.min(normalizeBrowsePage(page), totalPages);
+      if (nextPage === currentPage || typeof window === "undefined") return;
+      clearBrowseScrollY();
+      setCurrentPage(nextPage);
+      setIsLoadingProducts(true);
+      const url = new URL(window.location.href);
+      if (nextPage === 1) url.searchParams.delete("page");
+      else url.searchParams.set("page", String(nextPage));
+      window.history.pushState({}, "", `${url.pathname}${url.search}${url.hash}`);
+      requestAnimationFrame(() => {
+        document.getElementById("product-results")?.scrollIntoView({
+          block: "start",
+          behavior: "auto",
+        });
       });
-      if (debouncedSearchQuery.trim()) params.set("q", debouncedSearchQuery.trim());
-      if (browseCategory && browseCategory !== ALL_CATEGORIES_ID) {
-        params.set("category", browseCategory);
-      }
-      writeOfferFiltersToParams(params, activeOfferFilters);
-      if (sortOrder !== "default") params.set("sort", sortOrder);
-
-      const response = await fetch(`/api/products?${params.toString()}`, {
-        signal: controller.signal,
-      });
-      if (!response.ok) throw new Error("Product API request failed");
-      const data = (await response.json()) as {
-        products: Product[];
-        meta: ProductFetchMeta;
-      };
-
-      const seen = new Set(products.map((product) => product.id));
-      const appended = (data.products || []).filter((product) => !seen.has(product.id));
-      const nextProducts = appended.length ? [...products, ...appended] : products;
-      const nextMeta: ProductFetchMeta = {
-        ...catalogMeta,
-        ...data.meta,
-        categoryCounts: data.meta.categoryCounts ?? catalogMeta?.categoryCounts ?? {},
-        categoryCovers: {
-          ...(catalogMeta?.categoryCovers ?? {}),
-          ...(data.meta.categoryCovers ?? {}),
-        },
-        brandOptions:
-          data.meta.brandOptions.length > 0
-            ? data.meta.brandOptions
-            : (catalogMeta?.brandOptions ?? []),
-      };
-      setProducts(nextProducts);
-      setCatalogMeta(nextMeta);
-      const cacheableAisle =
-        !debouncedSearchQuery.trim() &&
-        !hasActiveOfferFilters(activeOfferFilters) &&
-        sortOrder === "default";
-      if (cacheableAisle && nextProducts.length > 0) {
-        setSessionBrowsePage(
-          userLocation.countryCode,
-          browseLocale,
-          { products: nextProducts, meta: nextMeta },
-          browseCategory === ALL_CATEGORIES_ID ? undefined : browseCategory
-        );
-      }
-      setVisibleCount((count) => count + 12);
-    } catch (error) {
-      console.error(
-        controller.signal.aborted ? "Loading more products timed out" : "Failed to load more products",
-        error
-      );
-      setProductFetchFailed(true);
-    } finally {
-      window.clearTimeout(timeoutId);
-      setIsLoadingMore(false);
-    }
-  }, [
-    activeOfferFilters,
-    browseCategory,
-    browseLocale,
-    catalogMeta,
-    debouncedSearchQuery,
-    displayedProducts.length,
-    isLoadingMore,
-    products,
-    sortOrder,
-    userLocation.countryCode,
-    visibleCount,
-  ]);
-
-  const visibleCountResetKey = [
-    browseCategory,
-    selectedDomain,
-    offerFilters.brand || "",
-    offerFilters.inStockOnly ? "1" : "0",
-    offerFilters.freeDeliveryOnly ? "1" : "0",
-    offerFilters.minTotalPrice ?? "",
-    offerFilters.maxTotalPrice ?? "",
-    offerFilters.hasGtinOnly ? "1" : "0",
-    debouncedSearchQuery,
-    userLocation.countryCode,
-  ].join("|");
+    },
+    [currentPage, totalPages]
+  );
 
   useEffect(() => {
-    setVisibleCount(12);
-  }, [visibleCountResetKey]);
+    if (currentPage <= totalPages) return;
+    setCurrentPage(totalPages);
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (totalPages === 1) url.searchParams.delete("page");
+    else url.searchParams.set("page", String(totalPages));
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [currentPage, totalPages]);
 
-  // After closing a product modal, expand lazy rows BEFORE pinning scroll so
-  // we never land past the short 12-card document end.
+  // Product details open as a route modal. Returning pins the exact card.
   useEffect(() => {
     const onRestore = () => {
       const y = readBrowseScrollY();
       if (y == null) return;
-      const anchor = readBrowseScrollAnchorState();
-      const needed =
-        visibleCountForBrowseAnchor(anchor, displayedProducts.length) ??
-        visibleCountForBrowseScroll(y, displayedProducts.length);
-      setVisibleCount((count) => Math.max(count, needed));
       requestAnimationFrame(() => {
         if (!pinBrowseScrollAnchor()) pinBrowseScrollY();
       });
@@ -900,7 +862,6 @@ export default function HomePageClient({
     !isSearching &&
     !filtersActiveBeyondCategory &&
     shortcutBoards.length > 0;
-  const usesCompactPresentationRail = COMPACT_PRESENTATION_COUNTRIES.has(userLocation.countryCode);
   return (
     <div className="relative w-full bg-slate-50 font-sans">
       {isLoadingProducts ? (
@@ -951,7 +912,7 @@ export default function HomePageClient({
             </nav>
           </div>
 
-          {showShortcutBoards && usesCompactPresentationRail ? (
+          {showShortcutBoards ? (
             <BrowseShortcutBoards
               boards={shortcutBoards}
               products={products}
@@ -1049,7 +1010,7 @@ export default function HomePageClient({
               </span>
               <select
                 value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as SortOption)}
+                onChange={(event) => handleSortChange(event.target.value as SortOption)}
                 className="cursor-pointer bg-transparent text-[11px] font-bold text-slate-800 outline-none"
               >
                 <option value="default">{homeUi.sortRelevance}</option>
@@ -1102,8 +1063,8 @@ export default function HomePageClient({
           ) : displayedProducts.length === 0 ? (
             isLoadingProducts ? (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 animate-pulse">
-                  {Array.from({ length: 6 }).map((_, i) => (
+                <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 sm:gap-3 animate-pulse">
+                  {Array.from({ length: 12 }).map((_, i) => (
                     <div
                       key={i}
                       className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-xs space-y-3"
@@ -1143,10 +1104,11 @@ export default function HomePageClient({
           ) : (
             <div className="space-y-4">
               <div
-                className={`grid grid-cols-2 gap-2.5 transition-opacity sm:gap-3 md:grid-cols-3 xl:grid-cols-4 ${isLoadingProducts ? "opacity-60" : "opacity-100"}`}
+                id="product-results"
+                className={`grid scroll-mt-24 grid-cols-1 gap-2.5 transition-opacity min-[480px]:grid-cols-2 sm:gap-3 md:grid-cols-3 xl:grid-cols-4 ${isLoadingProducts ? "opacity-60" : "opacity-100"}`}
                 aria-busy={isLoadingProducts}
               >
-                {visibleProducts.map((product) => (
+                {displayedProducts.map((product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
@@ -1159,33 +1121,65 @@ export default function HomePageClient({
                   />
                 ))}
               </div>
-              {visibleCount < displayedProducts.length || catalogMeta?.hasMore ? (
-                <div className="py-3 text-center">
+              {totalPages > 1 ? (
+                <nav
+                  className="flex flex-wrap items-center justify-center gap-1.5 py-4"
+                  aria-label={homeUi.paginationNavigation}
+                >
                   <button
                     type="button"
-                    onClick={() => void loadMoreProducts()}
-                    disabled={isLoadingMore}
-                    className="min-h-11 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-xs font-extrabold text-slate-800 shadow-xs hover:border-emerald-400 hover:text-emerald-800 disabled:cursor-wait disabled:opacity-60"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1 || isLoadingProducts}
+                    className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-extrabold text-slate-800 shadow-xs hover:border-emerald-400 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {isLoadingMore ? homeUi.updatingProducts : homeUi.loadMoreProducts}
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                    <span className="hidden sm:inline">{homeUi.previousPage}</span>
                   </button>
-                </div>
+                  {paginationItems.map((item) =>
+                    typeof item === "number" ? (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => handlePageChange(item)}
+                        disabled={isLoadingProducts}
+                        aria-current={item === currentPage ? "page" : undefined}
+                        aria-label={formatUi(homeUi.goToPage, { page: item })}
+                        className={`inline-flex h-11 min-w-11 items-center justify-center rounded-xl border px-3 text-xs font-extrabold shadow-xs transition-colors disabled:cursor-wait disabled:opacity-60 ${
+                          item === currentPage
+                            ? "border-emerald-700 bg-emerald-700 text-white"
+                            : "border-slate-300 bg-white text-slate-800 hover:border-emerald-400 hover:text-emerald-800"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ) : (
+                      <span
+                        key={item}
+                        className="inline-flex h-11 min-w-8 items-center justify-center text-sm font-bold text-slate-400"
+                        aria-hidden="true"
+                      >
+                        …
+                      </span>
+                    )
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages || isLoadingProducts}
+                    className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-extrabold text-slate-800 shadow-xs hover:border-emerald-400 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <span className="hidden sm:inline">{homeUi.nextPage}</span>
+                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  <p className="w-full pt-1 text-center text-[11px] font-semibold text-slate-500">
+                    {formatUi(homeUi.pageOf, { page: currentPage, total: totalPages })}
+                  </p>
+                </nav>
               ) : (
                 <p className="py-3 text-center text-xs text-slate-500">{homeUi.endOfCatalog}</p>
               )}
             </div>
           )}
-
-          {showShortcutBoards && !usesCompactPresentationRail ? (
-            <BrowseShortcutBoards
-              boards={shortcutBoards}
-              products={products}
-              categoryCovers={catalogMeta?.categoryCovers}
-              locale={browseLocale}
-              onSelect={handleCategoryChange}
-              variant="boards"
-            />
-          ) : null}
         </div>
 
         <div className="space-y-3">

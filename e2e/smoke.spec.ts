@@ -48,22 +48,28 @@ test("homepage HTML contains real product cards without a false empty state", as
   expect(html).not.toMatch(/0 results|No products found/i);
 });
 
-test("compact presentation rail works in populated launch-market samples", async ({ page }) => {
+test("presentation rail stays above products in populated market samples", async ({ page }) => {
   // The deterministic E2E fixture has occupied shortcut categories for these
   // markets. DE is covered by resolver unit tests and live-catalog browser QA.
-  for (const country of ["CH", "GB", "US"] as const) {
+  for (const country of ["CH", "GB", "US", "RO"] as const) {
     await page.goto(`/?country=${country}&lang=en`);
     const rail = page.getByTestId("shortcut-category-rail");
-    await expect(rail, `${country} should show the compact presentation rail`).toBeVisible({
+    await expect(rail, `${country} should show the presentation rail`).toBeVisible({
       timeout: 15_000,
     });
     expect(await rail.locator("[data-shortcut-category]").count()).toBeGreaterThan(0);
-    await expect(page.locator("[data-product-id]").first()).toBeVisible({ timeout: 15_000 });
+    const products = page.locator("#product-results");
+    await expect(products.locator("[data-product-id]").first()).toBeVisible({ timeout: 15_000 });
+    expect(
+      await rail.evaluate((element, productGridId) => {
+        const productGrid = document.getElementById(productGridId);
+        return Boolean(
+          productGrid &&
+            element.compareDocumentPosition(productGrid) & Node.DOCUMENT_POSITION_FOLLOWING
+        );
+      }, "product-results")
+    ).toBe(true);
   }
-
-  await page.goto("/?country=RO&lang=ro");
-  await expect(page.getByTestId("shortcut-category-rail")).toHaveCount(0);
-  await expect(page.getByText("Alege un raft", { exact: true })).toBeVisible({ timeout: 15_000 });
 });
 
 test.describe("BeforeToBuy smoke E2E", () => {

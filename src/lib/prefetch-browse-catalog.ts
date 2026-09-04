@@ -13,7 +13,7 @@ export const PREFETCH_BROWSE_MARKETS: CountryCode[] = ["CH", "RO", "GB", "US", "
 /** Homepage listens so the category flyout does not remount the page. */
 export const BROWSE_CATEGORY_EVENT = "btb-browse-category";
 
-const STORAGE_PREFIX = "btb-browse-page:v8:";
+const STORAGE_PREFIX = "btb-browse-page:v9:";
 const STORAGE_TTL_MS = 15 * 60 * 1000;
 
 export type SessionBrowsePage = {

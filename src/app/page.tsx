@@ -14,6 +14,7 @@ import { fetchMergedProductsForLocation } from "@/lib/product-service";
 import { withTimeout } from "@/lib/promise-timeout";
 import { getRequestMarketCountry } from "@/lib/request-market";
 import type { CountryCode, Product } from "@/types";
+import { normalizeBrowsePage } from "@/lib/browse-pagination";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ interface HomePageProps {
     category?: string;
     q?: string;
     domain?: string;
+    page?: string;
   }>;
 }
 
@@ -49,20 +51,23 @@ export default async function Home({ searchParams }: HomePageProps) {
   let initialProducts: Product[] = [];
   let initialMeta: ProductFetchMeta | null = null;
   let initialFetchFailed = false;
+  let initialPage = 1;
 
   try {
     const params = searchParams ? await searchParams : undefined;
+    initialPage = normalizeBrowsePage(params?.page);
     marketCountry = await getRequestMarketCountry(params?.country?.toUpperCase());
     const categoryParam = params?.category?.trim() || undefined;
-    let cachedPage =
-      (categoryParam
-        ? await getCachedFirstBrowsePage(marketCountry, DEFAULT_PRODUCT_LIST_LIMIT, categoryParam)
-        : null) ||
-      (await getCachedFirstBrowsePage(marketCountry, DEFAULT_PRODUCT_LIST_LIMIT));
+    let cachedPage = initialPage === 1
+      ? (categoryParam
+          ? await getCachedFirstBrowsePage(marketCountry, DEFAULT_PRODUCT_LIST_LIMIT, categoryParam)
+          : null) ||
+        (await getCachedFirstBrowsePage(marketCountry, DEFAULT_PRODUCT_LIST_LIMIT))
+      : null;
 
-    // Reuse the previous 96-item cache during the recovery rollout, then write
-    // the compact 24-item key so subsequent requests stay fast.
-    if (!cachedPage?.products?.length) {
+    // Reuse the previous 96-item cache during the rollout, then write the
+    // compact 48-item first-page key used by numbered pagination.
+    if (initialPage === 1 && !cachedPage?.products?.length) {
       const legacyPage =
         (categoryParam
           ? await getCachedFirstBrowsePage(marketCountry, LEGACY_FIRST_PAGE_LIMIT, categoryParam)
@@ -87,19 +92,25 @@ export default async function Home({ searchParams }: HomePageProps) {
           undefined,
           categoryParam,
           undefined,
-          { ...BROWSE_LIST_OPTIONS, limit: DEFAULT_PRODUCT_LIST_LIMIT }
+          {
+            ...BROWSE_LIST_OPTIONS,
+            limit: DEFAULT_PRODUCT_LIST_LIMIT,
+            offset: (initialPage - 1) * DEFAULT_PRODUCT_LIST_LIMIT,
+          }
         ),
         INITIAL_CATALOG_TIMEOUT_MS,
         `Homepage ${marketCountry} catalog`
       );
       if (freshPage.products.length > 0) {
         cachedPage = freshPage;
-        await setCachedFirstBrowsePage(
-          marketCountry,
-          DEFAULT_PRODUCT_LIST_LIMIT,
-          { products: freshPage.products, meta: freshPage.meta },
-          categoryParam
-        );
+        if (initialPage === 1) {
+          await setCachedFirstBrowsePage(
+            marketCountry,
+            DEFAULT_PRODUCT_LIST_LIMIT,
+            { products: freshPage.products, meta: freshPage.meta },
+            categoryParam
+          );
+        }
       }
     }
 
@@ -120,6 +131,7 @@ export default async function Home({ searchParams }: HomePageProps) {
       initialProducts={initialProducts}
       initialMeta={initialMeta}
       initialFetchFailed={initialFetchFailed}
+      initialPage={initialPage}
     />
   );
 }
