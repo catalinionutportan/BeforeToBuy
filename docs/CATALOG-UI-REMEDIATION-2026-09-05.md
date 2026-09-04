@@ -62,3 +62,20 @@ does not claim exhaustive manual validation of every product or affiliate URL.
 - These changes remove identified expensive request paths, not a guarantee
   against every possible latency cause. Ongoing real-user performance metrics
   and a controlled non-production load test are still needed.
+
+## Publication result
+
+Runtime release `ac8b683` published on the existing NAS and public domain.
+Previous release preserved at
+`/share/Container/beforetobuy-backup-pre-audit-20260905-0100`.
+Temporary candidate container removed; no catalogue data deleted or rewritten.
+
+Post-start public samples: CH homepage HTTP 200 in 551ms, health 55ms,
+sitemap index 52ms. Public 48-product API requests: CH 144ms, DE 57ms,
+GB 58ms, US 56ms, all HTTP 200. These are individual warmed request timings,
+not page-interactivity metrics or sustained performance guarantees.
+
+The first RO API smoke request after startup hit the existing 7-second operation
+timeout and returned 503. A subsequent request succeeded, and the complete
+9-check production smoke suite then passed, including RO products and consent.
+The RO cold-start timeout remains a documented follow-up, not declared fixed.
