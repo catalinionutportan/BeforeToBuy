@@ -64,6 +64,32 @@ test.describe("Search, filters and product handoff", () => {
     await expect(productDialog.getByRole("heading", { level: 2, name: /Store offer/i })).toBeVisible();
   });
 
+  test("closing product restores the same card without rebuilding the grid", async ({ page }) => {
+    const cards = page.locator("[data-product-id]");
+    const beforeIds = await cards.evaluateAll((elements) =>
+      elements.map((element) => element.getAttribute("data-product-id"))
+    );
+    const target = cards.nth(Math.min(7, beforeIds.length - 1));
+    await target.evaluate((element) => element.scrollIntoView({ block: "center" }));
+    const targetId = await target.getAttribute("data-product-id");
+    const topBefore = await target.evaluate((element) => element.getBoundingClientRect().top);
+
+    await target.locator("a").first().click();
+    const productDialog = page.getByRole("dialog", { name: /Store offer/i });
+    await expect(productDialog).toBeVisible();
+    await productDialog.getByRole("button", { name: /Close/i }).click();
+    await expect(productDialog).toHaveCount(0);
+    await expect(page).not.toHaveURL(/\/p\//);
+
+    const afterIds = await cards.evaluateAll((elements) =>
+      elements.map((element) => element.getAttribute("data-product-id"))
+    );
+    expect(afterIds).toEqual(beforeIds);
+    const restored = page.locator(`[data-product-id="${targetId}"]`);
+    const topAfter = await restored.evaluate((element) => element.getBoundingClientRect().top);
+    expect(Math.abs(topAfter - topBefore)).toBeLessThanOrEqual(2);
+  });
+
   test("requires affiliate consent and then opens the real merchant URL", async ({ page, context }) => {
     await page.locator("[data-product-id]").first().locator("a").first().click();
     await expect(page).toHaveURL(/\/p\/[^/?]+/);

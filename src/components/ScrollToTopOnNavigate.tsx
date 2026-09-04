@@ -8,6 +8,7 @@ import {
   isProductPath,
   isTransientPath,
   notifyBrowseScrollRestored,
+  pinBrowseScrollAnchor,
   pinBrowseScrollY,
   restoreBrowseScrollY,
 } from "@/lib/browse-scroll";
@@ -42,12 +43,12 @@ export function ScrollToTopOnNavigate() {
     // Back to browse from product / compare — expand lazy rows, then pin Y.
     if (isTransientPath(prev) && isBrowsePath(pathname)) {
       notifyBrowseScrollRestored();
-      if (!pinBrowseScrollY()) {
+      if (!pinBrowseScrollAnchor() && !pinBrowseScrollY()) {
         let tries = 0;
         const attempt = () => {
-          if (restoreBrowseScrollY()) {
+          if (pinBrowseScrollAnchor() || restoreBrowseScrollY()) {
             notifyBrowseScrollRestored();
-            pinBrowseScrollY();
+            if (!pinBrowseScrollAnchor()) pinBrowseScrollY();
             return;
           }
           tries += 1;

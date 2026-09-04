@@ -58,10 +58,14 @@ export function sortProductsForBrowse(
 ): Product[] {
   return [...products].sort((a, b) => {
     if (sortOption === "price-asc") {
-      return (a.basePrice || Infinity) - (b.basePrice || Infinity);
+      const priceDifference = (a.basePrice || Infinity) - (b.basePrice || Infinity);
+      if (priceDifference !== 0) return priceDifference;
+      return a.id.localeCompare(b.id);
     }
     if (sortOption === "price-desc") {
-      return (b.basePrice || 0) - (a.basePrice || 0);
+      const priceDifference = (b.basePrice || 0) - (a.basePrice || 0);
+      if (priceDifference !== 0) return priceDifference;
+      return a.id.localeCompare(b.id);
     }
 
     // Search: keep server order (mixed categories on purpose).
@@ -88,6 +92,9 @@ export function sortProductsForBrowse(
     const bAcc = isAccessoryRaw(b.categoryAssignment?.rawCategory) ? 1 : 0;
     if (aAcc !== bAcc) return aAcc - bAcc;
 
-    return (a.title || "").localeCompare(b.title || "", undefined, { sensitivity: "base" });
+    const titleDifference = (a.title || "").localeCompare(b.title || "", undefined, {
+      sensitivity: "base",
+    });
+    return titleDifference || a.id.localeCompare(b.id);
   });
 }

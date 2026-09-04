@@ -36,9 +36,12 @@ import { hasActiveOfferFilters, parseOfferFiltersFromSearchParams, writeOfferFil
 import { sortProductsForBrowse, type SortOption } from "@/lib/browse-product-order";
 import {
   clearBrowseScrollY,
+  pinBrowseScrollAnchor,
   pinBrowseScrollY,
+  readBrowseScrollAnchorState,
   readBrowseScrollY,
   subscribeBrowseScrollRestored,
+  visibleCountForBrowseAnchor,
   visibleCountForBrowseScroll,
 } from "@/lib/browse-scroll";
 import {
@@ -828,10 +831,13 @@ export default function HomePageClient({
     const onRestore = () => {
       const y = readBrowseScrollY();
       if (y == null) return;
-      const needed = visibleCountForBrowseScroll(y, displayedProducts.length);
+      const anchor = readBrowseScrollAnchorState();
+      const needed =
+        visibleCountForBrowseAnchor(anchor, displayedProducts.length) ??
+        visibleCountForBrowseScroll(y, displayedProducts.length);
       setVisibleCount((count) => Math.max(count, needed));
       requestAnimationFrame(() => {
-        pinBrowseScrollY();
+        if (!pinBrowseScrollAnchor()) pinBrowseScrollY();
       });
     };
     return subscribeBrowseScrollRestored(onRestore);

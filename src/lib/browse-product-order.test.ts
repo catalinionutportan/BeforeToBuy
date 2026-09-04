@@ -77,4 +77,17 @@ describe("sortProductsForBrowse", () => {
     );
     expect(sorted.map((p) => p.id)).toEqual(["dress", "phone", "tyre"]);
   });
+
+  it("uses product ID as a stable tie-breaker for identical cards", () => {
+    const second = product("product-b", "notebooks-laptops");
+    const first = product("product-a", "notebooks-laptops");
+    second.title = "Same product";
+    first.title = "Same product";
+
+    expect(
+      sortProductsForBrowse([second, first], "default", { countryCode: "CH" }).map(
+        (item) => item.id
+      )
+    ).toEqual(["product-a", "product-b"]);
+  });
 });

@@ -3,7 +3,7 @@
 import { Offer, Product, UserLocation } from "@/types";
 import { COUNTRIES } from "@/lib/countries";
 import { defaultLocaleFromCountry, type SiteLocale } from "@/lib/i18n/locales";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
@@ -70,10 +70,17 @@ export function ProductCard({
   const bestTotal = bestOffer
     ? (bestOffer.totalPrice ?? computeTotalPrice(bestOffer))
     : undefined;
-  const openProduct = () => {
+  const openProduct = (event: MouseEvent<HTMLAnchorElement>) => {
     // Force-save even near the catalog end (non-force ignores end-of-page junk).
     saveBrowseScrollY(window.scrollY, { force: true });
-    saveBrowseScrollAnchor(product.id);
+    const card = event.currentTarget.closest<HTMLElement>("[data-product-id]");
+    const visibleCards = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-product-id]")
+    );
+    saveBrowseScrollAnchor(product.id, {
+      visibleIndex: card ? visibleCards.indexOf(card) : undefined,
+      viewportTop: card?.getBoundingClientRect().top,
+    });
     const isLive = bestOffer?.source === "production-live";
     const sourceLabel = bestOffer
       ? isLive
@@ -132,6 +139,7 @@ export function ProductCard({
         <Link
           href={href}
           scroll={false}
+          prefetch={false}
           onClick={openProduct}
           onPointerDown={() => warmProductPreviewImage(product.image)}
           className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
@@ -148,6 +156,7 @@ export function ProductCard({
         <Link
           href={href}
           scroll={false}
+          prefetch={false}
           onClick={openProduct}
           className="block min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg"
         >
@@ -162,6 +171,7 @@ export function ProductCard({
           <Link
             href={href}
             scroll={false}
+            prefetch={false}
             onClick={openProduct}
             className="mt-auto rounded-lg bg-emerald-50 border border-emerald-200/80 px-2 py-1.5 min-w-0 space-y-1"
           >

@@ -5,6 +5,7 @@ import { useEffect, useId, useRef } from "react";
 import { X } from "lucide-react";
 import {
   notifyBrowseScrollRestored,
+  pinBrowseScrollAnchor,
   pinBrowseScrollY,
   readBrowseScrollY,
 } from "@/lib/browse-scroll";
@@ -140,7 +141,7 @@ export function Modal({
         else element.setAttribute("aria-hidden", ariaHidden);
       }
       notifyBrowseScrollRestored();
-      pinBrowseScrollY();
+      if (!pinBrowseScrollAnchor()) pinBrowseScrollY();
       returnFocusRef.current?.focus({ preventScroll: true });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- dismiss closes via router
@@ -158,7 +159,7 @@ export function Modal({
       body.style.paddingRight = "";
     }
     notifyBrowseScrollRestored();
-    pinBrowseScrollY();
+    if (!pinBrowseScrollAnchor()) pinBrowseScrollY();
     router.back();
   }
 
