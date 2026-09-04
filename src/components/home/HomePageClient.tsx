@@ -79,6 +79,8 @@ interface HomePageClientProps {
   initialFetchFailed?: boolean;
 }
 
+const COMPACT_PRESENTATION_COUNTRIES = new Set<CountryCode>(["CH", "DE", "GB", "US"]);
+
 export default function HomePageClient({
   initialCountry,
   initialProducts = [],
@@ -863,6 +865,7 @@ export default function HomePageClient({
     !isSearching &&
     !filtersActiveBeyondCategory &&
     shortcutBoards.length > 0;
+  const usesCompactPresentationRail = COMPACT_PRESENTATION_COUNTRIES.has(userLocation.countryCode);
   return (
     <div className="relative w-full bg-slate-50 font-sans">
       {isLoadingProducts ? (
@@ -912,6 +915,17 @@ export default function HomePageClient({
               <Link href="/contact" className="hover:underline">{homeUi.contact}</Link>
             </nav>
           </div>
+
+          {showShortcutBoards && usesCompactPresentationRail ? (
+            <BrowseShortcutBoards
+              boards={shortcutBoards}
+              products={products}
+              categoryCovers={catalogMeta?.categoryCovers}
+              locale={browseLocale}
+              onSelect={handleCategoryChange}
+              variant="rail"
+            />
+          ) : null}
 
           {isLoadingProducts && products.length > 0 ? (
             <p
@@ -1127,13 +1141,14 @@ export default function HomePageClient({
             </div>
           )}
 
-          {showShortcutBoards ? (
+          {showShortcutBoards && !usesCompactPresentationRail ? (
             <BrowseShortcutBoards
               boards={shortcutBoards}
               products={products}
               categoryCovers={catalogMeta?.categoryCovers}
               locale={browseLocale}
               onSelect={handleCategoryChange}
+              variant="boards"
             />
           ) : null}
         </div>

@@ -48,6 +48,24 @@ test("homepage HTML contains real product cards without a false empty state", as
   expect(html).not.toMatch(/0 results|No products found/i);
 });
 
+test("compact presentation rail works in populated launch-market samples", async ({ page }) => {
+  // The deterministic E2E fixture has occupied shortcut categories for these
+  // markets. DE is covered by resolver unit tests and live-catalog browser QA.
+  for (const country of ["CH", "GB", "US"] as const) {
+    await page.goto(`/?country=${country}&lang=en`);
+    const rail = page.getByTestId("shortcut-category-rail");
+    await expect(rail, `${country} should show the compact presentation rail`).toBeVisible({
+      timeout: 15_000,
+    });
+    expect(await rail.locator("[data-shortcut-category]").count()).toBeGreaterThan(0);
+    await expect(page.locator("[data-product-id]").first()).toBeVisible({ timeout: 15_000 });
+  }
+
+  await page.goto("/?country=RO&lang=ro");
+  await expect(page.getByTestId("shortcut-category-rail")).toHaveCount(0);
+  await expect(page.getByText("Alege un raft", { exact: true })).toBeVisible({ timeout: 15_000 });
+});
+
 test.describe("BeforeToBuy smoke E2E", () => {
   test.beforeEach(async ({ page, context }) => {
     // Force English UI + RO market so assertions stay stable and catalog is non-empty.

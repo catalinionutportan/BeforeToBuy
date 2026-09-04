@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo, useRef } from "react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { getLocalizedCategoryLabel } from "@/lib/category-i18n";
 import {
   groupShortcutBoardColumns,
@@ -18,6 +20,7 @@ interface BrowseShortcutBoardsProps {
   categoryCovers?: Record<string, string>;
   locale: SiteLocale;
   onSelect: (categoryId: string, domain?: string) => void;
+  variant?: "boards" | "rail";
 }
 
 const CURATED_SHORTCUT_COVERS: Record<string, string> = {
@@ -178,23 +181,180 @@ function ShortcutBoardCard({
   );
 }
 
+function ShortcutCategoryRail({
+  boards,
+  products,
+  categoryCovers,
+  locale,
+  onSelect,
+}: Omit<BrowseShortcutBoardsProps, "variant">) {
+  const ui = HOME_UI[locale] ?? HOME_UI.en;
+  const railRef = useRef<HTMLUListElement>(null);
+  const items = useMemo(() => {
+    const seen = new Set<string>();
+    return boards
+      .flatMap((board) =>
+        board.tiles.map((tile) => ({
+          ...tile,
+          boardId: board.id,
+          boardTitle: boardTitle(board, locale),
+          domain: board.domain,
+          image: coverImageForCategory(products, tile.categoryId, categoryCovers),
+        }))
+      )
+      .filter((item) => {
+        if (!item.image || seen.has(item.categoryId)) return false;
+        seen.add(item.categoryId);
+        return true;
+      })
+      .slice(0, 12);
+  }, [boards, categoryCovers, locale, products]);
+
+  if (items.length === 0) return null;
+
+  const scrollRail = (direction: -1 | 1) => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    rail.scrollBy({
+      left: direction * Math.max(280, rail.clientWidth * 0.75),
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+  };
+
+  return (
+    <section
+      className="overflow-hidden rounded-2xl border border-slate-200 bg-white px-3 py-3 shadow-xs sm:px-4"
+      aria-label={ui.shortcutBoardsTitle}
+      data-testid="shortcut-category-section"
+    >
+      <div className="mb-2.5 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-700">
+            {ui.shortcutBoardsTitle}
+          </p>
+          <p className="mt-0.5 text-xs font-medium text-slate-500">
+            {ui.shortcutBoardsHint}
+          </p>
+        </div>
+        <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
+          <button
+            type="button"
+            onClick={() => scrollRail(-1)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+            aria-label={ui.shortcutScrollPrevious}
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollRail(1)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+            aria-label={ui.shortcutScrollNext}
+          >
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
+      <ul
+        ref={railRef}
+        className="flex snap-x snap-mandatory gap-2.5 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        data-testid="shortcut-category-rail"
+      >
+        {items.map((item) => {
+          const label = getLocalizedCategoryLabel(item.categoryId, locale);
+          const countLabel = ui.itemsFound.replace(
+            "{count}",
+            new Intl.NumberFormat(locale).format(item.count)
+          );
+          return (
+            <li
+              key={`${item.boardId}-${item.categoryId}`}
+              className="w-[148px] shrink-0 snap-start sm:w-[168px] lg:w-[184px]"
+            >
+              <button
+                type="button"
+                onClick={() => onSelect(item.categoryId, item.domain ?? "all")}
+                className="group flex h-full w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-slate-50/60 text-left transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-white hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                aria-label={`${label} · ${countLabel}`}
+                data-shortcut-category={item.categoryId}
+              >
+                <span className="relative flex h-20 w-full items-center justify-center overflow-hidden bg-white sm:h-24">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={item.image}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                    width={184}
+                    height={96}
+                    onError={(event) => {
+                      const image = event.currentTarget;
+                      if (image.src !== SAFE_IMAGE_FALLBACK) image.src = SAFE_IMAGE_FALLBACK;
+                    }}
+                    className="h-full w-full object-contain p-2 transition duration-300 group-hover:scale-[1.04]"
+                  />
+                </span>
+                <span className="flex min-h-[76px] w-full flex-1 flex-col px-2.5 py-2">
+                  <span className="truncate text-[11px] font-bold uppercase tracking-wide text-emerald-700">
+                    {item.boardTitle}
+                  </span>
+                  <span className="mt-0.5 line-clamp-2 text-[13px] font-extrabold leading-4 text-slate-900">
+                    {label}
+                  </span>
+                  <span className="mt-auto flex items-center justify-between gap-1 pt-1 text-[11px] font-semibold text-slate-500">
+                    <span>{countLabel}</span>
+                    <ArrowRight
+                      className="h-3.5 w-3.5 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-emerald-700"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
 export function BrowseShortcutBoards({
   boards,
   products,
   categoryCovers,
   locale,
   onSelect,
+  variant = "boards",
 }: BrowseShortcutBoardsProps) {
   const ui = HOME_UI[locale] ?? HOME_UI.en;
-  const boardsWithPhotos = boards
-    .map((board) => ({
-      ...board,
-      tiles: board.tiles.filter((tile) =>
-        Boolean(coverImageForCategory(products, tile.categoryId, categoryCovers))
-      ),
-    }))
-    .filter((board) => board.tiles.length > 0);
+  const boardsWithPhotos = useMemo(
+    () =>
+      boards
+        .map((board) => ({
+          ...board,
+          tiles: board.tiles.filter((tile) =>
+            Boolean(coverImageForCategory(products, tile.categoryId, categoryCovers))
+          ),
+        }))
+        .filter((board) => board.tiles.length > 0),
+    [boards, categoryCovers, products]
+  );
   if (boardsWithPhotos.length === 0) return null;
+
+  if (variant === "rail") {
+    return (
+      <ShortcutCategoryRail
+        boards={boardsWithPhotos}
+        products={products}
+        categoryCovers={categoryCovers}
+        locale={locale}
+        onSelect={onSelect}
+      />
+    );
+  }
 
   const columns = groupShortcutBoardColumns(boardsWithPhotos);
 
