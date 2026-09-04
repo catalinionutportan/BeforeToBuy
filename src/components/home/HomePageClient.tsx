@@ -65,6 +65,7 @@ import {
   buildBrowsePaginationItems,
   normalizeBrowsePage,
 } from "@/lib/browse-pagination";
+import { withLangParam } from "@/lib/seo/site-url";
 
 const AffiliateDisclosureModal = dynamic(
   () =>
@@ -891,27 +892,6 @@ export default function HomePageClient({
       {/* Full-width desktop content — no phone-shell max-width */}
       <main id="main-content" className="flex w-full min-w-0 flex-1 flex-col gap-4 px-3 py-4 sm:px-8 lg:px-12">
         <div className="space-y-3">
-          <div
-            id="browse-offers"
-            className="scroll-mt-24 rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-4 py-3"
-          >
-            <h2 className="text-base font-extrabold tracking-tight text-slate-950 sm:text-lg">
-              {homeUi.marketHeroHeadline}
-            </h2>
-            <p className="mt-1 text-xs font-medium text-slate-600">
-              {homeUi.shortPitch2} {homeUi.shortPitch3}
-            </p>
-            <nav
-              className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-bold text-emerald-800"
-              aria-label={homeUi.legalSupportMenu}
-            >
-              <Link href="/stores" className="hover:underline">{homeUi.stores}</Link>
-              <Link href="/about" className="hover:underline">{homeUi.about}</Link>
-              <Link href="/help" className="hover:underline">{homeUi.helpFAQ}</Link>
-              <Link href="/contact" className="hover:underline">{homeUi.contact}</Link>
-            </nav>
-          </div>
-
           {showShortcutBoards ? (
             <BrowseShortcutBoards
               boards={shortcutBoards}
@@ -1184,22 +1164,61 @@ export default function HomePageClient({
 
         <div className="space-y-3">
           <PromoCouponsSection coupons={coupons} userLocation={userLocation} />
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-0.5 text-[10px] text-slate-400">
-            <Link href="/legal" className="hover:text-slate-700 hover:underline">
-              {homeUi.legalCompanyLink}
-            </Link>
-            <button
-              type="button"
-              onClick={() => setIsDisclosureOpen(true)}
-              className="inline-flex items-center gap-1 hover:text-slate-700"
-            >
-              <Info className="h-3 w-3 shrink-0" aria-hidden="true" />
-              {homeUi.howCommissions}
-            </button>
-            <Link href="/disclaimer" className="hover:text-slate-700 hover:underline">
-              {homeUi.priceServiceDisclaimer}
-            </Link>
-          </div>
+          <section
+            id="browse-offers"
+            data-testid="market-disclaimer-bar"
+            className="rounded-xl border border-emerald-100 bg-gradient-to-r from-emerald-50/80 to-white px-3 py-2.5"
+          >
+            <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
+              <div className="min-w-0">
+                <h2 className="text-xs font-extrabold tracking-tight text-slate-900">
+                  {homeUi.marketHeroHeadline}
+                </h2>
+                <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-slate-500">
+                  {homeUi.shortPitch2} {homeUi.shortPitch3}
+                </p>
+              </div>
+              <nav
+                className="flex shrink-0 flex-wrap gap-x-3 gap-y-1 text-[11px] font-bold text-emerald-800"
+                aria-label={homeUi.legalSupportMenu}
+              >
+                <Link href={withLangParam("/stores", browseLocale)} className="hover:underline">
+                  {homeUi.stores}
+                </Link>
+                <Link href={withLangParam("/about", browseLocale)} className="hover:underline">
+                  {homeUi.about}
+                </Link>
+                <Link href={withLangParam("/help", browseLocale)} className="hover:underline">
+                  {homeUi.helpFAQ}
+                </Link>
+                <Link href={withLangParam("/contact", browseLocale)} className="hover:underline">
+                  {homeUi.contact}
+                </Link>
+              </nav>
+            </div>
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-emerald-100 pt-2 text-[10px] text-slate-500">
+              <Link
+                href={withLangParam("/legal", browseLocale)}
+                className="hover:text-slate-800 hover:underline"
+              >
+                {homeUi.legalCompanyLink}
+              </Link>
+              <button
+                type="button"
+                onClick={() => setIsDisclosureOpen(true)}
+                className="inline-flex items-center gap-1 hover:text-slate-800"
+              >
+                <Info className="h-3 w-3 shrink-0" aria-hidden="true" />
+                {homeUi.howCommissions}
+              </button>
+              <Link
+                href={withLangParam("/disclaimer", browseLocale)}
+                className="hover:text-slate-800 hover:underline"
+              >
+                {homeUi.priceServiceDisclaimer}
+              </Link>
+            </div>
+          </section>
         </div>
       </main>
 

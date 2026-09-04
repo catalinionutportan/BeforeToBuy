@@ -60,6 +60,8 @@ test("presentation rail stays above products in populated market samples", async
     expect(await rail.locator("[data-shortcut-category]").count()).toBeGreaterThan(0);
     const products = page.locator("#product-results");
     await expect(products.locator("[data-product-id]").first()).toBeVisible({ timeout: 15_000 });
+    const disclaimer = page.getByTestId("market-disclaimer-bar");
+    await expect(disclaimer).toBeAttached();
     expect(
       await rail.evaluate((element, productGridId) => {
         const productGrid = document.getElementById(productGridId);
@@ -68,6 +70,15 @@ test("presentation rail stays above products in populated market samples", async
             element.compareDocumentPosition(productGrid) & Node.DOCUMENT_POSITION_FOLLOWING
         );
       }, "product-results")
+    ).toBe(true);
+    expect(
+      await products.evaluate((element, disclaimerTestId) => {
+        const disclaimerBar = document.querySelector(`[data-testid="${disclaimerTestId}"]`);
+        return Boolean(
+          disclaimerBar &&
+            element.compareDocumentPosition(disclaimerBar) & Node.DOCUMENT_POSITION_FOLLOWING
+        );
+      }, "market-disclaimer-bar")
     ).toBe(true);
   }
 });
