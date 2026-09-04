@@ -25,7 +25,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  output: "standalone",
   outputFileTracingRoot: path.join(__dirname),
   allowedDevOrigins: [
     "beforetobuy.com",
