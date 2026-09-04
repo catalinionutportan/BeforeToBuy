@@ -27,6 +27,10 @@ test("language query controls server HTML, metadata and preference cookie", asyn
   await expect(page.locator("html")).toHaveAttribute("lang", "ro");
   await expect(page).toHaveTitle(/Informații juridice|Legal/i);
   await expect(page.getByRole("heading", { name: /Informații legale și despre companie/i })).toBeVisible();
+  await expect(
+    page.getByText(/UID atribuit oficial de Oficiul Federal de Statistică \(BFS\), confirmare din 26 august 2026/i)
+  ).toBeVisible();
+  await expect(page.getByText(/Neînregistrat în scopuri de TVA/i)).toHaveCount(0);
   expect((await response?.headerValue("set-cookie")) || "").toContain("btb-ui-lang=ro");
 });
 
@@ -163,7 +167,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
     expect(body.sitePhase).toBe("production");
-    expect(body.legalDocumentVersion).toBe("1.0");
+    expect(body.legalDocumentVersion).toBe("1.1");
     expect(body.detailLevel).toBe("internal");
     expect(body.checks.productsMerge.productCount).toBeGreaterThan(0);
     if (body.checks.integrations.hasProductionFeed) {

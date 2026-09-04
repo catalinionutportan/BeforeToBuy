@@ -1,6 +1,6 @@
 /** Versioning for the public legal and transparency documents. */
-export const LEGAL_DOCUMENT_VERSION = "1.0";
-export const LEGAL_LAST_UPDATED = "2026-08-10";
+export const LEGAL_DOCUMENT_VERSION = "1.1";
+export const LEGAL_LAST_UPDATED = "2026-09-04";
 
 export const LEGAL_DRAFT_NOTICE = {
   en: "Published transparency document. Service scope, data sources, commercial relationships, and current limitations are described as they operate today.",

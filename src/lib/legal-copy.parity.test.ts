@@ -10,6 +10,7 @@ import {
   getLegalCopy,
   getLocalizedDataProcessors,
 } from "@/lib/legal-copy";
+import { COMPANY } from "@/lib/company-info";
 import { getMerchantFeedProcessorRecords, PROCESSOR_REGISTRY } from "@/lib/processor-registry";
 import type { SiteLocale } from "@/lib/i18n/locales";
 
@@ -44,6 +45,16 @@ function serializePublicProcessors(locale: SiteLocale): string {
 }
 
 describe("legal copy locale parity", () => {
+  it("shows the official BFS UID confirmation without inferring MWST registration", () => {
+    expect(COMPANY.uid).toBe("CHE-373.501.736");
+    for (const locale of LOCALES) {
+      const confirmation = COMPANY.uidConfirmation[locale];
+      expect(confirmation).toContain("26");
+      expect(confirmation).toContain("2026");
+      expect(confirmation).not.toMatch(/not VAT|Nicht MWST|Non assujetti|Non soggetto|Neînregistrat/i);
+    }
+  });
+
   it("exposes the same top-level legal section keys in all locales", () => {
     const [en, ...rest] = LOCALES.map((locale) => Object.keys(getLegalCopy(locale)).sort());
     for (const keys of rest) {

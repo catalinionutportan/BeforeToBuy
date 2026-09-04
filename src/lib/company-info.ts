@@ -27,13 +27,13 @@ export const COMPANY = {
     formattedDe: "Flurstrasse 24, 3014 Bern",
   },
   uid: "CHE-373.501.736",
-  /** UID is the Swiss enterprise ID — not a VAT number. Update when VAT-registered. */
-  vatStatus: {
-    en: "Not VAT-registered (UID is not a MWST/VAT number)",
-    de: "Nicht MWST-pflichtig (UID ist keine MWST-Nummer)",
-    fr: "Non assujetti à la TVA (l'UID n'est pas un numéro TVA/MWST)",
-    it: "Non soggetto a IVA (l'UID non è un numero IVA/MWST)",
-    ro: "Neînregistrat în scopuri de TVA (UID nu este număr MWST/TVA)",
+  /** Official BFS UID assignment confirmation dated 26 August 2026. */
+  uidConfirmation: {
+    en: "UID officially assigned by the Federal Statistical Office (FSO), confirmation dated 26 August 2026",
+    de: "UID offiziell durch das Bundesamt für Statistik (BFS) zugeteilt, Bestätigung vom 26. August 2026",
+    fr: "UID officiellement attribué par l’Office fédéral de la statistique (OFS), confirmation du 26 août 2026",
+    it: "UID attribuito ufficialmente dall’Ufficio federale di statistica (UST), conferma del 26 agosto 2026",
+    ro: "UID atribuit oficial de Oficiul Federal de Statistică (BFS), confirmare din 26 august 2026",
   },
   /** Cantonal company ID (CH-ID), separate from SHAB Meldungsnummer. */
   hrNumber: "CH-036.1.108.540-6",
