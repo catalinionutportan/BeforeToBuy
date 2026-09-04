@@ -13,10 +13,11 @@ import {
   Info,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { CompanyEmailLink } from "@/components/CompanyEmailLink";
 import { CompanyDetailsCard } from "@/components/CompanyDetailsCard";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
-import { COMPANY, STAGE_ZERO_MONETIZATION } from "@/lib/company-info";
+import { STAGE_ZERO_MONETIZATION } from "@/lib/company-info";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { SITE_PHASE } from "@/lib/site-config";
 import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
@@ -208,9 +209,7 @@ export default async function AboutPage({ searchParams }: PageProps) {
                 {homeUi.legalHub}
               </Link>{" "}
               ·{" "}
-              <a href={`mailto:${COMPANY.email}`} className="text-emerald-700 font-bold hover:underline">
-                {COMPANY.email}
-              </a>
+              <CompanyEmailLink className="text-emerald-700 font-bold hover:underline" />
             </div>
             <Link
               href={withLangParam("/contact", locale)}

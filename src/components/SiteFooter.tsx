@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { CompanyEmailLink } from "@/components/CompanyEmailLink";
 import { ManageCookiePreferencesButton } from "@/components/ManageCookiePreferencesButton";
 import { COMPANY } from "@/lib/company-info";
 import { useBrowseLocale } from "@/lib/i18n/use-browse-locale";
@@ -55,13 +56,11 @@ export function SiteFooter() {
                 HR {COMPANY.hrNumber}
               </p>
               <p>
-                <a
-                  href={`mailto:${COMPANY.email}`}
+                <CompanyEmailLink
                   className="hover:text-[#e85d04]"
                   suppressHydrationWarning
                 >
-                  {COMPANY.email}
-                </a>
+                </CompanyEmailLink>
                 <span className="mx-1.5 text-slate-300">·</span>
                 <a href={COMPANY.phoneHref} className="hover:text-[#e85d04]">
                   {COMPANY.phone}

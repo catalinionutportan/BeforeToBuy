@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ShieldCheck, Building2, Globe, ExternalLink, Info } from "lucide-react";
+import { CompanyEmailLink } from "@/components/CompanyEmailLink";
 import { PageShell } from "@/components/PageShell";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import {
@@ -158,7 +159,7 @@ export default async function AffiliateDisclosurePage({ searchParams }: Props) {
               <p><strong>{homeUi.company}</strong> {COMPANY.legalName}</p>
               <p><strong>{homeUi.address}</strong> {COMPANY.address.formatted}</p>
               <p><strong>{homeUi.uid}</strong> {COMPANY.uid} | <strong>{homeUi.hrNr}</strong> {COMPANY.hrNumber}</p>
-              <p><strong>{homeUi.email}</strong> <a href={`mailto:${COMPANY.email}`} className="text-emerald-700 font-bold underline">{COMPANY.email}</a></p>
+              <p><strong>{homeUi.email}</strong> <CompanyEmailLink className="text-emerald-700 font-bold underline" /></p>
               <p><strong>{homeUi.companyWebsite}</strong> <a href={COMPANY.website} target="_blank" rel="noopener noreferrer" className="text-emerald-700 font-bold underline">{COMPANY.website}</a></p>
             </div>
           </div>

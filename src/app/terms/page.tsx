@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FileText, CheckCircle, AlertTriangle, Scale, Users, Copyright } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { CompanyEmailLink } from "@/components/CompanyEmailLink";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { COMPANY } from "@/lib/company-info";
 import { getLegalCopy } from "@/lib/legal-copy";
@@ -194,9 +195,7 @@ export default async function TermsPage({ searchParams }: Props) {
                 {homeUi.complaintsProcedure}
               </Link>
               . {policyLabels.contact}{" "}
-              <a href={`mailto:${COMPANY.email}`} className="text-emerald-700 underline font-semibold">
-                {COMPANY.email}
-              </a>
+              <CompanyEmailLink className="text-emerald-700 underline font-semibold" />
             </p>
           </section>
         </div>

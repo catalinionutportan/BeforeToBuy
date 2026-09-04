@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { MessageSquareWarning, Mail, Clock, CheckCircle2 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import { CompanyEmailLink } from "@/components/CompanyEmailLink";
 import { LegalDraftNotice } from "@/components/LegalDraftNotice";
 import { createPageMetadata } from "@/lib/metadata";
 import { COMPANY, LEGAL_CONTACT } from "@/lib/company-info";
@@ -112,9 +113,7 @@ export default async function ComplaintsPage({ searchParams }: Props) {
             <Mail className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
             <p>
               <strong>{COMPANY.legalName}</strong> · {COMPANY.address.formatted} ·{" "}
-              <a href={`mailto:${COMPANY.email}`} className="text-emerald-700 underline">
-                {COMPANY.email}
-              </a>
+              <CompanyEmailLink className="text-emerald-700 underline" />
             </p>
           </div>
         </div>

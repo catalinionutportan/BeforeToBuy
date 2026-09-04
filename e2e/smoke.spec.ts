@@ -115,7 +115,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     await expect(page.locator("[data-product-id]").first()).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole("link", { name: "admin@portanx.com" })).toHaveAttribute(
       "href",
-      "mailto:admin@portanx.com"
+      "mailto:admin%40portanx.com"
     );
     await expect(page.getByRole("link", { name: "+41 78 310 33 17" })).toHaveAttribute(
       "href",
