@@ -14,6 +14,22 @@ export interface OfferFilterCriteria {
 
 export const MAX_TOTAL_PRICE_OPTIONS = [100, 200, 500, 1000, 2000] as const;
 
+/** Semantic equality: omitted booleans and `false` represent the same inactive filter. */
+export function areOfferFiltersEqual(
+  left: OfferFilterCriteria,
+  right: OfferFilterCriteria
+): boolean {
+  return (
+    (left.domain || "all") === (right.domain || "all") &&
+    (left.brand || "") === (right.brand || "") &&
+    Boolean(left.inStockOnly) === Boolean(right.inStockOnly) &&
+    Boolean(left.freeDeliveryOnly) === Boolean(right.freeDeliveryOnly) &&
+    (left.minTotalPrice ?? null) === (right.minTotalPrice ?? null) &&
+    (left.maxTotalPrice ?? null) === (right.maxTotalPrice ?? null) &&
+    Boolean(left.hasGtinOnly) === Boolean(right.hasGtinOnly)
+  );
+}
+
 export function getStoreSearchTokens(domainOrStore: string): string[] {
   const clean = domainOrStore.trim().toLowerCase();
   if (!clean || clean === "all") return [];

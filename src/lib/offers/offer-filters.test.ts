@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { Offer, Product } from '@/types';
 import {
   applyOfferFilters,
+  areOfferFiltersEqual,
   collectBrandOptions,
   hasActiveOfferFilters,
   offerMatchesDomain,
@@ -145,5 +146,16 @@ describe('Offer Filtering Logic', () => {
     expect(criteria.hasGtinOnly).toBe(true);
     expect(hasActiveOfferFilters(criteria)).toBe(true);
     expect(hasActiveOfferFilters({})).toBe(false);
+  });
+
+  it("treats an empty filter and parsed inactive booleans as the same state", () => {
+    expect(
+      areOfferFiltersEqual({}, {
+        inStockOnly: false,
+        freeDeliveryOnly: false,
+        hasGtinOnly: false,
+      })
+    ).toBe(true);
+    expect(areOfferFiltersEqual({}, { brand: "Sony" })).toBe(false);
   });
 });

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProductFetchMeta } from "@/lib/product-service";
+import type { Product } from "@/types";
 import {
   PREFETCH_BROWSE_MARKETS,
   clearSessionBrowseMemoryForTests,
@@ -101,5 +102,20 @@ describe("prefetch browse markets", () => {
     });
     clearSessionBrowseMemoryForTests();
     expect(getSessionBrowsePage("CH", "en")?.products).toEqual([{ id: "acer-1" }]);
+  });
+
+  it("preserves an extended catalogue and its order across a page remount", () => {
+    const extendedProducts = Array.from({ length: 36 }, (_, index) => ({
+      id: `product-${String(index + 1).padStart(2, "0")}`,
+    })) as Product[];
+    setSessionBrowsePage("CH", "de", {
+      products: extendedProducts,
+      meta: completeMeta,
+    });
+
+    clearSessionBrowseMemoryForTests();
+    expect(getSessionBrowsePage("CH", "de")?.products.map((product) => product.id)).toEqual(
+      extendedProducts.map((product) => product.id)
+    );
   });
 });

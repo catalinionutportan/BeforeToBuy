@@ -32,7 +32,7 @@ import {
 } from "@/lib/category-i18n";
 import { useBrowseLocale } from "@/hooks/useBrowseLocale";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
-import { hasActiveOfferFilters, parseOfferFiltersFromSearchParams, writeOfferFiltersToParams, writeOfferFiltersToSearchParams, type OfferFilterCriteria } from "@/lib/offers/offer-filters";
+import { areOfferFiltersEqual, hasActiveOfferFilters, parseOfferFiltersFromSearchParams, writeOfferFiltersToParams, writeOfferFiltersToSearchParams, type OfferFilterCriteria } from "@/lib/offers/offer-filters";
 import { sortProductsForBrowse, type SortOption } from "@/lib/browse-product-order";
 import {
   clearBrowseScrollY,
@@ -279,14 +279,17 @@ export default function HomePageClient({
       setSearchInput(params.get("q") || "");
       const parsed = parseOfferFiltersFromSearchParams(params);
       setSelectedDomain(parsed.domain || "all");
-      setOfferFilters({
+      const nextOfferFilters: OfferFilterCriteria = {
         brand: parsed.brand,
         inStockOnly: parsed.inStockOnly,
         freeDeliveryOnly: parsed.freeDeliveryOnly,
         minTotalPrice: parsed.minTotalPrice,
         maxTotalPrice: parsed.maxTotalPrice,
         hasGtinOnly: parsed.hasGtinOnly,
-      });
+      };
+      setOfferFilters((current) =>
+        areOfferFiltersEqual(current, nextOfferFilters) ? current : nextOfferFilters
+      );
     };
 
     readBrowseState();
@@ -779,24 +782,36 @@ export default function HomePageClient({
         meta: ProductFetchMeta;
       };
 
-      setProducts((previous) => {
-        const seen = new Set(previous.map((product) => product.id));
-        const appended = (data.products || []).filter((product) => !seen.has(product.id));
-        return appended.length ? [...previous, ...appended] : previous;
-      });
-      setCatalogMeta((previous) => ({
-        ...previous,
+      const seen = new Set(products.map((product) => product.id));
+      const appended = (data.products || []).filter((product) => !seen.has(product.id));
+      const nextProducts = appended.length ? [...products, ...appended] : products;
+      const nextMeta: ProductFetchMeta = {
+        ...catalogMeta,
         ...data.meta,
-        categoryCounts: data.meta.categoryCounts ?? previous?.categoryCounts ?? {},
+        categoryCounts: data.meta.categoryCounts ?? catalogMeta?.categoryCounts ?? {},
         categoryCovers: {
-          ...(previous?.categoryCovers ?? {}),
+          ...(catalogMeta?.categoryCovers ?? {}),
           ...(data.meta.categoryCovers ?? {}),
         },
         brandOptions:
           data.meta.brandOptions.length > 0
             ? data.meta.brandOptions
-            : (previous?.brandOptions ?? []),
-      }));
+            : (catalogMeta?.brandOptions ?? []),
+      };
+      setProducts(nextProducts);
+      setCatalogMeta(nextMeta);
+      const cacheableAisle =
+        !debouncedSearchQuery.trim() &&
+        !hasActiveOfferFilters(activeOfferFilters) &&
+        sortOrder === "default";
+      if (cacheableAisle && nextProducts.length > 0) {
+        setSessionBrowsePage(
+          userLocation.countryCode,
+          browseLocale,
+          { products: nextProducts, meta: nextMeta },
+          browseCategory === ALL_CATEGORIES_ID ? undefined : browseCategory
+        );
+      }
       setVisibleCount((count) => count + 12);
     } catch (error) {
       console.error(
@@ -816,14 +831,28 @@ export default function HomePageClient({
     debouncedSearchQuery,
     displayedProducts.length,
     isLoadingMore,
+    products,
     sortOrder,
     userLocation.countryCode,
     visibleCount,
   ]);
 
+  const visibleCountResetKey = [
+    browseCategory,
+    selectedDomain,
+    offerFilters.brand || "",
+    offerFilters.inStockOnly ? "1" : "0",
+    offerFilters.freeDeliveryOnly ? "1" : "0",
+    offerFilters.minTotalPrice ?? "",
+    offerFilters.maxTotalPrice ?? "",
+    offerFilters.hasGtinOnly ? "1" : "0",
+    debouncedSearchQuery,
+    userLocation.countryCode,
+  ].join("|");
+
   useEffect(() => {
     setVisibleCount(12);
-  }, [browseCategory, selectedDomain, offerFilters, debouncedSearchQuery, userLocation.countryCode]);
+  }, [visibleCountResetKey]);
 
   // After closing a product modal, expand lazy rows BEFORE pinning scroll so
   // we never land past the short 12-card document end.
