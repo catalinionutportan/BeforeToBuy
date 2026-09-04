@@ -20,6 +20,18 @@ interface BrowseShortcutBoardsProps {
   onSelect: (categoryId: string, domain?: string) => void;
 }
 
+const CURATED_SHORTCUT_COVERS: Record<string, string> = {
+  // Gigasport CH
+  "fashion-women-activewear": "https://www.gigasport.ch/nike-1-768_1024_100-7301617_1.jpg",
+  "fashion-shoes-sport": "https://www.gigasport.ch/merrell-1-768_1024_100-7439753_1.jpg",
+  "mobility-accessories": "https://www.gigasport.ch/abus-1-768_1024_100-6759385_1.jpg",
+  "fashion-men-activewear": "https://www.gigasport.ch/l%C3%B6ffler-1-768_1024_100-5526503_1.jpg",
+  // DJI US
+  "drones-quadcopters": "https://se-cdn.djiits.com/tpc/uploads/sku/cover/bf211fa2-cb67-4c13-b890-dc014b54b539@small.png",
+  "photo-action": "https://se-cdn.djiits.com/tpc/uploads/sku/cover/0801a82f4beeaabd2098d25ccf45784b@small.png",
+  "photo-gimbals": "https://se-cdn.djiits.com/tpc/uploads/sku/cover/1d5a1650-b8ad-464d-9af8-992e25a02485@small.png",
+};
+
 function coverImageForCategory(
   products: Product[],
   categoryId: string,
@@ -35,7 +47,7 @@ function coverImageForCategory(
       productMatchesCategoryFilter(product, categoryId) &&
       (categoryId !== AUTO_COMPLETE_WHEELS_LEAF || isReifenHostedImage(product.image))
   )?.image;
-  return fromProducts || fromCatalog || SAFE_IMAGE_FALLBACK;
+  return fromCatalog || fromProducts || CURATED_SHORTCUT_COVERS[categoryId] || SAFE_IMAGE_FALLBACK;
 }
 
 function boardTitle(board: VisibleShortcutBoard, locale: SiteLocale): string {
@@ -89,7 +101,7 @@ function ShortcutBoardCard({
             >
               <div
                 className={`relative w-full overflow-hidden bg-white ${
-                  featured ? "h-16" : "aspect-square"
+                  featured ? "h-28 sm:h-32" : "aspect-square"
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -315,26 +315,35 @@ function usableCoverImage(image: string | null | undefined): string | undefined 
 export async function getCategoryCoverImagesFromDb(
   countryCode: string
 ): Promise<Record<string, string>> {
-  const isCh = countryCode.toUpperCase() === "CH";
-  const rimCoverWhere = isCh
-    ? {
-        targetCountries: { has: countryCode },
-        image: { contains: "reifen.com" },
-        ...reifenRimOfferWhere(),
-      }
-    : null;
-  const [rows, preferredWheel, fallbackWheel, preferredLaptop] = await Promise.all([
-    prisma.product.findMany({
+  try {
+    const isCh = countryCode.toUpperCase() === "CH";
+    const rimCoverWhere = isCh
+      ? {
+          targetCountries: { has: countryCode },
+          image: { contains: "reifen.com" },
+          ...reifenRimOfferWhere(),
+        }
+      : null;
+
+    const rows = await prisma.product.findMany({
       where: {
         targetCountries: { has: countryCode },
         image: { startsWith: "http" },
-        offers: { some: { inStock: true } },
       },
       distinct: ["category"],
       select: { category: true, image: true },
-    }),
-    rimCoverWhere
-      ? prisma.product.findFirst({
+    });
+
+    const covers = buildCategoryCoverMap(
+      rows.map((row) => ({
+        category: row.category,
+        image: usableCoverImage(row.image),
+      }))
+    );
+
+    if (rimCoverWhere) {
+      try {
+        const preferredWheel = await prisma.product.findFirst({
           where: {
             ...rimCoverWhere,
             OR: preferredReifenRimTitleContains().map((token) => ({
@@ -342,24 +351,33 @@ export async function getCategoryCoverImagesFromDb(
             })),
           },
           select: { image: true },
-        })
-      : Promise.resolve(null),
-    rimCoverWhere
-      ? prisma.product.findFirst({
-          where: {
-            ...rimCoverWhere,
-            OR: [{ category: AUTO_COMPLETE_WHEELS_LEAF }, ...REIFEN_RIM_TITLE_OR],
-          },
-          select: { image: true },
-        })
-      : Promise.resolve(null),
-    isCh
-      ? prisma.product.findFirst({
+        });
+        const wheelImage = usableCoverImage(preferredWheel?.image);
+        if (wheelImage) {
+          covers[AUTO_COMPLETE_WHEELS_LEAF] = wheelImage;
+        } else {
+          const fallbackWheel = await prisma.product.findFirst({
+            where: {
+              ...rimCoverWhere,
+              OR: [{ category: AUTO_COMPLETE_WHEELS_LEAF }, ...REIFEN_RIM_TITLE_OR],
+            },
+            select: { image: true },
+          });
+          const fallbackWheelImage = usableCoverImage(fallbackWheel?.image);
+          if (fallbackWheelImage) covers[AUTO_COMPLETE_WHEELS_LEAF] = fallbackWheelImage;
+        }
+      } catch (err) {
+        console.warn("[db-service] rim cover query error:", err);
+      }
+    }
+
+    if (isCh) {
+      try {
+        const preferredLaptop = await prisma.product.findFirst({
           where: {
             targetCountries: { has: countryCode },
             category: NOTEBOOKS_LAPTOPS_LEAF,
             image: { startsWith: "http" },
-            offers: { some: { inStock: true } },
             AND: [
               {
                 OR: LAPTOP_COVER_TITLE_TOKENS.map((token) => ({
@@ -376,20 +394,19 @@ export async function getCategoryCoverImagesFromDb(
             ],
           },
           select: { image: true },
-        })
-      : Promise.resolve(null),
-  ]);
-  const covers = buildCategoryCoverMap(
-    rows.map((row) => ({
-      category: row.category,
-      image: usableCoverImage(row.image),
-    }))
-  );
-  const wheelImage = usableCoverImage(preferredWheel?.image ?? fallbackWheel?.image);
-  if (wheelImage) covers[AUTO_COMPLETE_WHEELS_LEAF] = wheelImage;
-  const laptopImage = usableCoverImage(preferredLaptop?.image);
-  if (laptopImage) covers[NOTEBOOKS_LAPTOPS_LEAF] = laptopImage;
-  return covers;
+        });
+        const laptopImage = usableCoverImage(preferredLaptop?.image);
+        if (laptopImage) covers[NOTEBOOKS_LAPTOPS_LEAF] = laptopImage;
+      } catch (err) {
+        console.warn("[db-service] laptop cover query error:", err);
+      }
+    }
+
+    return covers;
+  } catch (error) {
+    console.error("[db-service] getCategoryCoverImagesFromDb error:", error);
+    return {};
+  }
 }
 
 /** Global price sort via SQL MIN(offer total) — no in-memory scan cap. */

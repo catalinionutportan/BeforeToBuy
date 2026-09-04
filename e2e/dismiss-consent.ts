@@ -14,7 +14,7 @@ export async function dismissCookieBannerIfPresent(page: Page) {
   const essentialButton = page
     .getByRole("button", { name: /Essential Only|Doar esențiale|Nur essenzielle/i })
     .first();
-  if (await essentialButton.isVisible({ timeout: 1_000 }).catch(() => false)) {
+  if (await essentialButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
     await essentialButton.click();
     await expect(page.getByRole("dialog", { name: /Cookie & Privacy Preferences/i })).toHaveCount(0, {
       timeout: 5_000,
