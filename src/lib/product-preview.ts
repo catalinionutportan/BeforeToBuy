@@ -110,31 +110,17 @@ function markPaintReady(token: number): void {
   });
 }
 
-/**
- * Store preview and open only after the image is decoded so the modal never
- * appears as: empty shell → photo → title → description.
- */
 export function saveProductPreview(preview: ProductPreview): void {
-  const token = ++prepareToken;
   const sanitized = withSanitizedPreviewImage({ ...preview, serverReady: false });
   memoryPreview = sanitized;
   openPending = true;
-  paintReady = false;
+  paintReady = true;
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
   } catch {
     // ignore
   }
   emit();
-
-  if (typeof window === "undefined") {
-    paintReady = true;
-    emit();
-    return;
-  }
-
-  const start = sanitized.image ? decodeImage(sanitized.image) : Promise.resolve();
-  void start.then(() => markPaintReady(token));
 }
 
 export function readStoredProductPreview(productId?: string): ProductPreview | null {
@@ -161,7 +147,6 @@ export function readStoredProductPreview(productId?: string): ProductPreview | n
  */
 export function enrichProductPreview(patch: Partial<ProductPreview> & { id: string }): void {
   if (!memoryPreview || memoryPreview.id !== patch.id) {
-    const token = ++prepareToken;
     memoryPreview = withSanitizedPreviewImage({
       id: patch.id,
       title: patch.title || "",
@@ -181,10 +166,8 @@ export function enrichProductPreview(patch: Partial<ProductPreview> & { id: stri
       serverReady: true,
     });
     openPending = true;
-    paintReady = false;
+    paintReady = true;
     emit();
-    const start = memoryPreview.image ? decodeImage(memoryPreview.image) : Promise.resolve();
-    void start.then(() => markPaintReady(token));
     return;
   }
 

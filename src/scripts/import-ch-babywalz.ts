@@ -115,6 +115,8 @@ async function writeCatalogue(products: ApiProduct[]) {
     catalogSource: p.catalogSource || "production-live",
     targetCountries: p.targetCountries?.length ? p.targetCountries : ["CH"],
     basePrice: p.basePrice ?? p.offers[0]?.price ?? null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }));
 
   const offerRows = products.flatMap((p) =>
@@ -135,7 +137,7 @@ async function writeCatalogue(products: ApiProduct[]) {
       source: o.source || "production-live",
       feedMerchantId: o.feedMerchantId || MERCHANT_ID,
       merchantProductId: o.merchantProductId ?? null,
-      fetchedAt: o.fetchedAt || fetchedAt,
+      fetchedAt: typeof o.fetchedAt === "string" ? o.fetchedAt : fetchedAt,
     }))
   );
 
@@ -146,7 +148,12 @@ async function writeCatalogue(products: ApiProduct[]) {
   const CHUNK = 500;
   const productIds = productRows.map((r) => r.id);
   for (let i = 0; i < productIds.length; i += CHUNK) {
-    await prisma.product.deleteMany({ where: { id: { in: productIds.slice(i, i + CHUNK) } } });
+    await prisma.product.deleteMany({
+      where: {
+        id: { in: productIds.slice(i, i + CHUNK) },
+        targetCountries: { has: "CH" },
+      },
+    });
   }
 
   for (let i = 0; i < productRows.length; i += CHUNK) {

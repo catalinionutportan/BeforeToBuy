@@ -1,5 +1,5 @@
 import type { CountryCode } from "@/types";
-import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
+import { COUNTRIES, DEFAULT_COUNTRY, isPublicBrowseCountry } from "@/lib/countries";
 import { getEnabledMerchantFeeds } from "@/lib/merchant-integrations";
 
 /** True when at least one enabled product feed exists for the country. */
@@ -17,6 +17,8 @@ export function countryHasBrowseCatalogue(countryCode: CountryCode): boolean {
   if (countryCode === "RO") return true;
   // CH baby-walz is cache-only / Supabase-imported; still browsable once products exist.
   if (countryCode === "CH") return true;
+  // DE Reifen.de is Supabase-imported.
+  if (countryCode === "DE") return true;
   return false;
 }
 
@@ -37,7 +39,7 @@ export function getPrimaryLiveBrowseCountry(): CountryCode {
 export function resolveBrowseCountry(
   preferred: CountryCode | null | undefined
 ): CountryCode {
-  if (preferred && Object.prototype.hasOwnProperty.call(COUNTRIES, preferred)) {
+  if (preferred && isPublicBrowseCountry(preferred) && COUNTRIES[preferred]) {
     return preferred;
   }
   return getPrimaryLiveBrowseCountry();

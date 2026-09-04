@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import {
-  clearProductPreview,
   enrichProductPreview,
   type ProductPreviewOffer,
 } from "@/lib/product-preview";
@@ -23,7 +22,7 @@ export type ProductModalHandoffPayload = {
 
 /**
  * Soft + hard product routes: push RSC data into the shared preview store.
- * InstantProductModalHost owns the only Modal shell — never mount a second one.
+ * InstantProductModalHost owns the only Modal shell — never unmount/flash during data enrichment.
  */
 export function ProductModalHandoff({ payload }: { payload: ProductModalHandoffPayload }) {
   useEffect(() => {
@@ -41,10 +40,19 @@ export function ProductModalHandoff({ payload }: { payload: ProductModalHandoffP
       gtin: payload.gtin,
       offers: payload.offers,
     });
-    return () => {
-      clearProductPreview();
-    };
-  }, [payload]);
+  }, [
+    payload.id,
+    payload.title,
+    payload.brand,
+    payload.description,
+    payload.image,
+    payload.currencySymbol,
+    payload.compareHeading,
+    payload.compareTip,
+    payload.gtinLabel,
+    payload.gtin,
+    payload.offers,
+  ]);
 
   return null;
 }

@@ -60,10 +60,10 @@ describe("feed-url-policy", () => {
     ).toBe("https://seentat.b-cdn.net/Graphics/Product-Images/nikon-speedlite-sb-5000-1.jpg");
   });
 
-  it("rejects HTTP image URLs", () => {
+  it("upgrades HTTP image URLs to HTTPS", () => {
     const result = validateFeedUrl("http://www.rowenta.ro/a.jpg", "image");
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.reason).toBe("non-https");
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.normalized).toBe("https://www.rowenta.ro/a.jpg");
   });
 
   it("rejects javascript/data/file schemes", () => {

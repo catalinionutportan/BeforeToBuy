@@ -76,17 +76,9 @@ export default async function SubcategoryCategoryPage({ params, searchParams }: 
   const country = COUNTRIES[countryCode];
   const homeUi = HOME_UI[locale];
   const counts = await getBrowseCountsForCountry(countryCode);
-  const matched = counts.categoryCounts[route.subId] ?? 0;
-  if (hasBrowseInventory(counts) && matched === 0) {
-    const parentHasOffers = (counts.categoryCounts[route.deptId] ?? 0) > 0;
-    redirect(
-      parentHasOffers
-        ? departmentCategoryPath(route.deptId, locale)
-        : withLangParam("/", locale)
-    );
-  }
   const departmentLabel = getDepartmentLabel(route.deptId, locale);
   const subcategoryLabel = getSubcategoryLabel(route.subId, locale);
+  const matched = counts.categoryCounts[route.subId] ?? 0;
   const emptyLabel = formatUi(homeUi.noOffersAvailableInCategory, {
     countryName: country.name,
   });

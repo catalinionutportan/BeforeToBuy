@@ -50,10 +50,10 @@ function sanitizeQueryParam(input: string | null | undefined): string | undefine
 }
 
 const VALID_COUNTRIES = new Set<CountryCode>(Object.keys(COUNTRIES) as CountryCode[]);
-const DEFERRED_META_COUNTRIES = new Set<CountryCode>(["CH", "DE"]);
+const DEFERRED_META_COUNTRIES = new Set<CountryCode>(["CH", "DE", "RO", "GB", "US"]);
 
 function scheduleBrowseMetaWarm(countryCode: CountryCode): void {
-  if (!DEFERRED_META_COUNTRIES.has(countryCode) || !isRedisConfigured()) return;
+  if (!DEFERRED_META_COUNTRIES.has(countryCode)) return;
   after(async () => {
     await warmBrowseMetaForCountry(countryCode).catch((error) => {
       console.error(`[products] ${countryCode} browse-meta warm failed:`, error);

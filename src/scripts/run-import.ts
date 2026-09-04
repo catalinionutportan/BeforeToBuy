@@ -37,6 +37,13 @@ function parseFeedUrls(raw: string): string[] {
  */
 const FEEDS: FeedSpec[] = [
   {
+    envVar: "TWO_PERFORMANT_FEED_URL_RO_EVOMAG",
+    merchantId: "ro-evomag",
+    storeName: "evoMAG.ro",
+    countryCode: "RO",
+    currency: "RON",
+  },
+  {
     envVar: "TWO_PERFORMANT_FEED_URL_RO_ROWENTA",
     merchantId: "ro-rowenta",
     storeName: "Rowenta.ro",
@@ -47,6 +54,13 @@ const FEEDS: FeedSpec[] = [
     envVar: "TWO_PERFORMANT_FEED_URL_RO_SCULE365",
     merchantId: "ro-scule365",
     storeName: "Scule365.ro",
+    countryCode: "RO",
+    currency: "RON",
+  },
+  {
+    envVar: "TWO_PERFORMANT_FEED_URL_RO_AQUALINE",
+    merchantId: "ro-aqualine",
+    storeName: "aqualine.ro",
     countryCode: "RO",
     currency: "RON",
   },

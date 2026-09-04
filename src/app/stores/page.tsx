@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ALL_MERCHANT_DOMAINS, COUNTRIES } from "@/lib/countries";
+import {
+  ALL_MERCHANT_DOMAINS,
+  COUNTRIES,
+  isPublicBrowseCountry,
+  PUBLIC_BROWSE_COUNTRY_CODES,
+} from "@/lib/countries";
 import {
   Store,
   Globe,
@@ -26,8 +31,14 @@ export default function StoresDirectoryPage() {
 
   const { browseLocale } = useBrowseLocale();
   const homeUi = HOME_UI[browseLocale];
+  const publicMerchantCount = ALL_MERCHANT_DOMAINS.filter((merchant) =>
+    isPublicBrowseCountry(merchant.countryCode)
+  ).length;
 
   const filteredDomains = ALL_MERCHANT_DOMAINS.filter((merchant) => {
+    if (!isPublicBrowseCountry(merchant.countryCode)) {
+      return false;
+    }
     // Country filter
     if (selectedCountry !== "all" && merchant.countryCode !== selectedCountry) {
       return false;
@@ -151,24 +162,27 @@ export default function StoresDirectoryPage() {
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
-              {formatUi(homeUi.allRegions, { count: ALL_MERCHANT_DOMAINS.length })}
+              {formatUi(homeUi.allRegions, { count: publicMerchantCount })}
             </button>
 
-            {Object.values(COUNTRIES).map((country) => (
-              <button
-                key={country.code}
-                onClick={() => setSelectedCountry(country.code)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
-                  selectedCountry === country.code
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <span>{country.flag}</span>
-                <span>{country.name}</span>
-                <span className="text-[10px] opacity-75">({country.merchantDomains.length})</span>
-              </button>
-            ))}
+            {PUBLIC_BROWSE_COUNTRY_CODES.map((code) => {
+              const country = COUNTRIES[code];
+              return (
+                <button
+                  key={country.code}
+                  onClick={() => setSelectedCountry(country.code)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                    selectedCountry === country.code
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  <span>{country.flag}</span>
+                  <span>{country.name}</span>
+                  <span className="text-[10px] opacity-75">({country.merchantDomains.length})</span>
+                </button>
+              );
+            })}
           </div>
 
         </div>

@@ -21,11 +21,12 @@ export const HOME_UI = {
 export type HomeUiStrings = (typeof HOME_UI)[SiteLocale];
 
 export function formatUi(
-  template: string,
+  template: string | null | undefined,
   values: Record<string, string | number>,
 ): string {
+  if (!template) return "";
   return Object.entries(values).reduce(
-    (text, [key, value]) => (text || '').replaceAll(`{${key}}`, String(value)),
+    (text, [key, value]) => (text || "").replaceAll(`{${key}}`, String(value)),
     template,
   );
 }

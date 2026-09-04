@@ -13,6 +13,10 @@ import { withLangParam } from "@/lib/seo/site-url";
 import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import { requestBrowseCategory } from "@/lib/prefetch-browse-catalog";
 
+import { COUNTRIES, PUBLIC_BROWSE_COUNTRY_CODES } from "@/lib/countries";
+import { writeStoredMarketCountry } from "@/lib/market-preference";
+import type { CountryCode } from "@/types";
+
 export function SiteNav() {
   const { countryCode, locale: browseLocale } = useBrowseLocale();
   const homeUi = HOME_UI[browseLocale];
@@ -22,7 +26,7 @@ export function SiteNav() {
 
   const navLinks = [
     { href: withLangParam("/about", browseLocale), label: homeUi.about, icon: HelpCircle },
-    { href: homeHref, label: homeUi.categories, icon: Layers },
+    { href: withLangParam("/categories", browseLocale), label: homeUi.categories, icon: Layers },
     { href: withLangParam("/stores", browseLocale), label: homeUi.stores, icon: Store },
     { href: withLangParam("/help", browseLocale), label: homeUi.helpFAQ, icon: LifeBuoy },
     { href: withLangParam("/contact", browseLocale), label: homeUi.contact, icon: Mail },
@@ -87,18 +91,40 @@ export function SiteNav() {
             />
           </div>
 
-          <nav aria-label={homeUi.language} className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            {navLinks.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
-              >
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>{label}</span>
-              </Link>
-            ))}
-          </nav>
+          <div className="flex items-center gap-2">
+            <nav aria-label={homeUi.language} className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {navLinks.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700"
+                >
+                  <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{label}</span>
+                </Link>
+              ))}
+            </nav>
+
+            <select
+              value={countryCode}
+              onChange={(e) => {
+                const next = e.target.value as CountryCode;
+                writeStoredMarketCountry(next);
+                window.location.reload();
+              }}
+              aria-label={homeUi.countryMarket}
+              className="max-w-[4.75rem] rounded-md border-0 bg-slate-100 px-1.5 py-1 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500"
+            >
+              {PUBLIC_BROWSE_COUNTRY_CODES.map((code) => {
+                const c = COUNTRIES[code];
+                return (
+                  <option key={c.code} value={c.code}>
+                    {c.flag} {c.code}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
         </div>
       </header>
 

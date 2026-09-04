@@ -138,7 +138,7 @@ export async function getBrowseCountsForCountry(
   countryCode: CountryCode
 ): Promise<BrowseCounts> {
   const cached = await getCachedBrowseMeta(countryCode);
-  if (cached) {
+  if (cached && Object.keys(cached.categoryCounts).length > 0) {
     return {
       categoryCounts: cached.categoryCounts,
       leafCounts: cached.leafCounts,
@@ -147,9 +147,22 @@ export async function getBrowseCountsForCountry(
     };
   }
 
-  void warmBrowseMetaForCountry(countryCode).catch((error) => {
+  // Warm browse metadata if not yet in cache
+  try {
+    await warmBrowseMetaForCountry(countryCode);
+  } catch (error) {
     console.error("[category-page] browse-meta warm failed:", error);
-  });
+  }
+
+  const fresh = await getCachedBrowseMeta(countryCode);
+  if (fresh) {
+    return {
+      categoryCounts: fresh.categoryCounts,
+      leafCounts: fresh.leafCounts,
+      collectionCounts: collectionCountsFromLeafCounts(fresh.leafCounts),
+      totalMatched: fresh.countryProductCount,
+    };
+  }
 
   return {
     categoryCounts: {},

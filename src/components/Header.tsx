@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type MouseEvent } from "react";
 import { CountryCode, UserLocation } from "@/types";
-import { COUNTRIES } from "@/lib/countries";
+import { COUNTRIES, PUBLIC_BROWSE_COUNTRY_CODES } from "@/lib/countries";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { formatUi, HOME_UI } from "@/lib/i18n/ui";
 import type { SiteLocale } from "@/lib/i18n/locales";
@@ -17,7 +17,6 @@ import type { BrowseCategoryOption } from "@/components/BrowseCategoryOption";
 import { ALL_CATEGORIES_ID } from "@/lib/categories";
 import { clearBrowseScrollY, isBrowsePath } from "@/lib/browse-scroll";
 import { withLangParam } from "@/lib/seo/site-url";
-import { prefetchOtherBrowseMarkets } from "@/lib/prefetch-browse-catalog";
 
 interface HeaderProps {
   userLocation: UserLocation;
@@ -113,18 +112,17 @@ export function Header({
               <select
                 value={userLocation.countryCode}
                 onChange={(e) => onCountryChange(e.target.value as CountryCode)}
-                onPointerEnter={() =>
-                  prefetchOtherBrowseMarkets(userLocation.countryCode, locale)
-                }
-                onFocus={() => prefetchOtherBrowseMarkets(userLocation.countryCode, locale)}
                 aria-label={ui.countryMarket}
                 className="max-w-[4.75rem] rounded-md border-0 bg-slate-100 px-1.5 py-1 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-emerald-500"
               >
-                {Object.values(COUNTRIES).map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.flag} {c.code}
-                  </option>
-                ))}
+                {PUBLIC_BROWSE_COUNTRY_CODES.map((code) => {
+                  const c = COUNTRIES[code];
+                  return (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.code}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>

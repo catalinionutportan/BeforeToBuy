@@ -68,7 +68,12 @@ async function main() {
   );
 
   await prisma.offer.deleteMany({ where: { feedMerchantId: MERCHANT_ID } });
-  await prisma.product.deleteMany({ where: { id: { in: productRows.map((r) => r.id) } } });
+  await prisma.product.deleteMany({
+    where: {
+      id: { in: productRows.map((r) => r.id) },
+      targetCountries: { has: COUNTRY },
+    },
+  });
 
   for (let i = 0; i < productRows.length; i += CHUNK) {
     await prisma.product.createMany({

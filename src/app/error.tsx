@@ -26,11 +26,15 @@ export default function Error({
         <p className="text-xs text-slate-600 leading-relaxed">
           BeforeToBuy.com hit an unexpected error. You can try again or return to the homepage.
         </p>
-        {process.env.NODE_ENV === "development" && (
-          <p className="text-[11px] text-rose-700 bg-rose-50 border border-rose-100 rounded-xl p-3 break-all">
-            {error.message}
-          </p>
-        )}
+        <div className="text-[11px] text-rose-700 bg-rose-50 border border-rose-100 rounded-xl p-3 break-all font-mono text-left max-h-60 overflow-y-auto">
+          <p className="font-bold">{error?.message || "Error occurred"}</p>
+          {error?.digest && <p className="text-[10px] text-slate-500">Digest: {error.digest}</p>}
+          {error?.stack && (
+            <pre className="mt-2 text-[10px] text-slate-600 whitespace-pre-wrap">
+              {error.stack}
+            </pre>
+          )}
+        </div>
         <div className="flex items-center justify-center gap-3 pt-2">
           <button
             onClick={reset}

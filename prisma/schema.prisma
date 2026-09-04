@@ -1,7 +1,8 @@
 // BeforeToBuy — Supabase PostgreSQL catalogue (offline feed import).
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
 }
 
 datasource db {
@@ -11,48 +12,51 @@ datasource db {
 }
 
 model Product {
-  id              String   @id
+  id              String    @id
   title           String
   description     String?
   gtin            String?
   brand           String?
   category        String
   image           String?
-  catalogSource   String
+  catalogSource   String    @default("production-live")
   targetCountries String[]
   basePrice       Float?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   offers Offer[] @relation("ProductOffers")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([gtin])
   @@index([category])
+  @@index([brand])
+  @@index([catalogSource])
+  @@index([targetCountries], type: Gin)
+  @@index([updatedAt, id])
 }
 
 model Offer {
-  id                 String  @id
+  id                 String   @id
   productId          String
-  product            Product @relation("ProductOffers", fields: [productId], references: [id], onDelete: Cascade)
-
   storeName          String
   price              Float
   originalPrice      Float?
   discountPercentage Float?
   currency           String
-  inStock            Boolean
+  inStock            Boolean  @default(true)
   deliveryTime       String?
   deliveryCost       Float?
   totalPrice         Float?
   purchaseUrl        String
   affiliateNetwork   String?
-  source             String
+  source             String   @default("production-live")
   feedMerchantId     String?
   merchantProductId  String?
+  fetchedAt          String
 
-  fetchedAt String
+  product Product @relation("ProductOffers", fields: [productId], references: [id], onDelete: Cascade)
 
-  @@index([productId])
+  @@index([storeName])
   @@index([feedMerchantId])
+  @@index([productId])
+  @@index([productId, inStock])
 }

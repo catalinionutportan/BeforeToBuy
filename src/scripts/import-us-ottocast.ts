@@ -34,6 +34,8 @@ async function main() {
     catalogSource: p.catalogSource || "production-live",
     targetCountries: p.targetCountries?.length ? p.targetCountries : [COUNTRY],
     basePrice: p.basePrice ?? p.offers[0]?.price ?? null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }));
 
   const offerRows = products.flatMap((p) =>
@@ -54,12 +56,17 @@ async function main() {
       source: o.source || "production-live",
       feedMerchantId: o.feedMerchantId || MERCHANT_ID,
       merchantProductId: o.merchantProductId ?? null,
-      fetchedAt: o.fetchedAt || fetchedAt,
+      fetchedAt: typeof o.fetchedAt === "string" ? o.fetchedAt : fetchedAt,
     }))
   );
 
   await prisma.offer.deleteMany({ where: { feedMerchantId: MERCHANT_ID } });
-  await prisma.product.deleteMany({ where: { id: { in: productRows.map((r) => r.id) } } });
+  await prisma.product.deleteMany({
+    where: {
+      id: { in: productRows.map((r) => r.id) },
+      targetCountries: { has: COUNTRY },
+    },
+  });
 
   await prisma.product.createMany({ data: productRows, skipDuplicates: true });
   await prisma.offer.createMany({ data: offerRows, skipDuplicates: true });

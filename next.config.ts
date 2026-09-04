@@ -25,7 +25,14 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  output: "standalone",
   outputFileTracingRoot: path.join(__dirname),
+  allowedDevOrigins: [
+    "beforetobuy.com",
+    "www.beforetobuy.com",
+    "localhost:3001",
+    "127.0.0.1:3001",
+  ],
   images: {
     unoptimized: true,
     remotePatterns: imageRemotePatterns(),

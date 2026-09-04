@@ -44,3 +44,7 @@ next-env.d.ts
 test-db*.ts
 clear-db.ts
 debug-*.ts
+
+# Backups and archives
+*.zip
+/backups/

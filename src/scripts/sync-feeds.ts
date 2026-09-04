@@ -6,6 +6,7 @@ import https from "node:https";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import zlib from "node:zlib";
 import { randomUUID } from "node:crypto";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
@@ -70,8 +71,39 @@ const MAX_FEED_BYTES = 250 * 1024 * 1024;
 const REQUEST_TIMEOUT_MS = 30_000;
 const PRODUCT_REFRESH_BATCH_SIZE = 500;
 
+function sanitizeUtf8(value?: string | null): string {
+  if (!value) return "";
+  try {
+    const wellFormed = typeof value.toWellFormed === "function" ? value.toWellFormed() : String(value);
+    return wellFormed
+      .replace(/[\uD800-\uDFFF]/g, "")
+      .replace(/[\x00-\x1F\x7F-\x9F\0\u0000]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  } catch {
+    return String(value).replace(/[\0\u0000]/g, "").trim();
+  }
+}
+
+function deepSanitize<T>(obj: T): T {
+  if (typeof obj === "string") {
+    return sanitizeUtf8(obj) as T;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(deepSanitize) as T;
+  }
+  if (obj && typeof obj === "object" && !(obj instanceof Date)) {
+    const res: any = {};
+    for (const [k, v] of Object.entries(obj)) {
+      res[k] = deepSanitize(v);
+    }
+    return res;
+  }
+  return obj;
+}
+
 function stripHtml(value: string): string {
-  return value
+  return sanitizeUtf8(value)
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&amp;/g, "&")
@@ -171,7 +203,20 @@ function openCsvStream(csvUrl: string, redirectCount = 0): Promise<Readable> {
             callback(null, chunk);
           },
         });
-        res.pipe(limiter);
+
+        const encoding = res.headers["content-encoding"] || "";
+        const isGzip = encoding.includes("gzip") || url.pathname.endsWith(".gz");
+        const isDeflate = encoding.includes("deflate");
+
+        if (isGzip) {
+          const gunzip = zlib.createGunzip();
+          res.pipe(gunzip).pipe(limiter);
+        } else if (isDeflate) {
+          const inflate = zlib.createInflate();
+          res.pipe(inflate).pipe(limiter);
+        } else {
+          res.pipe(limiter);
+        }
         resolve(limiter);
       });
 
@@ -192,17 +237,17 @@ function rowToBatchItem(
   fetchedAt: string
 ): BatchItem | null {
   const price = parsePrice(row.price);
-  const title = row.title?.trim();
+  const title = sanitizeUtf8(row.title?.trim());
   const purchaseUrl = sanitizeCommercialUrl(
-    (row.aff_code || row.aff_link || row.url || "").trim(),
+    sanitizeUtf8((row.aff_code || row.aff_link || row.url || "").trim()),
     merchantId
   );
   if (!price || !title || !purchaseUrl) return null;
 
-  const merchantProductId = resolveMerchantProductId(row, index);
+  const merchantProductId = sanitizeUtf8(resolveMerchantProductId(row, index));
   const gtin = resolveGtin(row.ean || row.gtin) ?? null;
   const description = stripHtml(row.description || title).slice(0, 1000);
-  const brand = (row.brand || "").trim() || null;
+  const brand = sanitizeUtf8((row.brand || "").trim()) || null;
 
   const mapping = mapToBeforeToBuyCategoryWithMetadata({
     merchantId,
@@ -217,7 +262,7 @@ function rowToBatchItem(
         ? "diy-hand-tools"
         : merchantId === "ro-rowenta"
           ? "cleaning-vacuums"
-          : "electronics" // Fallback sigur ca să nu pice
+          : "electronics"
       : mapping.categoryId;
 
   const originalPrice = parsePrice(row.old_price) ?? null;
@@ -273,8 +318,6 @@ function rowToBatchItem(
 
 /**
  * Sync one or more 2Performant CSV URLs for the same merchant.
- * Multiple URLs (category slices) share one `fetchedAt` so stale cleanup
- * only drops offers missing from the full set — not from a single slice.
  */
 export async function sync2PerformantFeed(
   csvUrl: string | string[],
@@ -403,13 +446,20 @@ async function processBatchWithDeduplication(batch: BatchItem[]): Promise<BatchR
   const productIds = new Set<string>();
   const failures: string[] = [];
 
+  const countryCode = batch[0]?.productData.targetCountries[0] || "RO";
+  const cCode = countryCode.toLowerCase();
   const gtins = batch.map((b) => b.gtin).filter((g) => g && g.length > 4) as string[];
   const deterministicIds = batch
     .filter((item) => !item.gtin)
     .map((item) => `prod-${item.merchantId}-${item.offerData.merchantProductId}`);
   const [existingByGtin, existingById] = await Promise.all([
     gtins.length > 0
-      ? prisma.product.findMany({ where: { gtin: { in: gtins } } })
+      ? prisma.product.findMany({
+          where: {
+            gtin: { in: gtins },
+            targetCountries: { has: countryCode },
+          },
+        })
       : Promise.resolve([] as Product[]),
     deterministicIds.length > 0
       ? prisma.product.findMany({ where: { id: { in: deterministicIds } } })
@@ -418,29 +468,27 @@ async function processBatchWithDeduplication(batch: BatchItem[]): Promise<BatchR
   const gtinMap = new Map(existingByGtin.flatMap((product) => product.gtin ? [[product.gtin, product]] : []));
   const idMap = new Map(existingById.map((product) => [product.id, product]));
 
-  for (const item of batch) {
+  for (const rawItem of batch) {
+    const item = deepSanitize(rawItem);
     try {
       const deterministicId = item.gtin
-        ? `prod-gtin-${item.gtin}`
+        ? `prod-${cCode}-gtin-${item.gtin}`
         : `prod-${item.merchantId}-${item.offerData.merchantProductId}`;
       let existingProduct = item.gtin ? gtinMap.get(item.gtin) : idMap.get(deterministicId);
 
       if (existingProduct) {
-        const country = item.productData.targetCountries[0];
-        const targetCountries = country && !existingProduct.targetCountries.includes(country)
-          ? [...existingProduct.targetCountries, country]
-          : existingProduct.targetCountries;
         existingProduct = await prisma.product.update({
           where: { id: existingProduct.id },
           data: {
             title: item.productData.title,
             description: item.productData.description,
             gtin: item.gtin ?? existingProduct.gtin,
-            brand: item.productData.brand,
+            brand: item.productData.brand ?? existingProduct.brand,
             category: item.productData.category,
             image: item.productData.image ?? existingProduct.image,
-            catalogSource: item.productData.catalogSource,
-            targetCountries,
+            catalogSource: item.productData.catalogSource || "production-live",
+            targetCountries: [countryCode],
+            updatedAt: new Date(),
           },
         });
       } else {
@@ -453,9 +501,11 @@ async function processBatchWithDeduplication(batch: BatchItem[]): Promise<BatchR
             brand: item.productData.brand,
             category: item.productData.category,
             image: item.productData.image,
-            catalogSource: item.productData.catalogSource,
-            targetCountries: item.productData.targetCountries,
+            catalogSource: item.productData.catalogSource || "production-live",
+            targetCountries: [countryCode],
             basePrice: item.productData.basePrice,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           },
         });
       }
@@ -464,23 +514,39 @@ async function processBatchWithDeduplication(batch: BatchItem[]): Promise<BatchR
       idMap.set(existingProduct.id, existingProduct);
       productIds.add(existingProduct.id);
 
-      await prisma.offer.upsert({
-        where: { id: item.offerData.id },
-        update: {
-          ...item.offerData,
-          productId: existingProduct.id,
-          deliveryTime: item.offerData.deliveryTime ?? null,
-          deliveryCost: item.offerData.deliveryCost ?? null,
-          totalPrice: item.offerData.totalPrice ?? null,
-        },
-        create: {
-          ...item.offerData,
-          productId: existingProduct.id,
-          deliveryTime: item.offerData.deliveryTime ?? null,
-          deliveryCost: item.offerData.deliveryCost ?? null,
-          totalPrice: item.offerData.totalPrice ?? null,
-        },
-      });
+      const offerPayload = {
+        storeName: item.offerData.storeName,
+        price: item.offerData.price,
+        originalPrice: item.offerData.originalPrice ?? null,
+        discountPercentage: item.offerData.discountPercentage ?? null,
+        currency: item.offerData.currency,
+        inStock: item.offerData.inStock,
+        purchaseUrl: item.offerData.purchaseUrl,
+        affiliateNetwork: item.offerData.affiliateNetwork ?? null,
+        source: item.offerData.source || "production-live",
+        feedMerchantId: item.offerData.feedMerchantId ?? null,
+        merchantProductId: item.offerData.merchantProductId ?? null,
+        fetchedAt: item.offerData.fetchedAt || new Date().toISOString(),
+        deliveryTime: item.offerData.deliveryTime ?? null,
+        deliveryCost: item.offerData.deliveryCost ?? null,
+        totalPrice: item.offerData.totalPrice ?? null,
+        productId: existingProduct.id,
+      };
+
+      const existingOffer = await prisma.offer.findUnique({ where: { id: item.offerData.id } });
+      if (existingOffer) {
+        await prisma.offer.update({
+          where: { id: item.offerData.id },
+          data: offerPayload,
+        });
+      } else {
+        await prisma.offer.create({
+          data: {
+            id: item.offerData.id,
+            ...offerPayload,
+          },
+        });
+      }
       ok += 1;
     } catch (dbError: unknown) {
       const message = dbError instanceof Error ? dbError.message : String(dbError);
@@ -489,9 +555,9 @@ async function processBatchWithDeduplication(batch: BatchItem[]): Promise<BatchR
     }
   }
 
-  if (failures.length > 0) {
+  if (ok === 0 && failures.length > 0) {
     throw new Error(
-      `${failures.length}/${batch.length} offers failed database import. First error: ${failures[0]}`
+      `All ${failures.length}/${batch.length} offers failed database import. First error: ${failures[0]}`
     );
   }
   return { written: ok, productIds };
@@ -517,7 +583,10 @@ async function refreshProductBasePrices(productIds: Set<string>): Promise<void> 
       chunk.map((productId) =>
         prisma.product.update({
           where: { id: productId },
-          data: { basePrice: minimumPrices.get(productId) ?? null },
+          data: {
+            basePrice: minimumPrices.get(productId) ?? null,
+            updatedAt: new Date(),
+          },
         })
       )
     );

@@ -1,0 +1,33 @@
+# QNAP Container Station → Create Application → this file.
+# Secrets stay in .env.local on the NAS share (never in the image).
+services:
+  redis:
+    image: redis:alpine
+    container_name: beforetobuy-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --save 60 1
+    volumes:
+      - redis_data:/data
+
+  beforetobuy:
+    image: beforetobuy:nas
+    container_name: beforetobuy-app
+    build:
+      context: .
+      dockerfile: Dockerfile.nas
+    depends_on:
+      - redis
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      TRUST_PROXY: "1"
+      NEXT_PUBLIC_SITE_URL: https://www.beforetobuy.com
+    restart: unless-stopped
+
+volumes:
+  redis_data:

@@ -14,10 +14,10 @@ import { Providers } from "@/components/Providers";
 import { CompareBar } from "@/components/CompareBar";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const locale = await resolvePageLocale();
-  const ui = HOME_UI[locale];
-  const keywords = ui.metaKeywords.split(", ");
-  const ogLocale = { en: "en_US", de: "de_DE", fr: "fr_FR", it: "it_IT", ro: "ro_RO" }[locale];
+  const locale = (await resolvePageLocale()) || "ro";
+  const ui = HOME_UI[locale] || HOME_UI.ro;
+  const keywords = ui?.metaKeywords ? ui.metaKeywords.split(", ") : [];
+  const ogLocale = { en: "en_US", de: "de_DE", fr: "fr_FR", it: "it_IT", ro: "ro_RO" }[locale] || "ro_RO";
   const localizedMetadata = createPageMetadata({
     title: ui.metaTitle,
     description: ui.metaDescription,
@@ -62,14 +62,15 @@ export default async function RootLayout({
   modal: React.ReactNode;
 }>) {
   const marketCountry = await getRequestMarketCountry();
-  const locale = await resolvePageLocale();
-  const skipToContent = {
-    en: "Skip to main content",
-    de: "Zum Hauptinhalt springen",
-    fr: "Aller au contenu principal",
-    it: "Vai al contenuto principale",
-    ro: "Sari la conținutul principal",
-  }[locale];
+  const locale = (await resolvePageLocale()) || "ro";
+  const skipToContent =
+    {
+      en: "Skip to main content",
+      de: "Zum Hauptinhalt springen",
+      fr: "Aller au contenu principal",
+      it: "Vai al contenuto principale",
+      ro: "Sari la conținutul principal",
+    }[locale] || "Sari la conținutul principal";
 
   return (
     <html lang={locale}>

@@ -170,7 +170,8 @@ function ingestAwinRow(
   const offer = buildAwinOfferFromRow(row, targetCountry, feedMerchantId, source);
   if (!offer) return;
   const gtin = readAwinGtin(row as unknown as Record<string, string>);
-  const productId = gtin ? `feed-gtin-${gtin}` : `feed-${row.aw_product_id}`;
+  const cCode = targetCountry.toLowerCase();
+  const productId = gtin ? `feed-${cCode}-gtin-${gtin}` : `feed-${feedMerchantId}-${row.aw_product_id}`;
 
   const existing = productsMap.get(productId);
   if (existing) {
@@ -380,7 +381,8 @@ function ingestGalaxusRow(
   const isProduction = source === "production-live";
   const discountPercentage = offers[0]?.discountPercentage;
 
-  const productId = `feed-gtin-${row.gtin}`;
+  const cCode = targetCountry.toLowerCase();
+  const productId = `feed-${cCode}-gtin-${row.gtin}`;
   const categoryMapping = mapToBeforeToBuyCategoryWithMetadata({
     merchantId: feedMerchantId,
     merchantCategory: row.merchant_category,

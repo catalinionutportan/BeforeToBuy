@@ -20,7 +20,10 @@ export async function getRequestMarketCountry(): Promise<CountryCode> {
   if (isCountryCode(fromCookie)) return resolveBrowseCountry(fromCookie);
 
   const headerStore = await headers();
-  const requestCountry = headerStore.get("x-vercel-ip-country")?.toUpperCase();
+  const requestCountry = (
+    headerStore.get("x-vercel-ip-country") ||
+    headerStore.get("cf-ipcountry")
+  )?.toUpperCase();
   if (isCountryCode(requestCountry)) return resolveBrowseCountry(requestCountry);
 
   return getPrimaryLiveBrowseCountry();

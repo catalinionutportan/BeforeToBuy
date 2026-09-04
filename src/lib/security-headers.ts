@@ -21,6 +21,7 @@ export function buildContentSecurityPolicy(options: {
     "'self'",
     "data:",
     "blob:",
+    "https:",
     "https://www.iubenda.com",
     "https://cdn.iubenda.com",
     "https://embeds.iubenda.com",

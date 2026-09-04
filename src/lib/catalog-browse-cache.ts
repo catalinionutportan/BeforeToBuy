@@ -1,11 +1,11 @@
 import { redisGetJson, redisSetJson } from "@/lib/redis-cache";
 
-/** Tile counts/covers/brands change only on import — 30 min keeps country switch warm. */
-const BROWSE_META_TTL_SECONDS = 1800;
-/** Default CH/RO first-page ids — stay warm between Vercel cron ticks. */
-const LEAD_IDS_TTL_SECONDS = 900;
-/** Full first-page JSON — new browsers must not wait on Supabase after a few minutes. */
-const FIRST_PAGE_TTL_SECONDS = 900;
+/** Tile counts/covers/brands change only on import — 24h keeps NAS / Node cache warm. */
+const BROWSE_META_TTL_SECONDS = 86400;
+/** Default CH/RO first-page ids — stay warm for 12h. */
+const LEAD_IDS_TTL_SECONDS = 43200;
+/** Full first-page JSON — cached for 2h in memory. */
+const FIRST_PAGE_TTL_SECONDS = 7200;
 
 export type CachedFirstBrowsePage = {
   products: unknown[];

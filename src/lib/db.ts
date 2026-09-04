@@ -20,21 +20,20 @@ export function resolveDatabaseUrl(raw = process.env.DATABASE_URL): string | und
       const pooled = new URL(
         `postgresql://postgres.${projectRef}@${prefix}-${region}.pooler.supabase.com:6543/postgres`
       );
+      const limit = url.searchParams.get("connection_limit") || "10";
       pooled.password = url.password;
       pooled.searchParams.set("pgbouncer", "true");
-      pooled.searchParams.set("connection_limit", "1");
+      pooled.searchParams.set("connection_limit", limit);
       pooled.searchParams.set("sslmode", "require");
       return pooled.toString();
     }
 
-    // Session pooler → transaction pooler (avoids EMAXCONNSESSION on Vercel).
     if (
       url.hostname.includes(".pooler.supabase.com") &&
       (url.port === "5432" || url.port === "" || url.port === "5432")
     ) {
       url.port = "6543";
       url.searchParams.set("pgbouncer", "true");
-      url.searchParams.set("connection_limit", "1");
     }
 
     if (![...url.searchParams.keys()].some((key) => key.toLowerCase() === "sslmode")) {
@@ -47,11 +46,12 @@ export function resolveDatabaseUrl(raw = process.env.DATABASE_URL): string | und
     ) {
       url.searchParams.set("pgbouncer", "true");
     }
-    if (
-      url.hostname.includes(".pooler.supabase.com") &&
-      !url.searchParams.has("connection_limit")
-    ) {
-      url.searchParams.set("connection_limit", "1");
+
+    if (url.hostname.includes(".pooler.supabase.com")) {
+      const rawLimit = Number(url.searchParams.get("connection_limit") || "10");
+      const safeLimit = Math.max(isNaN(rawLimit) ? 10 : rawLimit, 10);
+      url.searchParams.set("connection_limit", String(safeLimit));
+      url.searchParams.set("pool_timeout", "30");
     }
 
     return url.toString();

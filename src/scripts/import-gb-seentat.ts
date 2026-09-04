@@ -13,6 +13,7 @@ import { loadMerchantFeedForImport } from "../lib/merchant-feeds";
 const API_BASE = process.env.IMPORT_SOURCE_BASE || "https://www.beforetobuy.com";
 const PAGE_SIZE = 200;
 const MERCHANT_ID = "gb-seentat";
+const COUNTRY = "GB";
 
 type ApiOffer = {
   id: string;
@@ -116,6 +117,8 @@ async function writeCatalogue(products: ApiProduct[]) {
     catalogSource: p.catalogSource || "production-live",
     targetCountries: p.targetCountries?.length ? p.targetCountries : ["GB"],
     basePrice: p.basePrice ?? p.offers[0]?.price ?? null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   }));
 
   const offerRows = products.flatMap((p) =>
@@ -136,14 +139,19 @@ async function writeCatalogue(products: ApiProduct[]) {
       source: o.source || "production-live",
       feedMerchantId: o.feedMerchantId || MERCHANT_ID,
       merchantProductId: o.merchantProductId ?? null,
-      fetchedAt: o.fetchedAt || fetchedAt,
+      fetchedAt: typeof o.fetchedAt === "string" ? o.fetchedAt : fetchedAt,
     }))
   );
 
   console.log(`Writing ${productRows.length} products, ${offerRows.length} offers...`);
 
   await prisma.offer.deleteMany({ where: { feedMerchantId: MERCHANT_ID } });
-  await prisma.product.deleteMany({ where: { id: { in: productRows.map((r) => r.id) } } });
+  await prisma.product.deleteMany({
+    where: {
+      id: { in: productRows.map((r) => r.id) },
+      targetCountries: { has: COUNTRY },
+    },
+  });
 
   const CHUNK = 500;
   for (let i = 0; i < productRows.length; i += CHUNK) {

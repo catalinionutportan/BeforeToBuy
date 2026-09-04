@@ -55,7 +55,11 @@ export function SiteFooter() {
                 HR {COMPANY.hrNumber}
               </p>
               <p>
-                <a href={`mailto:${COMPANY.email}`} className="hover:text-[#e85d04]">
+                <a
+                  href={`mailto:${COMPANY.email}`}
+                  className="hover:text-[#e85d04]"
+                  suppressHydrationWarning
+                >
                   {COMPANY.email}
                 </a>
                 <span className="mx-1.5 text-slate-300">·</span>

@@ -146,7 +146,12 @@ async function writeCatalogue(products: ApiProduct[]) {
   const CHUNK = 500;
   const productIds = productRows.map((r) => r.id);
   for (let i = 0; i < productIds.length; i += CHUNK) {
-    await prisma.product.deleteMany({ where: { id: { in: productIds.slice(i, i + CHUNK) } } });
+    await prisma.product.deleteMany({
+      where: {
+        id: { in: productIds.slice(i, i + CHUNK) },
+        targetCountries: { has: "CH" },
+      },
+    });
   }
 
   for (let i = 0; i < productRows.length; i += CHUNK) {

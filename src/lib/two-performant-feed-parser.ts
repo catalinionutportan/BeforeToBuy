@@ -157,7 +157,8 @@ function ingestRow(
   if (!offer) return;
 
   const gtin = resolveGtin(row.gtin);
-  const productId = gtin ? `feed-gtin-${gtin}` : `feed-${feedMerchantId}-${merchantProductId}`;
+  const cCode = targetCountry.toLowerCase();
+  const productId = gtin ? `feed-${cCode}-gtin-${gtin}` : `feed-${feedMerchantId}-${merchantProductId}`;
   const existing = productsMap.get(productId);
   if (existing) {
     existing.offers.push(offer);

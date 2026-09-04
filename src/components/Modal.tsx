@@ -164,7 +164,7 @@ export function Modal({
 
   return (
     <div
-      className={`fixed inset-0 flex flex-col justify-end sm:justify-center items-center p-0 ${
+      className={`fixed inset-0 flex flex-col justify-end sm:justify-center items-center p-0 transition-opacity duration-150 ease-out ${
         elevated ? "z-[60]" : "z-50"
       }`}
       style={{ opacity: paintOpacity }}

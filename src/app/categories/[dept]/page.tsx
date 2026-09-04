@@ -73,14 +73,11 @@ export default async function DepartmentCategoryPage({ params, searchParams }: D
   const country = COUNTRIES[countryCode];
   const homeUi = HOME_UI[locale];
   const counts = await getBrowseCountsForCountry(countryCode);
-  const matched = counts.categoryCounts[route.deptId] ?? 0;
-  if (hasBrowseInventory(counts) && matched === 0) {
-    redirect(withLangParam("/", locale));
-  }
   const visibleSubs = hasBrowseInventory(counts)
     ? category.subcategories.filter((sub) => (counts.categoryCounts[sub.id] ?? 0) > 0)
     : category.subcategories;
   const departmentLabel = getDepartmentLabel(route.deptId, locale);
+  const matched = counts.categoryCounts[route.deptId] ?? 0;
   const emptyLabel = formatUi(homeUi.noOffersAvailableInCategory, {
     countryName: country.name,
   });
@@ -134,17 +131,13 @@ export default async function DepartmentCategoryPage({ params, searchParams }: D
           </section>
         )}
 
-        {/* Department pages list subcategories only — avoid dumping every leaf
-            (routers + hubs + phones) into one chaotic 2000+ product grid. */}
-        {visibleSubs.length === 0 ? (
-          <Suspense fallback={null}>
-            <CategoryOffersGrid
-              countryCode={countryCode}
-              category={route.deptId}
-              emptyLabel={emptyLabel}
-            />
-          </Suspense>
-        ) : null}
+        <Suspense fallback={null}>
+          <CategoryOffersGrid
+            countryCode={countryCode}
+            category={route.deptId}
+            emptyLabel={emptyLabel}
+          />
+        </Suspense>
       </div>
     </PageShell>
   );

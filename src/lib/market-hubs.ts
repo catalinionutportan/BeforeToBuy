@@ -49,13 +49,13 @@ export function shouldIgnoreLandingCategory(categoryId: string | null | undefine
 
 /** Prefer live inventory hubs first per market. */
 export function marketHubOrderForCountry(countryCode: CountryCode | string): readonly string[] {
-  // RO: live home/DIY early so Rowenta + Scule365 stay easy to find.
+  // RO: live electronics (evoMAG), DIY (Scule365), and Home (Rowenta/Aqualine).
   if (countryCode === "RO") {
     return [
-      "hub-home",
-      "hub-diy",
-      "hub-auto",
       "hub-electronics",
+      "hub-diy",
+      "hub-home",
+      "hub-auto",
       "hub-fashion",
       "hub-garden",
       "hub-books",
@@ -69,6 +69,18 @@ export function marketHubOrderForCountry(countryCode: CountryCode | string): rea
       "hub-diy",
       "hub-electronics",
       "hub-home",
+      "hub-garden",
+      "hub-books",
+    ];
+  }
+  // DE: Auto (Reifen.de) first.
+  if (countryCode === "DE") {
+    return [
+      "hub-auto",
+      "hub-electronics",
+      "hub-home",
+      "hub-fashion",
+      "hub-diy",
       "hub-garden",
       "hub-books",
     ];
@@ -345,6 +357,8 @@ export const MARKET_HUB_TABS: readonly MarketHubTab[] = [
     icon: Car,
     leafIds: [
       "auto-tires-wheels",
+      "auto-rims",
+      "auto-motorcycle-tires",
       "auto-complete-wheels",
       "auto-batteries",
       "auto-oils-fluids",

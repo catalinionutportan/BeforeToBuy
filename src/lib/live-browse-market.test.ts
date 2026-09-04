@@ -22,5 +22,6 @@ describe("live browse market", () => {
     expect(resolveBrowseCountry(null)).toBe("RO");
     expect(resolveBrowseCountry("RO")).toBe("RO");
     expect(resolveBrowseCountry("GB")).toBe("GB");
+    expect(resolveBrowseCountry("FR")).toBe("RO");
   });
 });

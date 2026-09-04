@@ -28,8 +28,6 @@ import {
   preferredReifenRimTitleContains,
   resolveAutoLeafFromTitle,
 } from "@/lib/reifen-wheel-split";
-import { isRedisConfigured } from "@/lib/redis";
-
 type PrismaProductWithOffers = Prisma.ProductGetPayload<{ include: { offers: true } }>;
 
 /** Convert Prisma Offer to Application Offer */
@@ -55,22 +53,16 @@ function mapPrismaOffer(o: PrismaOffer): Offer {
   };
 }
 
-/** Fix common CDN URL issues (+ as space in evoMAG file params). */
+/** Normalize product image URL (upgrade http to https and preserve query parameters). */
 export function normalizeProductImageUrl(
   image: string | null | undefined
 ): string | undefined {
   if (!image?.trim()) return undefined;
   const raw = image.trim();
-  try {
-    const url = new URL(raw);
-    if (url.hostname.includes("evomag.ro") && url.searchParams.has("file")) {
-      const file = url.searchParams.get("file") || "";
-      url.searchParams.set("file", file.replace(/\+/g, " "));
-    }
-    return url.toString();
-  } catch {
-    return raw;
+  if (raw.startsWith("http://")) {
+    return `https://${raw.slice(7)}`;
   }
+  return raw;
 }
 
 /** Convert Prisma Product to Application Product */
@@ -285,8 +277,9 @@ export async function getCategoryCountsFromDb(countryCode: string): Promise<{
     }
   }
 
+  const isCh = countryCode.toUpperCase() === "CH";
   const tiresInCatalog = leafCounts[AUTO_TIRES_LEAF] ?? 0;
-  if (tiresInCatalog > 0) {
+  if (isCh && tiresInCatalog > 0) {
     const rimAmongTires = await prisma.product.count({
       where: {
         targetCountries: { has: countryCode },
@@ -321,11 +314,14 @@ function usableCoverImage(image: string | null | undefined): string | undefined 
 export async function getCategoryCoverImagesFromDb(
   countryCode: string
 ): Promise<Record<string, string>> {
-  const rimCoverWhere = {
-    targetCountries: { has: countryCode },
-    image: { contains: "reifen.com" },
-    ...reifenRimOfferWhere(),
-  };
+  const isCh = countryCode.toUpperCase() === "CH";
+  const rimCoverWhere = isCh
+    ? {
+        targetCountries: { has: countryCode },
+        image: { contains: "reifen.com" },
+        ...reifenRimOfferWhere(),
+      }
+    : null;
   const [rows, preferredWheel, fallbackWheel, preferredLaptop] = await Promise.all([
     prisma.product.findMany({
       where: {
@@ -336,45 +332,51 @@ export async function getCategoryCoverImagesFromDb(
       distinct: ["category"],
       select: { category: true, image: true },
     }),
-    prisma.product.findFirst({
-      where: {
-        ...rimCoverWhere,
-        OR: preferredReifenRimTitleContains().map((token) => ({
-          title: { contains: token, mode: "insensitive" as const },
-        })),
-      },
-      select: { image: true },
-    }),
-    prisma.product.findFirst({
-      where: {
-        ...rimCoverWhere,
-        OR: [{ category: AUTO_COMPLETE_WHEELS_LEAF }, ...REIFEN_RIM_TITLE_OR],
-      },
-      select: { image: true },
-    }),
-    prisma.product.findFirst({
-      where: {
-        targetCountries: { has: countryCode },
-        category: NOTEBOOKS_LAPTOPS_LEAF,
-        image: { startsWith: "http" },
-        offers: { some: { inStock: true } },
-        AND: [
-          {
-            OR: LAPTOP_COVER_TITLE_TOKENS.map((token) => ({
+    rimCoverWhere
+      ? prisma.product.findFirst({
+          where: {
+            ...rimCoverWhere,
+            OR: preferredReifenRimTitleContains().map((token) => ({
               title: { contains: token, mode: "insensitive" as const },
             })),
           },
-          {
-            NOT: {
-              OR: LAPTOP_COVER_TITLE_EXCLUDE.map((token) => ({
-                title: { contains: token, mode: "insensitive" as const },
-              })),
-            },
+          select: { image: true },
+        })
+      : Promise.resolve(null),
+    rimCoverWhere
+      ? prisma.product.findFirst({
+          where: {
+            ...rimCoverWhere,
+            OR: [{ category: AUTO_COMPLETE_WHEELS_LEAF }, ...REIFEN_RIM_TITLE_OR],
           },
-        ],
-      },
-      select: { image: true },
-    }),
+          select: { image: true },
+        })
+      : Promise.resolve(null),
+    isCh
+      ? prisma.product.findFirst({
+          where: {
+            targetCountries: { has: countryCode },
+            category: NOTEBOOKS_LAPTOPS_LEAF,
+            image: { startsWith: "http" },
+            offers: { some: { inStock: true } },
+            AND: [
+              {
+                OR: LAPTOP_COVER_TITLE_TOKENS.map((token) => ({
+                  title: { contains: token, mode: "insensitive" as const },
+                })),
+              },
+              {
+                NOT: {
+                  OR: LAPTOP_COVER_TITLE_EXCLUDE.map((token) => ({
+                    title: { contains: token, mode: "insensitive" as const },
+                  })),
+                },
+              },
+            ],
+          },
+          select: { image: true },
+        })
+      : Promise.resolve(null),
   ]);
   const covers = buildCategoryCoverMap(
     rows.map((row) => ({
@@ -700,9 +702,7 @@ export async function getProductsFromDb(
   // Without Redis the warm never persists across Vercel isolates — do not defer
   // counts, or aisle boards and "items found" collapse to the Acer first page.
   const deferHeavyMeta =
-    !cachedMeta &&
-    ["CH", "DE"].includes(countryCode.toUpperCase()) &&
-    isRedisConfigured();
+    !cachedMeta && ["CH", "DE", "RO", "GB", "US"].includes(countryCode.toUpperCase());
 
   const countryCountPromise = cachedMeta
     ? Promise.resolve(cachedMeta.countryProductCount)

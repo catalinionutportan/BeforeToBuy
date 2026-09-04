@@ -98,6 +98,7 @@ function ShortcutBoardCard({
                   alt=""
                   loading="lazy"
                   decoding="async"
+                  referrerPolicy="no-referrer"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = SAFE_IMAGE_FALLBACK;
                   }}

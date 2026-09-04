@@ -61,7 +61,12 @@ async function main() {
   );
 
   await prisma.offer.deleteMany({ where: { feedMerchantId: MERCHANT_ID } });
-  await prisma.product.deleteMany({ where: { id: { in: productRows.map((r) => r.id) } } });
+  await prisma.product.deleteMany({
+    where: {
+      id: { in: productRows.map((r) => r.id) },
+      targetCountries: { has: COUNTRY },
+    },
+  });
 
   await prisma.product.createMany({ data: productRows, skipDuplicates: true });
   await prisma.offer.createMany({ data: offerRows, skipDuplicates: true });

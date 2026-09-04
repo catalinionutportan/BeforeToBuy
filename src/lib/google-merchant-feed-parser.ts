@@ -168,7 +168,8 @@ function ingestItem(
   if (!offer) return;
 
   const gtin = resolveGtin(item.gtin);
-  const productId = gtin ? `feed-gtin-${gtin}` : `feed-${feedMerchantId}-${item.id}`;
+  const cCode = targetCountry.toLowerCase();
+  const productId = gtin ? `feed-${cCode}-gtin-${gtin}` : `feed-${feedMerchantId}-${item.id}`;
   const existing = productsMap.get(productId);
   if (existing) {
     existing.offers.push(offer);
