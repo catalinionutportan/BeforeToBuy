@@ -37,6 +37,7 @@ export const APPROVED_IMAGE_HOSTS = [
   "evomag.ro",
   "www.evomag.ro",
   "static2.evomag.ro",
+  "img.evomag.ro",
   "scule365.ro",
   "www.scule365.ro",
   "digitec.ch",
@@ -348,19 +349,10 @@ export function validateFeedUrl(
   kind: FeedUrlKind,
   options?: { feedMerchantId?: string }
 ): FeedUrlValidation {
-  let candidate =
+  const candidate =
     kind === "image" && raw?.trim() ? rewriteStaleMerchantImageUrl(raw) : raw;
-  if (kind === "image" && candidate?.trim().startsWith("http://")) {
-    candidate = `https://${candidate.trim().slice(7)}`;
-  }
   const parsed = parseStrictHttpsUrl(candidate);
   if (!parsed.ok) return parsed;
-
-  // For images, allow any valid, secure HTTPS host (standard port, no credentials, public domain).
-  // This ensures real merchant photos render while preserving SSRF protection (localhost / raw IPs rejected).
-  if (kind === "image") {
-    return parsed;
-  }
 
   const allowlist = allowlistForKind(kind, options?.feedMerchantId);
   if (!hostMatchesAllowlist(parsed.url.hostname, allowlist)) {

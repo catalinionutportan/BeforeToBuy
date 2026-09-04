@@ -28,6 +28,7 @@ import {
   preferredReifenRimTitleContains,
   resolveAutoLeafFromTitle,
 } from "@/lib/reifen-wheel-split";
+import { isRedisConfigured } from "@/lib/redis";
 type PrismaProductWithOffers = Prisma.ProductGetPayload<{ include: { offers: true } }>;
 
 /** Convert Prisma Offer to Application Offer */
@@ -702,7 +703,9 @@ export async function getProductsFromDb(
   // Without Redis the warm never persists across Vercel isolates — do not defer
   // counts, or aisle boards and "items found" collapse to the Acer first page.
   const deferHeavyMeta =
-    !cachedMeta && ["CH", "DE", "RO", "GB", "US"].includes(countryCode.toUpperCase());
+    !cachedMeta &&
+    ["CH", "DE"].includes(countryCode.toUpperCase()) &&
+    isRedisConfigured();
 
   const countryCountPromise = cachedMeta
     ? Promise.resolve(cachedMeta.countryProductCount)
@@ -769,11 +772,11 @@ export async function getProductsFromDb(
     pageProducts = productsDefault;
   }
 
-  pageProducts = pageProducts.filter((product) => product.offers.length > 0);
+  pageProducts = pageProducts.filter((product) => (product.offers?.length ?? 0) > 0);
 
   const products = pageProducts
     .map(mapPrismaProduct)
-    .filter((product) => product.offers.length > 0);
+    .filter((product) => (product.offers?.length ?? 0) > 0);
 
   const effectiveCountryTotal = countryTotal;
   const effectiveMatchedTotal = unfilteredBrowse ? countryTotal : total;

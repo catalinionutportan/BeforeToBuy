@@ -20,7 +20,7 @@ export function resolveDatabaseUrl(raw = process.env.DATABASE_URL): string | und
       const pooled = new URL(
         `postgresql://postgres.${projectRef}@${prefix}-${region}.pooler.supabase.com:6543/postgres`
       );
-      const limit = url.searchParams.get("connection_limit") || "10";
+      const limit = process.env.DATABASE_CONNECTION_LIMIT?.trim() || url.searchParams.get("connection_limit") || "1";
       pooled.password = url.password;
       pooled.searchParams.set("pgbouncer", "true");
       pooled.searchParams.set("connection_limit", limit);
@@ -34,6 +34,7 @@ export function resolveDatabaseUrl(raw = process.env.DATABASE_URL): string | und
     ) {
       url.port = "6543";
       url.searchParams.set("pgbouncer", "true");
+      url.searchParams.set("connection_limit", "1");
     }
 
     if (![...url.searchParams.keys()].some((key) => key.toLowerCase() === "sslmode")) {
@@ -48,10 +49,8 @@ export function resolveDatabaseUrl(raw = process.env.DATABASE_URL): string | und
     }
 
     if (url.hostname.includes(".pooler.supabase.com")) {
-      const rawLimit = Number(url.searchParams.get("connection_limit") || "10");
-      const safeLimit = Math.max(isNaN(rawLimit) ? 10 : rawLimit, 10);
-      url.searchParams.set("connection_limit", String(safeLimit));
-      url.searchParams.set("pool_timeout", "30");
+      const explicitLimit = process.env.DATABASE_CONNECTION_LIMIT?.trim() || url.searchParams.get("connection_limit");
+      url.searchParams.set("connection_limit", explicitLimit || "1");
     }
 
     return url.toString();
