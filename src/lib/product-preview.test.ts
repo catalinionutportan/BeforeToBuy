@@ -51,7 +51,18 @@ describe("product-preview image sanitization", () => {
   it("sanitizes protocol-relative URLs on enrichProductPreview", () => {
     enrichProductPreview({
       ...basePreview("//evil.example/product.jpg"),
+      id: "server-only-product",
     });
     expect(getProductPreview()?.image).toBe(SAFE_IMAGE_FALLBACK);
+  });
+
+  it("ignores late enrichment after close but allows an explicit reopen", () => {
+    saveProductPreview(basePreview());
+    clearProductPreview();
+    enrichProductPreview(basePreview());
+    expect(getProductPreview()).toBeNull();
+    saveProductPreview(basePreview());
+    enrichProductPreview({ ...basePreview(), gtin: "123" });
+    expect(getProductPreview()?.gtin).toBe("123");
   });
 });

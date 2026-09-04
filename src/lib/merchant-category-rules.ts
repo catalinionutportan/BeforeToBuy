@@ -845,7 +845,6 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "mobile others": "mobile-accessories",
       tablet: "mobile-tablets",
       smartwatch: "wearables-smartwatch",
-      watch: "wearables-smartwatch",
       laptop: "notebooks-laptops",
       computer: "notebooks-desktops",
       headphone: "audio-headphones",
@@ -866,8 +865,8 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       "mobile phones": "mobile-smartphones",
       laptops: "notebooks-laptops",
       computers: "notebooks-desktops",
-      "electronic gadgets": "wearables-smartwatch",
-      "men's watches": "wearables-smartwatch",
+      // Plain watches and generic gadgets intentionally have no exact rule:
+      // the title must prove a supported electronics leaf.
       "bodycare appliances": "care-hair-styling",
       console: "gaming-consoles",
       accessories: "mobile-accessories",
@@ -985,6 +984,13 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       docking: "computers-docks",
     }),
     patterns: [
+      {
+        // Warranty/service products mention the covered hardware in their
+        // title, but they are not themselves notebooks, monitors or PCs.
+        patterns:
+          /^\s*\d+\s+(?:jahre?|years?)\s+(?:einsende(?:-\/r[uü]cksendeservice|service)|r[uü]cksendeservice|garantieverl[aä]ngerung|warranty\s+extension|serviceverl[aä]ngerung)\b/i,
+        subcategoryId: "peripherals-accessories",
+      },
       {
         patterns: /\b(projektor|projector|beamer)\b/i,
         subcategoryId: "tv-projectors",
@@ -1144,6 +1150,13 @@ export const MERCHANT_CATEGORY_RULES: Record<MappingMerchantId, MerchantCategory
       gimbals: "photo-gimbals",
     }),
     patterns: [
+      {
+        // RS and OM are DJI's handheld stabilizer ecosystems. Their grips,
+        // cables, mounts and other accessories must not fall through to the
+        // generic drone-accessory rule below.
+        patterns: /\bdji\s+(?:rs|om)\b/i,
+        subcategoryId: "photo-gimbals",
+      },
       {
         patterns: /\b(osmo\s+action|osmo\s+360|action\s+\d|action\s+cam)\b/i,
         subcategoryId: "photo-action",

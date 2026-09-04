@@ -34,7 +34,7 @@ const CURATED_SHORTCUT_COVERS: Record<string, string> = {
 
   // Beauty & Fragrance (Belando CH)
   "fashion-beauty-hair-care": "https://belando.ch/media/image/product/2712/lg/schwarzkopf-silhouette-super-hold-pump-spray-200ml.jpg",
-  "fashion-beauty-cosmetics": "https://belando.ch/media/image/product/11225/lg/fripac-medis-spitzenpapier-naturbraun-500-stueck.jpg",
+  "fashion-beauty-cosmetics": "https://belando.ch/media/image/product/36667/lg/sisley-le-phyto-rouge-lipstick-43-rouge-capri-3-4g.png",
   "fashion-beauty-fragrance": "https://belando.ch/media/image/product/29601/lg/jean-paul-gaultier-classique-eau-de-parfum-100ml.png",
 
   // Baby & Nursery (Baby-Walz CH)
@@ -76,9 +76,9 @@ const CURATED_SHORTCUT_COVERS: Record<string, string> = {
   "diy-measuring": "https://c.cdnmp.net/372758804/p/l/8/trusa-scule-108-piese-kraftech~1568.jpg",
 
   // DJI US
-  "drones-quadcopters": "https://se-cdn.djiits.com/tpc/uploads/sku/cover/bf211fa2-cb67-4c13-b890-dc014b54b539@small.png",
-  "photo-action": "https://se-cdn.djiits.com/tpc/uploads/sku/cover/0801a82f4beeaabd2098d25ccf45784b@small.png",
-  "photo-gimbals": "https://se-cdn.djiits.com/tpc/uploads/sku/cover/1d5a1650-b8ad-464d-9af8-992e25a02485@small.png",
+  "drones-quadcopters": "https://se-cdn.djiits.com/tpc/uploads/spu/cover/8fc1361defb24de285e873dd9f508c46@small.png?format=webp",
+  "photo-action": "https://se-cdn.djiits.com/tpc/uploads/spu/cover/12bba4939cd4f341e741cdf5d2c8d9b0@small.png?format=webp",
+  "photo-gimbals": "https://se-cdn.djiits.com/tpc/uploads/spu/cover/011b71ee6d2af752053a90809524306f@small.png",
 };
 
 function coverImageForCategory(
@@ -206,8 +206,7 @@ function ShortcutCategoryRail({
         if (!item.image || seen.has(item.categoryId)) return false;
         seen.add(item.categoryId);
         return true;
-      })
-      .slice(0, 12);
+      });
   }, [boards, categoryCovers, locale, products]);
 
   if (items.length === 0) return null;

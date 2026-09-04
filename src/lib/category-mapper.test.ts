@@ -441,6 +441,35 @@ describe('Category Mapper Functions', () => {
         title: "Acer höhenverstellbarer Schreibtisch",
       })
     ).toBe("office-home");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-acer",
+        merchantCategory: "Notebooks",
+        title:
+          "3 Jahre Einsende-/Rücksendeservice einschließlich International Travellers Warranty | Notebook Aspire, Swift & TravelMate",
+      })
+    ).toBe("peripherals-accessories");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-acer",
+        merchantCategory: "Monitore",
+        title: "4 Jahre Garantieverlängerung | Gaming Monitore",
+      })
+    ).toBe("peripherals-accessories");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-acer",
+        merchantCategory: "Notebooks",
+        title: "Acer Aspire 14 Laptop inklusive 2 Jahre Garantie",
+      })
+    ).toBe("notebooks-laptops");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "ch-acer",
+        merchantCategory: "Notebooks",
+        title: "Acer Swift Go 14 Laptop with 2 years warranty",
+      })
+    ).toBe("notebooks-laptops");
   });
 
   it("Gigasport CH maps apparel, running shoes and bike locks from titles", () => {
@@ -661,6 +690,20 @@ describe('Category Mapper Functions', () => {
     expect(
       mapToBeforeToBuyCategory({
         merchantId: "gb-seentat",
+        merchantCategory: "Men's Watches",
+        title: "Casio G-Shock G-Steel GST-B1000 Series",
+      })
+    ).toBe("unmapped");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
+        merchantCategory: "Smartwatch",
+        title: "Samsung Galaxy Watch Ultra",
+      })
+    ).toBe("wearables-smartwatch");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "gb-seentat",
         title: "Xiaomi Redmi Pad 2 Global Version 11inch 8+256GB 4G",
       })
     ).toBe("mobile-tablets");
@@ -796,6 +839,24 @@ describe('Category Mapper Functions', () => {
         title: "DJI Mic Mini",
       })
     ).toBe("photo-microphones");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "us-dji",
+        title: "DJI RS Multi-Camera Control Cable (USB-C)",
+      })
+    ).toBe("photo-gimbals");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "us-dji",
+        title: "DJI OM Magnetic Phone Clamp 5",
+      })
+    ).toBe("photo-gimbals");
+    expect(
+      mapToBeforeToBuyCategory({
+        merchantId: "us-dji",
+        title: "DJI Air 3S Intelligent Flight Battery",
+      })
+    ).toBe("drones-accessories");
     expect(
       mapToBeforeToBuyCategory({
         merchantId: "us-dji",

@@ -11,7 +11,7 @@ import { COUNTRIES, DEFAULT_COUNTRY } from "@/lib/countries";
 import { isSiteLocale, type SiteLocale } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { createPageMetadata } from "@/lib/metadata";
-import { getProductById, inferCountryFromProductId, listProductIdsForSitemap } from "@/lib/product-lookup";
+import { getProductById, inferCountryFromProductId } from "@/lib/product-lookup";
 import { getOffersPriceHistoryBatch } from "@/lib/pricing/price-history";
 import { buildPriceHistoryKey } from "@/lib/pricing/price-history-keys";
 import { computeTotalPrice, sortOffersByTotalPrice } from "@/lib/pricing/total-price";
@@ -27,11 +27,6 @@ type PageProps = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ from?: string; lang?: string }>;
 };
-
-export async function generateStaticParams() {
-  const ids = await listProductIdsForSitemap(100);
-  return ids.map((id) => ({ id }));
-}
 
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { id } = await params;

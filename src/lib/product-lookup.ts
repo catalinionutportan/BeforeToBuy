@@ -26,11 +26,9 @@ async function findInDb(decodedId: string): Promise<Product | null> {
     });
     return row ? mapPrismaProduct(row) : null;
   } catch (error) {
-    console.error(
-      "[product-lookup] DB lookup failed; falling back to catalog scan:",
-      error instanceof Error ? error.message : error
-    );
-    return null;
+    // A database outage must not trigger a full feed scan (or become a false 404).
+    console.error("[product-lookup] Indexed lookup failed");
+    throw error;
   }
 }
 
@@ -47,11 +45,13 @@ async function findInCountry(
  * lookup per request instead of re-running the whole chain.
  */
 export const getProductById = cache(async (id: string): Promise<Product | null> => {
-  const decoded = decodeURIComponent(id);
+  let decoded: string;
+  try { decoded = decodeURIComponent(id); } catch { return null; }
 
   // 1) Direct DB lookup — O(1), covers the whole Supabase catalogue.
   const fromDb = await findInDb(decoded);
   if (fromDb) return fromDb;
+  if (process.env.FORCE_SAMPLE_FEEDS !== "1") return null;
 
   // 2) Fallback for feed-only products (not imported into Supabase):
   //    scan the in-memory/Redis feed catalog, preferred country first.
@@ -68,33 +68,3 @@ export const getProductById = cache(async (id: string): Promise<Product | null> 
 
   return null;
 });
-
-export async function listProductIdsForSitemap(limit = 200): Promise<string[]> {
-  // Fast path: ids straight from the DB (no offers, no counts).
-  if (process.env.FORCE_SAMPLE_FEEDS !== "1") {
-    try {
-      const rows = await prisma.product.findMany({
-        select: { id: true },
-        orderBy: { updatedAt: "desc" },
-        take: limit,
-      });
-      if (rows.length > 0) return rows.map((row) => row.id);
-    } catch (error) {
-      console.error(
-        "[product-lookup] DB sitemap listing failed; falling back to catalog scan:",
-        error instanceof Error ? error.message : error
-      );
-    }
-  }
-
-  const ids: string[] = [];
-  for (const countryCode of PRODUCT_LOOKUP_COUNTRIES) {
-    if (ids.length >= limit) break;
-    const catalog = await fetchCatalogForCountry(countryCode);
-    for (const product of catalog.products) {
-      ids.push(product.id);
-      if (ids.length >= limit) break;
-    }
-  }
-  return ids;
-}

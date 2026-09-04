@@ -12,6 +12,7 @@
     "test:unit": "vitest --run",
     "test:e2e": "playwright test",
     "smoke:prod": "node scripts/smoke-production.mjs",
+    "sitemap:generate": "node --env-file=.env.local --import tsx src/scripts/generate-sitemaps.ts",
     "feeds:warm": "node scripts/warm-feeds.mjs",
     "feeds:import": "node --env-file=.env.local --import tsx src/scripts/run-import.ts",
     "db:push": "node --env-file=.env.local ./node_modules/prisma/build/index.js db push"

@@ -37,6 +37,7 @@ type Listener = () => void;
 const listeners = new Set<Listener>();
 
 let memoryPreview: ProductPreview | null = null;
+let dismissedProductId: string | null = null;
 /** True from card click until close — show modal before `/p/:id` URL settles. */
 let openPending = false;
 /** True only after image decode (+ rAF) so the eye sees one complete frame. */
@@ -81,6 +82,7 @@ export function warmProductPreviewImage(src: string | undefined): void {
 }
 
 export function saveProductPreview(preview: ProductPreview): void {
+  dismissedProductId = null;
   const sanitized = withSanitizedPreviewImage({ ...preview, serverReady: false });
   memoryPreview = sanitized;
   openPending = true;
@@ -116,6 +118,8 @@ export function readStoredProductPreview(productId?: string): ProductPreview | n
  * Only wire live purchase URLs onto the painted offer row.
  */
 export function enrichProductPreview(patch: Partial<ProductPreview> & { id: string }): void {
+  // A late server response must not reopen a preview the visitor just closed.
+  if (dismissedProductId === patch.id) return;
   if (!memoryPreview || memoryPreview.id !== patch.id) {
     memoryPreview = withSanitizedPreviewImage({
       id: patch.id,
@@ -171,6 +175,7 @@ export function enrichProductPreview(patch: Partial<ProductPreview> & { id: stri
 }
 
 export function clearProductPreview(): void {
+  dismissedProductId = memoryPreview?.id ?? dismissedProductId;
   memoryPreview = null;
   openPending = false;
   paintReady = false;

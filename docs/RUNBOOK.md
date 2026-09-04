@@ -87,3 +87,28 @@ Never commit secret values. Confirm processor regions in vendor accounts / DPAs 
 ## 6. Compliance docs
 
 Internal drafts (with TODOs — not completed attestations) live under `docs/compliance/`.
+
+## 7. File-based sitemaps (2026-09-05)
+
+Public `/sitemap.xml` and `/sitemaps/*` read completed files only. They must never
+load merchant feeds or build a full catalogue. Missing index files return a small
+static-page sitemap; missing shards return 404.
+
+After successful catalogue imports, run `npm run sitemap:generate` in the NAS
+release directory with its protected `.env.local`. This is an offline job, not a
+public API. It queries the database sequentially in 2,000-product batches with
+query timeouts, writes immutable 10,000-URL shards, then atomically replaces the
+index. Empty results or failures preserve the previous index. No cron scheduler
+has been added by this change: existing import operators must include this step.
+
+Preserve `.cache/sitemaps` during deployments and rollback. `SITEMAP_DIRECTORY`
+can instead point to a persistent mounted directory. Retain prior-generation
+shards for cached indexes; do not clean them during publication. If generation
+crashes and leaves `.generation-lock`, first confirm no generator is running,
+then remove only that empty lock directory and retry.
+
+Production product pages perform one indexed DB lookup. Missing IDs render the
+not-found page with `noindex` (Next.js streamed responses can retain HTTP 200);
+database errors surface as errors, never a full cross-market feed scan. Feed-only
+products must be imported into the database before they can have a public detail
+page. Sample-mode tests retain the checked-in feed lookup.

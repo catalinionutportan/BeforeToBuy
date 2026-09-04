@@ -21,13 +21,14 @@ export type SessionBrowsePage = {
   meta: ProductFetchMeta;
 };
 
-/** Reject the Acer-sized page that was saved after Redis died (no aisle counts). */
+/** Reject inconsistent cached pages without rejecting complete small catalogues. */
 export function isUsableAllBrowsePage(page: SessionBrowsePage | null | undefined): boolean {
   if (!page?.products?.length || !page.meta) return false;
   const counts = page.meta.categoryCounts;
   if (!counts || Object.keys(counts).length === 0) return false;
   const matched = Number(page.meta.totalMatched ?? 0);
-  return matched > page.products.length;
+  const largestCategory = Math.max(0, ...Object.values(counts));
+  return Number.isFinite(matched) && matched >= page.products.length && matched >= largestCategory;
 }
 
 type PersistedBrowsePage = {

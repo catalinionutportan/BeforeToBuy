@@ -39,6 +39,23 @@ test.describe("Search, filters and product handoff", () => {
     await expect(page.getByRole("heading", { name: "No products found" })).toBeVisible();
   });
 
+  test("does not show previous products under a failed new search", async ({ page }) => {
+    let releaseRequest!: () => void;
+    const pending = new Promise<void>((resolve) => { releaseRequest = resolve; });
+    await page.route("**/api/products?**", async (route) => {
+      if (new URL(route.request().url()).searchParams.get("q") !== "audit-failure") return route.continue();
+      await pending;
+      await route.fulfill({ status: 429, contentType: "application/json", body: '{"error":"rate limited"}' });
+    });
+    const search = page.getByRole("combobox", { name: /Search products/i });
+    await search.fill("audit-failure");
+    await search.press("Enter");
+    await expect(page.locator("[data-product-id]")).toHaveCount(0);
+    releaseRequest();
+    await expect(page.getByRole("alert").filter({ hasText: /load|loading|try|unavailable/i })).toBeVisible();
+    await expect(page.locator("[data-product-id]")).toHaveCount(0);
+  });
+
   test("filters by merchant domain and opens category menu", async ({ page }) => {
     await page.getByLabel(/store domain/i).selectOption("rowenta.ro");
 
@@ -88,6 +105,27 @@ test.describe("Search, filters and product handoff", () => {
     const restored = page.locator(`[data-product-id="${targetId}"]`);
     const topAfter = await restored.evaluate((element) => element.getBoundingClientRect().top);
     expect(Math.abs(topAfter - topBefore)).toBeLessThanOrEqual(2);
+  });
+
+  test("closing an instant preview before navigation does not pop the previous page", async ({ page }) => {
+    await page.goto("/help?lang=en");
+    await page.goto("/?country=RO&lang=en");
+    const cards = page.locator("[data-product-id]");
+    await expect(cards.first()).toBeVisible();
+    const originalUrl = page.url();
+    const ids = await cards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-product-id")));
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    await page.route("**/p/**", async (route) => { await pending; await route.continue().catch(() => undefined); });
+    await cards.first().locator("a").first().click();
+    const dialog = page.getByRole("dialog", { name: /Store offer/i });
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: /Close/i }).click();
+    release();
+    await expect(dialog).toHaveCount(0);
+    await expect(page).toHaveURL(originalUrl);
+    await expect(cards.first()).toBeVisible();
+    expect(await cards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-product-id")))).toEqual(ids);
   });
 
   test("requires affiliate consent and then opens the real merchant URL", async ({ page, context }) => {

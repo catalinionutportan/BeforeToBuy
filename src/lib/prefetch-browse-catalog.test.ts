@@ -56,6 +56,13 @@ describe("prefetch browse markets", () => {
     expect(getSessionBrowsePage("GB", "en")).toBeNull();
   });
 
+  it("accepts a complete catalogue that fits on one page", () => {
+    expect(isUsableAllBrowsePage({
+      products: [{ id: "one" } as never],
+      meta: { ...completeMeta, totalMatched: 1, categoryCounts: { "notebooks-laptops": 1 } },
+    })).toBe(true);
+  });
+
   it("reuses a cached CH page instead of opening a second request", async () => {
     const page = { products: [{ id: "acer-1" } as never], meta: completeMeta };
     setSessionBrowsePage("CH", "en", page);

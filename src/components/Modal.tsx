@@ -160,7 +160,13 @@ export function Modal({
     }
     notifyBrowseScrollRestored();
     if (!pinBrowseScrollAnchor()) pinBrowseScrollY();
-    router.back();
+    if (window.location.pathname.startsWith("/p/")) {
+      router.back();
+    } else {
+      // The instant preview can close before the product navigation commits.
+      // Cancel that pending navigation, never pop an unrelated history entry.
+      router.replace(`${window.location.pathname}${window.location.search}${window.location.hash}`, { scroll: false });
+    }
   }
 
   return (

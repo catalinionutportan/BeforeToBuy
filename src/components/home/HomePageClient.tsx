@@ -403,6 +403,7 @@ export default function HomePageClient({
       if (sessionPage?.products?.length && sessionIsComplete) {
         setProducts(sessionPage.products);
         setCatalogMeta(sessionPage.meta);
+        setProductFetchFailed(false);
         setIsLoadingProducts(false);
         window.clearTimeout(timeoutId);
         return;
@@ -449,11 +450,6 @@ export default function HomePageClient({
         if (controller.signal.aborted) return;
 
         if (!response.ok) {
-          // Keep any SSR/catalog products on transient 429/5xx instead of blanking the page.
-          if (response.status === 429) {
-            setProductFetchFailed(false);
-            return;
-          }
           throw new Error("Product API request failed");
         }
 
@@ -502,7 +498,7 @@ export default function HomePageClient({
       } catch (error) {
         if (controller.signal.aborted && !didTimeout) return;
         console.error("Failed to load products:", error);
-        const fallback = currentPage === 1
+        const fallback = cacheableAisle
           ? getSessionBrowsePage(
               requestCountry,
               browseLocale,
@@ -512,6 +508,8 @@ export default function HomePageClient({
         if (fallback?.products?.length) {
           setProducts(fallback.products);
           setCatalogMeta(fallback.meta);
+        } else {
+          setProducts([]);
         }
         setProductFetchFailed(true);
       } finally {
@@ -741,6 +739,8 @@ export default function HomePageClient({
 
   const browseReturnTo = useMemo(() => {
     const params = new URLSearchParams();
+    params.set("country", userLocation.countryCode);
+    params.set("lang", browseLocale);
     if (browseCategory && browseCategory !== ALL_CATEGORIES_ID) {
       params.set("category", browseCategory);
     }
@@ -758,6 +758,8 @@ export default function HomePageClient({
   }, [
     activeOfferFilters,
     browseCategory,
+    browseLocale,
+    userLocation.countryCode,
     currentPage,
     debouncedSearchQuery,
     selectedDomain,
@@ -985,7 +987,7 @@ export default function HomePageClient({
             />
 
             <label className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 shadow-xs">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
                 {homeUi.sortLabel}
               </span>
               <select
@@ -999,6 +1001,18 @@ export default function HomePageClient({
               </select>
             </label>
           </div>
+
+          {totalPages > 1 ? (
+            <nav className="flex items-center justify-between gap-2 sm:hidden" aria-label={homeUi.paginationNavigation}>
+              <button type="button" aria-label={homeUi.previousPage} disabled={currentPage === 1 || isLoadingProducts} onClick={() => handlePageChange(currentPage - 1)} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-800 disabled:opacity-40">
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              </button>
+              <p className="text-xs font-semibold text-slate-700">{formatUi(homeUi.pageOf, { page: currentPage, total: totalPages })}</p>
+              <button type="button" aria-label={homeUi.nextPage} disabled={currentPage === totalPages || isLoadingProducts} onClick={() => handlePageChange(currentPage + 1)} className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-800 disabled:opacity-40">
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </nav>
+          ) : null}
 
           {productFetchFailed ? (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-amber-950" role="alert">
@@ -1016,7 +1030,7 @@ export default function HomePageClient({
             </div>
           ) : null}
 
-          {showCategoryEmptyState ? (
+          {productFetchFailed && !isLoadingProducts && displayedProducts.length === 0 ? null : showCategoryEmptyState ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-4">
               <div className="w-16 h-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
                 <SearchX className="w-8 h-8" />
@@ -1040,9 +1054,9 @@ export default function HomePageClient({
                 {categoryUi.resetFilters}
               </button>
             </div>
-          ) : displayedProducts.length === 0 ? (
+          ) : displayedProducts.length === 0 || isLoadingProducts ? (
             isLoadingProducts ? (
-              <div className="space-y-4">
+              <div id="product-results" className="scroll-mt-24 space-y-4" aria-busy="true">
                 <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 sm:gap-3 animate-pulse">
                   {Array.from({ length: 12 }).map((_, i) => (
                     <div
@@ -1109,6 +1123,7 @@ export default function HomePageClient({
                   <button
                     type="button"
                     onClick={() => handlePageChange(currentPage - 1)}
+                    aria-label={homeUi.previousPage}
                     disabled={currentPage === 1 || isLoadingProducts}
                     className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-extrabold text-slate-800 shadow-xs hover:border-emerald-400 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-40"
                   >
@@ -1145,6 +1160,7 @@ export default function HomePageClient({
                   <button
                     type="button"
                     onClick={() => handlePageChange(currentPage + 1)}
+                    aria-label={homeUi.nextPage}
                     disabled={currentPage === totalPages || isLoadingProducts}
                     className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-extrabold text-slate-800 shadow-xs hover:border-emerald-400 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-40"
                   >

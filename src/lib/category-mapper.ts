@@ -325,7 +325,10 @@ const SEENTAT_TITLE_RULES: Array<{ re: RegExp; categoryId: string }> = [
     categoryId: "mobile-smartphones",
   },
   { re: /\b(portable\s+audio\s+player|walkman|nw-)\b/i, categoryId: "audio-portable" },
-  { re: /\b(watch|smartwatch|g-shock)\b/i, categoryId: "wearables-smartwatch" },
+  {
+    re: /\b(smartwatch|apple\s+watch|galaxy\s+watch|pixel\s+watch|huawei\s+watch)\b/i,
+    categoryId: "wearables-smartwatch",
+  },
   { re: /\b(photography\s+kit)\b/i, categoryId: "mobile-accessories" },
   { re: /\bmacbook\b/i, categoryId: "notebooks-laptops" },
   { re: /\bmac\s+mini\b/i, categoryId: "notebooks-desktops" },
@@ -456,8 +459,24 @@ function clampArloToSecurityCatalogue(result: CategoryMappingResult): CategoryMa
   return result;
 }
 
+const ACER_SERVICE_TITLE_RE =
+  /^\s*\d+\s+(?:jahre?|years?)\s+(?:einsende(?:-\/r[uü]cksendeservice|service)|r[uü]cksendeservice|garantieverl[aä]ngerung|warranty\s+extension|serviceverl[aä]ngerung)\b/i;
+
 /** Force Acer into computer / projector electronics leaves. */
-function clampAcerToElectronicsCatalogue(result: CategoryMappingResult): CategoryMappingResult {
+function clampAcerToElectronicsCatalogue(
+  result: CategoryMappingResult,
+  title?: string
+): CategoryMappingResult {
+  if (ACER_SERVICE_TITLE_RE.test(title || "")) {
+    return {
+      ...result,
+      categoryId: "peripherals-accessories",
+      method: "merchant-pattern",
+      confidence: MAPPING_CONFIDENCE.merchantPattern,
+      proposedCategoryId:
+        result.categoryId !== "peripherals-accessories" ? result.categoryId : result.proposedCategoryId,
+    };
+  }
   if (result.categoryId === UNMAPPED_CATEGORY_ID || !isAcerAllowedCategory(result.categoryId)) {
     return {
       ...result,
@@ -550,7 +569,7 @@ export function mapToBeforeToBuyCategoryWithMetadata(
       return clampReifencomToAutoCatalogue(scored);
     }
     if (merchantId === "ch-belando") return clampBelandoToBeautyCatalogue(scored, title);
-    if (merchantId === "ch-acer") return clampAcerToElectronicsCatalogue(scored);
+    if (merchantId === "ch-acer") return clampAcerToElectronicsCatalogue(scored, title);
     if (merchantId === "ch-gigasport") return clampGigasportToSportCatalogue(scored);
     if (merchantId === "us-dji") return clampDjiToCameraCatalogue(scored);
     if (merchantId === "gb-arlo") return clampArloToSecurityCatalogue(scored);
