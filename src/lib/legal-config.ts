@@ -1,5 +1,5 @@
 /** Versioning for the public legal and transparency documents. */
-export const LEGAL_DOCUMENT_VERSION = "1.1";
+export const LEGAL_DOCUMENT_VERSION = "2.0";
 export const LEGAL_LAST_UPDATED = "2026-09-04";
 
 export const LEGAL_DRAFT_NOTICE = {
@@ -33,7 +33,7 @@ export const LEGAL_PAGES = [
 
 export const RETENTION_SCHEDULE = [
   { data: "Contact form submissions", retention: "Until inquiry resolved + 12 months", legalBasis: "Legitimate interest / contract initiation" },
-  { data: "Server / edge logs (Vercel)", retention: "Per Vercel policy (typically days to weeks)", legalBasis: "Security & stability (overriding interest)" },
+  { data: "Server / edge logs (self-hosted origin + Cloudflare)", retention: "Operational minimum plus provider service-specific retention", legalBasis: "Security & stability (overriding interest)" },
   { data: "Consent preferences (localStorage + signed cookie)", retention: "Up to 180 days or until cleared", legalBasis: "Consent / essential preferences" },
   { data: "Optional analytics (Datadog RUM)", retention: "Per Datadog retention when opted in", legalBasis: "Consent (Analytics)" },
 ] as const;

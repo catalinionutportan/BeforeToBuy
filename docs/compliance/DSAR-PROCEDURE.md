@@ -1,7 +1,7 @@
 # DSAR procedure (access / erasure / etc.)
 
 **Contact:** `admin@portanx.com`  
-**Last reviewed:** August 2026  
+**Last reviewed:** 2026-09-04
 **Status:** Operational procedure — identity verification steps below
 
 ## Scope
@@ -33,7 +33,8 @@ Use the minimum necessary to avoid wrongful disclosure:
 | System | What to search | Notes |
 |--------|----------------|-------|
 | Mailbox / Resend | Contact messages | Search by requester email and date window |
-| Vercel logs | IP/time windows | Confirm retention/export path in Vercel dashboard (see manual checklist below) |
+| Cloudflare logs | IP/time windows | Confirm enabled products, retention, and export path in Cloudflare dashboard |
+| Self-hosted origin logs | IP/time windows | Search only within the implemented log-retention window |
 | Supabase | Product catalogue only — no user profile tables | Confirm schema matches expectation |
 | Upstash | Ephemeral counters | Confirm no durable PII keys |
 | Datadog | RUM sessions if opted in | Only when analytics consent was given — confirm project settings |

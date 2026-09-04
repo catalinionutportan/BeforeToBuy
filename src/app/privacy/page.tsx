@@ -1,49 +1,103 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
+import { ExternalLink, ShieldCheck } from "lucide-react";
+import { CompanyEmailLink } from "@/components/CompanyEmailLink";
+import { LegalDraftNotice } from "@/components/LegalDraftNotice";
+import { ManageCookiePreferencesButton } from "@/components/ManageCookiePreferencesButton";
 import { PageShell } from "@/components/PageShell";
-import { fetchIubendaPrivacyHtml, iubendaPrivacyPolicyUrl } from "@/lib/iubenda";
-import { createPageMetadata } from "@/lib/metadata";
+import {
+  buildLocalizedDataProcessors,
+  getProcessorUiLabels,
+} from "@/lib/data-processors";
+import type { SiteLocale } from "@/lib/i18n/locales";
 import { HOME_UI } from "@/lib/i18n/ui";
+import { createPageMetadata } from "@/lib/metadata";
+import { PRIVACY_COPY } from "@/lib/privacy-copy";
 import { withLangParam } from "@/lib/seo/site-url";
 import { resolvePageLocale, type LocaleSearchParams } from "@/lib/server-page-locale";
-import type { SiteLocale } from "@/lib/i18n/locales";
 
 type Props = {
   searchParams: LocaleSearchParams;
 };
 
-const IUBENDA_SOURCE_NOTE: Record<SiteLocale, string> = {
-  en: "This Privacy Policy is generated and hosted by iubenda for BeforeToBuy.com. The English and translated versions below are the published legal text.",
-  de: "Diese Datenschutzerklärung wird von iubenda für BeforeToBuy.com generiert und gehostet. Der unten stehende Text ist die veröffentlichte rechtliche Fassung.",
-  fr: "Cette politique de confidentialité est générée et hébergée par iubenda pour BeforeToBuy.com. Le texte ci-dessous est la version juridique publiée.",
-  it: "Questa informativa privacy è generata e ospitata da iubenda per BeforeToBuy.com. Il testo seguente è la versione giuridica pubblicata.",
-  ro: "Această Politică de confidențialitate este generată și găzduită de iubenda pentru BeforeToBuy.com. Textul de mai jos este versiunea juridică publicată.",
-};
-
-const OPEN_ON_IUBENDA: Record<SiteLocale, string> = {
-  en: "Open on iubenda",
-  de: "Auf iubenda öffnen",
-  fr: "Ouvrir sur iubenda",
-  it: "Apri su iubenda",
-  ro: "Deschide pe iubenda",
-};
-
-const LOAD_ERROR: Record<SiteLocale, string> = {
-  en: "The Privacy Policy could not be loaded right now. Please use the iubenda link below.",
-  de: "Die Datenschutzerklärung konnte gerade nicht geladen werden. Bitte nutzen Sie den iubenda-Link unten.",
-  fr: "La politique de confidentialité n'a pas pu être chargée. Veuillez utiliser le lien iubenda ci-dessous.",
-  it: "L'informativa privacy non può essere caricata in questo momento. Usa il link iubenda qui sotto.",
-  ro: "Politica de confidențialitate nu a putut fi încărcată acum. Folosiți linkul iubenda de mai jos.",
+const PAGE_LABELS: Record<
+  SiteLocale,
+  {
+    selfHosted: string;
+    providersTitle: string;
+    providersIntro: string;
+    region: string;
+    transfer: string;
+    choicesTitle: string;
+    choicesBody: string;
+    contactTitle: string;
+    contactBody: string;
+  }
+> = {
+  en: {
+    selfHosted: "Official self-hosted document — no external policy generator is required.",
+    providersTitle: "9. Service providers and recipients",
+    providersIntro: "These providers may receive technical or personal data only for the purposes shown below. Optional providers are used only when configured and, where required, after consent.",
+    region: "Confirmed region",
+    transfer: "International transfer information",
+    choicesTitle: "10. Consent choices",
+    choicesBody: "You can change or withdraw Affiliate and Analytics consent at any time. Essential preferences remain necessary to remember your choice and operate the requested interface.",
+    contactTitle: "11. Privacy contact",
+    contactBody: "For access, correction, deletion, restriction, objection, or another privacy request, contact:",
+  },
+  de: {
+    selfHosted: "Offizielles, selbst gehostetes Dokument — kein externer Richtlinien-Generator erforderlich.",
+    providersTitle: "9. Dienstleister und Empfänger",
+    providersIntro: "Diese Anbieter können technische oder personenbezogene Daten nur für die unten genannten Zwecke erhalten. Optionale Anbieter werden nur bei Konfiguration und, soweit erforderlich, nach Einwilligung eingesetzt.",
+    region: "Bestätigte Region",
+    transfer: "Informationen zur internationalen Übermittlung",
+    choicesTitle: "10. Einwilligungseinstellungen",
+    choicesBody: "Sie können Ihre Affiliate- und Analytics-Einwilligung jederzeit ändern oder widerrufen. Essenzielle Einstellungen bleiben erforderlich, um Ihre Auswahl zu speichern und die gewünschte Oberfläche bereitzustellen.",
+    contactTitle: "11. Datenschutzkontakt",
+    contactBody: "Für Auskunft, Berichtigung, Löschung, Einschränkung, Widerspruch oder eine andere Datenschutzanfrage kontaktieren Sie:",
+  },
+  fr: {
+    selfHosted: "Document officiel auto-hébergé — aucun générateur externe de politique n'est requis.",
+    providersTitle: "9. Prestataires et destinataires",
+    providersIntro: "Ces prestataires peuvent recevoir des données techniques ou personnelles uniquement pour les finalités indiquées ci-dessous. Les prestataires optionnels ne sont utilisés que s'ils sont configurés et, lorsque requis, après consentement.",
+    region: "Région confirmée",
+    transfer: "Informations sur le transfert international",
+    choicesTitle: "10. Choix de consentement",
+    choicesBody: "Vous pouvez modifier ou retirer à tout moment votre consentement Affiliation et Analytics. Les préférences essentielles restent nécessaires pour mémoriser votre choix et fournir l'interface demandée.",
+    contactTitle: "11. Contact confidentialité",
+    contactBody: "Pour toute demande d'accès, rectification, effacement, limitation, opposition ou autre demande relative à la vie privée, contactez :",
+  },
+  it: {
+    selfHosted: "Documento ufficiale self-hosted — non è necessario alcun generatore esterno di informative.",
+    providersTitle: "9. Fornitori e destinatari",
+    providersIntro: "Questi fornitori possono ricevere dati tecnici o personali solo per le finalità indicate di seguito. I fornitori opzionali vengono utilizzati solo se configurati e, ove richiesto, dopo il consenso.",
+    region: "Regione confermata",
+    transfer: "Informazioni sui trasferimenti internazionali",
+    choicesTitle: "10. Scelte di consenso",
+    choicesBody: "Puoi modificare o revocare in qualsiasi momento il consenso Affiliazione e Analytics. Le preferenze essenziali restano necessarie per ricordare la scelta e fornire l'interfaccia richiesta.",
+    contactTitle: "11. Contatto privacy",
+    contactBody: "Per accesso, rettifica, cancellazione, limitazione, opposizione o altre richieste privacy, contatta:",
+  },
+  ro: {
+    selfHosted: "Document oficial găzduit direct pe BeforeToBuy — nu este necesar un generator extern de politici.",
+    providersTitle: "9. Furnizori de servicii și destinatari",
+    providersIntro: "Acești furnizori pot primi date tehnice sau personale numai pentru scopurile prezentate mai jos. Furnizorii opționali sunt utilizați doar dacă sunt configurați și, unde este necesar, după consimțământ.",
+    region: "Regiune confirmată",
+    transfer: "Informații privind transferul internațional",
+    choicesTitle: "10. Opțiunile de consimțământ",
+    choicesBody: "Puteți modifica sau retrage oricând consimțământul pentru Afiliere și Analytics. Preferințele esențiale rămân necesare pentru memorarea alegerii și funcționarea interfeței solicitate.",
+    contactTitle: "11. Contact pentru confidențialitate",
+    contactBody: "Pentru acces, rectificare, ștergere, restricționare, opoziție sau orice altă cerere de confidențialitate, contactați:",
+  },
 };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const locale = await resolvePageLocale(searchParams);
-  const homeUi = HOME_UI[locale];
+  const copy = PRIVACY_COPY[locale];
 
   return createPageMetadata({
-    title: homeUi.privacyMetaTitle,
-    description: homeUi.privacyMetaDescription,
+    title: copy.metaTitle,
+    description: copy.metaDescription,
     path: "/privacy",
     locale,
   });
@@ -51,57 +105,101 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function PrivacyPage({ searchParams }: Props) {
   const locale = await resolvePageLocale(searchParams);
+  const copy = PRIVACY_COPY[locale];
+  const labels = PAGE_LABELS[locale];
   const homeUi = HOME_UI[locale];
-  const policyHtml = await fetchIubendaPrivacyHtml(locale);
-  const policyUrl = iubendaPrivacyPolicyUrl(locale);
+  const processors = buildLocalizedDataProcessors(locale);
+  const processorLabels = getProcessorUiLabels(locale);
 
   return (
-    <PageShell>
+    <PageShell maxWidthClass="max-w-4xl">
       <div className="space-y-8">
-        <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-md border border-slate-800 space-y-2">
-          <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
-            {homeUi.privacyPolicyDEEN}
+        <header className="space-y-3 rounded-3xl border border-slate-800 bg-slate-900 p-8 text-white shadow-md">
+          <span className="inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/20 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+            {copy.badge}
           </span>
-          <h1 className="text-3xl font-extrabold flex items-center gap-2">
-            <ShieldCheck className="w-8 h-8 text-emerald-400 shrink-0" aria-hidden="true" />
-            {homeUi.privacyPolicyDEENTitle}
+          <h1 className="flex items-center gap-2 text-3xl font-extrabold">
+            <ShieldCheck className="h-8 w-8 shrink-0 text-emerald-400" aria-hidden="true" />
+            {copy.title}
           </h1>
-          <p className="text-slate-300 text-sm">{IUBENDA_SOURCE_NOTE[locale]}</p>
-          <p className="text-xs">
-            <a
-              href={policyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-emerald-300 underline font-semibold"
-            >
-              {OPEN_ON_IUBENDA[locale]}
-            </a>
-            {" · "}
-            <Link href={withLangParam("/cookies", locale)} className="text-emerald-300 underline font-semibold">
-              {homeUi.cookiePolicy}
-            </Link>
-            {" · "}
-            <Link href={withLangParam("/contact", locale)} className="text-emerald-300 underline font-semibold">
+          <p className="text-sm leading-relaxed text-slate-300">{copy.intro}</p>
+          <p className="text-xs font-semibold text-emerald-300">{labels.selfHosted}</p>
+          <p className="text-xs text-slate-400">{copy.lastUpdated}</p>
+        </header>
+
+        <LegalDraftNotice />
+
+        <article className="space-y-7 rounded-3xl border border-slate-200 bg-white p-6 text-sm leading-relaxed text-slate-700 shadow-xs sm:p-8">
+          {copy.sections.map((section) => (
+            <section key={section.id} id={section.id} className="scroll-mt-24 space-y-2 border-b border-slate-100 pb-6 last:border-0 last:pb-0">
+              <h2 className="text-lg font-bold text-slate-900">{section.title}</h2>
+              {section.body.map((paragraph) => (
+                <p key={paragraph} className="text-sm text-slate-600">
+                  {paragraph}
+                </p>
+              ))}
+            </section>
+          ))}
+
+          <section id="providers" className="scroll-mt-24 space-y-3 border-t border-slate-100 pt-6">
+            <h2 className="text-lg font-bold text-slate-900">{labels.providersTitle}</h2>
+            <p className="text-sm text-slate-600">{labels.providersIntro}</p>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {processors.map((processor) => (
+                <li key={processor.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-bold text-slate-900">{processor.name}</h3>
+                    <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                      {processor.roleLabel}
+                    </span>
+                    {processor.optional && (
+                      <span className="text-[10px] font-semibold text-amber-700">{processorLabels.optionalNote}</span>
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs text-slate-600">{processor.purpose}</p>
+                  {processor.projectRegion && (
+                    <p className="mt-2 text-xs text-slate-500">
+                      <strong>{labels.region}:</strong> {processor.projectRegion}
+                    </p>
+                  )}
+                  {processor.transferSummary && (
+                    <p className="mt-2 text-xs text-slate-500">
+                      <strong>{labels.transfer}:</strong> {processor.transferSummary}
+                    </p>
+                  )}
+                  {processor.officialDocUrl && (
+                    <a href={processor.officialDocUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 underline">
+                      {processorLabels.officialDocLabel}
+                      <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section id="consent" className="scroll-mt-24 space-y-3 border-t border-slate-100 pt-6">
+            <h2 className="text-lg font-bold text-slate-900">{labels.choicesTitle}</h2>
+            <p className="text-sm text-slate-600">{labels.choicesBody}</p>
+            <div className="flex flex-wrap items-center gap-4">
+              <ManageCookiePreferencesButton className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-900 hover:border-emerald-500 hover:text-emerald-700" />
+              <Link href={withLangParam("/cookies", locale)} className="text-xs font-semibold text-emerald-700 underline">
+                {homeUi.cookiePolicy}
+              </Link>
+            </div>
+          </section>
+
+          <section id="privacy-contact" className="scroll-mt-24 space-y-2 border-t border-slate-100 pt-6">
+            <h2 className="text-lg font-bold text-slate-900">{labels.contactTitle}</h2>
+            <p className="text-sm text-slate-600">
+              {labels.contactBody}{" "}
+              <CompanyEmailLink className="font-semibold text-emerald-700 underline" />
+            </p>
+            <Link href={withLangParam("/contact", locale)} className="inline-flex text-xs font-semibold text-emerald-700 underline">
               {homeUi.contactForm}
             </Link>
-          </p>
-        </div>
-
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs overflow-hidden">
-          {policyHtml ? (
-            <div
-              className="iubenda-privacy-embed text-sm text-slate-700 leading-relaxed [&_a]:text-emerald-700 [&_a]:underline [&_h1]:text-2xl [&_h1]:font-extrabold [&_h1]:text-slate-900 [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:text-slate-900 [&_h2]:mt-8 [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-slate-900 [&_h3]:mt-6 [&_h3]:mb-2 [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_table]:w-full [&_table]:text-xs [&_td]:align-top [&_td]:py-1"
-              dangerouslySetInnerHTML={{ __html: policyHtml }}
-            />
-          ) : (
-            <p className="text-sm text-slate-600">
-              {LOAD_ERROR[locale]}{" "}
-              <a href={policyUrl} target="_blank" rel="noopener noreferrer" className="text-emerald-700 underline font-semibold">
-                {policyUrl}
-              </a>
-            </p>
-          )}
-        </div>
+          </section>
+        </article>
       </div>
     </PageShell>
   );

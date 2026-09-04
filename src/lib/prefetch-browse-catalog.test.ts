@@ -95,7 +95,7 @@ describe("prefetch browse markets", () => {
     expect(getSessionBrowsePage("CH", "en", "auto-tires")?.products).toEqual([{ id: "tire-1" }]);
   });
 
-  it("reuses a persisted first page in a new tab without locale", () => {
+  it("reuses a persisted first page after a remount in the same tab", () => {
     setSessionBrowsePage("CH", "de", {
       products: [{ id: "acer-1" } as never],
       meta: completeMeta,

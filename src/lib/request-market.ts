@@ -11,20 +11,24 @@ import {
 
 /**
  * Resolve the browse market for SSR category/compare/home pages.
- * Preference: explicit market cookie, then Vercel's request country, then fallback.
+ * Preference: explicit function argument or URL header, then market cookie,
+ * trusted edge country header, and finally the live-catalogue fallback.
  * Only the two-letter country code is read.
  */
 export async function getRequestMarketCountry(searchCountry?: string): Promise<CountryCode> {
   if (isCountryCode(searchCountry)) return resolveBrowseCountry(searchCountry);
 
+  const headerStore = await headers();
+  const fromQuery = headerStore.get("x-btb-market-country")?.toUpperCase();
+  if (isCountryCode(fromQuery)) return resolveBrowseCountry(fromQuery);
+
   const cookieStore = await cookies();
   const fromCookie = cookieStore.get(MARKET_COUNTRY_COOKIE)?.value;
   if (isCountryCode(fromCookie)) return resolveBrowseCountry(fromCookie);
 
-  const headerStore = await headers();
   const requestCountry = (
-    headerStore.get("x-vercel-ip-country") ||
-    headerStore.get("cf-ipcountry")
+    headerStore.get("cf-ipcountry") ||
+    headerStore.get("x-vercel-ip-country")
   )?.toUpperCase();
   if (isCountryCode(requestCountry)) return resolveBrowseCountry(requestCountry);
 

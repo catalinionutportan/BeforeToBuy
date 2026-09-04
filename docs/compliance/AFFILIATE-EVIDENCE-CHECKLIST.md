@@ -14,7 +14,7 @@ Use this before claiming a merchant is fully live for compliance/marketing.
 
 ## Technical wiring
 
-- [ ] Feed URL or API key configured in Vercel env (not committed)
+- [ ] Feed URL or API key configured in the NAS production environment (not committed)
 - [ ] Merchant listed in `MERCHANT_FEEDS` with correct country/provider
 - [ ] Image + commercial hosts present in `feed-url-policy` allowlists
 - [ ] Sample fixture available for CI when remote feed disabled

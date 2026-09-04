@@ -31,7 +31,7 @@ export type ProcessorRecord = {
 };
 
 /** ISO date for this production-readiness review pass. */
-export const PROCESSOR_REGISTRY_REVIEW_DATE = "2026-08-10";
+export const PROCESSOR_REGISTRY_REVIEW_DATE = "2026-09-04";
 
 const unconfirmedRegion = (verificationNote: string): VerifiedField<null> => ({
   value: null,
@@ -51,45 +51,45 @@ const unconfirmedText = (verificationNote: string): VerifiedField<string> => ({
 
 export const PROCESSOR_REGISTRY: ProcessorRecord[] = [
   {
-    id: "vercel",
+    id: "cloudflare",
     category: "infrastructure",
-    displayName: "Vercel Inc.",
+    displayName: "Cloudflare",
     legalEntity: {
-      value: "Vercel Inc. (Delaware corporation)",
+      value: "Cloudflare, Inc.",
       confirmed: true,
-      sourceUrl: "https://vercel.com/legal/dpa",
+      sourceUrl: "https://www.cloudflare.com/cloudflare-customer-dpa/",
       verifiedAt: PROCESSOR_REGISTRY_REVIEW_DATE,
     },
     role: {
       value: "processor",
       confirmed: true,
-      sourceUrl: "https://vercel.com/legal/dpa",
+      sourceUrl: "https://www.cloudflare.com/cloudflare-customer-dpa/",
       verifiedAt: PROCESSOR_REGISTRY_REVIEW_DATE,
-      verificationNote: "DPA Section 6 — Processor for Pro and Enterprise plans.",
+      verificationNote: "Cloudflare Customer DPA v6.4, Section 2.3 — processor for Customer Logs and services.",
     },
     projectRegion: unconfirmedRegion(
-      "Confirm deployment/processing region in Vercel project Settings → General and DPA Schedule 1.",
+      "Global edge network; no Customer Metadata Boundary region has been confirmed for this account.",
     ),
     transferCountries: {
-      value: "Global infrastructure; US and other countries per Vercel sub-processors",
+      value: "Global edge infrastructure; United States and other countries may be involved",
       confirmed: true,
-      sourceUrl: "https://vercel.com/legal/dpa",
+      sourceUrl: "https://www.cloudflare.com/cloudflare-customer-dpa/",
       verifiedAt: PROCESSOR_REGISTRY_REVIEW_DATE,
-      verificationNote: "Schedule 3 — International Provisions (SCCs, UK IDTA).",
+      verificationNote: "DPA Section 6 and Annex 1 describe restricted transfers and global service processing.",
     },
     transferMechanism: {
-      value: "EU Standard Contractual Clauses (2021/914), UK IDTA, and jurisdiction-specific addenda per DPA Schedule 3",
+      value: "EU Standard Contractual Clauses, UK Addendum, Swiss modifications, and Data Privacy Framework where applicable",
       confirmed: true,
-      sourceUrl: "https://vercel.com/legal/dpa",
+      sourceUrl: "https://www.cloudflare.com/cloudflare-customer-dpa/",
       verifiedAt: PROCESSOR_REGISTRY_REVIEW_DATE,
     },
     retention: {
-      value: "Per Agreement term; deletion/return per DPA Section 11 after termination unless law requires retention",
+      value: "Per the configured Cloudflare services and the Customer DPA; service-specific log retention applies",
       confirmed: true,
-      sourceUrl: "https://vercel.com/legal/dpa",
+      sourceUrl: "https://www.cloudflare.com/cloudflare-customer-dpa/",
       verifiedAt: PROCESSOR_REGISTRY_REVIEW_DATE,
     },
-    officialDocUrl: "https://vercel.com/legal/dpa",
+    officialDocUrl: "https://www.cloudflare.com/cloudflare-customer-dpa/",
     verifiedAt: PROCESSOR_REGISTRY_REVIEW_DATE,
   },
   {

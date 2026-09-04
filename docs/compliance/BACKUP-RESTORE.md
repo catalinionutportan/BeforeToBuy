@@ -9,7 +9,7 @@
 |-------|-------|--------------|------|
 | Product catalogue | Supabase Postgres | Supabase automated backups | Confirm PITR / snapshot schedule in project settings |
 | App source | GitHub | Git history | Protected `main` |
-| Secrets | Vercel env | Manual export policy | Never commit; document rotation owners |
+| Secrets | NAS `.env.local` / protected runtime environment | Included only in protected operational backup | Never commit; document rotation owners |
 | Redis cache | Upstash | Rebuildable via feed warm | Not a system of record |
 | Price history | Upstash / storage | TODO | Confirm if durable beyond cache |
 

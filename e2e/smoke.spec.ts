@@ -23,7 +23,7 @@ test("first visit uses the hosting country code without a saved market", async (
 });
 
 test("language query controls server HTML, metadata and preference cookie", async ({ page }) => {
-  const response = await page.goto("/legal?lang=ro");
+  const response = await page.goto("/legal?country=CH&lang=ro");
   await expect(page.locator("html")).toHaveAttribute("lang", "ro");
   await expect(page).toHaveTitle(/Informații juridice|Legal/i);
   await expect(page.getByRole("heading", { name: /Informații legale și despre companie/i })).toBeVisible();
@@ -32,6 +32,37 @@ test("language query controls server HTML, metadata and preference cookie", asyn
   ).toBeVisible();
   await expect(page.getByText(/Neînregistrat în scopuri de TVA/i)).toHaveCount(0);
   expect((await response?.headerValue("set-cookie")) || "").toContain("btb-ui-lang=ro");
+  expect((await response?.headerValue("set-cookie")) || "").toContain("btb-market-country=CH");
+});
+
+test("self-hosted privacy page has no iubenda runtime and fits a mobile viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const response = await page.goto("/privacy?country=CH&lang=de");
+
+  expect(response?.ok()).toBeTruthy();
+  await expect(page.locator("html")).toHaveAttribute("lang", "de");
+  await expect(page.getByRole("heading", { name: "Datenschutzerklärung" })).toBeVisible();
+  await expect(page.locator("#iubenda-pp")).toHaveCount(0);
+  await expect(page.locator("script[src*='iubenda']")).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth
+    )
+  ).toBe(true);
+});
+
+test("product presentation shows the affiliate disclosure beside the store action", async ({ page }) => {
+  await page.goto("/?country=CH&lang=de");
+  await dismissCookieBannerIfPresent(page);
+
+  const firstCard = page.locator("[data-product-id]").first();
+  await expect(firstCard).toBeVisible({ timeout: 15_000 });
+  await firstCard.locator("a").last().click();
+
+  await expect(page.getByRole("dialog", { name: /Händlerangebot/i })).toBeVisible();
+  await expect(
+    page.getByText(/ohne zusätzliche Kosten für Sie/i).last()
+  ).toBeVisible();
 });
 
 test("security headers block sensitive browser capabilities", async ({ request }) => {
@@ -167,7 +198,7 @@ test.describe("BeforeToBuy smoke E2E", () => {
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
     expect(body.sitePhase).toBe("production");
-    expect(body.legalDocumentVersion).toBe("1.1");
+    expect(body.legalDocumentVersion).toBe("2.0");
     expect(body.detailLevel).toBe("internal");
     expect(body.checks.productsMerge.productCount).toBeGreaterThan(0);
     if (body.checks.integrations.hasProductionFeed) {

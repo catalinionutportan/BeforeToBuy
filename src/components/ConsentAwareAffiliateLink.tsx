@@ -34,17 +34,22 @@ export function ConsentAwareAffiliateLink({
   };
 
   return (
-    <a
-      href={href}
-      target={affiliate ? "_blank" : undefined}
-      rel={affiliate ? "noopener noreferrer sponsored nofollow" : undefined}
-      className={className}
-      aria-label={ariaLabel}
-      title={title ?? (affiliate ? undefined : ui.acceptAffiliateCookiesHint)}
-      onClick={blockWithoutConsent}
-      onAuxClick={blockWithoutConsent}
-    >
-      {children}
-    </a>
+    <>
+      <a
+        href={href}
+        target={affiliate ? "_blank" : undefined}
+        rel={affiliate ? "noopener noreferrer sponsored nofollow" : undefined}
+        className={className}
+        aria-label={ariaLabel}
+        title={title ?? (affiliate ? undefined : ui.acceptAffiliateCookiesHint)}
+        onClick={blockWithoutConsent}
+        onAuxClick={blockWithoutConsent}
+      >
+        {children}
+      </a>
+      <span className="mt-1.5 block text-[10px] leading-snug text-slate-500">
+        {ui.affiliateCommissionZeroCost}
+      </span>
+    </>
   );
 }

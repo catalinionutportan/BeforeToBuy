@@ -6,7 +6,7 @@
 
 ## 1. Detect
 
-- Vercel deployment alerts + GitHub Dependabot/CodeQL notifications
+- Cloudflare alerts, self-hosted container health, and GitHub Dependabot/CodeQL notifications
 - Upstash / Supabase dashboard alerts (configure email to `admin@portanx.com`)
 - `/status` public health + authorized `/api/health` diagnostics
 - User reports to `admin@portanx.com`
@@ -23,7 +23,7 @@
 
 1. Rotate `CRON_SECRET`, `INTERNAL_API_SECRET`, `CONSENT_SIGNING_SECRET`, DB passwords as relevant (never commit values).
 2. Revoke compromised feed URLs / API keys in AWIN / 2Performant dashboards (owner: `admin@portanx.com`).
-3. Vercel rollback to last known-good deployment if needed.
+3. Restore the last known-good NAS release/backup and restart the application container if needed.
 
 ## 4. Eradicate & recover
 

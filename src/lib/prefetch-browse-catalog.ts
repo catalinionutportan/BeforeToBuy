@@ -50,14 +50,16 @@ function sessionKey(countryCode: CountryCode, category?: string | null): string 
 function readPersistedPage(key: string): SessionBrowsePage | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(STORAGE_PREFIX + key);
+    // Remove the previous cross-session cache format during the self-hosted privacy migration.
+    window.localStorage.removeItem(STORAGE_PREFIX + key);
+    const raw = window.sessionStorage.getItem(STORAGE_PREFIX + key);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedBrowsePage;
     if (!parsed?.page?.products?.length || !parsed.page.meta || typeof parsed.savedAt !== "number") {
       return null;
     }
     if (Date.now() - parsed.savedAt > STORAGE_TTL_MS) {
-      window.localStorage.removeItem(STORAGE_PREFIX + key);
+      window.sessionStorage.removeItem(STORAGE_PREFIX + key);
       return null;
     }
     return parsed.page;
@@ -70,7 +72,7 @@ function persistPage(key: string, page: SessionBrowsePage): void {
   if (typeof window === "undefined" || !page?.products?.length) return;
   try {
     const payload: PersistedBrowsePage = { savedAt: Date.now(), page };
-    window.localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(payload));
+    window.sessionStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(payload));
   } catch {
     // quota / private mode
   }
@@ -95,7 +97,7 @@ export function getSessionBrowsePage(
   if (persisted?.products?.length) {
     if (sessionCategoryKey(category) === "_all" && !isUsableAllBrowsePage(persisted)) {
       try {
-        window.localStorage.removeItem(STORAGE_PREFIX + key);
+        window.sessionStorage.removeItem(STORAGE_PREFIX + key);
       } catch {
         /* ignore */
       }
@@ -125,14 +127,14 @@ export function resetSessionBrowsePagesForTests(): void {
   inflightPages.clear();
   if (typeof window === "undefined") return;
   const stale: string[] = [];
-  for (let index = 0; index < window.localStorage.length; index += 1) {
-    const key = window.localStorage.key(index);
+  for (let index = 0; index < window.sessionStorage.length; index += 1) {
+    const key = window.sessionStorage.key(index);
     if (key?.startsWith(STORAGE_PREFIX)) stale.push(key);
   }
-  for (const key of stale) window.localStorage.removeItem(key);
+  for (const key of stale) window.sessionStorage.removeItem(key);
 }
 
-/** Test helper — drop memory so the next read must use localStorage. */
+/** Test helper — drop memory so the next read must use this tab's sessionStorage. */
 export function clearSessionBrowseMemoryForTests(): void {
   sessionPages.clear();
 }

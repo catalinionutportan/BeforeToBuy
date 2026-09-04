@@ -4,7 +4,7 @@
 **Platform:** https://www.beforetobuy.com  
 **Repo:** https://github.com/catalinionutportan/BeforeToBuy  
 **Phase:** Production (controlled rollout)
-**Last reviewed:** August 2026
+**Last reviewed:** 2026-09-04
 
 ---
 
@@ -13,9 +13,9 @@
 | Layer | Stack |
 |-------|-------|
 | Frontend | Next.js 16 App Router, React 19, Tailwind |
-| Hosting | Vercel (auto-deploy on push to `main`) |
+| Hosting | Self-hosted QNAP/NAS container behind Cloudflare |
 | Catalogue | Supabase Postgres (Prisma); RO offline 2Performant import; AWIN GB Seentat + US Ottocast |
-| Cache | Upstash Redis for feed warm / rate limits / price history (when configured) |
+| Cache | Self-hosted Redis/disk cache; Upstash only when explicitly configured |
 | APIs | `/api/products`, `/api/health`, `/api/contact`, `/api/consent`, cron warm/snapshot |
 
 Configured merchants include Rowenta, Scule365 (2Performant RO), Seentat (AWIN UK), Ottocast (AWIN US). evoMAG is soft-paused until image/CDN readiness. CH feeds remain disabled pending approval.
@@ -24,23 +24,27 @@ Configured merchants include Rowenta, Scule365 (2Performant RO), Seentat (AWIN U
 
 ## 2. Deploy flow
 
-1. Push to `main` → GitHub Actions CI (lint, typecheck, build, E2E)
-2. Vercel auto-deploys on green push
-3. Run production smoke:
+1. Run lint, typecheck, unit tests and production build locally/CI.
+2. Copy the source to a unique NAS release directory without `.git`, `node_modules`, build outputs, caches or secret files.
+3. Copy the protected production environment and required warm cache into the candidate release.
+4. Build the candidate image and verify it on a separate temporary port.
+5. Create a recoverable backup of the live release, switch the live directory, then restart the application container.
+6. Run production smoke:
 
 ```bash
 npm run smoke:prod
 ```
 
-4. Verify `/status` and public `/api/health` (cheap summary). Full diagnostics require `Authorization: Bearer $INTERNAL_API_SECRET`.
+7. Verify `/status` and public `/api/health` (cheap summary). Full diagnostics require the protected internal authorization token.
 
 ---
 
 ## 3. Rollback
 
-**Vercel (fastest):**
-1. Vercel Dashboard → Project → Deployments
-2. Find last known-good deployment → **Promote to Production**
+**NAS release rollback:**
+1. Stop the application container.
+2. Restore the exact last known-good release directory from the pre-cutover backup.
+3. Start the container and run the production smoke checks.
 
 **Git:**
 ```bash
@@ -50,7 +54,7 @@ git push origin main
 
 ---
 
-## 4. Environment variables (Vercel)
+## 4. Environment variables (NAS runtime)
 
 See `.env.example` for the full template. Critical separation:
 

@@ -23,7 +23,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
     metaDescription: "Politica oficială de confidențialitate a platformei BeforeToBuy.com operată de PortanX - Catalin Portan în Berna, Elveția.",
     badge: "Protecția Datelor",
     title: "Politica de Confidențialitate",
-    lastUpdated: "Ultima actualizare: August 2026",
+    lastUpdated: "Ultima actualizare: 4 septembrie 2026",
     intro: "Această Politică de Confidențialitate explică modul în care BeforeToBuy.com (operat de PortanX - Catalin Portan, Berna, Elveția) colectează, prelucrează și protejează datele utilizatorilor în conformitate cu Legea Federală Elvețiană privind Protecția Datelor (nDSG / revDSG) și Regulamentul General UE privind Protecția Datelor (GDPR).",
     sections: [
       {
@@ -65,7 +65,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
         id: "processors",
         title: "5. Furnizori de servicii tehnice (Împuterniciți)",
         body: [
-          "Găzduire web și livrare conținut (CDN): Vercel Inc. (asigură infrastructura cloud și livrarea paginilor).",
+          "Infrastructură web: originea aplicației este găzduită în regim propriu și administrată direct de PortanX. Cloudflare, Inc. furnizează DNS, reverse proxy, securitate și livrarea conținutului și poate prelucra adresa IP și metadate tehnice ale cererii.",
           "Bază de date securizată: Supabase Inc. (găzduiește catalogul de produse în centre de date securizate din Uniunea Europeană).",
           "Transferurile internaționale de date se realizează cu respectarea măsurilor de protecție adecvate, inclusiv Clauzele Contractuale Standard (SCC) aprobate de Comisia Europeană și legislația elvețiană.",
           "Nu comercializăm, nu închiriem și nu transmitem datele dumneavoastră cu caracter personal către terți în scopuri de marketing.",
@@ -76,7 +76,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
         title: "6. Durata stocării datelor",
         body: [
           "Datele tehnice de jurnalizare pe server sunt păstrate temporar doar pe durata necesară securității operaționale.",
-          "Preferințele din browser (limba, piața, consimțământul) rămân stocate pe dispozitivul dumneavoastră până când le ștergeți din setările browserului sau până la expirarea termenului tehnic de până la 180 de zile.",
+          "Preferințele de limbă și piață rămân pe dispozitiv până când le ștergeți sau cel mult un an, preferințele de consimțământ cel mult 180 de zile, iar datele de navigare din sessionStorage doar până la închiderea filei.",
           "Mesajele de asistență sunt păstrate doar pe perioada necesară soluționării definitive a solicitării dumneavoastră.",
         ],
       },
@@ -105,7 +105,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
     metaDescription: "Offizielle Datenschutzerklärung von BeforeToBuy.com, betrieben von PortanX - Catalin Portan in Bern, Schweiz.",
     badge: "Datenschutz",
     title: "Datenschutzerklärung",
-    lastUpdated: "Letzte Aktualisierung: August 2026",
+    lastUpdated: "Letzte Aktualisierung: 4. September 2026",
     intro: "Diese Datenschutzerklärung erläutert, wie BeforeToBuy.com (betrieben von PortanX - Catalin Portan, Bern, Schweiz) personenbezogene Daten in Übereinstimmung mit dem Schweizer Datenschutzgesetz (nDSG / revDSG) und der EU-Datenschutz-Grundverordnung (DSGVO) verarbeitet.",
     sections: [
       {
@@ -147,7 +147,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
         id: "processors",
         title: "5. Technische Dienstleister",
         body: [
-          "Hosting & CDN: Vercel Inc. (Cloud-Infrastruktur und Seitenauslieferung).",
+          "Web-Infrastruktur: Der Anwendungsursprung wird selbst gehostet und direkt von PortanX verwaltet. Cloudflare, Inc. stellt DNS, Reverse-Proxy, Sicherheit und Inhaltsauslieferung bereit und kann IP-Adresse sowie technische Anfrage-Metadaten verarbeiten.",
           "Datenbank: Supabase Inc. (Produktkatalogdatenbank in europäischen Rechenzentren).",
           "Internationale Übermittlungen erfolgen unter Beachtung der geltenden Standardvertragsklauseln (SCC) und des Schweizer Datenschutzrechts.",
           "Wir verkaufen oder vermieten keine personenbezogenen Daten an Dritte.",
@@ -158,7 +158,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
         title: "6. Speicherdauer",
         body: [
           "Server-Logs werden nur so lange aufbewahrt, wie es für Sicherheits- und Betriebszwecke erforderlich ist.",
-          "Lokale Browserpräferenzen bleiben gespeichert, bis Sie Ihren Browser-Cache leeren oder bis zum Ablauf von bis zu 180 Tagen.",
+          "Sprach- und Ländereinstellungen bleiben bis zur Löschung oder höchstens ein Jahr gespeichert, Einwilligungspräferenzen höchstens 180 Tage und Navigationsdaten im sessionStorage nur bis zum Schließen des Tabs.",
           "Kontaktanfragen werden nach Abschluss der Bearbeitung gelöscht, sofern keine gesetzlichen Aufbewahrungspflichten entgegenstehen.",
         ],
       },
@@ -184,7 +184,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
     metaDescription: "Official privacy policy for BeforeToBuy.com operated by PortanX - Catalin Portan in Bern, Switzerland.",
     badge: "Privacy Policy",
     title: "Privacy Policy",
-    lastUpdated: "Last updated: August 2026",
+    lastUpdated: "Last updated: 4 September 2026",
     intro: "This Privacy Policy explains how BeforeToBuy.com (operated by PortanX - Catalin Portan, Bern, Switzerland) collects, processes, and protects personal data in compliance with the Swiss Federal Data Protection Act (nDSG / revDSG) and the EU General Data Protection Regulation (GDPR).",
     sections: [
       {
@@ -226,7 +226,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
         id: "processors",
         title: "5. Technical Service Providers (Processors)",
         body: [
-          "Hosting & CDN: Vercel Inc. (cloud infrastructure and page delivery).",
+          "Web infrastructure: the application origin is self-hosted and managed directly by PortanX. Cloudflare, Inc. provides DNS, reverse proxy, security, and content delivery and may process the IP address and technical request metadata.",
           "Database: Supabase Inc. (product catalog database located in European data centers).",
           "International data transfers comply with standard data protection safeguards, including EU Standard Contractual Clauses (SCCs) and Swiss data protection law.",
           "We do not sell or rent personal data to third parties.",
@@ -237,7 +237,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
         title: "6. Data Retention",
         body: [
           "Server security logs are kept temporarily only for as long as needed for operational security.",
-          "Local browser preferences remain stored until you clear your browser cache or up to 180 days.",
+          "Language and market preferences remain until you delete them or for up to one year, consent preferences for up to 180 days, and sessionStorage navigation data only until the browser tab is closed.",
           "Support communications are retained only as long as necessary to resolve your request.",
         ],
       },
@@ -263,7 +263,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
     metaDescription: "Politique de confidentialité officielle de BeforeToBuy.com exploitée par PortanX - Catalin Portan à Berne, Suisse.",
     badge: "Protection des données",
     title: "Politique de Confidentialité",
-    lastUpdated: "Dernière mise à jour : août 2026",
+    lastUpdated: "Dernière mise à jour : 4 septembre 2026",
     intro: "Cette politique de confidentialité explique comment BeforeToBuy.com (exploité par PortanX - Catalin Portan, Berne, Suisse) traite et protège les données personnelles conformément à la Loi fédérale suisse sur la protection des données (nLPD / revLPD) et au Règlement général sur la protection des données (RGPD).",
     sections: [
       {
@@ -305,7 +305,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
         id: "processors",
         title: "5. Prestataires techniques (Sous-traitants)",
         body: [
-          "Hébergement & CDN : Vercel Inc. (infrastructure cloud et livraison des pages).",
+          "Infrastructure web : l'origine de l'application est auto-hébergée et administrée directement par PortanX. Cloudflare, Inc. fournit le DNS, le proxy inverse, la sécurité et la diffusion de contenu et peut traiter l'adresse IP ainsi que les métadonnées techniques des requêtes.",
           "Base de données : Supabase Inc. (base de données du catalogue située dans l'Union européenne).",
           "Les transferts internationaux respectent les clauses contractuelles types (CCT) de l'UE et le droit suisse.",
           "Nous ne vendons ni ne louons vos données personnelles à des tiers.",
@@ -316,7 +316,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
         title: "6. Durée de conservation",
         body: [
           "Les journaux serveur sont conservés temporairement uniquement pour des impératifs de sécurité.",
-          "Les préférences locales sont conservées jusqu'au nettoyage de votre navigateur ou jusqu'à 180 jours.",
+          "Les préférences de langue et de pays sont conservées jusqu'à leur suppression ou pendant un an au maximum, les choix de consentement pendant 180 jours au maximum et les données de navigation en sessionStorage seulement jusqu'à la fermeture de l'onglet.",
           "Les messages d'assistance sont conservés le temps nécessaire au traitement de votre demande.",
         ],
       },
@@ -342,7 +342,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
     metaDescription: "Informativa ufficiale sulla privacy di BeforeToBuy.com gestito da PortanX - Catalin Portan a Berna, Svizzera.",
     badge: "Protezione dei dati",
     title: "Informativa sulla Privacy",
-    lastUpdated: "Ultimo aggiornamento: agosto 2026",
+    lastUpdated: "Ultimo aggiornamento: 4 settembre 2026",
     intro: "Questa informativa spiega come BeforeToBuy.com (gestito da PortanX - Catalin Portan, Berna, Svizzera) raccoglie, tratta e protegge i dati personali in conformità con la Legge federale svizzera sulla protezione dei dati (nLPD / revLPD) e il Regolamento generale UE sulla protezione dei dati (GDPR).",
     sections: [
       {
@@ -384,7 +384,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
         id: "processors",
         title: "5. Fornitori di servizi tecnici (Responsabili)",
         body: [
-          "Hosting & CDN: Vercel Inc. (infrastruttura cloud e distribuzione pagine).",
+          "Infrastruttura web: l'origine dell'applicazione è self-hosted e gestita direttamente da PortanX. Cloudflare, Inc. fornisce DNS, reverse proxy, sicurezza e distribuzione dei contenuti e può trattare l'indirizzo IP e i metadati tecnici delle richieste.",
           "Database: Supabase Inc. (database catalogo prodotti situato nell'Unione Europea).",
           "I trasferimenti internazionali rispettano le clausole contrattuali standard (SCC) dell'UE e la legge svizzera.",
           "Non vendiamo né cediamo dati personali a terzi.",
@@ -395,7 +395,7 @@ export const PRIVACY_COPY: Record<SiteLocale, PrivacyPolicyContent> = {
         title: "6. Periodo di conservazione",
         body: [
           "I log di server vengono conservati temporaneamente solo per motivi di sicurezza tecnica.",
-          "Le preferenze locali restano memorizzate fino alla cancellazione della cache o fino a 180 giorni.",
+          "Le preferenze di lingua e paese restano fino alla cancellazione o per un massimo di un anno, le preferenze di consenso fino a 180 giorni e i dati di navigazione in sessionStorage solo fino alla chiusura della scheda.",
           "I messaggi di contatto vengono conservati per il tempo necessario a gestire la richiesta.",
         ],
       },

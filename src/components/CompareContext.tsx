@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { Product } from "@/types";
 
 interface CompareContextType {
@@ -11,45 +11,63 @@ interface CompareContextType {
 }
 
 const CompareContext = createContext<CompareContextType | undefined>(undefined);
+const COMPARE_STORAGE_KEY = "btb:compare-list:v1";
+const LEGACY_COMPARE_STORAGE_KEY = "compareList";
 
 export function CompareProvider({ children }: { children: React.ReactNode }) {
   const [compareList, setCompareList] = useState<Product[]>([]);
+  const compareListRef = useRef<Product[]>([]);
 
   // Load from localStorage on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("compareList");
+      const saved =
+        localStorage.getItem(COMPARE_STORAGE_KEY) ??
+        localStorage.getItem(LEGACY_COMPARE_STORAGE_KEY);
       if (saved) {
-        setCompareList(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const next = parsed.slice(0, 2) as Product[];
+          compareListRef.current = next;
+          setCompareList(next);
+          localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(next));
+        }
       }
+      localStorage.removeItem(LEGACY_COMPARE_STORAGE_KEY);
     } catch (e) {
       console.error("Failed to parse compareList", e);
     }
   }, []);
 
-  // Save to localStorage on change
-  useEffect(() => {
-    localStorage.setItem("compareList", JSON.stringify(compareList));
-  }, [compareList]);
+  const persistCompareList = (next: Product[]) => {
+    try {
+      if (next.length > 0) localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(next));
+      else localStorage.removeItem(COMPARE_STORAGE_KEY);
+    } catch {
+      // Storage can be unavailable in private mode; comparison still works in memory.
+    }
+  };
 
   const addToCompare = (product: Product) => {
-    setCompareList((prev) => {
-      // Don't add if already exists
-      if (prev.some((p) => p.id === product.id)) return prev;
-      // Max 2 products for now
-      if (prev.length >= 2) {
-        return [prev[1], product]; // Replace the oldest one
-      }
-      return [...prev, product];
-    });
+    const prev = compareListRef.current;
+    if (prev.some((item) => item.id === product.id)) return;
+    const next = prev.length >= 2 ? [prev[1], product] : [...prev, product];
+    compareListRef.current = next;
+    setCompareList(next);
+    persistCompareList(next);
   };
 
   const removeFromCompare = (productId: string) => {
-    setCompareList((prev) => prev.filter((p) => p.id !== productId));
+    const next = compareListRef.current.filter((product) => product.id !== productId);
+    compareListRef.current = next;
+    setCompareList(next);
+    persistCompareList(next);
   };
 
   const clearCompare = () => {
+    compareListRef.current = [];
     setCompareList([]);
+    persistCompareList([]);
   };
 
   return (

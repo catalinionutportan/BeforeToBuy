@@ -204,7 +204,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Swiss nDSG applies to our processing as a Swiss controller. Where the EU GDPR applies to visitors in the EU/EEA, you may also exercise GDPR rights. This notice is a transparency document, not a legal certification.",
       transfersTitle: "International transfers",
       transfersBody:
-        "Some processors, especially Vercel, Datadog, and Resend when configured, may process data in the United States or other countries. We use them for hosting, optional performance monitoring, and contact-form delivery. Optional features involving those processors require your consent where indicated. Standard contractual and transfer mechanisms used by those providers may apply; please consult each provider for details.",
+        "Cloudflare processes requests through its global edge network before they reach our self-hosted origin. Supabase and optional providers such as Datadog or Resend may also process data outside Switzerland. The contractual transfer safeguards published by each provider apply; optional analytics runs only after consent.",
       complaintBody:
         "You may also lodge a complaint with the Swiss Federal Data Protection and Information Commissioner (FDPIC / EDOB):",
     },
@@ -250,7 +250,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       essentialCategory: "Essential",
       essentialPurpose: "Shopping market, interface language, and consent preferences.",
       essentialStorage:
-        "Market and language preferences in localStorage/cookies for up to one year; consent preferences (b2b_consent_v4, b2b_consent, b2b_consent_hint) for up to 180 days.",
+        "Market/language: btb-market-country and btb-ui-lang (cookie + localStorage, up to one year after explicit choice). Consent: b2b_consent_v4, b2b_consent and b2b_consent_hint (up to 180 days). Comparison: btb:compare-list:v1 only after adding a product. In-tab navigation: btb-browse-page:v9:* (max 15 minutes), btb:browse-scroll-y, btb:browse-scroll-anchor and btb:product-preview in sessionStorage.",
       essentialRequired: "Yes",
       affiliateCategory: "Affiliate (optional)",
       affiliatePurpose: "Enable outbound merchant links; partner stores may set their own cookies.",
@@ -264,7 +264,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       analyticsRequired: "No, only with consent and off by default",
       processorsTitle: "3. Service providers and optional third parties",
       processorItems: [
-        "Vercel — hosting, CDN, and server logs.",
+        "Cloudflare — DNS, reverse proxy, security, content delivery, and request logs; the application origin is self-hosted and managed directly by PortanX.",
         "Supabase — product catalogue database.",
         "Datadog — optional RUM and performance monitoring for the Analytics category.",
         "Merchant partners and approved CDN image hosts — catalogue images and affiliate tracking on merchant domains after you leave our site (Affiliate consent required for outbound affiliate links).",
@@ -399,7 +399,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "Für unsere Verarbeitung als Schweizer Verantwortlicher gilt das nDSG. Soweit die EU-DSGVO für Besucher in der EU/im EWR anwendbar ist, können Sie zusätzlich DSGVO-Rechte ausüben. Dieser Hinweis ist ein Transparenzdokument und keine Rechtszertifizierung.",
       transfersTitle: "Internationale Datenübermittlungen",
       transfersBody:
-        "Einige Auftragsverarbeiter, insbesondere Vercel, Datadog und Resend, können Daten in den USA oder anderen Staaten verarbeiten. Wir nutzen sie für Hosting, optionale Performance-Messung und die Zustellung von Kontaktformularen. Optionale Funktionen mit diesen Diensten setzen, soweit angegeben, Ihre Einwilligung voraus. Es können die von den jeweiligen Anbietern vorgesehenen Standardvertrags- oder Transfermechanismen gelten.",
+        "Cloudflare verarbeitet Anfragen über sein globales Edge-Netzwerk, bevor sie unseren selbst gehosteten Ursprung erreichen. Supabase und optionale Anbieter wie Datadog oder Resend können Daten auch außerhalb der Schweiz verarbeiten. Es gelten die veröffentlichten vertraglichen Übermittlungsgarantien der jeweiligen Anbieter; optionale Analytics laufen nur nach Einwilligung.",
       complaintBody:
         "Sie können sich außerdem beim Eidgenössischen Datenschutz- und Öffentlichkeitsbeauftragten (EDÖB / FDPIC) beschweren:",
     },
@@ -445,7 +445,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       essentialCategory: "Essenziell",
       essentialPurpose: "Einkaufsmarkt, Oberflächensprache und Einwilligungspräferenzen.",
       essentialStorage:
-        "Markt- und Sprachpräferenzen in localStorage/Cookies bis zu einem Jahr; Einwilligungspräferenzen (b2b_consent_v4, b2b_consent, b2b_consent_hint) bis zu 180 Tage.",
+        "Markt/Sprache: btb-market-country und btb-ui-lang (Cookie + localStorage, bis zu einem Jahr nach ausdrücklicher Auswahl). Consent: b2b_consent_v4, b2b_consent und b2b_consent_hint (bis zu 180 Tage). Vergleich: btb:compare-list:v1 erst nach Hinzufügen eines Produkts. Navigation im Tab: btb-browse-page:v9:* (max. 15 Minuten), btb:browse-scroll-y, btb:browse-scroll-anchor und btb:product-preview in sessionStorage.",
       essentialRequired: "Ja",
       affiliateCategory: "Affiliate (optional)",
       affiliatePurpose: "Aktiviert ausgehende Händlerlinks; Partner-Shops können eigene Cookies setzen.",
@@ -459,7 +459,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       analyticsRequired: "Nein, nur mit Einwilligung und standardmäßig deaktiviert",
       processorsTitle: "3. Dienstleister und optionale Drittanbieter",
       processorItems: [
-        "Vercel — Hosting, CDN und Server-Logs.",
+        "Cloudflare — DNS, Reverse-Proxy, Sicherheit, Inhaltsauslieferung und Anfrageprotokolle; der Anwendungsursprung wird selbst gehostet und direkt von PortanX verwaltet.",
         "Supabase — Produktkatalog-Datenbank.",
         "Datadog — optionales RUM und Performance-Monitoring für die Analytics-Kategorie.",
         "Händlerpartner und freigegebene CDN-Bildhosts — Katalogbilder und Affiliate-Tracking auf Händler-Domains nach Verlassen unserer Seite (Affiliate-Links nur mit Einwilligung).",
@@ -594,7 +594,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "La nLPD suisse s'applique à nos traitements en tant que responsable suisse. Lorsque le RGPD s'applique aux visiteurs de l'UE/EEE, vous pouvez également exercer les droits prévus par le RGPD. Ce texte est un document de transparence, pas une certification juridique.",
       transfersTitle: "Transferts internationaux",
       transfersBody:
-        "Certains sous-traitants, notamment Vercel, Datadog et Resend lorsqu'ils sont configurés, peuvent traiter des données aux États-Unis ou dans d'autres pays. Nous les utilisons pour l'hébergement, la mesure optionnelle des performances et la livraison des formulaires de contact. Les fonctions optionnelles impliquant ces prestataires nécessitent votre consentement lorsque cela est indiqué. Les mécanismes contractuels ou de transfert prévus par ces prestataires peuvent s'appliquer.",
+        "Cloudflare traite les requêtes via son réseau edge mondial avant qu'elles n'atteignent notre origine auto-hébergée. Supabase et des prestataires optionnels comme Datadog ou Resend peuvent également traiter des données hors de Suisse. Les garanties contractuelles de transfert publiées par chaque prestataire s'appliquent ; l'analytics optionnel ne fonctionne qu'après consentement.",
       complaintBody:
         "Vous pouvez également déposer une plainte auprès du Préposé fédéral à la protection des données et à la transparence (PFPDT / FDPIC) :",
     },
@@ -640,7 +640,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       essentialCategory: "Essentiel",
       essentialPurpose: "Marché d'achat, langue de l'interface et préférences de consentement.",
       essentialStorage:
-        "Préférences de marché et de langue dans localStorage/cookies jusqu'à un an ; préférences de consentement (b2b_consent_v4, b2b_consent, b2b_consent_hint) jusqu'à 180 jours.",
+        "Marché/langue : btb-market-country et btb-ui-lang (cookie + localStorage, jusqu'à un an après choix explicite). Consentement : b2b_consent_v4, b2b_consent et b2b_consent_hint (jusqu'à 180 jours). Comparaison : btb:compare-list:v1 uniquement après l'ajout d'un produit. Navigation dans l'onglet : btb-browse-page:v9:* (15 minutes max.), btb:browse-scroll-y, btb:browse-scroll-anchor et btb:product-preview dans sessionStorage.",
       essentialRequired: "Oui",
       affiliateCategory: "Affiliation (optionnel)",
       affiliatePurpose: "Active les liens sortants vers les marchands ; les boutiques partenaires peuvent déposer leurs propres cookies.",
@@ -654,7 +654,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       analyticsRequired: "Non, uniquement avec consentement et désactivé par défaut",
       processorsTitle: "3. Prestataires et tiers optionnels",
       processorItems: [
-        "Vercel — hébergement, CDN et journaux serveur.",
+        "Cloudflare — DNS, proxy inverse, sécurité, diffusion de contenu et journaux de requêtes ; l'origine de l'application est auto-hébergée et administrée directement par PortanX.",
         "Supabase — base de données du catalogue produit.",
         "Datadog — RUM et supervision des performances optionnels pour la catégorie Analytics.",
         "Partenaires marchands et hôtes d'images CDN approuvés — images catalogue et suivi d'affiliation sur les domaines marchands après avoir quitté notre site (liens affiliés uniquement avec consentement).",
@@ -789,7 +789,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "La nLPD svizzera si applica ai nostri trattamenti come titolare svizzero. Quando il GDPR UE si applica ai visitatori nell'UE/SEE, puoi esercitare anche i diritti previsti dal GDPR. Questa informativa è un documento di trasparenza, non una certificazione legale.",
       transfersTitle: "Trasferimenti internazionali",
       transfersBody:
-        "Alcuni responsabili del trattamento, in particolare Vercel, Datadog e Resend quando configurato, possono trattare dati negli Stati Uniti o in altri Paesi. Li utilizziamo per hosting, monitoraggio prestazionale opzionale e consegna dei moduli di contatto. Le funzioni opzionali che coinvolgono questi fornitori richiedono il tuo consenso dove indicato. Possono applicarsi i meccanismi contrattuali o di trasferimento previsti da tali fornitori.",
+        "Cloudflare tratta le richieste tramite la propria rete edge globale prima che raggiungano la nostra origine self-hosted. Supabase e fornitori opzionali come Datadog o Resend possono trattare dati anche fuori dalla Svizzera. Si applicano le garanzie contrattuali di trasferimento pubblicate da ciascun fornitore; gli analytics opzionali funzionano solo dopo il consenso.",
       complaintBody:
         "Puoi anche presentare un reclamo all'Incaricato federale della protezione dei dati e della trasparenza (FDPIC / EDOB):",
     },
@@ -835,7 +835,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       essentialCategory: "Essenziale",
       essentialPurpose: "Mercato di acquisto, lingua dell'interfaccia e preferenze di consenso.",
       essentialStorage:
-        "Preferenze di mercato e lingua in localStorage/cookie fino a un anno; preferenze di consenso (b2b_consent_v4, b2b_consent, b2b_consent_hint) fino a 180 giorni.",
+        "Mercato/lingua: btb-market-country e btb-ui-lang (cookie + localStorage, fino a un anno dopo la scelta esplicita). Consenso: b2b_consent_v4, b2b_consent e b2b_consent_hint (fino a 180 giorni). Confronto: btb:compare-list:v1 solo dopo l'aggiunta di un prodotto. Navigazione nella scheda: btb-browse-page:v9:* (max 15 minuti), btb:browse-scroll-y, btb:browse-scroll-anchor e btb:product-preview in sessionStorage.",
       essentialRequired: "Sì",
       affiliateCategory: "Affiliazione (opzionale)",
       affiliatePurpose: "Abilita i link in uscita verso i merchant; i partner possono impostare i propri cookie.",
@@ -849,7 +849,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       analyticsRequired: "No, solo con consenso e disattivato di default",
       processorsTitle: "3. Fornitori di servizi e terze parti opzionali",
       processorItems: [
-        "Vercel — hosting, CDN e log server.",
+        "Cloudflare — DNS, reverse proxy, sicurezza, distribuzione dei contenuti e log delle richieste; l'origine dell'applicazione è self-hosted e gestita direttamente da PortanX.",
         "Supabase — database del catalogo prodotti.",
         "Datadog — RUM e monitoraggio prestazionale opzionali per la categoria Analytics.",
         "Partner merchant e host immagini CDN approvati — immagini catalogo e tracking affiliato sui domini merchant dopo aver lasciato il sito (link affiliati solo con consenso).",
@@ -984,7 +984,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
         "nDSG elvețian se aplică prelucrărilor noastre în calitate de operator elvețian. Acolo unde GDPR UE se aplică vizitatorilor din UE/SEE, puteți exercita și drepturile prevăzute de GDPR. Acest text este un document de transparență, nu o certificare juridică.",
       transfersTitle: "Transferuri internaționale",
       transfersBody:
-        "Anumiți procesatori, în special Vercel, Datadog și Resend atunci când sunt configurate, pot prelucra date în Statele Unite sau în alte țări. Îi folosim pentru hosting, monitorizare opțională de performanță și livrarea formularelor de contact. Funcțiile opționale care implică acești furnizori necesită consimțământul dvs. acolo unde este indicat. Pot fi aplicate mecanismele contractuale sau de transfer prevăzute de acești furnizori.",
+        "Cloudflare procesează cererile prin rețeaua sa edge globală înainte ca acestea să ajungă la originea noastră găzduită în regim propriu. Supabase și furnizori opționali precum Datadog ori Resend pot prelucra date și în afara Elveției. Se aplică garanțiile contractuale de transfer publicate de fiecare furnizor; analytics opțional rulează numai după consimțământ.",
       complaintBody:
         "Puteți depune o plângere și la Autoritatea Federală Elvețiană pentru Protecția Datelor și Transparență (FDPIC / EDOB):",
     },
@@ -1030,7 +1030,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       essentialCategory: "Esențial",
       essentialPurpose: "Piața de cumpărături, limba interfeței și preferințele de consimțământ.",
       essentialStorage:
-        "Preferințele de piață și limbă în localStorage/cookie-uri până la un an; preferințele de consimțământ (b2b_consent_v4, b2b_consent, b2b_consent_hint) până la 180 de zile.",
+        "Piață/limbă: btb-market-country și btb-ui-lang (cookie + localStorage, până la un an după alegerea explicită). Consimțământ: b2b_consent_v4, b2b_consent și b2b_consent_hint (până la 180 zile). Comparare: btb:compare-list:v1 doar după adăugarea unui produs. Navigare în filă: btb-browse-page:v9:* (maximum 15 minute), btb:browse-scroll-y, btb:browse-scroll-anchor și btb:product-preview în sessionStorage.",
       essentialRequired: "Da",
       affiliateCategory: "Afiliat (opțional)",
       affiliatePurpose: "Permite linkurile externe către comercianți; magazinele partenere își pot seta propriile cookie-uri.",
@@ -1044,7 +1044,7 @@ const LEGAL_COPY: Record<SiteLocale, LegalCopy> = {
       analyticsRequired: "Nu, doar cu consimțământ și dezactivat implicit",
       processorsTitle: "3. Furnizori de servicii și terți opționali",
       processorItems: [
-        "Vercel — hosting, CDN și log-uri server.",
+        "Cloudflare — DNS, reverse proxy, securitate, livrarea conținutului și log-uri de cereri; originea aplicației este găzduită în regim propriu și administrată direct de PortanX.",
         "Supabase — baza de date a catalogului de produse.",
         "Datadog — RUM și monitorizare de performanță opționale pentru categoria Analytics.",
         "Parteneri comercianți și host-uri CDN de imagini aprobate — imagini de catalog și tracking afiliat pe domeniile comercianților după ce părăsiți site-ul (linkuri afiliate doar cu consimțământ).",
@@ -1786,7 +1786,7 @@ const LEGAL_INDEX_SECTIONS: Record<SiteLocale, LegalIndexSection[]> = {
 const PROCESSING_PURPOSES: Record<SiteLocale, ProcessingPurpose[]> = {
   en: [
     {
-      purpose: "Operate the website, select the initial market from Vercel's request country code, and store essential preferences",
+      purpose: "Operate the website, select the initial market from Cloudflare's request country code, and store essential preferences",
       basis: "Overriding interest / essential operation; contract initiation where you contact us",
     },
     {
@@ -1800,7 +1800,7 @@ const PROCESSING_PURPOSES: Record<SiteLocale, ProcessingPurpose[]> = {
   ],
   de: [
     {
-      purpose: "Betrieb der Website, Auswahl des Startmarkts anhand des Vercel-Ländercodes und Speicherung essenzieller Präferenzen",
+      purpose: "Betrieb der Website, Auswahl des Startmarkts anhand des Cloudflare-Ländercodes und Speicherung essenzieller Präferenzen",
       basis: "Überwiegendes Interesse / essenzieller Betrieb; Vertragsanbahnung bei Kontaktaufnahme",
     },
     {
@@ -1814,7 +1814,7 @@ const PROCESSING_PURPOSES: Record<SiteLocale, ProcessingPurpose[]> = {
   ],
   fr: [
     {
-      purpose: "Exploitation du site, sélection du marché initial via le code pays Vercel et stockage des préférences essentielles",
+      purpose: "Exploitation du site, sélection du marché initial via le code pays Cloudflare et stockage des préférences essentielles",
       basis: "Intérêt prépondérant / fonctionnement essentiel ; initiation contractuelle lorsque vous nous contactez",
     },
     {
@@ -1828,7 +1828,7 @@ const PROCESSING_PURPOSES: Record<SiteLocale, ProcessingPurpose[]> = {
   ],
   it: [
     {
-      purpose: "Gestione del sito, selezione del mercato iniziale tramite il codice paese Vercel e salvataggio delle preferenze essenziali",
+      purpose: "Gestione del sito, selezione del mercato iniziale tramite il codice paese Cloudflare e salvataggio delle preferenze essenziali",
       basis: "Interesse prevalente / funzionamento essenziale; avvio del rapporto contrattuale quando ci contatti",
     },
     {
@@ -1842,7 +1842,7 @@ const PROCESSING_PURPOSES: Record<SiteLocale, ProcessingPurpose[]> = {
   ],
   ro: [
     {
-      purpose: "Operarea site-ului, alegerea pieței inițiale din codul de țară Vercel și stocarea preferințelor esențiale",
+      purpose: "Operarea site-ului, alegerea pieței inițiale din codul de țară Cloudflare și stocarea preferințelor esențiale",
       basis: "Interes legitim preponderent / funcționare esențială; inițiere contractuală când ne contactați",
     },
     {
@@ -1864,8 +1864,8 @@ const RETENTION_SCHEDULE: Record<SiteLocale, RetentionItem[]> = {
       legalBasis: "Legitimate interest / contract initiation",
     },
     {
-      data: "Server and edge logs (Vercel)",
-      retention: "Per Vercel policy, typically days to weeks",
+      data: "Server and edge logs (self-hosted origin + Cloudflare)",
+      retention: "Operational minimum plus Cloudflare service-specific retention",
       legalBasis: "Security and stability",
     },
     {
@@ -1886,8 +1886,8 @@ const RETENTION_SCHEDULE: Record<SiteLocale, RetentionItem[]> = {
       legalBasis: "Berechtigtes Interesse / Vertragsanbahnung",
     },
     {
-      data: "Server- und Edge-Logs (Vercel)",
-      retention: "Gemäß Vercel-Richtlinie, typischerweise Tage bis Wochen",
+      data: "Server- und Edge-Logs (selbst gehosteter Ursprung + Cloudflare)",
+      retention: "Betriebliches Minimum plus dienstspezifische Cloudflare-Aufbewahrung",
       legalBasis: "Sicherheit und Stabilität",
     },
     {
@@ -1908,8 +1908,8 @@ const RETENTION_SCHEDULE: Record<SiteLocale, RetentionItem[]> = {
       legalBasis: "Intérêt légitime / initiation contractuelle",
     },
     {
-      data: "Logs serveur et edge (Vercel)",
-      retention: "Selon la politique Vercel, généralement de quelques jours à quelques semaines",
+      data: "Logs serveur et edge (origine auto-hébergée + Cloudflare)",
+      retention: "Minimum opérationnel plus conservation propre au service Cloudflare",
       legalBasis: "Sécurité et stabilité",
     },
     {
@@ -1930,8 +1930,8 @@ const RETENTION_SCHEDULE: Record<SiteLocale, RetentionItem[]> = {
       legalBasis: "Interesse legittimo / avvio contrattuale",
     },
     {
-      data: "Log server ed edge (Vercel)",
-      retention: "Secondo la policy Vercel, tipicamente da giorni a settimane",
+      data: "Log server ed edge (origine self-hosted + Cloudflare)",
+      retention: "Minimo operativo più conservazione specifica del servizio Cloudflare",
       legalBasis: "Sicurezza e stabilità",
     },
     {
@@ -1952,8 +1952,8 @@ const RETENTION_SCHEDULE: Record<SiteLocale, RetentionItem[]> = {
       legalBasis: "Interes legitim / inițiere contractuală",
     },
     {
-      data: "Log-uri server și edge (Vercel)",
-      retention: "Conform politicii Vercel, de regulă zile până la săptămâni",
+      data: "Log-uri server și edge (origine găzduită în regim propriu + Cloudflare)",
+      retention: "Minimul operațional plus retenția specifică serviciului Cloudflare",
       legalBasis: "Securitate și stabilitate",
     },
     {

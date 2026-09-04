@@ -139,44 +139,49 @@ export function ProductCardOffers({
                 </div>
               </div>
 
-              <div className="text-left sm:text-right flex items-center justify-between sm:justify-end gap-3 shrink-0 w-full sm:w-auto pl-6 sm:pl-0">
-                <div className="min-w-0">
-                  <div className="font-black text-sm text-slate-900">
-                    {currentCountryInfo.currencySymbol}
-                    {totalPrice.toLocaleString()}
+              <div className="shrink-0 w-full sm:w-auto pl-6 sm:pl-0">
+                <div className="text-left sm:text-right flex items-center justify-between sm:justify-end gap-3">
+                  <div className="min-w-0">
+                    <div className="font-black text-sm text-slate-900">
+                      {currentCountryInfo.currencySymbol}
+                      {totalPrice.toLocaleString()}
+                    </div>
+                    <div className="text-[9px] text-slate-400 font-medium break-words">
+                      {offer.source === "demo"
+                        ? ui.illustrativeTotalDisclaimer
+                        : offer.deliveryCost === 0
+                          ? `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + free ${ui.delivery.toLowerCase()}`
+                          : `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + ${offer.deliveryCost} ${ui.delivery}`}
+                    </div>
                   </div>
-                  <div className="text-[9px] text-slate-400 font-medium break-words">
-                    {offer.source === "demo"
-                      ? ui.illustrativeTotalDisclaimer
-                      : offer.deliveryCost === 0
-                        ? `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + free ${ui.delivery.toLowerCase()}`
-                        : `${currentCountryInfo.currencySymbol}${offer.price.toLocaleString()} + ${offer.deliveryCost} ${ui.delivery}`}
-                  </div>
-                </div>
 
-                <a
-                  href={affiliate ? offer.purchaseUrl : "#"}
-                  target={affiliate ? "_blank" : undefined}
-                  rel={affiliate ? "noopener noreferrer sponsored nofollow" : undefined}
-                  onClick={(event) => handleAffiliateClick(event, offer)}
-                  onAuxClick={handleAffiliateAuxClick}
-                  className="bg-slate-900 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 text-[11px] shadow-xs group/btn shrink-0"
-                  title={affiliate ? undefined : ui.acceptAffiliateCookiesHint}
-                  aria-label={
-                    affiliate
-                      ? `${offer.source === "production-live" ? ui.viewOfferButton : ui.searchStoreButton} for ${offer.storeName}`
-                      : ui.acceptAffiliateCookiesHint
-                  }
-                >
-                  <span>
-                    {affiliate
-                      ? offer.source === "production-live"
-                        ? ui.viewOfferButton
-                        : ui.searchStoreButton
-                      : ui.enableAffiliateToOpen}
-                  </span>
-                  <ExternalLink className="w-3 h-3 opacity-80 group-hover/btn:translate-x-0.5 transition-transform" aria-hidden="true" />
-                </a>
+                  <a
+                    href={affiliate ? offer.purchaseUrl : "#"}
+                    target={affiliate ? "_blank" : undefined}
+                    rel={affiliate ? "noopener noreferrer sponsored nofollow" : undefined}
+                    onClick={(event) => handleAffiliateClick(event, offer)}
+                    onAuxClick={handleAffiliateAuxClick}
+                    className="bg-slate-900 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 text-[11px] shadow-xs group/btn shrink-0"
+                    title={affiliate ? undefined : ui.acceptAffiliateCookiesHint}
+                    aria-label={
+                      affiliate
+                        ? `${offer.source === "production-live" ? ui.viewOfferButton : ui.searchStoreButton} for ${offer.storeName}`
+                        : ui.acceptAffiliateCookiesHint
+                    }
+                  >
+                    <span>
+                      {affiliate
+                        ? offer.source === "production-live"
+                          ? ui.viewOfferButton
+                          : ui.searchStoreButton
+                        : ui.enableAffiliateToOpen}
+                    </span>
+                    <ExternalLink className="w-3 h-3 opacity-80 group-hover/btn:translate-x-0.5 transition-transform" aria-hidden="true" />
+                  </a>
+                </div>
+                <p className="mt-1 text-[9px] leading-snug text-slate-500 sm:max-w-64 sm:text-right">
+                  {ui.affiliateCommissionZeroCost}
+                </p>
               </div>
             </div>
           );

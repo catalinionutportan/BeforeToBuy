@@ -17,6 +17,7 @@ import {
 import { PageShell } from "@/components/PageShell";
 import { HOME_UI } from "@/lib/i18n/ui";
 import { useBrowseLocale } from "@/lib/i18n/client";
+import { withLangParam } from "@/lib/seo/site-url";
 
 type SubmitState = "idle" | "loading" | "success" | "error";
 
@@ -270,10 +271,9 @@ export default function ContactPage() {
                 />
                 <span>
                   {homeUi.iHaveReadThe}{" "}
-                  <Link href="/privacy" className="text-emerald-700 underline font-semibold">
+                  <Link href={withLangParam("/privacy", browseLocale)} className="text-emerald-700 underline font-semibold">
                     {homeUi.privacyPolicy}
-                  </Link>{" "}
-                  {homeUi.andAgreeToDataProcessing}
+                  </Link>.
                 </span>
               </label>
 

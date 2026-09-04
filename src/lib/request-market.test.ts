@@ -15,20 +15,33 @@ describe("getRequestMarketCountry", () => {
     headersMock.mockReset();
   });
 
+  it("prefers the explicit URL market header over a stored cookie", async () => {
+    cookiesMock.mockResolvedValue({
+      get: (name: string) =>
+        name === "btb-market-country" ? { value: "RO" } : undefined,
+    });
+    headersMock.mockResolvedValue({
+      get: (name: string) => (name === "x-btb-market-country" ? "CH" : null),
+    });
+
+    const { getRequestMarketCountry } = await import("@/lib/request-market");
+    await expect(getRequestMarketCountry()).resolves.toBe("CH");
+  });
+
   it("prefers the market cookie over geo and default", async () => {
     cookiesMock.mockResolvedValue({
       get: (name: string) =>
         name === "btb-market-country" ? { value: "RO" } : undefined,
     });
     headersMock.mockResolvedValue({
-      get: () => "CH",
+      get: (name: string) => (name === "x-vercel-ip-country" ? "CH" : null),
     });
 
     const { getRequestMarketCountry } = await import("@/lib/request-market");
     await expect(getRequestMarketCountry()).resolves.toBe("RO");
   });
 
-  it("falls back to Vercel geo country when cookie is missing", async () => {
+  it("falls back to an edge geo country when cookie is missing", async () => {
     cookiesMock.mockResolvedValue({ get: () => undefined });
     headersMock.mockResolvedValue({
       get: (name: string) => (name === "x-vercel-ip-country" ? "RO" : null),

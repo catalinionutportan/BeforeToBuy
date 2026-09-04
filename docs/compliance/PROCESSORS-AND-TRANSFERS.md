@@ -1,8 +1,8 @@
 # Processors and transfers — internal checklist
 
-**Last reviewed:** 2026-08-10  
-**Source of truth (code):** `src/lib/processor-registry.ts`  
-**Public privacy list:** `src/lib/data-processors.ts` → `buildLocalizedDataProcessors()` (excludes `merchant_feed`)  
+**Last reviewed:** 2026-09-04
+**Source of truth (code):** `src/lib/processor-registry.ts`
+**Public privacy list:** `src/lib/data-processors.ts` → `buildLocalizedDataProcessors()` (excludes `merchant_feed`)
 **Catalogue feed transparency:** merchant feed rows below + `docs/compliance/AFFILIATE-EVIDENCE-CHECKLIST.md`
 
 ## Summary
@@ -10,11 +10,11 @@
 | Status | Count | Notes |
 |--------|------:|-------|
 | Public privacy entries (all locales) | 8 | Processors, affiliate controllers, CDN recipients — no merchant feeds |
-| Internal registry entries | 13 | Includes 5 server-side catalogue feeds |
+| Internal registry entries | 21 | Includes 13 server-side catalogue feeds |
 | Project region confirmed for public pages | 1 | Supabase `AWS eu-west-1 (Ireland)` only |
-| Infrastructure processors (DPA verified) | 5 | Vercel, Supabase, Upstash, Datadog, Resend |
+| Infrastructure processors (DPA verified) | 5 | Cloudflare, Supabase, Upstash, Datadog, Resend |
 | Affiliate networks (independent controllers) | 2 | 2Performant, AWIN |
-| Merchant feeds (server-side only) | 5 | **Not listed on `/privacy`** |
+| Merchant feeds (server-side only) | 13 | **Not listed on `/privacy`** |
 | CDN image recipients (browser-facing) | 1 | Listed on `/privacy` |
 
 ## Public privacy policy (no placeholders)
@@ -33,17 +33,17 @@ Merchant product feeds are **server-to-server catalogue imports** and are docume
 
 ## Verified processors (official documentation)
 
-### Vercel Inc.
+### Cloudflare, Inc.
 
 | Field | Value | Verified |
 |-------|-------|----------|
-| Legal entity | Vercel Inc. (Delaware corporation) | Yes |
-| Role | Processor (Pro/Enterprise DPA) | Yes |
-| Project region | **TODO** — confirm in Vercel project Settings → General | No |
-| Transfer countries | Global; US and other sub-processor locations | Yes (DPA Schedule 3) |
-| Transfer mechanism | EU SCCs (2021/914), UK IDTA, jurisdiction addenda | Yes |
-| Retention | Per Agreement; deletion/return per DPA §11 | Yes |
-| Official doc | https://vercel.com/legal/dpa | 2026-08-10 |
+| Legal entity | Cloudflare, Inc. | Yes |
+| Role | Processor for Customer Logs/services under the Customer DPA | Yes |
+| Project region | Global edge; Customer Metadata Boundary not confirmed | No |
+| Transfer countries | Global; US and other service/sub-processor locations | Yes (DPA §6 + Annex 1) |
+| Transfer mechanism | EU SCCs, UK Addendum, Swiss modifications and DPF where applicable | Yes |
+| Retention | Service/account-specific; confirm enabled products | Partial |
+| Official doc | https://www.cloudflare.com/cloudflare-customer-dpa/ | 2026-09-04 |
 | Public privacy | Yes | Transfer summary published |
 
 ### Supabase Pte. Ltd.
@@ -142,28 +142,29 @@ These integrations import product catalogues **server-to-server**. They are **no
 |----|----------|----------------|------|
 | merchant-cdn-images | merchant_cdn | Yes — recipient | Per-host allowlist review (`feed-url-policy`) |
 
-## Vercel Production secrets (read-only check)
+## Self-hosted production secrets (read-only check)
 
-**CLI status (2026-08-10):** Vercel CLI is authenticated, but the BeforeToBuy production project is **not linked or identified** from this repository (no `.vercel/project.json`). Production secret presence cannot be verified via CLI until the correct project is linked or located in the dashboard.
+**Runtime status (2026-09-04):** production runs from the self-hosted NAS release. Secret values must remain outside Git and must not be copied into audit output.
 
 **Operator checklist (dashboard):**
 
-1. Open https://vercel.com/dashboard and locate the BeforeToBuy project for `beforetobuy.com`
-2. Settings → Environment Variables → **Production** — verify without exposing values:
+1. Inspect the NAS application environment without printing secret values.
+2. Verify names/presence/length only:
    - `CRON_SECRET` — present, length ≥ 32, distinct
    - `INTERNAL_API_SECRET` — present, length ≥ 32, distinct
    - `CONSENT_SIGNING_SECRET` — present, length ≥ 32, distinct
-3. After linking the repo: `vercel env ls production` (names only)
+3. Confirm Cloudflare DNS/proxy/security settings separately in the Cloudflare dashboard.
 
 **Local env (2026-08-10):** `CRON_SECRET`, `INTERNAL_API_SECRET`, `CONSENT_SIGNING_SECRET` — all **missing** (expected locally).
 
 ## Operational blockers before deploy
 
-1. **Vercel project unidentified** — link or locate BeforeToBuy project; confirm hosting region.
-2. **Production secrets unconfirmed** — three distinct secrets ≥ 32 chars not verified via CLI/dashboard.
+1. **Cloudflare retention unconfirmed** — record enabled products and dashboard retention.
+2. **Origin log retention unconfirmed** — implement and record rotation/deletion on NAS.
+3. **Affiliate contracts need review** — confirm roles and redirect tracking for AWIN/2Performant.
 
 ## Transfer rules of thumb (not legal advice)
 
 1. Do not assert “EU-only” or adequacy without dashboard/DPA evidence.
-2. Distinguish **processors** (Vercel, Supabase, …) from **independent controllers** (AWIN, 2Performant), **CDN recipients** (browser), and **server-side feeds** (not on privacy page).
+2. Distinguish **processors** (Cloudflare, Supabase, …) from **independent controllers** (AWIN, 2Performant), **CDN recipients** (browser), and **server-side feeds** (not on privacy page).
 3. Update `processor-registry.ts` first, then public copy follows via `data-processors.ts`.

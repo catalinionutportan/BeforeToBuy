@@ -10,7 +10,7 @@ BeforeToBuy.com is a multi-country price comparison engine designed to help user
 *   **UI Library**: React (v19+)
 *   **Language**: TypeScript
 *   **Styling**: Tailwind CSS
-*   **Database/Cache**: Vercel KV (for price history)
+*   **Database/Cache**: Supabase PostgreSQL plus self-hosted Redis/disk cache; Upstash is optional
 *   **Icons**: Lucide React
 *   **Testing**: `tsx` (for unit tests), Playwright (for E2E tests)
 
@@ -44,7 +44,7 @@ To get the project up and running locally, follow these steps:
     # This is critical for the security of consent tokens.
     CONSENT_SIGNING_SECRET="your_strong_production_secret"
     ```
-    Consult with the project owner for specific variables like Vercel KV connection strings and Datadog credentials.
+    Consult with the project owner for production database, feed, consent-signing, and optional monitoring variables.
 
 ## Available Scripts
 

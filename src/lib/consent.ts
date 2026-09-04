@@ -1,4 +1,3 @@
-import { openIubendaPreferences } from "@/lib/iubenda-consent";
 import { CONSENT_CLIENT_HINT_COOKIE_NAME, CONSENT_VERSION } from "@/lib/consent-config";
 
 export type ConsentCategory = "affiliate" | "analytics";
@@ -159,6 +158,5 @@ export async function acceptEssentialConsent() {
 
 export function openConsentPreferences() {
   if (!isBrowser()) return;
-  if (openIubendaPreferences()) return;
   window.dispatchEvent(new CustomEvent("b2b-consent-open"));
 }

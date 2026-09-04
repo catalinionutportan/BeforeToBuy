@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { normalizeLocale } from "@/lib/i18n/locales";
 import { LANG_COOKIE_KEY, LANG_QUERY_PARAM } from "@/lib/i18n/preference";
+import { isCountryCode, MARKET_COUNTRY_COOKIE } from "@/lib/market-preference";
 import { buildContentSecurityPolicy } from "@/lib/security-headers";
 
 const REQUEST_LOCALE_HEADER = "x-btb-locale";
+const REQUEST_MARKET_HEADER = "x-btb-market-country";
 
 function buildRequestHeaders(request: NextRequest, nonce: string, csp: string) {
   const requestHeaders = new Headers(request.headers);
@@ -14,17 +16,31 @@ function buildRequestHeaders(request: NextRequest, nonce: string, csp: string) {
   if (requestedLocale) {
     requestHeaders.set(REQUEST_LOCALE_HEADER, requestedLocale);
   }
+  const countryParam = request.nextUrl.searchParams.get("country")?.toUpperCase();
+  const requestedCountry = isCountryCode(countryParam) ? countryParam : null;
+  if (requestedCountry) {
+    requestHeaders.set(REQUEST_MARKET_HEADER, requestedCountry);
+  }
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set("Content-Security-Policy", csp);
-  return { requestHeaders, requestedLocale };
+  return { requestHeaders, requestedLocale, requestedCountry };
 }
 
-function applyLocaleCookie(
+function applyPreferenceCookies(
   response: NextResponse,
-  requestedLocale: ReturnType<typeof normalizeLocale>
+  requestedLocale: ReturnType<typeof normalizeLocale>,
+  requestedCountry: string | null
 ) {
   if (requestedLocale) {
     response.cookies.set(LANG_COOKIE_KEY, requestedLocale, {
+      maxAge: 31_536_000,
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+  }
+  if (requestedCountry) {
+    response.cookies.set(MARKET_COUNTRY_COOKIE, requestedCountry, {
       maxAge: 31_536_000,
       path: "/",
       sameSite: "lax",
@@ -43,7 +59,11 @@ function securedNext(request: NextRequest, response?: NextResponse) {
     host.includes("127.0.0.1") ||
     host.startsWith("192.168.");
   const csp = buildContentSecurityPolicy({ nonce, isDevelopment, isLocalhost });
-  const { requestHeaders, requestedLocale } = buildRequestHeaders(request, nonce, csp);
+  const { requestHeaders, requestedLocale, requestedCountry } = buildRequestHeaders(
+    request,
+    nonce,
+    csp
+  );
 
   const nextResponse =
     response ??
@@ -53,7 +73,7 @@ function securedNext(request: NextRequest, response?: NextResponse) {
 
   nextResponse.headers.set("Content-Security-Policy", csp);
   nextResponse.headers.set("x-nonce", nonce);
-  return applyLocaleCookie(nextResponse, requestedLocale);
+  return applyPreferenceCookies(nextResponse, requestedLocale, requestedCountry);
 }
 
 /**

@@ -1,13 +1,5 @@
 import { cspImgSrcHosts } from "./feed-url-policy";
 
-const configuredDatadogSite = process.env.NEXT_PUBLIC_DATADOG_SITE || "datadoghq.com";
-const safeDatadogSite = /^[a-z0-9.-]+$/i.test(configuredDatadogSite)
-  ? configuredDatadogSite
-  : "datadoghq.com";
-const datadogSiteParts = safeDatadogSite.split(".");
-const datadogExtension = datadogSiteParts.pop() || "com";
-const datadogIntakeOrigin = `https://browser-intake-${datadogSiteParts.join("-")}.${datadogExtension}`;
-
 /**
  * Build a CSP string. Production script-src uses nonce + strict-dynamic (no unsafe-inline).
  * Development keeps unsafe-eval for React refresh and allows unsafe-inline as a fallback.
@@ -23,9 +15,6 @@ export function buildContentSecurityPolicy(options: {
     "data:",
     "blob:",
     "https:",
-    "https://www.iubenda.com",
-    "https://cdn.iubenda.com",
-    "https://embeds.iubenda.com",
     ...cspImgSrcHosts(),
   ].join(" ");
 
@@ -46,8 +35,8 @@ export function buildContentSecurityPolicy(options: {
     styleSrc,
     `img-src ${imgSrc}`,
     "font-src 'self' data:",
-    `connect-src 'self' ${datadogIntakeOrigin} https://*.vercel-insights.com https://*.upstash.io https://*.iubenda.com`,
-    "frame-src https://*.iubenda.com",
+    "connect-src 'self'",
+    "frame-src 'none'",
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",

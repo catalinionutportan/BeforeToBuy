@@ -22,4 +22,4 @@ We aim to acknowledge reports within a reasonable time and will coordinate discl
 
 In scope: BeforeToBuy.com web application, public APIs, and related configuration in this repository.
 
-Out of scope: third-party merchant checkouts, affiliate network platforms (AWIN, 2Performant), and vendor control planes (Vercel, Supabase, etc.), except where a misconfiguration in this project causes exposure.
+Out of scope: third-party merchant checkouts, affiliate network platforms (AWIN, 2Performant), and vendor control planes (Cloudflare, Supabase, etc.), except where a misconfiguration in this project causes exposure.

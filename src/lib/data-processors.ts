@@ -89,12 +89,12 @@ const CONFIRMED_PROJECT_REGION: Partial<Record<ProcessorRecord["id"], Record<Sit
 };
 
 const TRANSFER_SUMMARY: Partial<Record<ProcessorRecord["id"], Record<SiteLocale, string>>> = {
-  vercel: {
-    en: "Processing may occur globally, including the United States. Transfers rely on EU Standard Contractual Clauses (2021/914), UK IDTA, and related addenda (Vercel DPA Schedule 3).",
-    de: "Verarbeitung kann weltweit, einschließlich der USA, erfolgen. Übermittlungen stützen sich auf EU-Standardvertragsklauseln (2021/914), UK IDTA und zugehörige Addenda (Vercel DPA Schedule 3).",
-    fr: "Le traitement peut avoir lieu dans le monde entier, y compris aux États-Unis. Les transferts reposent sur les clauses contractuelles types de l'UE (2021/914), l'IDTA britannique et les addenda associés (Vercel DPA Schedule 3).",
-    it: "L'elaborazione può avvenire a livello globale, inclusi gli Stati Uniti. I trasferimenti si basano sulle Clausole Contrattuali Standard UE (2021/914), UK IDTA e addenda correlati (Vercel DPA Schedule 3).",
-    ro: "Prelucrarea poate avea loc la nivel global, inclusiv în Statele Unite. Transferurile se bazează pe Clauzele Contractuale Standard UE (2021/914), UK IDTA și addenda conexe (Vercel DPA Schedule 3).",
+  cloudflare: {
+    en: "Requests pass through Cloudflare's global network. International transfers rely on the EU Standard Contractual Clauses, UK Addendum, Swiss modifications, and the Data Privacy Framework where applicable (Cloudflare Customer DPA §6).",
+    de: "Anfragen laufen über das globale Cloudflare-Netzwerk. Internationale Übermittlungen stützen sich auf EU-Standardvertragsklauseln, UK-Addendum, Schweizer Anpassungen und, soweit anwendbar, das Data Privacy Framework (Cloudflare Customer DPA §6).",
+    fr: "Les requêtes passent par le réseau mondial de Cloudflare. Les transferts internationaux reposent sur les clauses contractuelles types de l'UE, l'addendum britannique, les adaptations suisses et, le cas échéant, le Data Privacy Framework (Cloudflare Customer DPA §6).",
+    it: "Le richieste passano attraverso la rete globale di Cloudflare. I trasferimenti internazionali si basano sulle Clausole Contrattuali Standard UE, sull'Addendum UK, sugli adeguamenti svizzeri e, ove applicabile, sul Data Privacy Framework (Cloudflare Customer DPA §6).",
+    ro: "Cererile trec prin rețeaua globală Cloudflare. Transferurile internaționale se bazează pe Clauzele Contractuale Standard UE, Addendumul UK, adaptările elvețiene și, unde este aplicabil, Data Privacy Framework (Cloudflare Customer DPA §6).",
   },
   supabase: {
     en: "Processing may also use Supabase and sub-processor facilities worldwide. Transfers rely on Standard Contractual Clauses and UK/Swiss addenda (Supabase DPA §12).",
@@ -127,12 +127,12 @@ const TRANSFER_SUMMARY: Partial<Record<ProcessorRecord["id"], Record<SiteLocale,
 };
 
 const PROCESSOR_PURPOSES: Record<ProcessorRecord["id"], Record<SiteLocale, string>> = {
-  vercel: {
-    en: "Hosting, CDN, and server logs",
-    de: "Hosting, CDN und Server-Logs",
-    fr: "Hébergement, CDN et journaux serveur",
-    it: "Hosting, CDN e log server",
-    ro: "Hosting, CDN și log-uri server",
+  cloudflare: {
+    en: "DNS, reverse proxy, security, content delivery, and request logs",
+    de: "DNS, Reverse-Proxy, Sicherheit, Inhaltsauslieferung und Anfrageprotokolle",
+    fr: "DNS, proxy inverse, sécurité, diffusion de contenu et journaux de requêtes",
+    it: "DNS, reverse proxy, sicurezza, distribuzione dei contenuti e log delle richieste",
+    ro: "DNS, reverse proxy, securitate, livrarea conținutului și log-uri de cereri",
   },
   supabase: {
     en: "Product catalogue database (Prisma)",
