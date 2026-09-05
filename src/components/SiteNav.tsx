@@ -133,6 +133,7 @@ export function SiteNav() {
         onClose={() => setIsCategoryMenuOpen(false)}
         selectedCategory={ALL_CATEGORIES_ID}
         onCategoryChange={browseCategory}
+        countryCode={countryCode}
         locale={browseLocale}
       />
     </>

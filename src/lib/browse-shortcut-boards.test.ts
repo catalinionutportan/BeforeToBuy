@@ -3,6 +3,7 @@ import {
   resolveShortcutBoards,
   buildCategoryCoverMap,
   groupShortcutBoardColumns,
+  presentationCategoryGroupsForCountry,
   shortcutBoardDefinitionsForCountry,
 } from "@/lib/browse-shortcut-boards";
 import { getSubcategoryById } from "@/lib/categories";
@@ -61,6 +62,42 @@ describe("browse shortcut boards", () => {
     );
   });
 
+  it("presents CH Hair Care and Hair Styling as one truthful combined tile", () => {
+    const beauty = resolveShortcutBoards("CH", {
+      "fashion-beauty-hair-care": 5_935,
+      "care-hair-styling": 41,
+    }).find((board) => board.id === "beauty");
+
+    expect(beauty?.tiles).toEqual([
+      {
+        categoryId: "fashion-beauty-hair-care",
+        combinedCategoryIds: ["fashion-beauty-hair-care", "care-hair-styling"],
+        count: 5_976,
+      },
+    ]);
+    expect(presentationCategoryGroupsForCountry("RO")).toEqual([]);
+  });
+
+  it("keeps the combined CH hair tile when only Hair Styling has inventory and a cover", () => {
+    const beauty = resolveShortcutBoards(
+      "CH",
+      {
+        "care-hair-styling": 41,
+        "fashion-beauty-cosmetics": 10,
+      },
+      {
+        "care-hair-styling": "https://belando.ch/hair-styling.jpg",
+        "fashion-beauty-cosmetics": "https://belando.ch/cosmetics.jpg",
+      }
+    ).find((board) => board.id === "beauty");
+
+    expect(beauty?.tiles[0]).toEqual({
+      categoryId: "fashion-beauty-hair-care",
+      combinedCategoryIds: ["fashion-beauty-hair-care", "care-hair-styling"],
+      count: 41,
+    });
+  });
+
   it("hides boards when inventory is unknown or empty", () => {
     expect(resolveShortcutBoards("CH", undefined)).toEqual([]);
     expect(resolveShortcutBoards("CH", { "mobile-feature-phones": 0 })).toEqual([]);
@@ -77,6 +114,9 @@ describe("browse shortcut boards", () => {
     expect(boards[0]?.tiles[0]?.categoryId).toBe("diy-power-tools");
     expect(boards[1]?.tiles[0]?.categoryId).toBe("care-hair-styling");
     expect(boards.some((board) => board.id === "auto")).toBe(false);
+    expect(boards.flatMap((board) => board.tiles).every((tile) => !tile.combinedCategoryIds)).toBe(
+      true
+    );
   });
 
   it("builds DE Auto tiles only for occupied, useful Reifen.de aisles", () => {

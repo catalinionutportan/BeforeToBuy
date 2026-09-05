@@ -29,6 +29,8 @@ export interface ShortcutBoardDefinition {
   hubId: string;
   titleKey: ShortcutBoardTitleKey;
   tileIds: readonly string[];
+  /** One visible tile whose count/label represents several backend leaf IDs. */
+  tileGroups?: readonly PresentationCategoryGroup[];
   /** First occupied tile is rendered larger (presentation card). */
   featured?: boolean;
   /** Top up tiles from other occupied leaves in the same hub. */
@@ -42,6 +44,12 @@ export interface ShortcutBoardDefinition {
 export interface VisibleShortcutTile {
   categoryId: string;
   count: number;
+  combinedCategoryIds?: readonly string[];
+}
+
+export interface PresentationCategoryGroup {
+  primaryCategoryId: string;
+  memberCategoryIds: readonly string[];
 }
 
 export interface VisibleShortcutBoard {
@@ -57,6 +65,19 @@ export interface VisibleShortcutBoard {
 const MAX_BOARDS = 6;
 const MAX_TILES = 6;
 
+const CH_PRESENTATION_CATEGORY_GROUPS: readonly PresentationCategoryGroup[] = [
+  {
+    primaryCategoryId: "fashion-beauty-hair-care",
+    memberCategoryIds: ["fashion-beauty-hair-care", "care-hair-styling"],
+  },
+];
+
+export function presentationCategoryGroupsForCountry(
+  countryCode: CountryCode
+): readonly PresentationCategoryGroup[] {
+  return countryCode === "CH" ? CH_PRESENTATION_CATEGORY_GROUPS : [];
+}
+
 const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
   {
     // Belando CH — Hair Care, Cosmetics, Fragrance, Styling
@@ -67,8 +88,8 @@ const CH_BOARDS: readonly ShortcutBoardDefinition[] = [
       "fashion-beauty-hair-care",
       "fashion-beauty-cosmetics",
       "fashion-beauty-fragrance",
-      "care-hair-styling",
     ],
+    tileGroups: CH_PRESENTATION_CATEGORY_GROUPS,
     featured: true,
     fillFromHub: false,
     domain: "belando.ch",
@@ -207,17 +228,27 @@ function leafCount(categoryCounts: Record<string, number>, leafId: string): numb
 }
 
 function occupiedTiles(
-  tileIds: readonly string[],
+  definition: ShortcutBoardDefinition,
   categoryCounts: Record<string, number>
 ): VisibleShortcutTile[] {
   const seen = new Set<string>();
   const tiles: VisibleShortcutTile[] = [];
-  for (const categoryId of tileIds) {
+  for (const categoryId of definition.tileIds) {
     if (seen.has(categoryId)) continue;
-    const count = leafCount(categoryCounts, categoryId);
+    const group = definition.tileGroups?.find(
+      (candidate) => candidate.primaryCategoryId === categoryId
+    );
+    const count = (group?.memberCategoryIds ?? [categoryId]).reduce(
+      (sum, memberCategoryId) => sum + leafCount(categoryCounts, memberCategoryId),
+      0
+    );
     if (count <= 0) continue;
     seen.add(categoryId);
-    tiles.push({ categoryId, count });
+    tiles.push({
+      categoryId,
+      count,
+      ...(group ? { combinedCategoryIds: group.memberCategoryIds } : {}),
+    });
     if (tiles.length >= MAX_TILES) break;
   }
   return tiles;
@@ -246,12 +277,16 @@ function resolveBoard(
   categoryCounts: Record<string, number>,
   categoryCovers?: Record<string, string>
 ): VisibleShortcutBoard | null {
-  let tiles = occupiedTiles(definition.tileIds, categoryCounts);
+  let tiles = occupiedTiles(definition, categoryCounts);
   if (definition.fillFromHub !== false) {
     tiles = fillFromHubLeaves(definition.hubId, categoryCounts, tiles);
   }
   if (categoryCovers && Object.keys(categoryCovers).length > 0) {
-    const withCover = tiles.filter((tile) => Boolean(categoryCovers[tile.categoryId]));
+    const withCover = tiles.filter((tile) =>
+      (tile.combinedCategoryIds ?? [tile.categoryId]).some(
+        (categoryId) => Boolean(categoryCovers[categoryId])
+      )
+    );
     if (withCover.length > 0) {
       tiles = withCover;
     }

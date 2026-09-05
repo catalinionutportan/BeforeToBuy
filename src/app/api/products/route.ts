@@ -21,6 +21,7 @@ import {
   warmBrowseMetaForCountry,
 } from "@/lib/db-service";
 import { isRedisConfigured } from "@/lib/redis";
+import { withBoundedCatalogRead } from "@/lib/catalog-read-transaction";
 import {
   clampProductListLimit,
   DEFAULT_PRODUCT_LIST_LIMIT,
@@ -196,7 +197,7 @@ export async function GET(request: Request) {
         if (DEFERRED_META_COUNTRIES.has(countryCode) && !cachedMeta) {
           const pageMeta = cachedPage.meta as ProductFetchMeta | undefined;
           if (isRedisConfigured()) {
-            scheduleBrowseMetaWarm(countryCode);
+            if (countryCode === "RO" || !category) scheduleBrowseMetaWarm(countryCode);
             const countryProductCount = await countInStockProductsForCountry(countryCode);
             cachedMeta = {
               categoryCounts: {},
@@ -212,7 +213,7 @@ export async function GET(request: Request) {
             const countryProductCount =
               savedTotal > cachedPage.products.length
                 ? savedTotal
-                : await countInStockProductsForCountry(countryCode);
+                : await withBoundedCatalogRead(countryCode, () => countInStockProductsForCountry(countryCode));
             cachedMeta = {
               categoryCounts: pageMeta.categoryCounts ?? {},
               leafCounts: pageMeta.leafCounts ?? {},
@@ -221,11 +222,11 @@ export async function GET(request: Request) {
               brandOptions: pageMeta.brandOptions ?? [],
             };
           } else {
-            const [countryProductCount, countMaps, categoryCovers] = await Promise.all([
+            const [countryProductCount, countMaps, categoryCovers] = await withBoundedCatalogRead(countryCode, () => Promise.all([
               countInStockProductsForCountry(countryCode),
               getCategoryCountsFromDb(countryCode),
               getCategoryCoverImagesFromDb(countryCode),
-            ]);
+            ]));
             cachedMeta = {
               categoryCounts: countMaps.categoryCounts,
               leafCounts: countMaps.leafCounts,
@@ -268,7 +269,10 @@ export async function GET(request: Request) {
         category
       );
     }
-    if (DEFERRED_META_COUNTRIES.has(countryCode) && isRedisConfigured()) {
+    // Search/filter/later-page requests must not enqueue global metadata scans.
+    // RO retains its existing workflow until its separate feed review.
+    if (DEFERRED_META_COUNTRIES.has(countryCode) && isRedisConfigured() &&
+        (countryCode === "RO" || (cacheableFirstPage && !category))) {
       const cachedMeta = await getCachedBrowseMeta(countryCode);
       if (!cachedMeta) scheduleBrowseMetaWarm(countryCode);
     }

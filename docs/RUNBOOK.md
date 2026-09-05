@@ -77,6 +77,16 @@ Never commit secret values. Confirm processor regions in vendor accounts / DPAs 
 
 ## 5. Monitoring & health
 
+Self-hosted foreground catalogue reads for CH/DE/GB/US use read-only transaction
+guards: 4.5s SQL statement limit, 5.5s PostgreSQL 17+ transaction limit, 6s Prisma
+transaction limit and 0.5s acquisition wait. A 503 from this guard is a failed
+request, not an empty catalogue. Do not raise limits to hide cold-query failures.
+RO and standalone cron/helper reads retain their prior behavior. Remote Redis
+configuration bypasses this wrapper to avoid pinning a DB connection around remote
+cache I/O; re-evaluate the boundary before enabling it. `CATALOG_READ_TIMINGS=1`
+logs only market/stage/duration for diagnosis. See
+`SEARCH-CATEGORY-AUDIT-2026-09-05.md` for evidence and remaining cold-search issues.
+
 | Endpoint | Purpose |
 |----------|---------|
 | `GET /api/health` | Public: cheap cached summary (no commit/env/product counts). Internal Bearer: full diagnostics |

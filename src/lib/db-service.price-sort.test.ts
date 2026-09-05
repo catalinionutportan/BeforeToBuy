@@ -16,6 +16,7 @@ vi.mock("@/lib/db", () => ({
       if (sql.includes("DISTINCT ON")) return Promise.resolve([]);
       if (sql.includes("COUNT(*)::int AS n")) return categoryRows(...args);
       if (sql.includes("SELECT mp.brand")) return brandRows(...args);
+      if (sql.includes("countryTotal")) return Promise.resolve([{ countryTotal: 42000 }]);
       return queryRaw(...args);
     },
     product: {
@@ -37,6 +38,12 @@ vi.mock("@/lib/redis", () => ({
 
 import { resetCatalogBrowseCacheForTests } from "@/lib/catalog-browse-cache";
 import { getProductsFromDb } from "@/lib/db-service";
+// Query-shape tests use the DB double; transaction lifecycle is tested separately.
+vi.mock("@/lib/catalog-read-transaction", async () => ({
+  catalogReadDb: () => prisma,
+  withBoundedCatalogRead: async (_country: string, operation: () => Promise<unknown>) => operation(),
+}));
+import { prisma } from "@/lib/db";
 
 function mockProduct(id: string, minTotal: number) {
   return {

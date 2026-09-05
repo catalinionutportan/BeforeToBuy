@@ -128,10 +128,13 @@ test.describe("Search, filters and product handoff", () => {
     const search = page.getByRole("combobox", { name: /Search products/i });
     const browseAgain = async () => {
       await search.fill("rowenta");
+      // Test form submission, not a dropdown option hovered by the previous pointer position.
+      await search.press("Escape");
       await search.press("Enter");
       await expect(page).toHaveURL(/q=rowenta/);
       await expect(page.locator("[data-product-id]").first()).toContainText(/rowenta/i);
       await search.fill("");
+      await search.press("Escape");
       await search.press("Enter");
       await expect(page).not.toHaveURL(/q=rowenta/);
       await expect(page.locator("[data-product-id]")).toHaveCount(baseline.products.length);

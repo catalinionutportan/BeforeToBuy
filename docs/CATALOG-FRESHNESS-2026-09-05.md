@@ -80,6 +80,9 @@ remains a separate follow-up; the faster first page does not mean every filter
 is now sub-second. Romania's existing broad `electronics` classification and
 presentation-card redesign are intentionally deferred.
 
+Follow-up: `SEARCH-CATEGORY-AUDIT-2026-09-05.md` records partial text-search
+optimization, bounded self-hosted SQL reads and the remaining cold-search failures.
+
 ## Publication
 
 Runtime commit `2f8443c` published on the NAS and public domain after successful

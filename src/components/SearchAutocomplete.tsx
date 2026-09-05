@@ -58,6 +58,7 @@ export function SearchAutocomplete({
   const [results, setResults] = useState<Product[]>([]);
   const [activeIndex, setActiveIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dismissedQueryRef = useRef<string | null>(null);
   const country = COUNTRIES[countryCode as keyof typeof COUNTRIES] || COUNTRIES[DEFAULT_COUNTRY];
 
   const filteredCategories = useMemo(() => {
@@ -78,6 +79,9 @@ export function SearchAutocomplete({
   const categoryCount = showCategoryPanel ? filteredCategories.length : 0;
 
   useEffect(() => {
+    if (dismissedQueryRef.current !== initialQuery) {
+      dismissedQueryRef.current = null;
+    }
     setQuery(initialQuery);
   }, [initialQuery]);
 
@@ -115,7 +119,9 @@ export function SearchAutocomplete({
         setResults(data.products || []);
         setActiveIndex(-1);
         setIsLoading(false);
-        setIsOpen(true);
+        if (dismissedQueryRef.current !== debouncedQuery) {
+          setIsOpen(true);
+        }
       } catch (_error) {
         if (controller.signal.aborted) return;
         setResults([]);
@@ -137,13 +143,16 @@ export function SearchAutocomplete({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    dismissedQueryRef.current = query;
     setIsOpen(false);
+    setActiveIndex(-1);
     if (onSearchSubmit) {
       onSearchSubmit(query);
     }
   };
 
   const pickCategory = (categoryId: string) => {
+    dismissedQueryRef.current = null;
     onCategorySelect?.(categoryId);
     setQuery("");
     setIsOpen(false);
@@ -155,8 +164,17 @@ export function SearchAutocomplete({
 
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Escape") {
+      event.preventDefault();
+      dismissedQueryRef.current = query;
       setIsOpen(false);
       setActiveIndex(-1);
+      return;
+    }
+
+    // Escape explicitly dismisses the currently highlighted option. The next
+    // Enter submits the typed query even if React has not committed the state
+    // update yet or a late suggestion response is still completing.
+    if (event.key === "Enter" && dismissedQueryRef.current === query) {
       return;
     }
 
@@ -195,11 +213,13 @@ export function SearchAutocomplete({
           type="search"
           value={query}
           onChange={(e) => {
+            dismissedQueryRef.current = null;
             setQuery(e.target.value);
             setIsOpen(true);
             setActiveIndex(-1);
           }}
           onFocus={() => {
+            dismissedQueryRef.current = null;
             setIsOpen(true);
             setActiveIndex(-1);
           }}

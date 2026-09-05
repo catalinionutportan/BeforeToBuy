@@ -24,7 +24,10 @@ import {
   resolveOccupiedBrowseCategory,
   shouldIgnoreLandingCategory,
 } from "@/lib/market-hubs";
-import { resolveShortcutBoards } from "@/lib/browse-shortcut-boards";
+import {
+  presentationCategoryGroupsForCountry,
+  resolveShortcutBoards,
+} from "@/lib/browse-shortcut-boards";
 import { BrowseShortcutBoards } from "@/components/home/BrowseShortcutBoards";
 import {
   CATEGORY_UI,
@@ -191,6 +194,41 @@ export default function HomePageClient({
     ];
     const seen = new Set<string>([ALL_CATEGORIES_ID]);
     const order = marketHubOrderForCountry(userLocation.countryCode);
+    const presentationGroupByMember = new Map(
+      presentationCategoryGroupsForCountry(userLocation.countryCode).flatMap((group) =>
+        group.memberCategoryIds.map((categoryId) => [categoryId, group] as const)
+      )
+    );
+    const appendLeafOption = (leaf: { id: string; count: number }) => {
+      const group = presentationGroupByMember.get(leaf.id);
+      if (group) {
+        if (group.memberCategoryIds.some((categoryId) => seen.has(categoryId))) return;
+        const count = group.memberCategoryIds.reduce(
+          (sum, categoryId) => sum + (leafCounts[categoryId] ?? 0),
+          0
+        );
+        if (count <= 0) return;
+        const selectedGroupId = group.memberCategoryIds.includes(selectedCategory)
+          ? selectedCategory
+          : group.primaryCategoryId;
+        options.push({
+          id: selectedGroupId,
+          label: group.memberCategoryIds
+            .map((categoryId) => getLocalizedCategoryLabel(categoryId, browseLocale))
+            .join(" + "),
+          count,
+        });
+        group.memberCategoryIds.forEach((categoryId) => seen.add(categoryId));
+        return;
+      }
+      if (seen.has(leaf.id)) return;
+      seen.add(leaf.id);
+      options.push({
+        id: leaf.id,
+        label: getLocalizedCategoryLabel(leaf.id, browseLocale),
+        count: leaf.count,
+      });
+    };
 
     for (const hubId of order) {
       const hubCount = hubCounts[hubId] ?? 0;
@@ -216,13 +254,7 @@ export default function HomePageClient({
         );
 
       for (const leaf of occupiedLeaves) {
-        if (seen.has(leaf.id)) continue;
-        seen.add(leaf.id);
-        options.push({
-          id: leaf.id,
-          label: getLocalizedCategoryLabel(leaf.id, browseLocale),
-          count: leaf.count,
-        });
+        appendLeafOption(leaf);
       }
     }
 
@@ -235,13 +267,7 @@ export default function HomePageClient({
         )
     );
     for (const leaf of ungroupedOccupiedLeaves) {
-      if (seen.has(leaf.id)) continue;
-      seen.add(leaf.id);
-      options.push({
-        id: leaf.id,
-        label: getLocalizedCategoryLabel(leaf.id, browseLocale),
-        count: leaf.count,
-      });
+      appendLeafOption(leaf);
     }
 
     return options;
@@ -253,6 +279,7 @@ export default function HomePageClient({
     homeUi.hubAll,
     hubCounts,
     hubLabels,
+    selectedCategory,
     userLocation.countryCode,
   ]);
 

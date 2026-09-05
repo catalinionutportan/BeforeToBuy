@@ -181,6 +181,7 @@ export function Header({
         selectedCategory={selectedCategoryId}
         onCategoryChange={handleCategoryChange}
         categoryCounts={categoryCounts}
+        countryCode={userLocation.countryCode}
         locale={locale}
       />
     </>

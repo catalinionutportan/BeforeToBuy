@@ -7,6 +7,7 @@ const count = vi.fn();
 const groupBy = vi.fn();
 const categoryRows = vi.fn();
 const brandRows = vi.fn();
+const countryRows = vi.fn();
 
 vi.mock("@/lib/db", () => ({
   prisma: {
@@ -15,6 +16,7 @@ vi.mock("@/lib/db", () => ({
       if (sql.includes("DISTINCT ON")) return Promise.resolve([]);
       if (sql.includes("COUNT(*)::int AS n")) return categoryRows(...args);
       if (sql.includes("SELECT mp.brand")) return brandRows(...args);
+      if (sql.includes("countryTotal")) return countryRows(...args);
       return queryRaw(...args);
     },
     product: {
@@ -28,6 +30,12 @@ vi.mock("@/lib/db", () => ({
 
 import { resetCatalogBrowseCacheForTests, setCachedBrowseMeta } from "@/lib/catalog-browse-cache";
 import { getProductsFromDb } from "@/lib/db-service";
+// Query-shape tests use the DB double; transaction lifecycle is tested separately.
+vi.mock("@/lib/catalog-read-transaction", async () => ({
+  catalogReadDb: () => prisma,
+  withBoundedCatalogRead: async (_country: string, operation: () => Promise<unknown>) => operation(),
+}));
+import { prisma } from "@/lib/db";
 
 function mockProduct(id: string, deliveryCost: number | null) {
   return {
@@ -71,6 +79,7 @@ describe("getProductsFromDb offer visibility", () => {
     queryRaw.mockResolvedValue([]);
     categoryRows.mockResolvedValue([]);
     brandRows.mockResolvedValue([]);
+    countryRows.mockResolvedValue([{ countryTotal: 50 }]);
     groupBy.mockResolvedValue([]);
     findFirst.mockResolvedValue(null);
   });
@@ -87,6 +96,82 @@ describe("getProductsFromDb offer visibility", () => {
     expect(page.totalMatched).toBe(2);
     expect(count).toHaveBeenCalledOnce();
     expect(page.products.length < page.totalMatched).toBe(true);
+  });
+
+  it.each(["CH", "DE", "GB", "US"])("counts and pages a %s text search in one matched set", async (country) => {
+    await setCachedBrowseMeta(country, {
+      countryProductCount: 50, categoryCovers: {}, brandOptions: [], categoryCounts: {}, leafCounts: {},
+    });
+    queryRaw.mockResolvedValue([{ total: 9, ids: ["second", "third"] }]);
+    findMany.mockResolvedValue([mockProduct("third", 0), mockProduct("second", 0)]);
+    const page = await getProductsFromDb(country, "needle", undefined, 2, 2);
+    expect(page.totalMatched).toBe(9);
+    expect(page.products.map((product) => product.id)).toEqual(["second", "third"]);
+    expect(count).not.toHaveBeenCalled();
+    expect(queryRaw).toHaveBeenCalledOnce();
+    expect(findMany).toHaveBeenCalledOnce();
+    const sql = queryRaw.mock.calls[0]![0];
+    expect(sql.sql).toContain("WITH matched_products AS MATERIALIZED");
+    expect(sql.sql).toContain("COUNT(*)::int FROM matched_products");
+    expect(sql.sql).toContain("ORDER BY id ASC LIMIT");
+    expect(sql.values).toContain("%needle%");
+  });
+
+  it("retains the true search total beyond the last page without fetching arbitrary products", async () => {
+    await setCachedBrowseMeta("CH", {
+      countryProductCount: 50, categoryCovers: {}, brandOptions: [], categoryCounts: {}, leafCounts: {},
+    });
+    queryRaw.mockResolvedValue([{ total: 3, ids: [] }]);
+    const page = await getProductsFromDb("CH", "needle", undefined, 48, 96);
+    expect(page.totalMatched).toBe(3);
+    expect(page.products).toEqual([]);
+    expect(findMany).not.toHaveBeenCalled();
+    expect(count).not.toHaveBeenCalled();
+  });
+
+  it("uses an indexed exact country count on a cold search, without the old Prisma full-count path", async () => {
+    queryRaw.mockResolvedValue([{ total: 0, ids: [] }]);
+    const page = await getProductsFromDb("CH", "missing", undefined, 48, 0);
+    expect(page.totalMatched).toBe(0);
+    expect(page.countryProductCount).toBe(50);
+    expect(count).not.toHaveBeenCalled();
+    expect(countryRows).toHaveBeenCalledOnce();
+    expect(categoryRows).not.toHaveBeenCalled();
+    expect(brandRows).not.toHaveBeenCalled();
+    expect(JSON.stringify(countryRows.mock.calls)).toContain("WITH market_products AS MATERIALIZED");
+  });
+
+  it("requires the Reifen classification offer itself to be in stock in a CH wheel search", async () => {
+    await setCachedBrowseMeta("CH", {
+      countryProductCount: 50, categoryCovers: {}, brandOptions: [], categoryCounts: {}, leafCounts: {},
+    });
+    queryRaw.mockResolvedValue([{ total: 0, ids: [] }]);
+    await getProductsFromDb("CH", "wheel", "auto-complete-wheels", 24, 0);
+    const sql = queryRaw.mock.calls[0]![0];
+    expect(sql.sql).toMatch(/o\."feedMerchantId" = \?\s+AND o\."inStock" = true/);
+  });
+
+  it("applies category, brand, store, GTIN and delivery/price filters inside the shared search predicate", async () => {
+    await setCachedBrowseMeta("CH", {
+      countryProductCount: 50, categoryCovers: {}, brandOptions: [], categoryCounts: {}, leafCounts: {},
+    });
+    queryRaw.mockResolvedValue([{ total: 0, ids: [] }]);
+    const needle = "value' OR 1=1 --";
+    await getProductsFromDb("CH", needle, "notebooks-laptops", 24, 0, undefined, {
+      brand: "Acer", domain: "acer.com", hasGtinOnly: true, freeDeliveryOnly: true,
+      minTotalPrice: 100, maxTotalPrice: 200,
+    });
+    const sql = queryRaw.mock.calls[0]![0];
+    expect(sql.sql).not.toContain(needle);
+    expect(sql.values).toContain(`%${needle}%`);
+    expect(sql.values).toContain("notebooks-laptops");
+    expect(sql.values).toContain("Acer");
+    expect(sql.values).toContain("%acer.com%");
+    expect(sql.sql).toContain('o."inStock" = true');
+    expect(sql.sql).toContain('o."deliveryCost" IS NOT NULL');
+    expect(sql.sql).toContain('COALESCE(o."totalPrice", o.price)');
+    expect(sql.sql).toContain("p.gtin IS NOT NULL");
+    expect(count).not.toHaveBeenCalled();
   });
 
   it("drops products whose visible offers were filtered out after fetch", async () => {

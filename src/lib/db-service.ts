@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { catalogReadDb, withBoundedCatalogRead } from "@/lib/catalog-read-transaction";
 import { Prisma, type Offer as PrismaOffer } from "@prisma/client";
 import type { CountryCode, Product, Offer } from "@/types";
 import { getParentCategoryId, resolveCategoryAlias } from "@/lib/categories";
@@ -216,7 +216,20 @@ function reifenRimOfferWhere(): Prisma.ProductWhereInput {
 
 /** In-stock catalogue size for a market. Cheap COUNT — never infer this from the Acer first page. */
 export async function countInStockProductsForCountry(countryCode: string): Promise<number> {
-  return prisma.product.count({
+  if (["CH", "DE", "GB", "US"].includes(countryCode.toUpperCase())) {
+    const [row] = await catalogReadDb().$queryRaw<Array<{ countryTotal: number }>>(Prisma.sql`
+      WITH market_products AS MATERIALIZED (
+        SELECT p.id FROM "Product" p WHERE p."targetCountries" @> ARRAY[${countryCode}]::text[]
+      )
+      SELECT COUNT(*)::int AS "countryTotal" FROM market_products p
+      WHERE EXISTS (SELECT 1 FROM "Offer" o WHERE o."productId" = p.id AND o."inStock" = true)
+    `);
+    if (!row || !Number.isSafeInteger(row.countryTotal) || row.countryTotal < 0) {
+      throw new Error("Country count query returned invalid metadata");
+    }
+    return row.countryTotal;
+  }
+  return catalogReadDb().product.count({
     where: {
       targetCountries: { has: countryCode },
       offers: { some: { inStock: true } },
@@ -261,6 +274,7 @@ function categoryConstraintSql(countryCode: string, category?: string): Prisma.S
           SELECT 1 FROM "Offer" o
           WHERE o."productId" = p.id
             AND o."feedMerchantId" = ${REIFEN_FEED_MERCHANT_ID}
+            AND o."inStock" = true
         )
         AND (${rimTitleSql})
       )
@@ -335,7 +349,7 @@ export async function getCategoryCountsFromDb(countryCode: string): Promise<{
   categoryCounts: Record<string, number>;
   leafCounts: Record<string, number>;
 }> {
-  const rows = await prisma.$queryRaw<Array<{ category: string; n: number }>>(Prisma.sql`
+  const rows = await catalogReadDb().$queryRaw<Array<{ category: string; n: number }>>(Prisma.sql`
     WITH market_products AS MATERIALIZED (
       SELECT p.id, p.category
       FROM "Product" p
@@ -367,7 +381,7 @@ export async function getCategoryCountsFromDb(countryCode: string): Promise<{
   const isCh = countryCode.toUpperCase() === "CH";
   const tiresInCatalog = leafCounts[AUTO_TIRES_LEAF] ?? 0;
   if (isCh && tiresInCatalog > 0) {
-    const rimAmongTires = await prisma.product.count({
+    const rimAmongTires = await catalogReadDb().product.count({
       where: {
         targetCountries: { has: countryCode },
         category: AUTO_TIRES_LEAF,
@@ -402,7 +416,7 @@ export async function getCategoryCountsFromDb(countryCode: string): Promise<{
 async function getBrowseBrandRowsFromDb(
   countryCode: string
 ): Promise<Array<{ brand: string | null }>> {
-  return prisma.$queryRaw<Array<{ brand: string | null }>>(Prisma.sql`
+  return catalogReadDb().$queryRaw<Array<{ brand: string | null }>>(Prisma.sql`
     WITH market_products AS MATERIALIZED (
       SELECT p.id, p.brand
       FROM "Product" p
@@ -446,7 +460,7 @@ export async function getCategoryCoverImagesFromDb(
     // Prisma 5 findMany(distinct) deduplicates after reading the matching rows.
     // Keep the catalogue scan inside Postgres and transfer one row per category.
     // Stable ID ordering also prevents covers changing between identical warms.
-    const rows = await prisma.$queryRaw<Array<{ category: string; image: string }>>(Prisma.sql`
+    const rows = await catalogReadDb().$queryRaw<Array<{ category: string; image: string }>>(Prisma.sql`
       SELECT DISTINCT ON ("category") "category", "image"
       FROM "Product"
       WHERE ${countryCode} = ANY("targetCountries") AND "image" LIKE 'http%'
@@ -462,7 +476,7 @@ export async function getCategoryCoverImagesFromDb(
 
     if (rimCoverWhere) {
       try {
-        const preferredWheel = await prisma.product.findFirst({
+        const preferredWheel = await catalogReadDb().product.findFirst({
           where: {
             ...rimCoverWhere,
             OR: preferredReifenRimTitleContains().map((token) => ({
@@ -475,7 +489,7 @@ export async function getCategoryCoverImagesFromDb(
         if (wheelImage) {
           covers[AUTO_COMPLETE_WHEELS_LEAF] = wheelImage;
         } else {
-          const fallbackWheel = await prisma.product.findFirst({
+          const fallbackWheel = await catalogReadDb().product.findFirst({
             where: {
               ...rimCoverWhere,
               OR: [{ category: AUTO_COMPLETE_WHEELS_LEAF }, ...REIFEN_RIM_TITLE_OR],
@@ -492,7 +506,7 @@ export async function getCategoryCoverImagesFromDb(
 
     if (isCh) {
       try {
-        const preferredLaptop = await prisma.product.findFirst({
+        const preferredLaptop = await catalogReadDb().product.findFirst({
           where: {
             targetCountries: { has: countryCode },
             category: NOTEBOOKS_LAPTOPS_LEAF,
@@ -586,7 +600,7 @@ async function queryProductIdsByMinOfferTotal(
 
   const offerWhereSql = Prisma.join(offerClauses, " AND ");
 
-  const rows = await prisma.$queryRaw<{ id: string }[]>`
+  const rows = await catalogReadDb().$queryRaw<{ id: string }[]>`
     WITH matched_products AS (
       SELECT p.id
       FROM "Product" p
@@ -624,14 +638,12 @@ async function queryProductIdsByMinOfferTotal(
  */
 const MARKET_FIRST_NATURAL_ORDER_COUNTRIES = new Set(["RO", "GB", "US"]);
 
-async function queryProductIdsByMarketFirstNaturalOrder(
+function matchingMarketProductIdsSql(
   countryCode: string,
   query: string | undefined,
   category: string | undefined,
-  filters: OfferFilterCriteria,
-  take: number,
-  skip: number
-): Promise<string[]> {
+  filters: OfferFilterCriteria
+): Prisma.Sql {
   const categorySql = categoryConstraintSql(countryCode, category);
   const trimmedQuery = query?.trim();
   const queryPattern = trimmedQuery ? `%${trimmedQuery}%` : null;
@@ -671,8 +683,7 @@ async function queryProductIdsByMarketFirstNaturalOrder(
   }
   const offerWhereSql = Prisma.join(offerClauses, " AND ");
 
-  const rows = await prisma.$queryRaw<{ id: string }[]>`
-    WITH matched_products AS MATERIALIZED (
+  return Prisma.sql`
       SELECT p.id
       FROM "Product" p
       WHERE p."targetCountries" @> ARRAY[${countryCode}]::text[]
@@ -685,16 +696,56 @@ async function queryProductIdsByMarketFirstNaturalOrder(
       ${querySql}
       ${brandSql}
       ${gtinSql}
+  `;
+}
+
+async function queryProductIdsByMarketFirstNaturalOrder(
+  countryCode: string,
+  query: string | undefined,
+  category: string | undefined,
+  filters: OfferFilterCriteria,
+  take: number,
+  skip: number
+): Promise<string[]> {
+  const rows = await catalogReadDb().$queryRaw<{ id: string }[]>(Prisma.sql`
+    WITH matched_products AS MATERIALIZED (
+      ${matchingMarketProductIdsSql(countryCode, query, category, filters)}
     )
     SELECT id
     FROM matched_products
     ORDER BY id ASC
     LIMIT ${take}
     OFFSET ${skip}
-  `;
+  `);
 
   return rows.map((row) => row.id);
 }
+
+/** Evaluate expensive text predicates once for both exact count and page IDs. */
+async function queryProductSearchPage(
+  countryCode: string,
+  query: string,
+  category: string | undefined,
+  filters: OfferFilterCriteria,
+  take: number,
+  skip: number
+): Promise<{ ids: string[]; total: number }> {
+  const [result] = await catalogReadDb().$queryRaw<Array<{ ids: string[]; total: number }>>(Prisma.sql`
+    WITH matched_products AS MATERIALIZED (
+      ${matchingMarketProductIdsSql(countryCode, query, category, filters)}
+    ), selected_page AS (
+      SELECT id FROM matched_products ORDER BY id ASC LIMIT ${take} OFFSET ${skip}
+    )
+    SELECT (SELECT COUNT(*)::int FROM matched_products) AS total,
+      COALESCE((SELECT array_agg(id ORDER BY id) FROM selected_page), ARRAY[]::text[]) AS ids
+  `);
+  if (!result || !Number.isSafeInteger(result.total) || result.total < 0 || !Array.isArray(result.ids)) {
+    throw new Error("Search query returned invalid pagination metadata");
+  }
+  return result;
+}
+
+const COMBINED_SEARCH_COUNTRIES = new Set(["CH", "DE", "GB", "US"]);
 
 const CH_LEAD_MERCHANT_ID = "ch-acer";
 
@@ -740,7 +791,7 @@ async function queryChLeadSlice(
         WHERE o."productId" = p.id AND o."feedMerchantId" = ${CH_LEAD_MERCHANT_ID}
       )`;
 
-  const rows = await prisma.$queryRaw<{ id: string }[]>`
+  const rows = await catalogReadDb().$queryRaw<{ id: string }[]>`
     SELECT p.id
     FROM "Product" p
     WHERE ${countryCode} = ANY(p."targetCountries")
@@ -779,7 +830,7 @@ async function queryProductIdsByChLead(
           ? acerIds.length
           : Number(
               (
-                await prisma.$queryRaw<[{ n: number }]>`
+                await catalogReadDb().$queryRaw<[{ n: number }]>`
                   SELECT COUNT(*)::int AS n
                   FROM "Product" p
                   WHERE ${countryCode} = ANY(p."targetCountries")
@@ -847,7 +898,7 @@ async function queryProductIdsByChLead(
   }
   const offerWhereSql = Prisma.join(offerClauses, " AND ");
 
-  const rows = await prisma.$queryRaw<{ id: string }[]>`
+  const rows = await catalogReadDb().$queryRaw<{ id: string }[]>`
     SELECT p.id
     FROM "Product" p
     WHERE ${countryCode} = ANY(p."targetCountries")
@@ -885,7 +936,9 @@ export async function getProductsFromDb(
   filters: OfferFilterCriteria = {}
 ) {
   return withCatalogRevision(countryCode, () =>
-    getProductsFromDbImpl(countryCode, query, category, limit, offset, sort, filters)
+    withBoundedCatalogRead(countryCode, () =>
+      getProductsFromDbImpl(countryCode, query, category, limit, offset, sort, filters)
+    )
   );
 }
 
@@ -898,6 +951,12 @@ async function getProductsFromDbImpl(
   sort?: string,
   filters: OfferFilterCriteria = {}
 ) {
+  const readStarted = performance.now();
+  const recordReadStage = (stage: string) => {
+    if (process.env.CATALOG_READ_TIMINGS === "1") {
+      console.info(JSON.stringify({ catalogRead: countryCode, stage, ms: Math.round(performance.now() - readStarted) }));
+    }
+  };
   const whereClause = buildWhere(countryCode, query, category, filters);
   const offerWhere = buildOfferWhere(filters);
   const visibleOfferWhere: Prisma.OfferWhereInput = offerWhere
@@ -924,7 +983,14 @@ async function getProductsFromDbImpl(
     sort === "newest"
       ? [{ updatedAt: "desc" }, { id: "asc" }]
       : [{ id: "asc" }];
-  const pricedIdsPromise = sortByOfferTotal
+  const searchPagePromise = query?.trim() && !sortByOfferTotal && sort !== "newest" &&
+    COMBINED_SEARCH_COUNTRIES.has(countryCode.toUpperCase())
+    ? queryProductSearchPage(countryCode, query.trim(), category, filters, take, skip)
+      .then((page) => { recordReadStage("search"); return page; })
+    : null;
+  const pricedIdsPromise = searchPagePromise
+    ? searchPagePromise.then((page) => page.ids)
+    : sortByOfferTotal
     ? queryProductIdsByMinOfferTotal(
         countryCode,
         query,
@@ -948,6 +1014,7 @@ async function getProductsFromDbImpl(
       : Promise.resolve(null);
 
   const cachedMeta = await getCachedBrowseMeta(countryCode);
+  recordReadStage(cachedMeta ? "metadata-hit" : "metadata-miss");
   const expandedCategoryIds = expandCategoryFilterToDbIds(category);
   // A related-leaf expansion (e.g. Hair Care + Hair Styling) is not represented
   // by the individual leaf's cached count. A wrong count truncates pagination.
@@ -974,27 +1041,29 @@ async function getProductsFromDbImpl(
     ? Promise.resolve(cachedMeta.countryProductCount)
     : coldCountMapsPromise
       ? coldCountMapsPromise.then((maps) => Object.values(maps.leafCounts).reduce((sum, count) => sum + count, 0))
-      : countInStockProductsForCountry(countryCode);
+      : countInStockProductsForCountry(countryCode).then((count) => { recordReadStage("country-count"); return count; });
 
-  // If browse metadata is not cached yet and user is filtering by category,
-  // schedule a background warm instead of stalling the category page with full table scans.
-  if (!cachedMeta && !unfilteredBrowse) {
+  // Preserve the deferred RO workflow; the other audited markets warm metadata
+  // at the browse boundary, never in the foreground search/hydration queue.
+  if (!cachedMeta && !unfilteredBrowse && !COMBINED_SEARCH_COUNTRIES.has(countryCode.toUpperCase())) {
     warmBrowseMetaForCountry(countryCode).catch(() => {});
   }
 
   const [pricedIds, productsDefault, total, countMaps, countryTotal, brandRows, categoryCovers] =
     await Promise.all([
       pricedIdsPromise,
-      sortByOfferTotal || sortByChLead || sortByMarketFirstNaturalOrder
+      searchPagePromise || sortByOfferTotal || sortByChLead || sortByMarketFirstNaturalOrder
         ? Promise.resolve([] as PrismaProductWithOffers[])
-        : prisma.product.findMany({
+        : catalogReadDb().product.findMany({
             where: whereClause,
             include: { offers: { where: visibleOfferWhere } },
             take,
             skip,
             orderBy,
           }),
-      cachedMeta && unfilteredBrowse
+      searchPagePromise
+        ? searchPagePromise.then((page) => page.total)
+        : cachedMeta && unfilteredBrowse
         ? Promise.resolve(cachedMeta.countryProductCount)
         : unfilteredBrowse
           ? countryCountPromise
@@ -1010,7 +1079,7 @@ async function getProductsFromDbImpl(
                 cachedMeta.categoryCounts[resolveCategoryAlias(category)] ??
                 cachedMeta.leafCounts[resolveCategoryAlias(category)]!
               )
-            : prisma.product.count({ where: whereClause }),
+            : catalogReadDb().product.count({ where: whereClause }),
       cachedMeta
         ? Promise.resolve({
             categoryCounts: cachedMeta.categoryCounts,
@@ -1039,11 +1108,12 @@ async function getProductsFromDbImpl(
     ]);
 
   let pageProducts: PrismaProductWithOffers[];
+  recordReadStage("selection-complete");
   if (pricedIds) {
     if (pricedIds.length === 0) {
       pageProducts = [];
     } else {
-      const fetched = await prisma.product.findMany({
+      const fetched = await catalogReadDb().product.findMany({
         where: { id: { in: pricedIds } },
         include: { offers: { where: visibleOfferWhere } },
       });
@@ -1061,6 +1131,7 @@ async function getProductsFromDbImpl(
   const products = pageProducts
     .map(mapPrismaProduct)
     .filter((product) => (product.offers?.length ?? 0) > 0);
+  recordReadStage("hydration-complete");
 
   const effectiveCountryTotal = countryTotal;
   const effectiveMatchedTotal = unfilteredBrowse ? countryTotal : total;
@@ -1149,7 +1220,7 @@ async function warmBrowseMetaForCountryOnce(countryCode: string): Promise<void> 
 
 /** Production offers used by the scheduled price-history snapshot. */
 export async function getSnapshotProductsFromDb(countryCode: CountryCode): Promise<Product[]> {
-  const products = await prisma.product.findMany({
+  const products = await catalogReadDb().product.findMany({
     where: {
       targetCountries: { has: countryCode },
       offers: { some: { source: "production-live", inStock: true } },

@@ -14,7 +14,12 @@ import {
   getSubcategoryLabel,
   type CategoryLocale,
 } from "@/lib/category-i18n";
+import {
+  presentationCategoryGroupsForCountry,
+  type PresentationCategoryGroup,
+} from "@/lib/browse-shortcut-boards";
 import { HOME_UI } from "@/lib/i18n/ui";
+import type { CountryCode } from "@/types";
 
 interface CategoryFlyoutMenuProps {
   open: boolean;
@@ -22,6 +27,7 @@ interface CategoryFlyoutMenuProps {
   selectedCategory: string;
   onCategoryChange: (categoryId: string) => void;
   categoryCounts?: Record<string, number>;
+  countryCode: CountryCode;
   locale: CategoryLocale;
 }
 
@@ -71,6 +77,90 @@ function nodeContainsSelected(
   );
 }
 
+function categoryGroupForMember(
+  categoryId: string,
+  groups: readonly PresentationCategoryGroup[]
+): PresentationCategoryGroup | undefined {
+  return groups.find((group) => group.memberCategoryIds.includes(categoryId));
+}
+
+function groupedCategoryCount(
+  categoryId: string,
+  counts: Record<string, number> | undefined,
+  groups: readonly PresentationCategoryGroup[]
+): number {
+  const group = categoryGroupForMember(categoryId, groups);
+  if (!group || group.primaryCategoryId !== categoryId) return counts?.[categoryId] ?? 0;
+  return group.memberCategoryIds.reduce(
+    (total, memberCategoryId) => total + (counts?.[memberCategoryId] ?? 0),
+    0
+  );
+}
+
+function groupedCategoryLabel(
+  categoryId: string,
+  locale: CategoryLocale,
+  groups: readonly PresentationCategoryGroup[]
+): string {
+  const group = categoryGroupForMember(categoryId, groups);
+  if (!group || group.primaryCategoryId !== categoryId) {
+    return getSubcategoryLabel(categoryId, locale);
+  }
+  return group.memberCategoryIds
+    .map((memberCategoryId) => getSubcategoryLabel(memberCategoryId, locale))
+    .join(" + ");
+}
+
+function isSuppressedGroupMember(
+  categoryId: string,
+  groups: readonly PresentationCategoryGroup[]
+): boolean {
+  const group = categoryGroupForMember(categoryId, groups);
+  return Boolean(group && group.primaryCategoryId !== categoryId);
+}
+
+function nodeContainsGroupMember(
+  node: ShoppingSubcategory,
+  groups: readonly PresentationCategoryGroup[]
+): boolean {
+  if (categoryGroupForMember(node.id, groups)) return true;
+  return Boolean(node.children?.some((child) => nodeContainsGroupMember(child, groups)));
+}
+
+function menuNodeHasInventory(
+  node: ShoppingSubcategory,
+  counts: Record<string, number> | undefined,
+  groups: readonly PresentationCategoryGroup[]
+): boolean {
+  if (isSuppressedGroupMember(node.id, groups)) return false;
+  const group = categoryGroupForMember(node.id, groups);
+  if (
+    group?.primaryCategoryId === node.id &&
+    groupedCategoryCount(node.id, counts, groups) > 0
+  ) {
+    return true;
+  }
+  if (!counts) return true;
+  if ((counts[node.id] ?? 0) > 0) return true;
+  return Boolean(
+    node.children?.some((child) => menuNodeHasInventory(child, counts, groups))
+  );
+}
+
+function menuDepartmentHasInventory(
+  category: ShoppingCategory,
+  counts: Record<string, number> | undefined,
+  groups: readonly PresentationCategoryGroup[]
+): boolean {
+  if (
+    groups.length === 0 ||
+    !category.subcategories.some((sub) => nodeContainsGroupMember(sub, groups))
+  ) {
+    return departmentHasInventory(category, counts);
+  }
+  return category.subcategories.some((sub) => menuNodeHasInventory(sub, counts, groups));
+}
+
 /** Desktop menu type scales with viewport; stays large on wide screens. */
 const DESKTOP_MENU_TEXT =
   "text-[clamp(0.95rem,0.55vw+0.72rem,1.125rem)] leading-snug";
@@ -111,11 +201,16 @@ export function CategoryFlyoutMenu({
   selectedCategory,
   onCategoryChange,
   categoryCounts,
+  countryCode,
   locale,
 }: CategoryFlyoutMenuProps) {
   const ui = HOME_UI[locale];
   const titleId = useId();
   const isTouch = useIsCoarsePointer();
+  const presentationGroups = presentationCategoryGroupsForCountry(countryCode);
+  const selectedPresentationCategory =
+    categoryGroupForMember(selectedCategory, presentationGroups)?.primaryCategoryId ??
+    selectedCategory;
 
   // Desktop columns
   const [col2, setCol2] = useState<PreviewColumn | null>(null);
@@ -273,7 +368,9 @@ export function CategoryFlyoutMenu({
   ) => {
     const items =
       col.kind === "department" ? col.category.subcategories : col.node.children ?? [];
-    const visibleItems = items.filter((item) => nodeHasInventory(item, categoryCounts));
+    const visibleItems = items.filter((item) =>
+      menuNodeHasInventory(item, categoryCounts, presentationGroups)
+    );
     const parentId = col.kind === "department" ? col.category.id : col.node.id;
     const columnTitle =
       col.kind === "department"
@@ -296,9 +393,9 @@ export function CategoryFlyoutMenu({
         </button>
         <ul className="mt-0.5">
           {visibleItems.map((item) => {
-            const count = categoryCounts?.[item.id] ?? 0;
+            const count = groupedCategoryCount(item.id, categoryCounts, presentationGroups);
             const hasChildren = Boolean(item.children?.length);
-            const selected = nodeContainsSelected(item, selectedCategory);
+            const selected = nodeContainsSelected(item, selectedPresentationCategory);
             const previewed = highlightId === item.id;
             return (
               <li key={item.id}>
@@ -310,7 +407,7 @@ export function CategoryFlyoutMenu({
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block leading-snug">
-                      {getSubcategoryLabel(item.id, locale)}
+                      {groupedCategoryLabel(item.id, locale, presentationGroups)}
                     </span>
                     {count > 0 && (
                       <span
@@ -388,15 +485,19 @@ export function CategoryFlyoutMenu({
                   <nav aria-label={ui.menuCategories}>
                     <ul className="space-y-0.5">
                       {SHOPPING_CATEGORIES.filter((category) =>
-                        departmentHasInventory(category, categoryCounts)
+                        menuDepartmentHasInventory(
+                          category,
+                          categoryCounts,
+                          presentationGroups
+                        )
                       ).map((category) => {
                         const Icon = category.icon;
                         const count = categoryCounts?.[category.id] ?? 0;
                         const hasSubs = category.subcategories.length > 0;
                         const selected =
-                          selectedCategory === category.id ||
-                          selectedCategory.startsWith(`${category.id}-`) ||
-                          getParentCategoryId(selectedCategory) === category.id;
+                          selectedPresentationCategory === category.id ||
+                          selectedPresentationCategory.startsWith(`${category.id}-`) ||
+                          getParentCategoryId(selectedPresentationCategory) === category.id;
 
                         return (
                           <li key={category.id}>
@@ -443,11 +544,20 @@ export function CategoryFlyoutMenu({
                   </button>
                   <ul className="space-y-0.5">
                     {activeDept.subcategories
-                      .filter((sub) => nodeHasInventory(sub, categoryCounts))
+                      .filter((sub) =>
+                        menuNodeHasInventory(sub, categoryCounts, presentationGroups)
+                      )
                       .map((sub) => {
-                      const count = categoryCounts?.[sub.id] ?? 0;
+                      const count = groupedCategoryCount(
+                        sub.id,
+                        categoryCounts,
+                        presentationGroups
+                      );
                       const hasChildren = Boolean(sub.children?.length);
-                      const selected = nodeContainsSelected(sub, selectedCategory);
+                      const selected = nodeContainsSelected(
+                        sub,
+                        selectedPresentationCategory
+                      );
                       return (
                         <li key={sub.id}>
                           <button
@@ -457,7 +567,7 @@ export function CategoryFlyoutMenu({
                           >
                             <span className="min-w-0 flex-1">
                               <span className="block">
-                                {getSubcategoryLabel(sub.id, locale)}
+                                {groupedCategoryLabel(sub.id, locale, presentationGroups)}
                               </span>
                               {count > 0 && (
                                 <span className="mt-0.5 block text-[13px] text-neutral-400">
@@ -488,11 +598,20 @@ export function CategoryFlyoutMenu({
                   </button>
                   <ul className="space-y-0.5">
                     {activeGroup.children
-                      .filter((child) => nodeHasInventory(child, categoryCounts))
+                      .filter((child) =>
+                        menuNodeHasInventory(child, categoryCounts, presentationGroups)
+                      )
                       .map((child) => {
-                      const count = categoryCounts?.[child.id] ?? 0;
+                      const count = groupedCategoryCount(
+                        child.id,
+                        categoryCounts,
+                        presentationGroups
+                      );
                       const hasChildren = Boolean(child.children?.length);
-                      const selected = nodeContainsSelected(child, selectedCategory);
+                      const selected = nodeContainsSelected(
+                        child,
+                        selectedPresentationCategory
+                      );
                       return (
                         <li key={child.id}>
                           <button
@@ -502,7 +621,7 @@ export function CategoryFlyoutMenu({
                           >
                             <span className="min-w-0 flex-1">
                               <span className="block">
-                                {getSubcategoryLabel(child.id, locale)}
+                                {groupedCategoryLabel(child.id, locale, presentationGroups)}
                               </span>
                               {count > 0 && (
                                 <span className="mt-0.5 block text-[13px] text-neutral-400">
@@ -563,15 +682,19 @@ export function CategoryFlyoutMenu({
               <nav aria-label={ui.menuCategories} className="mt-0.5">
                 <ul>
                   {SHOPPING_CATEGORIES.filter((category) =>
-                    departmentHasInventory(category, categoryCounts)
+                    menuDepartmentHasInventory(
+                      category,
+                      categoryCounts,
+                      presentationGroups
+                    )
                   ).map((category) => {
                     const Icon = category.icon;
                     const count = categoryCounts?.[category.id] ?? 0;
                     const hasSubs = category.subcategories.length > 0;
                     const selected =
-                      selectedCategory === category.id ||
-                      selectedCategory.startsWith(`${category.id}-`) ||
-                      getParentCategoryId(selectedCategory) === category.id;
+                      selectedPresentationCategory === category.id ||
+                      selectedPresentationCategory.startsWith(`${category.id}-`) ||
+                      getParentCategoryId(selectedPresentationCategory) === category.id;
                     const previewed =
                       col2?.kind === "department" && col2.category.id === category.id;
 

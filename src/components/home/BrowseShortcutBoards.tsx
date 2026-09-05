@@ -5,6 +5,7 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { getLocalizedCategoryLabel } from "@/lib/category-i18n";
 import {
   groupShortcutBoardColumns,
+  type VisibleShortcutTile,
   type VisibleShortcutBoard,
 } from "@/lib/browse-shortcut-boards";
 import type { SiteLocale } from "@/lib/i18n/locales";
@@ -84,19 +85,28 @@ const CURATED_SHORTCUT_COVERS: Record<string, string> = {
 function coverImageForCategory(
   products: Product[],
   categoryId: string,
-  categoryCovers?: Record<string, string>
+  categoryCovers?: Record<string, string>,
+  combinedCategoryIds?: readonly string[]
 ): string {
-  if (CURATED_SHORTCUT_COVERS[categoryId]) {
-    return CURATED_SHORTCUT_COVERS[categoryId];
+  const categoryIds = combinedCategoryIds ?? [categoryId];
+  for (const candidateId of categoryIds) {
+    if (CURATED_SHORTCUT_COVERS[candidateId]) {
+      return CURATED_SHORTCUT_COVERS[candidateId];
+    }
   }
-  const fromCatalog = categoryCovers?.[categoryId]?.trim();
-  if (fromCatalog && (categoryId !== AUTO_COMPLETE_WHEELS_LEAF || isReifenHostedImage(fromCatalog))) {
-    return fromCatalog;
+  for (const candidateId of categoryIds) {
+    const fromCatalog = categoryCovers?.[candidateId]?.trim();
+    if (
+      fromCatalog &&
+      (candidateId !== AUTO_COMPLETE_WHEELS_LEAF || isReifenHostedImage(fromCatalog))
+    ) {
+      return fromCatalog;
+    }
   }
   const fromProducts = products.find(
     (product) =>
       product.image &&
-      productMatchesCategoryFilter(product, categoryId) &&
+      categoryIds.some((candidateId) => productMatchesCategoryFilter(product, candidateId)) &&
       (categoryId !== AUTO_COMPLETE_WHEELS_LEAF || isReifenHostedImage(product.image))
   )?.image;
   return fromProducts || SAFE_IMAGE_FALLBACK;
@@ -105,6 +115,12 @@ function coverImageForCategory(
 function boardTitle(board: VisibleShortcutBoard, locale: SiteLocale): string {
   const ui = HOME_UI[locale] ?? HOME_UI.en;
   return ui[board.titleKey] ?? board.titleKey;
+}
+
+function shortcutTileLabel(tile: VisibleShortcutTile, locale: SiteLocale): string {
+  return (tile.combinedCategoryIds ?? [tile.categoryId])
+    .map((categoryId) => getLocalizedCategoryLabel(categoryId, locale))
+    .join(" + ");
 }
 
 function ShortcutBoardCard({
@@ -139,9 +155,14 @@ function ShortcutBoardCard({
       <div className="grid grid-cols-2 gap-1.5">
         {board.tiles.map((tile, index) => {
           const featured = board.featured && index === 0;
-          const image = coverImageForCategory(products, tile.categoryId, categoryCovers);
+          const image = coverImageForCategory(
+            products,
+            tile.categoryId,
+            categoryCovers,
+            tile.combinedCategoryIds
+          );
           if (!image) return null;
-          const label = getLocalizedCategoryLabel(tile.categoryId, locale);
+          const label = shortcutTileLabel(tile, locale);
           return (
             <button
               key={tile.categoryId}
@@ -199,7 +220,12 @@ function ShortcutCategoryRail({
           boardId: board.id,
           boardTitle: boardTitle(board, locale),
           domain: board.domain,
-          image: coverImageForCategory(products, tile.categoryId, categoryCovers),
+          image: coverImageForCategory(
+            products,
+            tile.categoryId,
+            categoryCovers,
+            tile.combinedCategoryIds
+          ),
         }))
       )
       .filter((item) => {
@@ -262,7 +288,7 @@ function ShortcutCategoryRail({
         data-testid="shortcut-category-rail"
       >
         {items.map((item) => {
-          const label = getLocalizedCategoryLabel(item.categoryId, locale);
+          const label = shortcutTileLabel(item, locale);
           const countLabel = ui.itemsFound.replace(
             "{count}",
             new Intl.NumberFormat(locale).format(item.count)
@@ -335,7 +361,14 @@ export function BrowseShortcutBoards({
         .map((board) => ({
           ...board,
           tiles: board.tiles.filter((tile) =>
-            Boolean(coverImageForCategory(products, tile.categoryId, categoryCovers))
+            Boolean(
+              coverImageForCategory(
+                products,
+                tile.categoryId,
+                categoryCovers,
+                tile.combinedCategoryIds
+              )
+            )
           ),
         }))
         .filter((board) => board.tiles.length > 0),
