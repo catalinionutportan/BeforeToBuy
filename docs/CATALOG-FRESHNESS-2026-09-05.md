@@ -82,4 +82,29 @@ presentation-card redesign are intentionally deferred.
 
 ## Publication
 
-Pending final candidate cold-load and browser verification.
+Runtime commit `2f8443c` published on the NAS and public domain after successful
+final candidate verification. Prior live release preserved at
+`/share/Container/beforetobuy-backup-pre-freshness-20260905-0255`.
+Container-mounted source and BUILD_ID hashes match the deployed release.
+
+Final candidate AND public browser flows passed for CH/DE/GB/US: 48 unique cards,
+same order and vertical card position (within 3px) after modal close, page 2
+disjoint from page 1, no horizontal overflow at 375/768/1440px. Presentation rails
+remain above products with 20/3/15/6 categories. All 23 sitemap shards served
+210,178 URLs. No production affiliate links were clicked.
+
+Targeted checks: CH Hair Care with Belando returned 24 products from Hair Care /
+Hair Styling and total 5,976 (1,910ms); GB VR returned exactly one VR product;
+unknown CH search returned an honest empty result. RO deep-page and search
+samples are recorded above; RO visual taxonomy was not redesigned.
+
+All nine public smoke checks passed on the first post-cutover run, including the
+previously problematic RO limit24 request and pagination metadata, plus consent
+save/clear. Public warmed limit48 API samples: RO 643ms, CH 427ms, DE 221ms,
+GB 238ms, US 222ms. Every response was 200 with expected counts, origin cache hit,
+Cloudflare DYNAMIC and HTTP no-store; origin caches remain revision-scoped.
+
+No production products/offers were imported, deleted or rewritten during this
+audit. The only database schema change was the additive version table with RLS.
+The stopped temporary candidate container was removed after verification; the
+isolated local PostgreSQL service was stopped with its fixture directory retained.
