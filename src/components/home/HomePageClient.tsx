@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState, Suspense, useCallback, useMemo, useRef } from "react";
+import { useEffect, useState, Suspense, useCallback, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { CountryCode, Product, PromoCoupon } from "@/types";
@@ -49,7 +49,6 @@ import {
 import {
   BROWSE_CATEGORY_EVENT,
   ensureBrowseCatalog,
-  getSessionBrowsePage,
   isUsableAllBrowsePage,
   setSessionBrowsePage,
 } from "@/lib/prefetch-browse-catalog";
@@ -113,20 +112,10 @@ export default function HomePageClient({
   const [productFetchFailed, setProductFetchFailed] = useState<boolean>(initialFetchFailed);
   const [reloadToken, setReloadToken] = useState(0);
   const skippedInitialCatalogRequest = useRef(false);
-  const countryChangeSequence = useRef(0);
 
   const { userLocation, handleCountryChange } = useUserLocation(initialCountry);
   const currentCountryInfo = COUNTRIES[userLocation.countryCode] || COUNTRIES.RO;
 
-  useLayoutEffect(() => {
-    const currentCountry = userLocation.countryCode;
-    if (currentCountry === initialCountry && initialProducts.length > 0) return;
-    const stored = getSessionBrowsePage(currentCountry);
-    if (stored?.products?.length) {
-      setProducts(stored.products);
-      if (stored.meta) setCatalogMeta(stored.meta);
-    }
-  }, [initialCountry, initialProducts.length, userLocation.countryCode]);
   const {
     locale: browseLocale,
     setLocale: setBrowseLocale,
@@ -414,19 +403,6 @@ export default function HomePageClient({
         !debouncedSearchQuery.trim() &&
         !hasActiveOfferFilters(activeOfferFilters) &&
         sortOrder === "default";
-      const sessionPage = cacheableAisle
-        ? getSessionBrowsePage(requestCountry, browseLocale, browseCategory)
-        : null;
-      const sessionIsComplete =
-        browseCategory !== ALL_CATEGORIES_ID || isUsableAllBrowsePage(sessionPage);
-      if (sessionPage?.products?.length && sessionIsComplete) {
-        setProducts(sessionPage.products);
-        setCatalogMeta(sessionPage.meta);
-        setProductFetchFailed(false);
-        setIsLoadingProducts(false);
-        window.clearTimeout(timeoutId);
-        return;
-      }
 
       try {
         if (cacheableAisle) {
@@ -435,8 +411,11 @@ export default function HomePageClient({
             browseLocale,
             browseCategory === ALL_CATEGORIES_ID ? undefined : browseCategory
           );
-          if (controller.signal.aborted) return;
-          if (shared?.products?.length) {
+          if (controller.signal.aborted) {
+            if (didTimeout) throw new Error("Catalogue request timed out");
+            return;
+          }
+          if (shared) {
             setProducts(shared.products);
             setCatalogMeta(shared.meta);
             setProductFetchFailed(false);
@@ -465,6 +444,7 @@ export default function HomePageClient({
 
         const response = await fetch(`/api/products?${params.toString()}`, {
           signal: controller.signal,
+          cache: "no-store",
         });
         if (controller.signal.aborted) return;
 
@@ -483,6 +463,7 @@ export default function HomePageClient({
         setCatalogMeta((prev) => {
           const next = data.meta;
           if (!next) return prev;
+          if (next.catalogRevision !== prev?.catalogRevision) return next;
           const nextCounts = next.categoryCounts ?? {};
           const prevCounts = prev?.categoryCounts ?? {};
           const nextCountsEmpty = Object.keys(nextCounts).length === 0;
@@ -517,19 +498,7 @@ export default function HomePageClient({
       } catch (error) {
         if (controller.signal.aborted && !didTimeout) return;
         console.error("Failed to load products:", error);
-        const fallback = cacheableAisle
-          ? getSessionBrowsePage(
-              requestCountry,
-              browseLocale,
-              browseCategory === ALL_CATEGORIES_ID ? undefined : browseCategory
-            )
-          : null;
-        if (fallback?.products?.length) {
-          setProducts(fallback.products);
-          setCatalogMeta(fallback.meta);
-        } else {
-          setProducts([]);
-        }
+        setProducts([]);
         setProductFetchFailed(true);
       } finally {
         window.clearTimeout(timeoutId);
@@ -571,9 +540,6 @@ export default function HomePageClient({
   const changeCountry = useCallback(
     (countryCode: CountryCode) => {
       if (countryCode === userLocation.countryCode) return;
-      const requestSequence = countryChangeSequence.current + 1;
-      countryChangeSequence.current = requestSequence;
-      const cached = getSessionBrowsePage(countryCode, browseLocale);
       clearBrowseScrollY();
       window.scrollTo({ top: 0, left: 0, behavior: "auto" });
       setCurrentPage(1);
@@ -583,28 +549,11 @@ export default function HomePageClient({
       setSearchInput("");
       setOfferFilters({});
 
-      if (cached?.products?.length) {
-        setProducts(cached.products);
-        setCatalogMeta(cached.meta);
-        setIsLoadingProducts(false);
-        handleCountryChange(countryCode);
-      } else {
-        setIsLoadingProducts(true);
-        void ensureBrowseCatalog(countryCode, browseLocale).then((page) => {
-          if (countryChangeSequence.current !== requestSequence) return;
-          if (page?.products?.length) {
-            setProducts(page.products);
-            setCatalogMeta(page.meta);
-            setProductFetchFailed(false);
-            handleCountryChange(countryCode);
-          } else {
-            setProductFetchFailed(true);
-          }
-          setIsLoadingProducts(false);
-        });
-      }
+      setProducts([]);
+      setIsLoadingProducts(true);
+      handleCountryChange(countryCode);
     },
-    [browseLocale, handleCountryChange, userLocation.countryCode]
+    [handleCountryChange, userLocation.countryCode]
   );
 
   const syncBrowseUrl = useCallback(
@@ -641,18 +590,8 @@ export default function HomePageClient({
         marketProductCount
       );
       const nextDomain = domain === undefined ? selectedDomain : domain || "all";
-      const cachedAisle = getSessionBrowsePage(
-        userLocation.countryCode,
-        browseLocale,
-        next === ALL_CATEGORIES_ID ? undefined : next
-      );
-      if (cachedAisle) {
-        setProducts(cachedAisle.products);
-        setCatalogMeta(cachedAisle.meta);
-        setIsLoadingProducts(false);
-      } else {
-        setIsLoadingProducts(true);
-      }
+      setIsLoadingProducts(true);
+      setReloadToken((token) => token + 1);
       if (nextDomain !== selectedDomain) setSelectedDomain(nextDomain);
       setSelectedCategory(next);
       syncBrowseUrl(next, nextDomain, offerFilters);
@@ -667,8 +606,6 @@ export default function HomePageClient({
       offerFilters,
       inventoryCounts,
       marketProductCount,
-      userLocation.countryCode,
-      browseLocale,
     ]
   );
 

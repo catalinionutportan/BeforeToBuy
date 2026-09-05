@@ -34,15 +34,16 @@ import { hasActiveOfferFilters, parseOfferFiltersFromSearchParams } from "@/lib/
 import type { ProductSortOption } from "@/lib/product-list-options";
 import { withTimeout } from "@/lib/promise-timeout";
 import { coalesceCatalogRead } from "@/lib/catalog-read-coalescer";
+import { getCatalogRevision, withCatalogRevision } from "@/lib/catalog-revision";
 import {
   clampFilterString,
   MAX_PRODUCT_FILTER_CHARS,
   MAX_PRODUCT_QUERY_CHARS,
 } from "@/lib/request-body-limits";
 
-/** First-page JSON is Redis + CDN cached — do not force-dynamic (Vercel then keeps only 30s). */
+/** HTTP responses are uncached; revision-scoped origin caches serve the first page. */
 export const maxDuration = 60;
-export const revalidate = 300;
+export const revalidate = 0;
 
 const homeUi = HOME_UI[DEFAULT_LOCALE];
 
@@ -176,17 +177,16 @@ export async function GET(request: Request) {
     !includePriceHistory &&
     !hasActiveOfferFilters(filters);
 
-  const browseCacheHeaders: Record<string, string> = cacheableFirstPage
-    ? {
-        "Cache-Control": "public, max-age=300, s-maxage=900, stale-while-revalidate=3600",
-        "CDN-Cache-Control": "public, s-maxage=900, stale-while-revalidate=3600",
-        "Vercel-CDN-Cache-Control": "public, s-maxage=900, stale-while-revalidate=3600",
-      }
-    : {
-        "Cache-Control": "public, max-age=30, s-maxage=60, stale-while-revalidate=30",
-      };
+  // The origin cache is revision-scoped. An unversioned HTTP/CDN response must
+  // not outlive an import and bypass the committed-revision check.
+  const browseCacheHeaders: Record<string, string> = {
+    "Cache-Control": "no-store",
+    "CDN-Cache-Control": "no-store",
+    "Vercel-CDN-Cache-Control": "no-store",
+  };
 
   try {
+    return await withCatalogRevision(countryCode, async () => {
     if (cacheableFirstPage) {
       const cachedPage = await getCachedFirstBrowsePage(countryCode, limit, category);
       if (cachedPage?.products?.length) {
@@ -245,7 +245,7 @@ export async function GET(request: Request) {
     }
 
     const result = await withTimeout(
-      coalesceCatalogRead(JSON.stringify([countryCode, query, category, locale, limit, offset, includePriceHistory, filters, sort]), () => fetchMergedProductsForLocation(userLocation, query, category, locale, {
+      coalesceCatalogRead(JSON.stringify([await getCatalogRevision(countryCode), countryCode, query, category, locale, limit, offset, includePriceHistory, filters, sort]), () => fetchMergedProductsForLocation(userLocation, query, category, locale, {
         limit,
         offset,
         includePriceHistory,
@@ -274,6 +274,7 @@ export async function GET(request: Request) {
     }
     return NextResponse.json(result, {
       headers: { ...browseCacheHeaders, "x-btb-catalog-cache": "miss" },
+    });
     });
   } catch (error) {
     const trackingId = randomUUID();

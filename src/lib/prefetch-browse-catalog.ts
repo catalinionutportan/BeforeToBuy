@@ -39,7 +39,6 @@ type PersistedBrowsePage = {
 
 const sessionPages = new Map<string, SessionBrowsePage>();
 const sessionSavedAt = new Map<string, number>();
-const inflightPages = new Map<string, Promise<SessionBrowsePage | null>>();
 
 function sessionCategoryKey(category?: string | null): string {
   const trimmed = category?.trim();
@@ -134,7 +133,6 @@ export function setSessionBrowsePage(
 export function resetSessionBrowsePagesForTests(): void {
   sessionPages.clear();
   sessionSavedAt.clear();
-  inflightPages.clear();
   if (typeof window === "undefined") return;
   const stale: string[] = [];
   for (let index = 0; index < window.sessionStorage.length; index += 1) {
@@ -167,27 +165,21 @@ function browseUrl(
   return `/api/products?${params.toString()}`;
 }
 
-/** One in-flight request per market/aisle — country or category switch reuses it. */
+/** Each navigation reaches the origin; the server coalesces reads within a revision. */
 export function ensureBrowseCatalog(
   countryCode: CountryCode,
   locale: SiteLocale,
   category?: string | null
 ): Promise<SessionBrowsePage | null> {
-  const cached = getSessionBrowsePage(countryCode, locale, category);
-  const allAisle = sessionCategoryKey(category) === "_all";
-  if (cached?.products?.length && (!allAisle || isUsableAllBrowsePage(cached))) {
-    return Promise.resolve(cached);
-  }
+  // A navigation must reach the revision-aware origin. Keep snapshots for the
+  // current view, but never treat a tab-local TTL as proof that no import ran.
   if (typeof window === "undefined") return Promise.resolve(null);
-
-  const key = sessionKey(countryCode, category);
-  const pending = inflightPages.get(key);
-  if (pending) return pending;
 
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), 8_000);
   const request = fetch(browseUrl(countryCode, locale, category), {
     signal: controller.signal,
+    cache: "no-store",
   })
     .then((response) => (response.ok ? response.json() : null))
     .then((data: SessionBrowsePage | null) => {
@@ -199,10 +191,8 @@ export function ensureBrowseCatalog(
     .catch(() => null)
     .finally(() => {
       window.clearTimeout(timeoutId);
-      inflightPages.delete(key);
     });
 
-  inflightPages.set(key, request);
   return request;
 }
 

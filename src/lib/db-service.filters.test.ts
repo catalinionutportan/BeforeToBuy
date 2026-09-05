@@ -5,10 +5,18 @@ const findMany = vi.fn();
 const findFirst = vi.fn();
 const count = vi.fn();
 const groupBy = vi.fn();
+const categoryRows = vi.fn();
+const brandRows = vi.fn();
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    $queryRaw: (...args: unknown[]) => JSON.stringify(args[0]).includes("DISTINCT ON") ? Promise.resolve([]) : queryRaw(...args),
+    $queryRaw: (...args: unknown[]) => {
+      const sql = JSON.stringify(args[0]);
+      if (sql.includes("DISTINCT ON")) return Promise.resolve([]);
+      if (sql.includes("COUNT(*)::int AS n")) return categoryRows(...args);
+      if (sql.includes("SELECT mp.brand")) return brandRows(...args);
+      return queryRaw(...args);
+    },
     product: {
       findMany: (...args: unknown[]) => findMany(...args),
       findFirst: (...args: unknown[]) => findFirst(...args),
@@ -60,6 +68,9 @@ describe("getProductsFromDb offer visibility", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     resetCatalogBrowseCacheForTests();
+    queryRaw.mockResolvedValue([]);
+    categoryRows.mockResolvedValue([]);
+    brandRows.mockResolvedValue([]);
     groupBy.mockResolvedValue([]);
     findFirst.mockResolvedValue(null);
   });
@@ -80,6 +91,7 @@ describe("getProductsFromDb offer visibility", () => {
 
   it("drops products whose visible offers were filtered out after fetch", async () => {
     count.mockResolvedValue(2);
+    queryRaw.mockResolvedValue([{ id: "with-offers" }, { id: "empty" }]);
     findMany
       .mockResolvedValueOnce([
         mockProduct("with-offers", 0),
@@ -95,6 +107,7 @@ describe("getProductsFromDb offer visibility", () => {
 
   it("uses the same totalMatched semantics for hasMore with freeDeliveryOnly", async () => {
     count.mockResolvedValue(3);
+    queryRaw.mockResolvedValue([{ id: "free" }]);
     findMany.mockResolvedValueOnce([mockProduct("free", 0)]);
 
     const page = await getProductsFromDb("RO", undefined, undefined, 1, 0, undefined, {
@@ -111,6 +124,41 @@ describe("getProductsFromDb offer visibility", () => {
     expect(filteredCountPayload).toBeTruthy();
     expect(filteredCountPayload).toContain('"lte":0');
     expect(filteredCountPayload).toContain('"not":null');
+  });
+
+  it("narrows sparse RO pages with the country GIN index before global ID ordering", async () => {
+    count.mockResolvedValue(1);
+    queryRaw.mockResolvedValue([{ id: "ro-product" }]);
+    findMany.mockResolvedValueOnce([mockProduct("ro-product", 0)]);
+
+    const page = await getProductsFromDb("RO", "rowenta", undefined, 24, 0);
+
+    expect(page.products).toHaveLength(1);
+    const query = JSON.stringify(queryRaw.mock.calls[0] ?? []);
+    expect(query).toContain("WITH matched_products AS MATERIALIZED");
+    expect(query).toContain('\\"targetCountries\\" @> ARRAY[');
+    expect(query).toContain("ORDER BY id ASC");
+  });
+
+  it("uses offer price for sparse-market min/max when totalPrice is null", async () => {
+    count.mockResolvedValue(1);
+    queryRaw.mockResolvedValue([{ id: "null-total" }]);
+    const product = mockProduct("null-total", 50);
+    product.offers[0]!.totalPrice = null;
+    findMany.mockResolvedValueOnce([product]);
+
+    const page = await getProductsFromDb("RO", undefined, undefined, 24, 0, undefined, {
+      minTotalPrice: 90,
+      maxTotalPrice: 120,
+    });
+
+    expect(page.totalMatched).toBe(1);
+    expect(page.products).toHaveLength(1);
+    expect(page.products[0]?.offers[0]?.deliveryCost).toBe(50);
+    expect(page.products[0]?.offers[0]?.totalPrice).toBeUndefined();
+    const query = JSON.stringify(queryRaw.mock.calls[0] ?? []);
+    expect(query).toContain('COALESCE(o.\\"totalPrice\\", o.price)');
+    expect(query).not.toContain('o.price + COALESCE(o.\\"deliveryCost\\", 0)');
   });
 
   it("price sort applies explicit free-delivery SQL (null delivery is not free)", async () => {

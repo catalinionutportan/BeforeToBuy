@@ -50,7 +50,7 @@ describe("prefetch browse markets", () => {
     ).toBe(true);
   });
 
-  it("keeps a first page in this tab so GB→CH is not a network wait", () => {
+  it("keeps a snapshot in this tab without treating it as a freshness check", () => {
     setSessionBrowsePage("CH", "en", { products: [{ id: "acer-1" } as never], meta: completeMeta });
     expect(getSessionBrowsePage("CH", "en")?.products).toEqual([{ id: "acer-1" }]);
     expect(getSessionBrowsePage("GB", "en")).toBeNull();
@@ -63,13 +63,14 @@ describe("prefetch browse markets", () => {
     })).toBe(true);
   });
 
-  it("reuses a cached CH page instead of opening a second request", async () => {
+  it("checks the revision-aware origin on navigation even when a previous page exists", async () => {
     const page = { products: [{ id: "acer-1" } as never], meta: completeMeta };
     setSessionBrowsePage("CH", "en", page);
-    const fetchSpy = vi.fn();
+    const fresh = { products: [{ id: "after-import" } as never], meta: { ...completeMeta, catalogRevision: "new" } };
+    const fetchSpy = vi.fn().mockResolvedValue({ ok: true, json: async () => fresh });
     vi.stubGlobal("fetch", fetchSpy);
-    await expect(ensureBrowseCatalog("CH", "en")).resolves.toEqual(page);
-    expect(fetchSpy).not.toHaveBeenCalled();
+    await expect(ensureBrowseCatalog("CH", "en")).resolves.toEqual(fresh);
+    expect(fetchSpy).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ cache: "no-store" }));
     vi.unstubAllGlobals();
   });
 

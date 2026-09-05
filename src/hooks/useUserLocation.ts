@@ -41,21 +41,21 @@ export function useUserLocation(initialCountry: CountryCode): UseUserLocationRes
     if (fromUrl && isCountryCode(fromUrl)) {
       const resolved = resolveBrowseCountry(fromUrl);
       writeStoredMarketCountry(resolved);
-      setUserLocation(locationFromCountry(resolved));
+      setUserLocation((current) => current.countryCode === resolved ? current : locationFromCountry(resolved));
       return;
     }
     const stored = readStoredMarketCountry();
     if (stored) {
       const resolved = resolveBrowseCountry(stored);
       writeStoredMarketCountry(resolved);
-      setUserLocation(locationFromCountry(resolved));
+      setUserLocation((current) => current.countryCode === resolved ? current : locationFromCountry(resolved));
     }
   }, [initialCountry]);
 
   const handleCountryChange = useCallback((countryCode: CountryCode) => {
     const resolved = resolveBrowseCountry(countryCode);
     writeStoredMarketCountry(resolved);
-    setUserLocation(locationFromCountry(resolved));
+    setUserLocation((current) => current.countryCode === resolved ? current : locationFromCountry(resolved));
   }, []);
 
   return {

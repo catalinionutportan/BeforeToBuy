@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { redisGetJson, redisSetJson } from "@/lib/redis-cache";
+import { getCatalogRevision } from "@/lib/catalog-revision";
 
 /** Tile counts/covers/brands change only on import — 24h keeps NAS / Node cache warm. */
 const BROWSE_META_TTL_SECONDS = 86400;
@@ -152,14 +153,14 @@ export function firstPageCacheKey(
 export async function getCachedBrowseMeta(
   countryCode: string
 ): Promise<CachedBrowseMeta | null> {
-  return cacheGet<CachedBrowseMeta>(browseMetaCacheKey(countryCode));
+  return cacheGet<CachedBrowseMeta>(`${browseMetaCacheKey(countryCode)}:g:${await getCatalogRevision(countryCode)}`);
 }
 
 export async function setCachedBrowseMeta(
   countryCode: string,
   value: CachedBrowseMeta
 ): Promise<void> {
-  await cacheSet(browseMetaCacheKey(countryCode), value, BROWSE_META_TTL_SECONDS);
+  await cacheSet(`${browseMetaCacheKey(countryCode)}:g:${await getCatalogRevision(countryCode)}`, value, BROWSE_META_TTL_SECONDS);
 }
 
 export async function getCachedChLeadIds(
@@ -167,7 +168,7 @@ export async function getCachedChLeadIds(
   take: number,
   skip: number
 ): Promise<string[] | null> {
-  return cacheGet<string[]>(chLeadIdsCacheKey(countryCode, take, skip));
+  return cacheGet<string[]>(`${chLeadIdsCacheKey(countryCode, take, skip)}:g:${await getCatalogRevision(countryCode)}`);
 }
 
 export async function setCachedChLeadIds(
@@ -176,7 +177,7 @@ export async function setCachedChLeadIds(
   skip: number,
   ids: string[]
 ): Promise<void> {
-  await cacheSet(chLeadIdsCacheKey(countryCode, take, skip), ids, LEAD_IDS_TTL_SECONDS);
+  await cacheSet(`${chLeadIdsCacheKey(countryCode, take, skip)}:g:${await getCatalogRevision(countryCode)}`, ids, LEAD_IDS_TTL_SECONDS);
 }
 
 export async function getCachedFirstBrowsePage(
@@ -185,7 +186,7 @@ export async function getCachedFirstBrowsePage(
   category?: string | null
 ): Promise<CachedFirstBrowsePage | null> {
   return cacheGet<CachedFirstBrowsePage>(
-    firstPageCacheKey(countryCode, limit, category)
+    `${firstPageCacheKey(countryCode, limit, category)}:g:${await getCatalogRevision(countryCode)}`
   );
 }
 
@@ -195,7 +196,7 @@ export async function setCachedFirstBrowsePage(
   value: CachedFirstBrowsePage,
   category?: string | null
 ): Promise<void> {
-  await cacheSet(firstPageCacheKey(countryCode, limit, category), value, FIRST_PAGE_TTL_SECONDS);
+  await cacheSet(`${firstPageCacheKey(countryCode, limit, category)}:g:${await getCatalogRevision(countryCode)}`, value, FIRST_PAGE_TTL_SECONDS);
 }
 
 /** Test helper — clear process-local browse cache between cases. */

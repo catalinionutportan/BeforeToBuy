@@ -1,5 +1,9 @@
 # Catalogue stability — second remediation batch, 2026-09-05
 
+Historical release record. Follow-up revision-based freshness, incomplete-feed
+guard and RO import/cold-read work are documented in
+`CATALOG-FRESHNESS-2026-09-05.md`; the limitations below describe this earlier release.
+
 Scope: CH, DE, GB, US. Romania presentation redesign remains deferred. This
 batch addresses confirmed faults, not an exhaustive certification of every
 product, merchant destination or legal requirement.

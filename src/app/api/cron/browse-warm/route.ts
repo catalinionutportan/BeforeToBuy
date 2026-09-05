@@ -8,6 +8,7 @@ import { setCachedFirstBrowsePage } from "@/lib/catalog-browse-cache";
 import { PREFETCH_BROWSE_MARKETS } from "@/lib/prefetch-browse-catalog";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
 import { BROWSE_LIST_OPTIONS, DEFAULT_PRODUCT_LIST_LIMIT } from "@/lib/product-list-options";
+import { withCatalogRevision } from "@/lib/catalog-revision";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -29,6 +30,7 @@ export async function GET(request: NextRequest) {
   for (const countryCode of PREFETCH_BROWSE_MARKETS) {
     const country = COUNTRIES[countryCode];
     try {
+      await withCatalogRevision(countryCode, async () => {
       const page = await fetchMergedProductsForLocation(
         { countryCode, countryName: country.name },
         undefined,
@@ -43,6 +45,7 @@ export async function GET(request: NextRequest) {
         });
       }
       await warmBrowseMetaForCountry(countryCode);
+      });
       warmed.push(countryCode);
     } catch (error) {
       console.error(`[cron/browse-warm] ${countryCode} failed:`, error);

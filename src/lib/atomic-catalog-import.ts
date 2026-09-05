@@ -1,4 +1,5 @@
 import { Prisma, type PrismaClient } from "@prisma/client";
+import { merchantCatalogCountries, publishCatalogRevision } from "./catalog-revision";
 
 export type AtomicCatalogProductRow = Omit<
   Prisma.ProductCreateManyInput,
@@ -26,17 +27,39 @@ export interface AtomicCatalogImportInput {
   transactionTimeoutMs?: number;
   lockTimeoutMs?: number;
   statementTimeoutMs?: number;
+  /**
+   * Per-import sensitivity. There is intentionally no disable switch. Defaults
+   * reject a drop of at least 5 rows when less than 70% of the committed
+   * merchant catalogue remains. Custom values can make the guard stricter;
+   * relaxing it requires the explicit reduction override below.
+   */
+  incompleteFeedGuard?: {
+    minRetainedRatio?: number;
+    minAbsoluteDrop?: number;
+  };
+  /** One intentional large reduction, documented at its import callsite. */
+  reductionOverride?: {
+    reason: string;
+  };
 }
 
 export interface AtomicCatalogImportResult {
   products: number;
   offers: number;
+  baseline: {
+    products: number;
+    offers: number;
+  };
+  reductionOverrideApplied: boolean;
 }
 
 const DEFAULT_CHUNK_SIZE = 1_000;
 const DEFAULT_TRANSACTION_TIMEOUT_MS = 300_000;
 const DEFAULT_LOCK_TIMEOUT_MS = 10_000;
 const DEFAULT_STATEMENT_TIMEOUT_MS = 120_000;
+const DEFAULT_MIN_RETAINED_RATIO = 0.7;
+const DEFAULT_MIN_ABSOLUTE_DROP = 5;
+const MIN_OVERRIDE_REASON_LENGTH = 15;
 
 function assertUniqueNonEmptyIds(rows: Array<{ id: string }>, label: string): Set<string> {
   const ids = new Set<string>();
@@ -106,6 +129,77 @@ function positiveInteger(value: number, label: string): number {
     throw new Error(`${label} must be a positive integer.`);
   }
   return value;
+}
+
+function boundedRatio(value: number): number {
+  if (!Number.isFinite(value) || value < DEFAULT_MIN_RETAINED_RATIO || value > 0.95) {
+    throw new Error("incompleteFeedGuard.minRetainedRatio must be between 0.7 and 0.95.");
+  }
+  return value;
+}
+
+function boundedAbsoluteDrop(value: number): number {
+  if (!Number.isSafeInteger(value) || value < 2 || value > DEFAULT_MIN_ABSOLUTE_DROP) {
+    throw new Error("incompleteFeedGuard.minAbsoluteDrop must be an integer from 2 to 5.");
+  }
+  return value;
+}
+
+function validatedOverrideReason(
+  override: AtomicCatalogImportInput["reductionOverride"]
+): string | undefined {
+  if (!override) return undefined;
+  const reason = override.reason.trim();
+  if (reason.length < MIN_OVERRIDE_REASON_LENGTH) {
+    throw new Error(
+      `reductionOverride.reason must contain at least ${MIN_OVERRIDE_REASON_LENGTH} characters.`
+    );
+  }
+  return reason;
+}
+
+type MerchantBaseline = { products: number; offers: number };
+
+function countValue(value: bigint | number | undefined, label: string): number {
+  const count = Number(value ?? 0);
+  if (!Number.isSafeInteger(count) || count < 0) {
+    throw new Error(`Invalid committed ${label} baseline.`);
+  }
+  return count;
+}
+
+function largeReduction(
+  baseline: number,
+  incoming: number,
+  minRetainedRatio: number,
+  minAbsoluteDrop: number
+): boolean {
+  return baseline - incoming >= minAbsoluteDrop && incoming < baseline * minRetainedRatio;
+}
+
+function assertImportRetainsSaneVolume(
+  merchantId: string,
+  baseline: MerchantBaseline,
+  incoming: MerchantBaseline,
+  minRetainedRatio: number,
+  minAbsoluteDrop: number,
+  overrideReason: string | undefined
+): void {
+  if (overrideReason) return;
+  const failedMetrics = (["products", "offers"] as const).filter((metric) =>
+    largeReduction(baseline[metric], incoming[metric], minRetainedRatio, minAbsoluteDrop)
+  );
+  if (failedMetrics.length === 0) return;
+
+  const retainedPercent = Math.round(minRetainedRatio * 100);
+  throw new Error(
+    `Refusing unusually incomplete catalogue for ${merchantId}: ` +
+      `committed products=${baseline.products}, offers=${baseline.offers}; ` +
+      `incoming products=${incoming.products}, offers=${incoming.offers}; ` +
+      `failed=${failedMetrics.join(",")}. At least ${retainedPercent}% must remain ` +
+      `when the absolute drop is ${minAbsoluteDrop} or more. ` +
+      "For an intentional reduction, pass reductionOverride with a specific reason."
+  );
 }
 
 function serializableProductRows(rows: AtomicCatalogProductRow[]): unknown[] {
@@ -194,6 +288,13 @@ export async function replaceMerchantCatalogueAtomically(
     input.statementTimeoutMs ?? DEFAULT_STATEMENT_TIMEOUT_MS,
     "statementTimeoutMs"
   );
+  const minRetainedRatio = boundedRatio(
+    input.incompleteFeedGuard?.minRetainedRatio ?? DEFAULT_MIN_RETAINED_RATIO
+  );
+  const minAbsoluteDrop = boundedAbsoluteDrop(
+    input.incompleteFeedGuard?.minAbsoluteDrop ?? DEFAULT_MIN_ABSOLUTE_DROP
+  );
+  const overrideReason = validatedOverrideReason(input.reductionOverride);
 
   return input.prisma.$transaction(
     async (tx) => {
@@ -206,6 +307,30 @@ export async function replaceMerchantCatalogueAtomically(
       await tx.$queryRaw(
         Prisma.sql`SELECT pg_advisory_xact_lock(hashtext('btb-catalog-import'), hashtext(${input.merchantId})) IS NULL AS "locked"`
       );
+
+      const [baselineRow] = await tx.$queryRaw<
+        Array<{ productCount: bigint | number; offerCount: bigint | number }>
+      >(Prisma.sql`
+        SELECT
+          COUNT(DISTINCT "productId")::bigint AS "productCount",
+          COUNT(*)::bigint AS "offerCount"
+        FROM "Offer"
+        WHERE "feedMerchantId" = ${input.merchantId}
+      `);
+      const baseline = {
+        products: countValue(baselineRow?.productCount, "product"),
+        offers: countValue(baselineRow?.offerCount, "offer"),
+      };
+      assertImportRetainsSaneVolume(
+        input.merchantId,
+        baseline,
+        { products: input.productRows.length, offers: input.offerRows.length },
+        minRetainedRatio,
+        minAbsoluteDrop,
+        overrideReason
+      );
+
+      const previousCountries = await merchantCatalogCountries(tx, input.merchantId);
 
       for (let i = 0; i < input.productRows.length; i += chunkSize) {
         await tx.$executeRaw(productUpsertQuery(input.productRows.slice(i, i + chunkSize)));
@@ -229,7 +354,15 @@ export async function replaceMerchantCatalogueAtomically(
         );
       }
 
-      return { products: input.productRows.length, offers: publishedOfferCount };
+      const nextCountries = await merchantCatalogCountries(tx, input.merchantId);
+      await publishCatalogRevision(tx, [input.country, ...previousCountries, ...nextCountries]);
+
+      return {
+        products: input.productRows.length,
+        offers: publishedOfferCount,
+        baseline,
+        reductionOverrideApplied: Boolean(overrideReason),
+      };
     },
     { maxWait: lockTimeoutMs, timeout: transactionTimeoutMs }
   );

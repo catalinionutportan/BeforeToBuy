@@ -107,6 +107,56 @@ test.describe("Search, filters and product handoff", () => {
     expect(Math.abs(topAfter - topBefore)).toBeLessThanOrEqual(2);
   });
 
+  test("an import preserves an open grid but the next browse navigation gets its new revision", async ({ page }) => {
+    const response = await page.request.get("/api/products?country=RO&limit=48");
+    expect(response.ok()).toBe(true);
+    const baseline = await response.json();
+    let revision = "before-import";
+    let browseReads = 0;
+    await page.route("**/api/products?**", async (route) => {
+      const params = new URL(route.request().url()).searchParams;
+      if (params.get("q") || params.get("category")) return route.continue();
+      browseReads += 1;
+      await route.fulfill({ json: {
+        ...baseline,
+        products: baseline.products.map((product: { title: string }) => ({
+          ...product, title: revision === "before-import" ? product.title : `Updated catalogue: ${product.title}`,
+        })),
+        meta: { ...baseline.meta, catalogRevision: revision },
+      } });
+    });
+    const search = page.getByRole("combobox", { name: /Search products/i });
+    const browseAgain = async () => {
+      await search.fill("rowenta");
+      await search.press("Enter");
+      await expect(page).toHaveURL(/q=rowenta/);
+      await expect(page.locator("[data-product-id]").first()).toContainText(/rowenta/i);
+      await search.fill("");
+      await search.press("Enter");
+      await expect(page).not.toHaveURL(/q=rowenta/);
+      await expect(page.locator("[data-product-id]")).toHaveCount(baseline.products.length);
+    };
+    await browseAgain();
+    const cards = page.locator("[data-product-id]");
+    const ids = await cards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-product-id")));
+    const target = cards.nth(Math.min(7, ids.length - 1));
+    await target.evaluate((node) => node.scrollIntoView({ block: "center" }));
+    const top = await target.evaluate((node) => node.getBoundingClientRect().top);
+    await target.locator("a").first().click();
+    const dialog = page.getByRole("dialog", { name: /Store offer/i });
+    await expect(dialog).toBeVisible();
+    const previousReads = browseReads;
+    revision = "after-import";
+    await dialog.getByRole("button", { name: /Close/i }).click();
+    await expect(dialog).toHaveCount(0);
+    expect(await cards.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-product-id")))).toEqual(ids);
+    expect(Math.abs(await target.evaluate((node) => node.getBoundingClientRect().top) - top)).toBeLessThanOrEqual(2);
+    expect(browseReads).toBe(previousReads);
+    await browseAgain();
+    expect(browseReads).toBeGreaterThan(previousReads);
+    await expect(cards.first()).toContainText("Updated catalogue:");
+  });
+
   test("mobile slow navigation: closing an instant preview preserves the page and cards", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto("/help?lang=en");

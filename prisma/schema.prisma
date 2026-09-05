@@ -11,6 +11,13 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// Changed in the same transaction as an offline catalogue publication.
+model CatalogRevision {
+  country   String   @id
+  revision  String
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
 model Product {
   id              String    @id
   title           String

@@ -4,7 +4,7 @@
 **Platform:** https://www.beforetobuy.com  
 **Repo:** https://github.com/catalinionutportan/BeforeToBuy  
 **Phase:** Production (controlled rollout)
-**Last reviewed:** 2026-09-04
+**Last reviewed:** 2026-09-05
 
 ---
 
@@ -119,16 +119,58 @@ page. Sample-mode tests retain the checked-in feed lookup.
 
 ## 8. Atomic catalogue imports and cache freshness (2026-09-05)
 
-All 11 CH/DE/GB/US merchant import scripts use the shared atomic import helper.
+All 11 CH/DE/GB/US merchant import scripts and the RO 2Performant pipeline use
+the shared atomic import helper.
 An empty, inconsistent or failed import must preserve the previous committed
 catalogue. Do not replace this with delete-then-create calls outside a transaction.
 Products are upserted, not deleted, so other merchants' offers are not cascaded
-away. ROMANIA imports are outside this migration.
+away. RO downloads and validates every slice before publication, with a
+100,000-row / 64 MiB normalized staging budget. Identical duplicate offers are
+deduplicated; conflicting duplicates and over-budget feeds are rejected whole.
 
-Atomic database publication does not invalidate every browse cache immediately.
-Metadata expires after 24h, lead IDs after 12h, first-page JSON after 2h and browser
-session pages after 15min; HTTP/CDN caches have additional short freshness windows.
-Restarting alone does not clear disk/Redis cache and must not extend its expiry.
+Before running this release or any of its import scripts, install the additive
+version table once from the release directory:
+
+```bash
+node --env-file=.env.local --import tsx src/scripts/install-catalog-revision.ts --apply
+```
+
+This applies only `scripts/migrations/20260905-catalog-revision.sql`; it does not
+rewrite Product/Offer data or synchronize unrelated schema/index drift. Do not
+substitute a blanket `prisma db push`. The table has RLS enabled without anonymous
+policies; the trusted Prisma database owner must retain read/write access.
+
+Each successful import updates affected markets' `CatalogRevision` in the SAME
+transaction, including markets of shared/previous products. Failed transactions
+leave both data and revision unchanged. Origin cache keys and pending reads are
+revision-scoped. New browse navigations check the committed revision; HTTP/CDN
+product responses use `no-store`. The currently open grid is not polled, reordered
+or replaced by an import. New deployment URLs use a bumped browse API version to
+avoid responses cached under the previous deployment's URL.
+
+Unexpected product OR offer reductions below 70% of the previous merchant total,
+with an absolute drop of at least five, abort publication. The baseline is read
+after acquiring the merchant lock. A deliberate reduction requires a one-off
+`reductionOverride: { reason: "specific verified reason" }` at that import's
+callsite; never add a permanent global bypass. Keep the reason/count comparison
+in the operator's import record. This guard does not prove feed completeness or
+stock accuracy, and does not catch every smaller drop.
+
+Legacy/manual database maintenance scripts are NOT automatically versioned. After
+an authorized maintenance operation, explicitly publish every affected market:
+
+```bash
+node --env-file=.env.local --import tsx src/scripts/publish-catalog-revision.ts --country=CH --country=DE --apply
+```
+
+This command only changes catalogue revisions, not products. Ordinary imports
+must use their transactional publication instead of this separate command.
+
+Metadata expires after 24h, lead IDs after 12h and first-page JSON after 2h, but
+old revisions are no longer eligible after publication. Obsolete revision files
+may remain on disk until an explicit targeted cache-retention operation; they are
+not a fallback for the new catalogue. Restarting must not extend any entry's expiry.
 `BROWSE_CACHE_DIRECTORY` optionally isolates persistent browse cache from `.cache`.
 Do not delete `.cache` wholesale: it also holds the generated sitemap files.
-See `docs/CATALOG-STABILITY-2026-09-05.md` for evidence and remaining limitations.
+See `docs/CATALOG-STABILITY-2026-09-05.md` and
+`docs/CATALOG-FRESHNESS-2026-09-05.md` for evidence and remaining limitations.

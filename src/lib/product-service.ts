@@ -1,4 +1,5 @@
 import { Product, UserLocation } from "@/types";
+import { getCatalogRevision, withCatalogRevision } from "@/lib/catalog-revision";
 import { fetchProductsForLocation } from "@/lib/api-aggregator";
 import { buildMappingReport } from "@/lib/mapping-log";
 import { getProductsFromDb } from "@/lib/db-service";
@@ -67,6 +68,19 @@ export { mergeFeedAndDemoProducts } from "@/lib/product-identity/merge-products"
  * Fall back to enabled merchant-feeds (currently GB etc.) — RO CSV remotes are disabled.
  */
 export async function fetchMergedProductsForLocation(
+  userLocation: UserLocation,
+  query?: string,
+  category?: string,
+  locale: SiteLocale = DEFAULT_LOCALE,
+  listOptions: ProductListOptions = {}
+): Promise<{ products: Product[]; meta: ProductFetchMeta }> {
+  return withCatalogRevision(userLocation.countryCode, async () => {
+    const result = await fetchMergedProductsForLocationImpl(userLocation, query, category, locale, listOptions);
+    return { ...result, meta: { ...result.meta, catalogRevision: await getCatalogRevision(userLocation.countryCode) } };
+  });
+}
+
+async function fetchMergedProductsForLocationImpl(
   userLocation: UserLocation,
   query?: string,
   category?: string,
@@ -324,4 +338,4 @@ export async function fetchMergedProductsForLocation(
   };
 }
 
-export type ProductFetchMeta = Awaited<ReturnType<typeof fetchMergedProductsForLocation>>["meta"];
+export type ProductFetchMeta = Awaited<ReturnType<typeof fetchMergedProductsForLocationImpl>>["meta"] & { catalogRevision?: string };

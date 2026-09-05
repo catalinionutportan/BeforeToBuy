@@ -11,7 +11,7 @@ import { randomUUID } from "node:crypto";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import type { Readable } from "node:stream";
-import type { Product } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 import csv from "csv-parser";
 import { prisma } from "../lib/db";
 import { mapToBeforeToBuyCategoryWithMetadata } from "../lib/category-mapper";
@@ -24,6 +24,13 @@ import {
 } from "../lib/feed-url-policy";
 import { MAX_FEED_REDIRECTS, safeFeedHost } from "../lib/feed-download";
 import { deriveRowDeliveryFields } from "../lib/offers/delivery-cost";
+import {
+  replaceMerchantCatalogueAtomically,
+  type AtomicCatalogImportInput,
+  type AtomicCatalogImportResult,
+  type AtomicCatalogOfferRow,
+  type AtomicCatalogProductRow,
+} from "../lib/atomic-catalog-import";
 
 type RawRow = Record<string, string | undefined>;
 
@@ -61,15 +68,26 @@ type BatchItem = {
   };
 };
 
-type BatchResult = {
-  written: number;
-  productIds: Set<string>;
-};
-
 const MAX_REDIRECTS = MAX_FEED_REDIRECTS;
 const MAX_FEED_BYTES = 250 * 1024 * 1024;
 const REQUEST_TIMEOUT_MS = 30_000;
-const PRODUCT_REFRESH_BATCH_SIZE = 500;
+const MAX_PARSED_ROWS = 100_000;
+const MAX_STAGED_JSON_BYTES = 64 * 1024 * 1024;
+const IDENTITY_READ_BATCH_SIZE = 1_000;
+
+type CatalogueReadClient = Pick<PrismaClient, "product" | "offer" | "$transaction">;
+type AtomicPublisher = (input: AtomicCatalogImportInput) => Promise<AtomicCatalogImportResult>;
+
+export interface Sync2PerformantOptions {
+  /** Test seam only; production keeps the validated HTTPS downloader. */
+  openFeedStream?: (url: string) => Promise<Readable>;
+  /** Test seam only; production uses the application Prisma singleton. */
+  prismaClient?: CatalogueReadClient;
+  /** Test seam only; production uses the shared atomic publisher. */
+  publishCatalogue?: AtomicPublisher;
+  /** Required by the shared guard for a deliberate, documented large reduction. */
+  reductionOverride?: AtomicCatalogImportInput["reductionOverride"];
+}
 
 function sanitizeUtf8(value?: string | null): string {
   if (!value) return "";
@@ -324,7 +342,8 @@ export async function sync2PerformantFeed(
   merchantId: string,
   storeName: string,
   countryCode: string,
-  currency: string
+  currency: string,
+  options: Sync2PerformantOptions = {}
 ): Promise<number> {
   const csvUrls = (Array.isArray(csvUrl) ? csvUrl : [csvUrl])
     .map((url) => url.trim())
@@ -343,13 +362,15 @@ export async function sync2PerformantFeed(
   const safeMerchantId = merchantId.replace(/[^a-zA-Z0-9_-]/g, "-");
   const fetchedAt = new Date().toISOString();
   const tmpFiles: string[] = [];
+  const stagedOffers = new Map<string, { item: BatchItem; normalized: string }>();
 
   let rowIndex = 0;
   let parsed = 0;
-  let written = 0;
   let skipped = 0;
-  const affectedProductIds = new Set<string>();
-  const BATCH_SIZE = 1000;
+  let stagedJsonBytes = 0;
+  const openFeed = options.openFeedStream ?? openCsvStream;
+  const readClient = options.prismaClient ?? prisma;
+  const publishCatalogue = options.publishCatalogue ?? replaceMerchantCatalogueAtomically;
 
   try {
     for (let feedIndex = 0; feedIndex < csvUrls.length; feedIndex += 1) {
@@ -364,16 +385,20 @@ export async function sync2PerformantFeed(
       console.log(
         `[1/${csvUrls.length}] Downloading slice ${feedIndex + 1}/${csvUrls.length} (${host})...`
       );
-      const stream = await openCsvStream(url);
+      const stream = await openFeed(url);
       await pipeline(stream, fs.createWriteStream(tmpFile));
       console.log(`[1/${csvUrls.length}] Download complete for slice ${feedIndex + 1}.`);
 
       console.log(`[2/${csvUrls.length}] Parsing slice ${feedIndex + 1}...`);
       const parser = fs.createReadStream(tmpFile).pipe(csv());
-      let batch: BatchItem[] = [];
 
       for await (const row of parser as AsyncIterable<RawRow>) {
         rowIndex += 1;
+        if (rowIndex > MAX_PARSED_ROWS) {
+          throw new Error(
+            `Feed ${merchantId} exceeds the ${MAX_PARSED_ROWS.toLocaleString("en-US")} parsed-row staging limit; nothing was published.`
+          );
+        }
         const item = rowToBatchItem(
           row,
           merchantId,
@@ -387,52 +412,54 @@ export async function sync2PerformantFeed(
           skipped += 1;
           continue;
         }
-        batch.push(item);
         parsed += 1;
 
-        if (batch.length >= BATCH_SIZE) {
-          const result = await processBatchWithDeduplication(batch);
-          written += result.written;
-          result.productIds.forEach((id) => affectedProductIds.add(id));
-          batch = [];
-          if (parsed % 2000 === 0) {
-            console.log(`... ${parsed} rows parsed, ${written} offers upserted`);
+        const sanitizedItem = deepSanitize(item);
+        const normalized = JSON.stringify(sanitizedItem);
+        const existing = stagedOffers.get(sanitizedItem.offerData.id);
+        if (existing) {
+          if (existing.normalized !== normalized) {
+            throw new Error(
+              `Conflicting duplicate offer ${sanitizedItem.offerData.id} across feed slices; nothing was published.`
+            );
           }
+          continue;
         }
+
+        stagedJsonBytes += Buffer.byteLength(normalized, "utf8");
+        if (stagedJsonBytes > MAX_STAGED_JSON_BYTES) {
+          throw new Error(
+            `Feed ${merchantId} exceeds the ${MAX_STAGED_JSON_BYTES / 1024 / 1024} MiB normalized staging limit; nothing was published.`
+          );
+        }
+        stagedOffers.set(sanitizedItem.offerData.id, { item: sanitizedItem, normalized });
       }
 
-      if (batch.length > 0) {
-        const result = await processBatchWithDeduplication(batch);
-        written += result.written;
-        result.productIds.forEach((id) => affectedProductIds.add(id));
-      }
+      await fs.promises.rm(tmpFile, { force: true });
     }
 
-    if (written === 0) {
-      throw new Error(`Feed ${merchantId} produced no valid offers; stale offers were left unchanged.`);
+    if (stagedOffers.size === 0) {
+      throw new Error(`Feed ${merchantId} produced no valid offers; nothing was published.`);
     }
 
-    const merchantOffers = await prisma.offer.findMany({
-      where: { feedMerchantId: merchantId },
-      select: { productId: true },
-      distinct: ["productId"],
+    const { productRows, offerRows } = await buildAtomicCatalogueRows({
+      items: [...stagedOffers.values()].map(({ item }) => item),
+      countryCode,
+      readClient,
     });
-    merchantOffers.forEach(({ productId }) => affectedProductIds.add(productId));
-
-    const staleResult = await prisma.offer.updateMany({
-      where: {
-        feedMerchantId: merchantId,
-        fetchedAt: { not: fetchedAt },
-        inStock: true,
-      },
-      data: { inStock: false },
+    const result = await publishCatalogue({
+      prisma: readClient,
+      merchantId,
+      country: countryCode,
+      productRows,
+      offerRows,
+      reductionOverride: options.reductionOverride,
     });
-    await refreshProductBasePrices(affectedProductIds);
 
     console.log(
-      `[3/3] Sync complete for ${storeName}: ${parsed} rows parsed, ${written} offers upserted, ${skipped} skipped, ${staleResult.count} stale offers disabled.`
+      `[3/3] Sync complete for ${storeName}: ${parsed} valid rows parsed, ${result.offers} unique offers published atomically, ${skipped} skipped.`
     );
-    return written;
+    return result.offers;
   } finally {
     await Promise.all(
       tmpFiles.map((tmpFile) => fs.promises.rm(tmpFile, { force: true }).catch(() => undefined))
@@ -440,155 +467,114 @@ export async function sync2PerformantFeed(
   }
 }
 
-async function processBatchWithDeduplication(batch: BatchItem[]): Promise<BatchResult> {
-  if (batch.length === 0) return { written: 0, productIds: new Set() };
-  let ok = 0;
-  const productIds = new Set<string>();
-  const failures: string[] = [];
-
-  const countryCode = batch[0]?.productData.targetCountries[0] || "RO";
+async function buildAtomicCatalogueRows({
+  items,
+  countryCode,
+  readClient,
+}: {
+  items: BatchItem[];
+  countryCode: string;
+  readClient: CatalogueReadClient;
+}): Promise<{ productRows: AtomicCatalogProductRow[]; offerRows: AtomicCatalogOfferRow[] }> {
   const cCode = countryCode.toLowerCase();
-  const gtins = batch.map((b) => b.gtin).filter((g) => g && g.length > 4) as string[];
-  const deterministicIds = batch
-    .filter((item) => !item.gtin)
-    .map((item) => `prod-${item.merchantId}-${item.offerData.merchantProductId}`);
-  const [existingByGtin, existingById] = await Promise.all([
-    gtins.length > 0
-      ? prisma.product.findMany({
-          where: {
-            gtin: { in: gtins },
-            targetCountries: { has: countryCode },
-          },
-        })
-      : Promise.resolve([] as Product[]),
-    deterministicIds.length > 0
-      ? prisma.product.findMany({ where: { id: { in: deterministicIds } } })
-      : Promise.resolve([] as Product[]),
-  ]);
-  const gtinMap = new Map(existingByGtin.flatMap((product) => product.gtin ? [[product.gtin, product]] : []));
-  const idMap = new Map(existingById.map((product) => [product.id, product]));
+  const gtins = [...new Set(items.flatMap((item) => item.gtin ? [item.gtin] : []))];
+  const deterministicIds = [...new Set(items.map((item) =>
+    item.gtin
+      ? `prod-${cCode}-gtin-${item.gtin}`
+      : `prod-${item.merchantId}-${item.offerData.merchantProductId}`
+  ))];
+  const gtinProductIds = new Map<string, string>();
+  const existingIds = new Set<string>();
 
-  for (const rawItem of batch) {
-    const item = deepSanitize(rawItem);
-    try {
-      const deterministicId = item.gtin
-        ? `prod-${cCode}-gtin-${item.gtin}`
-        : `prod-${item.merchantId}-${item.offerData.merchantProductId}`;
-      let existingProduct = item.gtin ? gtinMap.get(item.gtin) : idMap.get(deterministicId);
-
-      if (existingProduct) {
-        existingProduct = await prisma.product.update({
-          where: { id: existingProduct.id },
-          data: {
-            title: item.productData.title,
-            description: item.productData.description,
-            gtin: item.gtin ?? existingProduct.gtin,
-            brand: item.productData.brand ?? existingProduct.brand,
-            category: item.productData.category,
-            image: item.productData.image ?? existingProduct.image,
-            catalogSource: item.productData.catalogSource || "production-live",
-            targetCountries: [countryCode],
-            updatedAt: new Date(),
-          },
-        });
-      } else {
-        existingProduct = await prisma.product.create({
-          data: {
-            id: deterministicId,
-            title: item.productData.title,
-            description: item.productData.description,
-            gtin: item.productData.gtin,
-            brand: item.productData.brand,
-            category: item.productData.category,
-            image: item.productData.image,
-            catalogSource: item.productData.catalogSource || "production-live",
-            targetCountries: [countryCode],
-            basePrice: item.productData.basePrice,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        });
+  for (let index = 0; index < gtins.length; index += IDENTITY_READ_BATCH_SIZE) {
+    const chunk = gtins.slice(index, index + IDENTITY_READ_BATCH_SIZE);
+    const products = await readClient.product.findMany({
+      where: { gtin: { in: chunk }, targetCountries: { has: countryCode } },
+      select: { id: true, gtin: true },
+    });
+    for (const product of products) {
+      if (product.gtin) {
+        const deterministicId = `prod-${cCode}-gtin-${product.gtin}`;
+        if (!gtinProductIds.has(product.gtin) || product.id === deterministicId) {
+          gtinProductIds.set(product.gtin, product.id);
+        }
       }
-
-      if (existingProduct.gtin) gtinMap.set(existingProduct.gtin, existingProduct);
-      idMap.set(existingProduct.id, existingProduct);
-      productIds.add(existingProduct.id);
-
-      const offerPayload = {
-        storeName: item.offerData.storeName,
-        price: item.offerData.price,
-        originalPrice: item.offerData.originalPrice ?? null,
-        discountPercentage: item.offerData.discountPercentage ?? null,
-        currency: item.offerData.currency,
-        inStock: item.offerData.inStock,
-        purchaseUrl: item.offerData.purchaseUrl,
-        affiliateNetwork: item.offerData.affiliateNetwork ?? null,
-        source: item.offerData.source || "production-live",
-        feedMerchantId: item.offerData.feedMerchantId ?? null,
-        merchantProductId: item.offerData.merchantProductId ?? null,
-        fetchedAt: item.offerData.fetchedAt || new Date().toISOString(),
-        deliveryTime: item.offerData.deliveryTime ?? null,
-        deliveryCost: item.offerData.deliveryCost ?? null,
-        totalPrice: item.offerData.totalPrice ?? null,
-        productId: existingProduct.id,
-      };
-
-      const existingOffer = await prisma.offer.findUnique({ where: { id: item.offerData.id } });
-      if (existingOffer) {
-        await prisma.offer.update({
-          where: { id: item.offerData.id },
-          data: offerPayload,
-        });
-      } else {
-        await prisma.offer.create({
-          data: {
-            id: item.offerData.id,
-            ...offerPayload,
-          },
-        });
-      }
-      ok += 1;
-    } catch (dbError: unknown) {
-      const message = dbError instanceof Error ? dbError.message : String(dbError);
-      failures.push(`"${item.productData.title.slice(0, 80)}": ${message}`);
-      console.error(`DB error for "${item.productData.title.slice(0, 80)}":`, message);
     }
   }
 
-  if (ok === 0 && failures.length > 0) {
-    throw new Error(
-      `All ${failures.length}/${batch.length} offers failed database import. First error: ${failures[0]}`
-    );
+  for (let index = 0; index < deterministicIds.length; index += IDENTITY_READ_BATCH_SIZE) {
+    const chunk = deterministicIds.slice(index, index + IDENTITY_READ_BATCH_SIZE);
+    const products = await readClient.product.findMany({
+      where: { id: { in: chunk } },
+      select: { id: true },
+    });
+    for (const product of products) existingIds.add(product.id);
   }
-  return { written: ok, productIds };
-}
 
-async function refreshProductBasePrices(productIds: Set<string>): Promise<void> {
-  const ids = [...productIds];
-  for (let index = 0; index < ids.length; index += PRODUCT_REFRESH_BATCH_SIZE) {
-    const chunk = ids.slice(index, index + PRODUCT_REFRESH_BATCH_SIZE);
-    const activeOffers = await prisma.offer.findMany({
-      where: { productId: { in: chunk }, inStock: true },
+  const resolved = items.map((item) => {
+    const deterministicId = item.gtin
+      ? `prod-${cCode}-gtin-${item.gtin}`
+      : `prod-${item.merchantId}-${item.offerData.merchantProductId}`;
+    const existingProductId = item.gtin
+      ? gtinProductIds.get(item.gtin) ?? (existingIds.has(deterministicId) ? deterministicId : undefined)
+      : existingIds.has(deterministicId)
+        ? deterministicId
+        : undefined;
+    const productId = existingProductId ?? deterministicId;
+    return { item, productId };
+  });
+  const resolvedProductIds = [...new Set(resolved.map(({ productId }) => productId))];
+  const foreignMinimumPrices = new Map<string, number>();
+
+  for (let index = 0; index < resolvedProductIds.length; index += IDENTITY_READ_BATCH_SIZE) {
+    const chunk = resolvedProductIds.slice(index, index + IDENTITY_READ_BATCH_SIZE);
+    const activeForeignOffers = await readClient.offer.findMany({
+      where: {
+        productId: { in: chunk },
+        inStock: true,
+        OR: [
+          { feedMerchantId: null },
+          { feedMerchantId: { not: items[0]!.merchantId } },
+        ],
+      },
       select: { productId: true, price: true },
     });
-    const minimumPrices = new Map<string, number>();
-    for (const offer of activeOffers) {
-      const current = minimumPrices.get(offer.productId);
+    for (const offer of activeForeignOffers) {
+      const current = foreignMinimumPrices.get(offer.productId);
       if (current === undefined || offer.price < current) {
-        minimumPrices.set(offer.productId, offer.price);
+        foreignMinimumPrices.set(offer.productId, offer.price);
       }
     }
-
-    await prisma.$transaction(
-      chunk.map((productId) =>
-        prisma.product.update({
-          where: { id: productId },
-          data: {
-            basePrice: minimumPrices.get(productId) ?? null,
-            updatedAt: new Date(),
-          },
-        })
-      )
-    );
   }
+
+  const now = new Date();
+  const productRowsById = new Map<string, AtomicCatalogProductRow>();
+  const offerRows: AtomicCatalogOfferRow[] = [];
+  for (const { item, productId } of resolved) {
+    const existingRow = productRowsById.get(productId);
+    const incomingMinimum = Math.min(existingRow?.basePrice ?? Number.POSITIVE_INFINITY, item.offerData.price);
+    const basePrice = Math.min(
+      incomingMinimum,
+      foreignMinimumPrices.get(productId) ?? Number.POSITIVE_INFINITY
+    );
+    if (existingRow) {
+      existingRow.basePrice = basePrice;
+    } else {
+      productRowsById.set(productId, {
+        id: productId,
+        ...item.productData,
+        basePrice,
+        targetCountries: [countryCode],
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+    offerRows.push({
+      ...item.offerData,
+      productId,
+      feedMerchantId: item.merchantId,
+    });
+  }
+
+  return { productRows: [...productRowsById.values()], offerRows };
 }

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { COMPARISON_COLLECTION_FILTERS } from "@/lib/categories";
 import {
+  getCachedFirstBrowsePage,
   resetCatalogBrowseCacheForTests,
   setCachedBrowseMeta,
   setCachedFirstBrowsePage,
@@ -15,6 +16,19 @@ import {
 
 const fetchMerged = vi.hoisted(() => vi.fn());
 const warmMeta = vi.hoisted(() => vi.fn(async (_country?: string) => undefined));
+const revisions = vi.hoisted(() => ({ current: "before", scoped: undefined as string | undefined }));
+vi.mock("@/lib/catalog-revision", () => ({
+  getCatalogRevision: vi.fn(async () => revisions.scoped ?? revisions.current),
+  withCatalogRevision: vi.fn(async (_country: string, operation: () => Promise<unknown>) => {
+    const previous = revisions.scoped;
+    revisions.scoped = revisions.current;
+    try {
+      return await operation();
+    } finally {
+      revisions.scoped = previous;
+    }
+  }),
+}));
 vi.mock("@/lib/product-service", () => ({
   fetchMergedProductsForLocation: fetchMerged,
 }));
@@ -27,6 +41,8 @@ describe("category page browse counts", () => {
     resetCatalogBrowseCacheForTests();
     fetchMerged.mockReset();
     warmMeta.mockClear();
+    revisions.current = "before";
+    revisions.scoped = undefined;
   });
 
   it("exposes one collection count key per comparison filter", () => {
@@ -76,5 +92,33 @@ describe("category page browse counts", () => {
     expect(hasBrowseInventory(counts)).toBe(false);
     expect(fetchMerged).not.toHaveBeenCalled();
     expect(warmMeta).toHaveBeenCalledWith("CH");
+  });
+
+  it("does not write a pre-import category result under the post-import revision", async () => {
+    let releaseFetch!: () => void;
+    const fetchGate = new Promise<void>((resolve) => {
+      releaseFetch = resolve;
+    });
+    fetchMerged.mockImplementationOnce(async () => {
+      await fetchGate;
+      return {
+        products: [{ id: "before-import" }],
+        meta: { totalMatched: 1, catalogRevision: "before" },
+      };
+    });
+
+    const request = fetchCatalogForCountry("CH", "auto-tires", CATEGORY_PAGE_LIST);
+    await vi.waitFor(() => expect(fetchMerged).toHaveBeenCalledOnce());
+    revisions.current = "after";
+    releaseFetch();
+    await request;
+
+    expect(
+      await getCachedFirstBrowsePage("CH", CATEGORY_PAGE_LIST.limit, "auto-tires")
+    ).toBeNull();
+    revisions.current = "before";
+    await expect(
+      getCachedFirstBrowsePage("CH", CATEGORY_PAGE_LIST.limit, "auto-tires")
+    ).resolves.toMatchObject({ products: [{ id: "before-import" }] });
   });
 });

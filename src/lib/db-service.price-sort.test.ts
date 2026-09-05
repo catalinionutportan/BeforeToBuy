@@ -5,11 +5,19 @@ const findMany = vi.fn();
 const findFirst = vi.fn();
 const count = vi.fn();
 const groupBy = vi.fn();
+const categoryRows = vi.fn();
+const brandRows = vi.fn();
 const redisConfigured = vi.fn(() => true);
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    $queryRaw: (...args: unknown[]) => JSON.stringify(args[0]).includes("DISTINCT ON") ? Promise.resolve([]) : queryRaw(...args),
+    $queryRaw: (...args: unknown[]) => {
+      const sql = JSON.stringify(args[0]);
+      if (sql.includes("DISTINCT ON")) return Promise.resolve([]);
+      if (sql.includes("COUNT(*)::int AS n")) return categoryRows(...args);
+      if (sql.includes("SELECT mp.brand")) return brandRows(...args);
+      return queryRaw(...args);
+    },
     product: {
       findMany: (...args: unknown[]) => findMany(...args),
       findFirst: (...args: unknown[]) => findFirst(...args),
@@ -70,9 +78,8 @@ describe("getProductsFromDb price sort", () => {
     vi.resetAllMocks();
     redisConfigured.mockReturnValue(true);
     resetCatalogBrowseCacheForTests();
-    groupBy.mockImplementation((args: { by: string[] }) => Promise.resolve(
-      args.by.includes("category") ? [{ category: "electronics", _count: { _all: 6 } }] : []
-    ));
+    categoryRows.mockResolvedValue([{ category: "electronics", n: 6 }]);
+    brandRows.mockResolvedValue([]);
     count.mockResolvedValue(6);
     findFirst.mockResolvedValue(null);
   });
@@ -91,9 +98,7 @@ describe("getProductsFromDb price sort", () => {
 
   it("supports deep offsets and hasMore at the catalogue tail", async () => {
     count.mockResolvedValue(10);
-    groupBy.mockImplementation((args: { by: string[] }) => Promise.resolve(
-      args.by.includes("category") ? [{ category: "electronics", _count: { _all: 10 } }] : []
-    ));
+    categoryRows.mockResolvedValue([{ category: "electronics", n: 10 }]);
     queryRaw.mockResolvedValue([{ id: "prod-i" }, { id: "prod-j" }]);
     findMany.mockResolvedValueOnce([mockProduct("prod-i", 90), mockProduct("prod-j", 95)]);
 
@@ -160,16 +165,14 @@ describe("getProductsFromDb price sort", () => {
     queryRaw.mockResolvedValue([{ id: "prod-ch-acer-1" }]);
     findMany.mockResolvedValue([mockProduct("prod-ch-acer-1", 15)]);
     count.mockResolvedValue(42000);
-    groupBy.mockImplementation((args: { by: string[] }) => Promise.resolve(
-      args.by.includes("category") ? [{ category: "electronics", _count: { _all: 42000 } }] : []
-    ));
+    categoryRows.mockResolvedValue([{ category: "electronics", n: 42000 }]);
 
     const page = await getProductsFromDb("CH", undefined, undefined, 1, 0);
 
     expect(page.products.map((product) => product.id)).toEqual(["prod-ch-acer-1"]);
     expect(page.totalMatched).toBe(42000);
     expect(page.countryProductCount).toBe(42000);
-    expect(groupBy).toHaveBeenCalled();
+    expect(categoryRows).toHaveBeenCalled();
     expect(count).not.toHaveBeenCalled();
   });
 });

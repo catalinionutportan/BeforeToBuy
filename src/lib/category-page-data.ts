@@ -16,6 +16,7 @@ import {
   type ProductSortOption,
 } from "@/lib/product-list-options";
 import { fetchMergedProductsForLocation } from "@/lib/product-service";
+import { getCatalogRevision, withCatalogRevision } from "@/lib/catalog-revision";
 
 export const CATEGORY_PAGE_LIST = {
   ...BROWSE_LIST_OPTIONS,
@@ -61,6 +62,7 @@ export function collectionCountsFromLeafCounts(
 
 const cachedCatalogFetch = cache(
   async (
+    _catalogRevision: string,
     countryCode: CountryCode,
     category: string | undefined,
     limit: number | undefined,
@@ -92,6 +94,17 @@ export async function fetchCatalogForCountry(
   category?: string,
   listOptions?: ProductListOptions
 ) {
+  return withCatalogRevision(countryCode, () =>
+    fetchCatalogForCountryAtRevision(countryCode, category, listOptions)
+  );
+}
+
+async function fetchCatalogForCountryAtRevision(
+  countryCode: CountryCode,
+  category?: string,
+  listOptions?: ProductListOptions
+) {
+  const catalogRevision = await getCatalogRevision(countryCode);
   const compact = listOptions?.compact ?? listOptions?.limit != null;
   const offset = listOptions?.offset ?? 0;
   const limit = listOptions?.limit;
@@ -110,6 +123,7 @@ export async function fetchCatalogForCountry(
   }
 
   const result = await cachedCatalogFetch(
+    catalogRevision,
     countryCode,
     category,
     listOptions?.limit,
@@ -135,6 +149,12 @@ export async function fetchCatalogForCountry(
  * Never groupBy 86k rows on the request path (that was the 5–7s white wall).
  */
 export async function getBrowseCountsForCountry(
+  countryCode: CountryCode
+): Promise<BrowseCounts> {
+  return withCatalogRevision(countryCode, () => getBrowseCountsForCountryAtRevision(countryCode));
+}
+
+async function getBrowseCountsForCountryAtRevision(
   countryCode: CountryCode
 ): Promise<BrowseCounts> {
   const cached = await getCachedBrowseMeta(countryCode);

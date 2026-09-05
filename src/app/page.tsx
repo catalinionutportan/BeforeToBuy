@@ -28,6 +28,7 @@ import {
 } from "@/lib/request-body-limits";
 import { stripUnsafeQueryChars } from "@/lib/utils/sanitization";
 import { productMatchesCategoryFilter } from "@/lib/categories";
+import { withCatalogRevision } from "@/lib/catalog-revision";
 
 export const dynamic = "force-dynamic";
 
@@ -101,6 +102,16 @@ function cacheMatchesCategory(
 }
 
 export default async function Home({ searchParams }: HomePageProps) {
+  const params = searchParams ? await searchParams : undefined;
+  const country = await getRequestMarketCountry(firstSearchParam(params?.country)?.toUpperCase());
+  try {
+    return await withCatalogRevision(country, () => renderHome({ searchParams: Promise.resolve(params ?? {}) }));
+  } catch {
+    return <HomePageClient initialCountry={country} initialFetchFailed />;
+  }
+}
+
+async function renderHome({ searchParams }: HomePageProps) {
   let marketCountry: CountryCode = "RO";
   let initialProducts: Product[] = [];
   let initialMeta: ProductFetchMeta | null = null;
