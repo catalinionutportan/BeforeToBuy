@@ -118,7 +118,6 @@ export const AFFILIATE_NETWORKS_PLANNED = [
   "AWIN Comparison Engine / Publisher (CH / DE / additional UK)",
   "Amazon Associates (via official portal)",
   "Additional 2Performant RO merchants (when accepted + feed ready)",
-  "Tradedoubler (where Galaxus AT/DE affiliate is offered)",
   "CJ Affiliate (if approved)",
 ] as const;
 
