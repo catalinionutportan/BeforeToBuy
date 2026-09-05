@@ -92,8 +92,12 @@ product, merchant destination or legal requirement.
 
 ## Publication
 
-Candidate build and real-catalogue verification are required before cutover.
-Final publication evidence is recorded below after verification.
+Runtime commit `5a5e29a` published on the NAS and public domain after candidate
+build, tests and real-catalogue verification. Previous live release preserved at
+`/share/Container/beforetobuy-backup-pre-stability-20260905-0205`. Container-mounted
+source/build fingerprints match the deployed release. Temporary candidate
+container removed; isolated local PostgreSQL stopped. No production catalogue
+rows were deleted, imported or rewritten during this audit.
 
 The initial candidate (before removal of the redundant country count) returned
 503 for cold CH/DE. It was not published. After that correction, a new empty
@@ -111,3 +115,15 @@ from page 1; no horizontal overflow at 375/768/1440px. Rail category counts:
 Targeted real-catalogue API checks: CH Hair Care + Belando returned only Hair
 Care/Hair Styling (5,976 total); GB VR returned exactly one VR product, not the
 general electronics catalogue; an unknown CH search returned zero products.
+
+After candidate restart with disk cache preserved, all five markets returned 48
+products with cache hits (13–239ms, local network). Public warmed API samples after
+cutover: CH 144ms; DE 112ms; GB 62ms; US 63ms, all 200 with expected totals.
+
+Public browser verification repeated successfully for all four markets, including
+modal position/order, disjoint page 2, responsive widths and all sitemap shards.
+The first public RO request at the separate 24-product page size returned the
+known 7-second timeout/503. The next full smoke run passed all 9 checks, including
+RO catalogue and consent. RO cold-start timeout is therefore still OPEN, not
+declared fixed by its successful retry. No guarantee of uniformly fast cold
+queries is made.
