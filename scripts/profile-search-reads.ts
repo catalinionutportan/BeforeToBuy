@@ -8,6 +8,8 @@ async function main() {
   const query = process.argv.find((arg) => arg.startsWith("--query="))?.slice(8) ?? "zznoexistingproductaudit123";
   const pattern = `%${query}%`;
   const requestedOperation = process.argv.find((arg) => arg.startsWith("--operation="))?.slice(12);
+  const planMode = process.argv.find((arg) => arg.startsWith("--plan-mode="))?.slice(12);
+  if (planMode && !["force_custom_plan", "force_generic_plan"].includes(planMode)) throw new Error("Invalid plan mode");
   const contains = { contains: query, mode: "insensitive" as const };
   const where: Prisma.ProductWhereInput = {
     targetCountries: { has: country },
@@ -15,7 +17,7 @@ async function main() {
     offers: { some: { inStock: true } },
   };
   try {
-    for (const operation of ["old-count", "old-page", "combined-search", "country-count", "country-plan", "active-country-count", "cold-combined", "activity"] as const) {
+    for (const operation of ["old-count", "old-page", "combined-search", "country-count", "country-plan", "active-country-count", "cold-combined", "activity", "natural-page-plan", "table-stats"] as const) {
       if (requestedOperation && requestedOperation !== operation) continue;
       if (!requestedOperation && !["old-count", "old-page", "combined-search"].includes(operation)) continue;
       const start = performance.now();
@@ -23,6 +25,18 @@ async function main() {
         const result = await prisma.$transaction(async (tx) => {
           await tx.$executeRaw`SET TRANSACTION READ ONLY`;
           await tx.$queryRaw`SELECT set_config('statement_timeout', '7000ms', true)`;
+          if (planMode) await tx.$queryRaw`SELECT set_config('plan_cache_mode', ${planMode}, true)`;
+          if (operation === "table-stats") return {
+            tables: await tx.$queryRaw`SELECT relname, n_live_tup, n_dead_tup, last_autovacuum, last_autoanalyze FROM pg_stat_user_tables WHERE relname IN ('Product', 'Offer')`,
+            indexes: await tx.$queryRaw`SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'Product'`,
+          };
+          if (operation === "natural-page-plan") return { plan: await tx.$queryRaw(Prisma.sql`
+            EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)
+            WITH matched_products AS MATERIALIZED (
+              SELECT p.id FROM "Product" p WHERE p."targetCountries" @> ARRAY[${country}]::text[]
+              AND EXISTS (SELECT 1 FROM "Offer" o WHERE o."productId" = p.id AND o."inStock" = true)
+            ) SELECT id FROM matched_products ORDER BY id ASC LIMIT 48 OFFSET 48
+          `) };
           if (operation === "activity") return { activity: await tx.$queryRaw`
             SELECT current_setting('server_version_num') AS server_version, state, wait_event_type, wait_event, COUNT(*)::int AS connections,
               MAX(EXTRACT(EPOCH FROM clock_timestamp() - query_start))::float AS oldest_query_seconds
@@ -89,7 +103,7 @@ async function main() {
           `);
           return { total: row?.total, rows: row?.ids.length };
         }, { timeout: 10000 });
-        console.log(JSON.stringify({ country, query, operation, ms: Math.round(performance.now() - start), ...result }));
+        console.log(JSON.stringify({ country, query, operation, ms: Math.round(performance.now() - start), ...result }, (_key, value) => typeof value === "bigint" ? value.toString() : value));
       } catch { console.log(JSON.stringify({ country, query, operation, ms: Math.round(performance.now() - start), failed: true })); }
     }
   } finally { await prisma.$disconnect(); }

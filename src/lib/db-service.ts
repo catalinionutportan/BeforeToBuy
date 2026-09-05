@@ -707,6 +707,15 @@ async function queryProductIdsByMarketFirstNaturalOrder(
   take: number,
   skip: number
 ): Promise<string[]> {
+  // The DE partial country/id index permits ordered reads to stop at the page
+  // boundary. Materializing every DE product here would discard that benefit.
+  if (countryCode.toUpperCase() === "DE") {
+    const rows = await catalogReadDb().$queryRaw<{ id: string }[]>(Prisma.sql`
+      ${matchingMarketProductIdsSql(countryCode, query, category, filters)}
+      ORDER BY p.id ASC LIMIT ${take} OFFSET ${skip}
+    `);
+    return rows.map((row) => row.id);
+  }
   const rows = await catalogReadDb().$queryRaw<{ id: string }[]>(Prisma.sql`
     WITH matched_products AS MATERIALIZED (
       ${matchingMarketProductIdsSql(countryCode, query, category, filters)}

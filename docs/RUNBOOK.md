@@ -87,6 +87,14 @@ cache I/O; re-evaluate the boundary before enabling it. `CATALOG_READ_TIMINGS=1`
 logs only market/stage/duration for diagnosis. See
 `SEARCH-CATEGORY-AUDIT-2026-09-05.md` for evidence and remaining cold-search issues.
 
+DE ordered browsing relies on the additive partial B-tree
+`public."Product_de_browse_id_idx"` (Product.id WHERE targetCountries contains DE).
+Preserve it during schema maintenance; it is managed by
+`scripts/install-de-browse-index.ts`, not expressible in this Prisma schema.
+The script is read-only unless `--apply` is supplied. It uses a dedicated session
+connection for concurrent DDL, verifies the exact definition and never drops or
+replaces an existing index. It can remain during application rollback.
+
 | Endpoint | Purpose |
 |----------|---------|
 | `GET /api/health` | Public: cheap cached summary (no commit/env/product counts). Internal Bearer: full diagnostics |

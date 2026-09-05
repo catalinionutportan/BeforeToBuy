@@ -2,7 +2,8 @@
 
 Scope: CH, DE, GB and US. Romania's feed additions, taxonomy/presentation work
 and identical-product comparison are deferred at the owner's request. No
-production feed import, product/offer rewrite or schema change in this batch.
+production feed import or product/offer rewrite in this batch. One additive
+DE-only partial browse index was installed, without replacing existing indexes.
 
 ## Correctness changes
 
@@ -15,10 +16,13 @@ production feed import, product/offer rewrite or schema change in this batch.
   no longer start detached global metadata scans in these four markets. Redis
   background warming is restricted to unfiltered first browse pages, preserving
   the existing RO lifecycle. This reduces unnecessary work, not a latency SLA.
-- A final browser run exposed a slow DE page-two Prisma scan. DE natural-order
-  browsing now uses the same market-ID-first strategy already used by RO/GB/US,
-  retaining exact counts, filters, order and offsets. The cancelled slow read was
-  observed in the candidate and publication was paused for this correction.
+- Final browser runs exposed slow DE page-two scans. Materializing all DE IDs also
+  remained slow: its execution plan read about 84,265 product rows before returning
+  48, with sampled execution times 3.5–5.3 seconds. DE now reads ordered IDs with
+  an early LIMIT using `Product_de_browse_id_idx`, a partial B-tree on Product.id
+  for targetCountries containing DE. The index was built concurrently and verified
+  valid (3,448,832 bytes). RO/GB/US keep their existing materialized strategy.
+  No plan_cache_mode override was adopted: it did not solve the observed scan.
 - The CH wheel-classification SQL requires the Reifen classification offer itself
   to be active, matching the existing Prisma predicate.
 - CH Hair Care (5,935) and Hair Styling (41) previously opened the same expanded
@@ -101,6 +105,11 @@ CPU/memory pressure. This snapshot does not rule out transient database pressure
 - `scripts/profile-search-reads.ts`: bounded read-only SQL samples and optional
   execution-plan/activity inspection. Experimental variants require an explicit
   operation argument and are never selected by the application.
+- `scripts/install-de-browse-index.ts`: inspect by default; explicit `--apply`
+  creates only the named DE partial index concurrently and checks its exact
+  definition/validity. Concurrent DDL requires the dedicated Supabase session
+  endpoint: the first attempt through the request-time transaction pool was
+  rejected before creating an index. The installer never drops an existing index.
 - `src/scripts/audit-presentation-rails.ts`: sequential read-only category checks.
 - `CATALOG_READ_TIMINGS=1`: opt-in country/stage/duration diagnostics; no search
   strings, product payloads or credentials are logged.
@@ -116,6 +125,10 @@ Candidate browser flows passed for all four markets: 48 unique cards, modal clos
 preserves order and vertical position within 3px, page two disjoint from page one,
 no overflow at 375/768/1440px. Rails have CH19/DE3/GB15/US6 categories. All 23 sitemap
 shards served 210,178 URLs. No production affiliate links were clicked.
+
+After the DE index/early-LIMIT correction, the final candidate again passed all
+four browser flows. DE offset48/96/4800 returned 200 with 48 products and the exact
+84,265 total in 1,441ms / 746ms / 1,147ms respectively.
 
 Publication status will be recorded after the controlled cutover. This is an
 incremental correctness/containment release, not a claim that all performance,

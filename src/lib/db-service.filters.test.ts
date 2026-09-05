@@ -139,7 +139,7 @@ describe("getProductsFromDb offer visibility", () => {
     expect(page.totalMatched).toBe(50);
     expect(page.products.map((product) => product.id)).toEqual(["de-second", "de-third"]);
     expect(queryRaw).toHaveBeenCalledOnce();
-    expect(queryRaw.mock.calls[0]![0].sql).toContain("WITH matched_products AS MATERIALIZED");
+    expect(queryRaw.mock.calls[0]![0].sql).toContain("ORDER BY p.id ASC LIMIT");
     expect(queryRaw.mock.calls[0]![0].values).toContain("DE");
     expect(queryRaw.mock.calls[0]![0].values).toContain(48);
     expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: { in: ["de-second", "de-third"] } } }));
