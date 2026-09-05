@@ -59,6 +59,17 @@ async function main() {
         targetCountries: { has: country }, offers: { some: { inStock: true } },
       } });
       assert.equal(await countInStockProductsForCountry(country), expectedCountryCount);
+      if (country === "DE") {
+        await setCachedBrowseMeta(country, { countryProductCount: expectedCountryCount, categoryCounts: {}, leafCounts: {}, categoryCovers: {}, brandOptions: [] });
+        const expectedPage = await prisma.product.findMany({
+          where: { targetCountries: { has: country }, offers: { some: { inStock: true } } },
+          orderBy: { id: "asc" }, skip: 48, take: 48, select: { id: true },
+        });
+        const actualPage = await getProductsFromDb(country, undefined, undefined, 48, 48);
+        assert.deepEqual(actualPage.products.map((product) => product.id), expectedPage.map((product) => product.id));
+        assert.equal(actualPage.totalMatched, expectedCountryCount);
+        console.log(JSON.stringify({ country, naturalOrderPageTwo: "pass" }));
+      }
       console.log(JSON.stringify({ country, exactCountAndFourSearchFields: true, pagination: "pass", combinedFilters: "pass", unknownQuery: "pass" }));
     }
     await prisma.product.create({ data: {

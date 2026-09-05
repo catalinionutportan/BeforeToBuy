@@ -636,7 +636,7 @@ async function queryProductIdsByMinOfferTotal(
  * Materializing the fully matched market slice forces the targetCountries GIN
  * index to narrow the catalogue first; the small result is then sorted/paged.
  */
-const MARKET_FIRST_NATURAL_ORDER_COUNTRIES = new Set(["RO", "GB", "US"]);
+const MARKET_FIRST_NATURAL_ORDER_COUNTRIES = new Set(["RO", "DE", "GB", "US"]);
 
 function matchingMarketProductIdsSql(
   countryCode: string,

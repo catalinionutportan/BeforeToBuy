@@ -129,6 +129,23 @@ describe("getProductsFromDb offer visibility", () => {
     expect(count).not.toHaveBeenCalled();
   });
 
+  it("narrows Germany to matching market IDs before paginating beyond its cached first page", async () => {
+    await setCachedBrowseMeta("DE", {
+      countryProductCount: 50, categoryCovers: {}, brandOptions: [], categoryCounts: {}, leafCounts: {},
+    });
+    queryRaw.mockResolvedValue([{ id: "de-second" }, { id: "de-third" }]);
+    findMany.mockResolvedValue([mockProduct("de-third", 0), mockProduct("de-second", 0)]);
+    const page = await getProductsFromDb("DE", undefined, undefined, 2, 48);
+    expect(page.totalMatched).toBe(50);
+    expect(page.products.map((product) => product.id)).toEqual(["de-second", "de-third"]);
+    expect(queryRaw).toHaveBeenCalledOnce();
+    expect(queryRaw.mock.calls[0]![0].sql).toContain("WITH matched_products AS MATERIALIZED");
+    expect(queryRaw.mock.calls[0]![0].values).toContain("DE");
+    expect(queryRaw.mock.calls[0]![0].values).toContain(48);
+    expect(findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { id: { in: ["de-second", "de-third"] } } }));
+    expect(count).not.toHaveBeenCalled();
+  });
+
   it("uses an indexed exact country count on a cold search, without the old Prisma full-count path", async () => {
     queryRaw.mockResolvedValue([{ total: 0, ids: [] }]);
     const page = await getProductsFromDb("CH", "missing", undefined, 48, 0);

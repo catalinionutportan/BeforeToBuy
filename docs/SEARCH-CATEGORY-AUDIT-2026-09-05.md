@@ -15,6 +15,10 @@ production feed import, product/offer rewrite or schema change in this batch.
   no longer start detached global metadata scans in these four markets. Redis
   background warming is restricted to unfiltered first browse pages, preserving
   the existing RO lifecycle. This reduces unnecessary work, not a latency SLA.
+- A final browser run exposed a slow DE page-two Prisma scan. DE natural-order
+  browsing now uses the same market-ID-first strategy already used by RO/GB/US,
+  retaining exact counts, filters, order and offsets. The cancelled slow read was
+  observed in the candidate and publication was paused for this correction.
 - The CH wheel-classification SQL requires the Reifen classification offer itself
   to be active, matching the existing Prisma predicate.
 - CH Hair Care (5,935) and Hair Styling (41) previously opened the same expanded
@@ -103,7 +107,7 @@ CPU/memory pressure. This snapshot does not rule out transient database pressure
 
 ## Final candidate verification
 
-81 unit-test files / 379 tests passed, one explicit integration case skipped in
+81 unit-test files / 380 tests passed, one explicit integration case skipped in
 the default suite. Lint, TypeScript and production builds passed. All 32 browser
 tests passed, including the previously failing import-revision search sequence.
 Isolated PostgreSQL pagination/filter/rim and cancellation checks passed.
