@@ -130,6 +130,27 @@ After the DE index/early-LIMIT correction, the final candidate again passed all
 four browser flows. DE offset48/96/4800 returned 200 with 48 products and the exact
 84,265 total in 1,441ms / 746ms / 1,147ms respectively.
 
-Publication status will be recorded after the controlled cutover. This is an
-incremental correctness/containment release, not a claim that all performance,
-taxonomy, stock or legal obligations have been fully audited or resolved.
+## Publication
+
+Runtime commit `e0291f5` published on the NAS/public domain. The previous release
+is retained at `/share/Container/beforetobuy-backup-pre-search-20260905-0340`.
+Mounted runtime source hashes match the local committed source; host/container
+BUILD_ID hashes match. Existing caches and sitemap files were preserved.
+
+All nine public smoke checks passed. Final public browser flows also passed for
+CH/DE/GB/US with 48 cards, unchanged order/position after modal close, disjoint
+page two and responsive widths 375/768/1440px. Public rails have 19/3/15/6 entries;
+all 23 sitemap shards serve 210,178 URLs. The temporary candidate containers were
+removed and isolated local PostgreSQL stopped; its fixture directory is retained.
+
+The separate post-publication CH `q=acer&limit=48` check returned 503 at 5,154ms
+with a confirmed PostgreSQL statement-timeout error. This remains a real,
+user-visible failure, not just a synthetic unknown-term issue. The separate public
+DE offset48 request passed at 783ms with 48 products and total 84,265. Normal
+browse/modal tests passing must not be used to mark CH cold text search resolved.
+
+This is an incremental correctness/containment release, not a claim that all
+performance, taxonomy, stock or legal obligations have been fully audited or
+resolved. Cold CH text-search failures, including a known brand, remain explicitly
+open above. RO feed
+additions and identical-product comparison remain deferred to the next work session.
